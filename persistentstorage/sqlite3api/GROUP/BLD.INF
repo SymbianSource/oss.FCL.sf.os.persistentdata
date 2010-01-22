@@ -1,0 +1,59 @@
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// All rights reserved.
+// This component and the accompanying materials are made available
+// under the terms of "Eclipse Public License v1.0"
+// which accompanies this distribution, and is available
+// at the URL "http://www.eclipse.org/legal/epl-v10.html".
+//
+// Initial Contributors:
+// Nokia Corporation - initial contribution.
+//
+// Contributors:
+//
+// Description:
+// SQLIte C API library
+// 
+//
+
+/**
+ @file
+*/
+
+PRJ_EXPORTS
+
+../SQLite/sqlite3.h	SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(stdapis/sqlite3.h)
+../GROUP/sqlite3.iby	/epoc32/rom/include/sqlite3.iby
+../GROUP/SQLite3_stub.SIS	/epoc32/data/z/system/install/sqlite3_stub.sis
+
+PRJ_MMPFILES
+
+#ifndef GCCXML
+../GROUP/sqlite3.mmp
+#endif
+
+PRJ_TESTEXPORTS
+
+../GROUP/sqlite3tests.iby		/epoc32/rom/include/sqlite3tests.iby
+../GROUP/sqlite3tests.bat		/epoc32/data/z/system/test/sqlite3tests.bat
+../GROUP/config.ini				/epoc32/data/z/system/test/config.ini
+
+PRJ_TESTMMPFILES
+
+#ifndef GCCXML
+//tcl.dll is a test library used by the TCL tests
+../TEST/TCL/group/tcl84.mmp support
+../GROUP/tclsqlite3.mmp manual
+#endif
+../GROUP/t_sqliteapi.mmp
+../GROUP/t_sqlitewsd.mmp
+//t_sqlitewsd2 should not be used as a standalone test application. t_sqlitewsd2 is used by t_sqlitewsd test application. 
+../GROUP/t_sqlitewsd2.mmp support
+../GROUP/t_sqliteperf.mmp
+../GROUP/t_sqliteperf2.mmp
+../GROUP/t_sqlitedef.mmp
+../GROUP/t_sqlitedb64.mmp manual
+
+
+PRJ_TESTEXTENSIONS 
+start extension syslibs/test/sqlite3_copysqlite3testfiles
+end

@@ -1,0 +1,95 @@
+// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// All rights reserved.
+// This component and the accompanying materials are made available
+// under the terms of "Eclipse Public License v1.0"
+// which accompanies this distribution, and is available
+// at the URL "http://www.eclipse.org/legal/epl-v10.html".
+//
+// Initial Contributors:
+// Nokia Corporation - initial contribution.
+//
+// Contributors:
+//
+// Description:
+//
+
+
+
+/**
+ @file bld.inf
+ @internalTechnology
+*/
+
+#include "../perfdevicedriver/group/bld.inf"
+#include "../tracecontroltestplugin/group/bld.inf"
+
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_EXPORTS
+
+PRJ_TESTEXPORTS
+//iby's
+te_ostv2integsuite.iby   																			/epoc32/rom/include/te_ostv2integsuite.iby
+
+//scripts
+../te_ostv2integsuite_functional/testdata/scripts/te_integ_tracecollectorclient.script				/epoc32/release/winscw/udeb/z/testdata/scripts/te_integ_tracecollectorclient.script
+../te_ostv2integsuite_functional/testdata/scripts/te_integ_tracecollectorclient_disabled.script		/epoc32/release/winscw/udeb/z/testdata/scripts/te_integ_tracecollectorclient_disabled.script
+../te_ostv2integsuite_functional/testdata/scripts/te_integ_tracecollectorclient_enabled.script		/epoc32/release/winscw/udeb/z/testdata/scripts/te_integ_tracecollectorclient_enabled.script
+../te_ostv2integsuite_functional/testdata/scripts/te_integ_tracecollectorsysstart.script   			/epoc32/release/winscw/udeb/z/testdata/scripts/te_integ_tracecollectorsysstart.script
+../te_ostv2integsuite_functional/testdata/scripts/te_integ_tracecollectorconfigfile.script   		/epoc32/release/winscw/udeb/z/testdata/scripts/te_integ_tracecollectorconfigfile.script
+../te_ostv2integsuite_functional/testdata/scripts/te_integ_tracecollectorconfigfile_winscw.script 	/epoc32/release/winscw/udeb/z/testdata/scripts/te_integ_tracecollectorconfigfile_winscw.script
+
+../te_ostv2integsuite_performance/testdata/scripts/te_perf_sanity.script   							/epoc32/release/winscw/udeb/z/testdata/scripts/te_perf_sanity.script
+../te_ostv2integsuite_performance/testdata/scripts/te_perf_outputcsvsanity.script   				/epoc32/release/winscw/udeb/z/testdata/scripts/te_perf_outputcsvsanity.script
+../te_ostv2integsuite_performance/testdata/scripts/te_perf_default.script   						/epoc32/release/winscw/udeb/z/testdata/scripts/te_perf_default.script
+../te_ostv2integsuite_performance/testdata/scripts/te_perf_sanityloop.script   						/epoc32/release/winscw/udeb/z/testdata/scripts/te_perf_sanityloop.script
+../te_ostv2integsuite_performance/testdata/scripts/te_perf_sanity_disabled.script   				/epoc32/release/winscw/udeb/z/testdata/scripts/te_perf_sanity_disabled.script
+../te_ostv2integsuite_performance/testdata/scripts/te_perf_sanity_enabled.script   					/epoc32/release/winscw/udeb/z/testdata/scripts/te_perf_sanity_enabled.script
+../te_ostv2integsuite_performance/testdata/scripts/te_perf_guidelines.script   						/epoc32/release/winscw/udeb/z/testdata/scripts/te_perf_guidelines.script
+../te_ostv2integsuite_performance/testdata/scripts/te_perf_guidelines_disabled.script   			/epoc32/release/winscw/udeb/z/testdata/scripts/te_perf_guidelines_disabled.script
+../te_ostv2integsuite_performance/testdata/scripts/te_perf_guidelines_enabled.script   				/epoc32/release/winscw/udeb/z/testdata/scripts/te_perf_guidelines_enabled.script
+
+//configs
+../te_ostv2integsuite_functional/testdata/configs/te_integ_tracecollectorconfigfile_winscw.ini  	/epoc32/release/winscw/udeb/z/testdata/configs/te_integ_tracecollectorconfigfile_winscw.ini
+../te_ostv2integsuite_functional/testdata/configs/te_integ_tracecollectorconfigfile.ini  			/epoc32/release/winscw/udeb/z/testdata/configs/te_integ_tracecollectorconfigfile.ini
+../te_ostv2integsuite_functional/testdata/configs/te_integ_tracecollectorsysstart.ini 				/epoc32/release/winscw/udeb/z/testdata/configs/te_integ_tracecollectorsysstart.ini
+../te_ostv2integsuite_functional/testdata/configs/te_integ_tracecollectorclient.ini 				/epoc32/release/winscw/udeb/z/testdata/configs/te_integ_tracecollectorclient.ini
+
+../te_ostv2integsuite_functional/testdata/configs/configfiletracecontrolconfig.ini   				/epoc32/release/winscw/udeb/z/testdata/configs/configfiletracecontrolconfig.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_default.ini 								/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_default.ini
+../te_ostv2integsuite_performance/testdata/referencedata/ost_baseline_h4.csv						/epoc32/release/winscw/udeb/z/testdata/referencedata/ost_baseline_h4.csv
+../te_ostv2integsuite_performance/testdata/referencedata/ost_baseline_h6.csv						/epoc32/release/winscw/udeb/z/testdata/referencedata/ost_baseline_h6.csv
+../te_ostv2integsuite_performance/testdata/referencedata/ost_baseline_winscw.csv					/epoc32/release/winscw/udeb/z/testdata/referencedata/ost_baseline_winscw.csv
+../te_ostv2integsuite_performance/testdata/configs/te_perf_gon_con_gmatch_cmatch.ini 				/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_gon_con_gmatch_cmatch.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_gon_con_gmatch_cmismatch.ini 			/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_gon_con_gmatch_cmismatch.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_gon_con_gmismatch_cmatch.ini 			/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_gon_con_gmismatch_cmatch.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_gon_coff_gmatch_cmismatch.ini 			/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_gon_coff_gmatch_cmismatch.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_gon_coff_gmismatch_cmatch.ini 			/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_gon_coff_gmismatch_cmatch.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_goff_con_gmismatch_cmatch.ini 			/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_goff_con_gmismatch_cmatch.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_goff_con_gmatch_cmismatch.ini 			/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_goff_con_gmatch_cmismatch.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_goff_coff_gmatch_cmatch.ini 				/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_goff_coff_gmatch_cmatch.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_sanity.ini   							/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_sanity.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_guidelines.ini   						/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_guidelines.ini
+../te_ostv2integsuite_performance/testdata/configs/te_perf_outputcsvsanity.ini						/epoc32/release/winscw/udeb/z/testdata/configs/te_perf_outputcsvsanity.ini
+
+//export header files for the tcl branch
+../te_ostv2integsuite_common/inc/te_dataparameters.h  				/epoc32/include/tracecontrol_integrationtest/te_dataparameters.h
+../te_ostv2integsuite_common/inc/te_ostv2integsuite_defs.h 			/epoc32/include/tracecontrol_integrationtest/te_ostv2integsuite_defs.h
+../../../../common_utils/lightlogger/inc/lightlogger.h 				/epoc32/include/tracecontrol_integrationtest/lightlogger.h
+../../../../common_utils/lightlogger/inc/te_lightlogger.h  			/epoc32/include/tracecontrol_integrationtest/te_lightlogger.h
+
+PRJ_TESTMMPFILES
+te_ostv2integsuite_enabled.mmp
+te_ostv2integsuite_disabled.mmp
+
+//above mmp's and configs/scripts etc will eventually just be below bld.infs when binary split done.
+//#include "../te_ostv2integsuite_common/group/bld.inf"
+//#include "../te_ostv2integsuite_functional/group/bld.inf"
+//#include "../te_ostv2integsuite_performance/group/bld.inf"
+//move  the folder tracefw/integ_test/ost/TEF/traces/... to tracefw/integ_test/ost/TEF/te_ostv2integsuite_common/traces/... when the binary 
+//split is done for the three test binaries: te_ostv2integsuite_common.dll, te_ostv2integsuite_functional.exe. te_ostv2integsuite_perfromance.exe. 
+//Update all mmp's and bld.infs accordingly
+
+
+

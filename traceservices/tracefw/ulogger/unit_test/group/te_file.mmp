@@ -1,0 +1,63 @@
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// All rights reserved.
+// This component and the accompanying materials are made available
+// under the terms of "Eclipse Public License v1.0"
+// which accompanies this distribution, and is available
+// at the URL "http://www.eclipse.org/legal/epl-v10.html".
+//
+// Initial Contributors:
+// Nokia Corporation - initial contribution.
+//
+// Contributors:
+//
+// Description:
+// $servername.mmp
+// 
+//
+
+TARGET		uloggerplugfiletest.exe
+TARGETTYPE	exe
+UID			0x1000007A 0x101F777C
+CAPABILITY 	NONE
+VENDORID 	0x70000001
+
+//---------------------------------------
+// Specific files for TEFUnit
+//---------------------------------------
+SYSTEMINCLUDE	/epoc32/include
+SYSTEMINCLUDE	/epoc32/include/test
+SYSTEMINCLUDE	/epoc32/include/libc
+SYSTEMINCLUDE	/epoc32/include/ecom
+
+USERINCLUDE ../te-outfrwkchans/te-file
+USERINCLUDE ../../inc
+USERINCLUDE ../../src/outfrwkchans/file
+
+SOURCEPATH  ../../src/outfrwkchans/file
+SOURCE		uloggerfileplugin.cpp
+
+userinclude  ../../src/pluginframework
+
+
+SOURCEPATH	../te-outfrwkchans/te-file
+SOURCE		uloggerfileplugintest.cpp
+SOURCE		te_filesuiteserver.cpp
+SOURCE		te_filesuitestepbase.cpp
+
+
+STATICLIBRARY	tefunit.lib
+LIBRARY		euser.lib
+LIBRARY		efsrv.lib
+LIBRARY		testexecuteutils.lib
+LIBRARY		testexecutelogclient.lib
+LIBRARY		rfileloggerclient.lib
+LIBRARY		uloggersysconfig.lib
+LIBRARY		uloggerpluginframework.lib
+LIBRARY		ecom.lib
+
+#if (!defined WINS)
+LIBRARY		estlib.lib
+#endif
+
+SMPSAFE
+

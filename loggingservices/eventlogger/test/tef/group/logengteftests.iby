@@ -1,0 +1,38 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:
+*
+*/
+#ifndef LOGENGTEFTESTS_IBY
+#define LOGENGTEFTESTS_IBY
+
+#include <testexecute.iby>
+#include <burtestserver.iby>
+#include <connectivity_securebackupengine.iby>
+// the backup engine is dependant on all of these:
+#include <swi.iby>
+#include <certman.iby>
+#include <filetokens.iby>
+#include <httpcore.iby>
+#include <tls.iby>
+#include <ResponseMsg.iby>
+
+file=ABI_DIR\BUILD_DIR\teflogengbur.exe	sys\bin\teflogengbur.exe
+
+data=EPOCROOT##epoc32\data\z\TEF_LogEng\logengteftests.script	TEF_LogEng\logengteftests.script
+data=EPOCROOT##epoc32\data\z\TEF_LogEng\teflogengbur.script		TEF_LogEng\teflogengbur.script
+data=EPOCROOT##epoc32\data\z\TEF_LogEng\bur_config.ini 			TEF_LogEng\bur_config.ini
+data=EPOCROOT##epoc32\data\z\TEF_LogEng\testdata_config.ini 	TEF_LogEng\testdata_config.ini
+
+#endif // #ifndef LOGENGTEFTESTS_IBY

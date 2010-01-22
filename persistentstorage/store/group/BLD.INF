@@ -1,0 +1,111 @@
+// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// All rights reserved.
+// This component and the accompanying materials are made available
+// under the terms of "Eclipse Public License v1.0"
+// which accompanies this distribution, and is available
+// at the URL "http://www.eclipse.org/legal/epl-v10.html".
+//
+// Initial Contributors:
+// Nokia Corporation - initial contribution.
+//
+// Contributors:
+//
+// Description:
+// Stream store
+// 
+//
+
+/**
+ @file
+*/
+
+
+PRJ_PLATFORMS
+
+DEFAULT WINC TOOLS TOOLS2
+
+PRJ_EXPORTS
+
+../HTOOLS/pfsdump.ipr	/epoc32/engdoc/tools/pfsdump.ipr
+
+../INC/S32BTREE.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32btree.h)
+../INC/S32BTREE.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32btree.inl)
+../INC/S32BUF.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32buf.h)
+../INC/S32BUF.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32buf.inl)
+../INC/S32CONT.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32cont.h)
+../INC/S32CONT.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32cont.inl)
+../INC/S32CRYPT.H SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(s32crypt.h)
+../INC/S32CRYPT.INL SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(s32crypt.inl)
+../INC/S32FILE.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32file.h)
+../INC/S32FILE.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32file.inl)
+#ifndef SYMBIAN_ENABLE_SPLIT_HEADERS
+#ifdef SYMBIAN_OLD_EXPORT_LOCATION
+../INC/S32FILEBUFSIZE.H /epoc32/include/s32filebufsize.h
+#endif
+#endif
+../INC/S32MEM.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32mem.h)
+../INC/S32MEM.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32mem.inl)
+../INC/S32PAGE.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32page.h)
+../INC/S32PAGE.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32page.inl)
+../INC/S32SHARE.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32share.h)
+../INC/S32SHARE.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32share.inl)
+../INC/S32STD.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32std.h)
+../INC/S32STD.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32std.inl)
+../INC/S32STOR.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32stor.h)
+../INC/S32STOR.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32stor.inl)
+../INC/S32STRM.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32strm.h)
+../INC/S32STRM.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32strm.inl)
+../INC/S32UCMP.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(s32ucmp.h)
+../INC/S32FileIter.h SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(s32fileiter.h)
+../INC/S32FileIter.inl SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(s32fileiter.inl)
+
+../ROM/Store.iby	/epoc32/rom/include/store.iby
+
+PRJ_MMPFILES
+
+#ifdef TOOLS
+../HTOOLS/PFSDUMP.MMP
+#else 
+#ifndef TOOLS2
+../BMAKE/ESTOR.MMP
+#endif
+#endif
+
+PRJ_TESTEXPORTS
+
+../ROM/StoreTests.IBY 		/epoc32/rom/include/storetests.iby
+../ROM/StoreTests.BAT 		/epoc32/data/z/system/test/storetests.bat
+
+PRJ_TESTMMPFILES
+
+#if !defined TOOLS && !defined TOOLS2
+../TCONT/t_storset.mmp
+../TCRYPT/t_storcrypt.mmp
+../TFILE/t_storcorrupt.mmp
+../TFILE/t_storfbuf.mmp
+../TFILE/t_storfcomp.mmp
+../TFILE/t_storfdir.mmp
+../TFILE/t_storfperm.mmp
+../TFILE/t_storfrecl.mmp
+../TFILE/t_storfserr.mmp
+../TFILE/t_storfstrm.mmp
+../TFILE/t_storoom.mmp
+../TMEM/t_stormemstrm.mmp
+../TPAGE/t_storpage.mmp
+../TSTOR/t_storbench.mmp
+../TSTOR/t_stordict.mmp
+../TSTOR/t_storiter.mmp
+../TSTOR/t_stordelim.mmp
+../TSTOR/t_stordictfs.mmp
+../TSTOR/t_storembed.mmp
+../TSTOR/t_storshape.mmp
+../TSTOR/t_stortoc.mmp
+../TSTOR/t_storstrm.mmp
+../TSTOR/t_storverify.mmp
+../TSTRM/t_storconv.mmp
+../TSTRM/t_storucmp.mmp
+../TSTRM/t_storstreamperf.mmp
+#endif
+
+//PC tool library
+#include "../pcstore/group/bld.inf"

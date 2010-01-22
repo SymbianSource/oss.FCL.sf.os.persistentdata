@@ -1,0 +1,87 @@
+// Copyright (c) 1999-2009 Nokia Corporation and/or its subsidiary(-ies).
+// All rights reserved.
+// This component and the accompanying materials are made available
+// under the terms of "Eclipse Public License v1.0"
+// which accompanies this distribution, and is available
+// at the URL "http://www.eclipse.org/legal/epl-v10.html".
+//
+// Initial Contributors:
+// Nokia Corporation - initial contribution.
+//
+// Contributors:
+//
+// Description:
+// Database server (DBMS)
+// 
+//
+
+/**
+ @file
+*/
+
+PRJ_PLATFORMS
+
+DEFAULT WINC
+
+PRJ_EXPORTS
+
+../inc/D32DBMS.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(d32dbms.h)
+../inc/D32DBMSCONSTANTS.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(d32dbmsconstants.h)
+../inc/D32DBMS.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(d32dbms.inl)
+
+dbms.iby	/epoc32/rom/include/dbms.iby
+
+PRJ_MMPFILES
+
+#ifdef WINS
+../bmake/Edbspconv.mmp
+#endif
+../bmake/EDBMS.MMP
+../bmake/EDBSRV.MMP
+
+PRJ_TESTMMPFILES
+../tdbms/t_dbenvcreate.mmp
+../tdbms/t_dbalter.mmp
+../tdbms/t_dbbench.mmp
+../tdbms/t_dbbig.mmp
+../tdbms/t_dbbug.mmp
+../tdbms/t_dbclient.mmp
+../tdbms/t_dbcomp.mmp
+../tdbms/t_dbapi.mmp
+../tdbms/t_dbsrv.mmp
+../tdbms/t_dbfilestore.mmp		support
+../tdbms/t_dbfail.mmp
+../tdbms/t_dbindex.mmp
+../tdbms/t_dblimit.mmp
+../tdbms/t_dbscript.mmp
+../tdbms/t_dbsql.mmp
+../tdbms/t_dbstress.mmp
+../tdbms/t_dbtrans.mmp
+../tdbms/t_dbwindow.mmp
+../tdbms/t_dbpanic.mmp
+../tdbms/t_dbdefect.mmp
+../tdbms/t_dblongcol.mmp
+../tdbms/t_dbplatsec.mmp
+../tdbms/t_dbplatsec1.mmp
+../tdbms/t_dbplatsec2.mmp
+../tdbms/t_dbplatsec3.mmp
+../tdbms/t_dbplatsec4.mmp
+../tdbms/t_dbplatsec5.mmp
+../tdbms/t_dbnewcap1.mmp
+../tdbms/t_dbplatsecperf.mmp
+../tdbms/t_dbbackupsid.mmp
+../tdbms/t_dbood.mmp
+../tdbms/t_dbstrcmp.mmp
+../tdbms/t_dbperf1.mmp
+../tdbms/t_dbperf2.mmp
+../tdbms/t_dbperf3.mmp
+../tdbms/t_dbenvdestroy.mmp
+
+PRJ_TESTEXTENSIONS
+start extension syslibs/test/dbms_copytestdbscfiles
+end
+
+PRJ_TESTEXPORTS
+
+DBMSTests.iby 				/epoc32/rom/include/dbmstests.iby
+DbmsTests.bat 				/epoc32/data/z/system/test/dbmstests.bat

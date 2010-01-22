@@ -1,0 +1,15 @@
+[purpose]
+
+Display contents of EPOC permanent filestores
+
+[categories]
+development
+
+[files]
+tools\pfsdump.exe
+
+[owner]
+Base: Peripherals & Data		# STORE
+
+[IPR]
+Copyright (c) 2000 Symbian Ltd. All rights reserved.

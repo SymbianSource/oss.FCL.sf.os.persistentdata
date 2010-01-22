@@ -1,0 +1,113 @@
+// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// All rights reserved.
+// This component and the accompanying materials are made available
+// under the terms of "Eclipse Public License v1.0"
+// which accompanies this distribution, and is available
+// at the URL "http://www.eclipse.org/legal/epl-v10.html".
+//
+// Initial Contributors:
+// Nokia Corporation - initial contribution.
+//
+// Contributors:
+//
+// Description:
+// SQL Database server (SQL)
+// 
+//
+
+/**
+ @file
+*/
+
+PRJ_PLATFORMS
+
+PRJ_EXPORTS
+
+../INC/SqlDb.h SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(sqldb.h)
+#ifndef SYMBIAN_ENABLE_SPLIT_HEADERS
+#ifdef SYMBIAN_OLD_EXPORT_LOCATION
+../INC/SqlResourceTester.h /epoc32/include/sqlresourcetester.h
+#endif
+#endif
+
+sql.iby		/epoc32/rom/include/sql.iby
+backup_registration.xml z:/private/10281e17/backup_registration.xml
+
+PRJ_MMPFILES
+
+#ifndef GCCXML
+sqlite.mmp
+#endif
+SqlSrv.mmp
+SqlDb.mmp
+
+PRJ_TESTEXPORTS
+
+sqltests.iby		/epoc32/rom/include/sqltests.iby
+sqltests.bat		/epoc32/data/z/system/test/sqltests.bat
+
+PRJ_TESTMMPFILES
+
+//Before runnning any of the SQL tests, run t_sqlenvcreate first.
+//t_sqlenvcreate has "All -Tcb" capabilities, and is used to copy some secure
+//shared test database files to the SQL server private datacage. These files will
+//be used later by the other SQL tests.
+//To delete the copied database files, use t_sqlenvdestroy.
+
+t_sqlenvcreate.mmp
+t_sqlite.mmp
+t_sqlapi.mmp
+t_sqlapi2.mmp
+t_sqloom1.mmp
+t_sqloom2.mmp
+t_sqloom3.mmp
+t_sqloom4.mmp
+t_sqlpanic.mmp
+t_sqllang.mmp
+t_sqlmulti.mmp
+t_sqlcollate.mmp
+t_sqltrans.mmp
+t_sqlload.mmp
+t_sqlgetfirststmt.mmp
+t_sqlsecurity1.mmp
+t_sqlsecurity2.mmp
+t_sqlsecurity3.mmp
+t_sqlsecurity4.mmp
+t_sqlsecurity5.mmp
+t_sqlattach.mmp
+#ifndef WINS //hardware only
+t_sqlattach2.mmp manual
+#endif
+t_sqlperformance.mmp
+t_sqlperformance2.mmp
+t_sqlperformance3.mmp
+t_sqlperformance4.mmp
+t_sqlood.mmp
+t_sqloslayer.mmp
+t_sqldefect.mmp
+t_sqldefect2.mmp
+t_sqlprivcage.mmp
+t_sqlbadclient.mmp
+t_sqlbur.mmp
+t_sqlscalarfullselect.mmp
+t_sqlfserr.mmp
+t_sqlconfig.mmp
+t_sqlconfigfile.mmp
+t_sqldbconfigfile.mmp
+t_sqlcompact1.mmp
+t_sqlcompact2.mmp
+t_sqlcompact3.mmp
+t_sqlcompact4.mmp
+t_sqlblob.mmp
+t_sqlauthorizer.mmp
+t_sqlfilebuf64.mmp
+t_sqldb64.mmp manual
+t_sqlenvdestroy.mmp
+
+
+PRJ_TESTEXTENSIONS 
+start extension syslibs/test/sql_copysqltestfiles
+end
+
+#include "../TEST/testexecute/group/bld.inf"
+

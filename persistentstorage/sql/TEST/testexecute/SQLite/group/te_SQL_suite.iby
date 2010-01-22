@@ -1,0 +1,75 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:
+*
+*/
+#ifndef __TE_SQL_SUITE_IBY__
+#define __TE_SQL_SUITE_IBY__
+
+#include <testexecute.iby>
+#include "burtestserver.iby"
+
+file=ABI_DIR\BUILD_DIR\Te_SQL_Suite.exe			System\bin\Te_SQL_Suite.exe
+file=ABI_DIR\BUILD_DIR\Te_SQL_Suite_cap1.exe		System\bin\Te_SQL_Suite_cap1.exe
+file=ABI_DIR\BUILD_DIR\Te_SQL_Suite_cap2.exe		System\bin\Te_SQL_Suite_cap2.exe
+
+//script files
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\te_SQL_Suite.script		TEF_SQL\te_SQL_Suite.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\BasicSQL2.script		TEF_SQL\BasicSQL2.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\BasicSQL2-8S.script		TEF_SQL\BasicSQL2-8S.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\Robustness.script		TEF_SQL\Robustness.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\Concurrent.script		TEF_SQL\Concurrent.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\TypeConversion.script	TEF_SQL\TypeConversion.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\SomeExceptions.script	TEF_SQL\SomeExceptions.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\BasicSQL.script		TEF_SQL\BasicSQL.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\BUR.script			TEF_SQL\BUR.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\security.script		TEF_SQL\security.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\Configuration.script	TEF_SQL\Configuration.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\Panics.script		TEF_SQL\Panics.script
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\collation.script		TEF_SQL\collation.script
+
+
+//config files
+
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\APIBasic.ini		TEF_SQL\APIBasic.ini
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\APIBasic2.ini		TEF_SQL\APIBasic2.ini
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\APIBasic2-8S.ini		TEF_SQL\APIBasic2-8S.ini
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\SomeExceptions.ini		TEF_SQL\SomeExceptions.ini
+data=EPOCROOT##Epoc32\release\armv5\udeb\z\TEF_SQL\Robustness.ini		TEF_SQL\Robustness.ini
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\TypeConversion.ini		TEF_SQL\TypeConversion.ini
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\constraints.ini		TEF_SQL\constraints.ini
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\views.ini			TEF_SQL\views.ini
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\robust_size.ini		TEF_SQL\robust_size.ini
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\Configuration.ini		TEF_SQL\Configuration.ini
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\Concurrent.ini		TEF_SQL\Concurrent.ini
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\Panics.ini			TEF_SQL\Panics.ini
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\BUR.ini			TEF_SQL\BUR.ini
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\security.ini		TEF_SQL\security.ini
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\collation.ini		TEF_SQL\collation.ini
+
+//data files
+
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\TestData\reference1.txt		TEF_SQL\TestData\reference1.txt
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\TestData\reference1.bin		TEF_SQL\TestData\reference1.bin
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\TestData\test1.db			TEF_SQL\TestData\test1.db
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\TestData\ShortNonDb.db		TEF_SQL\TestData\ShortNonDb.db
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\TestData\LongNonDb.db		TEF_SQL\TestData\LongNonDb.db
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\TestData\ReadOnly.db		TEF_SQL\TestData\ReadOnly.db
+data=EPOCROOT##epoc32\release\winscw\udeb\z\TEF_SQL\TestData\Corrupt.db			TEF_SQL\TestData\Corrupt.db
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\TestData\backup_registration.xml 	TEF_SQL\TestData\backup_registration.xml
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\TestData\[102827c7]corrupt.db 	TEF_SQL\TestData\[102827c7]corrupt.db
+data=EPOCROOT##Epoc32\release\winscw\udeb\z\TEF_SQL\TestData\ext.pol		 	TEF_SQL\TestData\ext.pol
+
+#endif // __TE_SQL_SUITE_IBY__
+

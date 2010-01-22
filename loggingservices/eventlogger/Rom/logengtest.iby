@@ -1,0 +1,80 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:
+*
+*/
+
+#ifndef __LOGENGTEST_IBY__
+#define __LOGENGTEST_IBY__
+
+REM Logeng Test
+
+#include <logeng.iby>
+
+//for t_logview2
+#include <TIMEZONESERVER.iby>
+
+//Include cntmodel stuff to allow manual test t_logcntmatch to be run
+data=MULTI_LINGUIFY(RSC ZRESOURCE\CNTMODEL\CNTMODEL   RESOURCE\CNTMODEL\CNTMODEL)
+#include <cntmodel.iby>
+
+file=ABI_DIR\BUILD_DIR\t_logenvcreate.exe          	Test\t_logenvcreate.exe
+file=ABI_DIR\BUILD_DIR\t_logtype.exe          	Test\t_logtype.exe
+file=ABI_DIR\BUILD_DIR\t_logapi.exe          	Test\t_logapi.exe
+file=ABI_DIR\BUILD_DIR\t_logapi2.exe          	Test\t_logapi2.exe
+file=ABI_DIR\BUILD_DIR\t_logbadclient.exe          	Test\t_logbadclient.exe
+file=ABI_DIR\BUILD_DIR\t_logview1.exe        	Test\t_logview1.exe
+file=ABI_DIR\BUILD_DIR\t_logpurge.exe      	Test\t_logpurge.exe
+file=ABI_DIR\BUILD_DIR\t_logheap.exe      	Test\t_logheap.exe
+file=ABI_DIR\BUILD_DIR\t_logfile.exe      	Test\t_logfile.exe
+file=ABI_DIR\BUILD_DIR\t_logfilter.exe      	Test\t_logfilter.exe
+file=ABI_DIR\BUILD_DIR\t_lognotify.exe      	Test\t_lognotify.exe
+file=ABI_DIR\BUILD_DIR\t_logview2.exe      	Test\t_logview2.exe
+file=ABI_DIR\BUILD_DIR\t_logviewfail.exe      	Test\t_logviewfail.exe
+file=ABI_DIR\BUILD_DIR\t_logviewfail2.exe     Test\t_logviewfail2.exe
+file=ABI_DIR\BUILD_DIR\t_logviewfail3.exe      	Test\t_logviewfail3.exe
+file=ABI_DIR\BUILD_DIR\t_logbench.exe      	Test\t_logbench.exe
+file=ABI_DIR\BUILD_DIR\t_logbackup.exe      	Test\t_logbackup.exe
+file=ABI_DIR\BUILD_DIR\t_logevent.exe      	Test\t_logevent.exe
+file=ABI_DIR\BUILD_DIR\t_logwrap.exe      	Test\t_logwrap.exe
+file=ABI_DIR\BUILD_DIR\t_logcontact.exe      	Test\t_logcontact.exe
+file=ABI_DIR\BUILD_DIR\t_logcntmatch.exe      	Test\t_logcntmatch.exe
+file=ABI_DIR\BUILD_DIR\t_maxnumberlength.exe    Test\t_maxnumberlength.exe
+file=ABI_DIR\BUILD_DIR\t_OrderById.exe		Test\t_OrderById.exe
+file=ABI_DIR\BUILD_DIR\t_logservercrash.exe     Test\t_logservercrash.exe
+file=ABI_DIR\BUILD_DIR\t_loghicaphelper.exe	Test\t_loghicaphelper.exe
+file=ABI_DIR\BUILD_DIR\t_loghicapability.exe	Test\t_loghicapability.exe
+file=ABI_DIR\BUILD_DIR\t_loglowcapability.exe	Test\t_loglowcapability.exe
+file=ABI_DIR\BUILD_DIR\t_logsecureview_hicap.exe	Test\t_logsecureview_hicap.exe
+file=ABI_DIR\BUILD_DIR\t_logsecureview_lowcap.exe	Test\t_logsecureview_lowcap.exe
+file=ABI_DIR\BUILD_DIR\t_logsecurity.exe	Test\t_logsecurity.exe
+file=ABI_DIR\BUILD_DIR\t_logservipc.exe		Test\t_logservipc.exe
+file=ABI_DIR\BUILD_DIR\t_logapi_helper.exe		Test\t_logapi_helper.exe
+file=ABI_DIR\BUILD_DIR\t_logcompat.exe	Test\t_logcompat.exe
+file=ABI_DIR\BUILD_DIR\t_logsimid.exe	Test\t_logsimid.exe
+file=ABI_DIR\BUILD_DIR\t_logenvdestroy.exe          Test\t_logenvdestroy.exe
+
+data=ZSYSTEM\test\logengtests.bat		Test\logengtests.bat
+data=ZSYSTEM\data\oldLogdbu.dat			system\data\oldLogdbu.dat
+data=ZSYSTEM\data\corruptLogdbu.dat		system\data\corruptLogdbu.dat
+data=ZSYSTEM\data\corruptDamagedLogdbu.dat	system\data\corruptDamagedLogdbu.dat
+data=ZSYSTEM\data\101f401d.txt			system\data\101f401d.txt
+//The next line to be uncommented if the testing is performed locally. Otherwise t_logview2 fails - 
+//the following file is missing and needed by the time zone server.
+//data=ZPRIVATE\10202BE9\1020383e.txt     private\10202be9\1020383e.txt
+
+data=ZPRIVATE\101f401d\CntModel.ini	\PRIVATE\101f401d\CntModel.ini
+data=ZPRIVATE\101f401d\SQLite__Contacts.cdb	\PRIVATE\101f401d\SQLite__Contacts.cdb
+
+#endif
