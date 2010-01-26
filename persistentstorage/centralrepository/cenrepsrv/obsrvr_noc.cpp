@@ -852,6 +852,46 @@ CObservable::TSharedRepositoryInfo* CObservable::SharedRepositoryInfo(TUid aUid)
 	return (pos!=KErrNotFound) ? iRepositoryInfo[pos] : NULL;
 	}
 
+void CObservable::CancelTransaction(CRepositoryTransactor& aTransactor,TUid aRepositoryUid)
+    {
+    if (aTransactor.IsInTransaction())
+        {
+        ReleaseTransactionLock(aTransactor,aRepositoryUid);
+        CObservable::TSharedRepositoryInfo* shrepinfo =SharedRepositoryInfo(aRepositoryUid);
+        ASSERT(shrepinfo);
+        shrepinfo->iTransactors.Remove(aTransactor);
+        //Remove the link to the next transaction
+        aTransactor.iLink.iNext = NULL;
+        aTransactor.Deque();
+        }
+    }
+
+/** Private helper method which releases any read/write locks held in the shared repository
+by this transactor. Caller must set transactor's state or remove from queue as appropriate.
+@param aTransactor transactor whose read/write locks are to be released.
+@post Any read/write locks held by transactor are released.
+*/
+void CObservable::ReleaseTransactionLock(CRepositoryTransactor& aTransactor,TUid aRepositoryUid)
+    {
+    CObservable::TSharedRepositoryInfo* shrepinfo = SharedRepositoryInfo(aRepositoryUid);
+    ASSERT(shrepinfo);
+    if (aTransactor.IsInActiveConcurrentReadWriteTransaction())
+        {
+        shrepinfo->iNumActiveConcurrentReadWriteTransactions--;
+        ASSERT(shrepinfo->iNumActiveConcurrentReadWriteTransactions >= 0); // sanity check
+        }
+    else if (aTransactor.IsInActiveReadTransaction())
+        {
+        shrepinfo->iPessimisticTransactionLockCount--;
+        ASSERT(shrepinfo->iPessimisticTransactionLockCount >= 0); // sanity check
+        }
+    else if (aTransactor.IsInActiveExclusiveReadWriteTransaction())
+        {
+        // can only be one exclusive read/write transaction active (lock value -1)
+        ASSERT(shrepinfo->iPessimisticTransactionLockCount == -1);
+        shrepinfo->iPessimisticTransactionLockCount = 0;
+        }
+    }
 CObservable::TSharedRepositoryInfo::TSharedRepositoryInfo(TUid aUid) : 
 	iRepositoryUid(aUid), iTransactors(_FOFF(CRepositoryTransactor, iLink)), 
 	iPessimisticTransactionLockCount(0), iNumActiveConcurrentReadWriteTransactions(0) 

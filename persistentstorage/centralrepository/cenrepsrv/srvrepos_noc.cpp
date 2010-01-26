@@ -49,10 +49,12 @@ void CServerRepository::Close()
 	if (index>=0)
 		{
 		iRepository = TServerResources::iObserver->GetOpenRepository(index);
-		// cancel to ensure any read/write locks are released and transaction settings cleaned up
-		CancelTransaction();
 		}
-		
+	// cancel to ensure any read/write locks are released and transaction settings cleaned up
+
+    CancelTransaction();
+
+	
 	TServerResources::iObserver->RemoveObserver(iUid, this, index);
 	
 	iNotifier = NULL;			

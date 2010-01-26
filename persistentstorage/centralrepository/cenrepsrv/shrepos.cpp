@@ -813,7 +813,7 @@ TInt CSharedRepository::CommitTransaction(CRepositoryTransactor& aTransactor, TU
 		aKeyInfo = 0;
 		// must release locks otherwise shared repository will not commit changes
 		// failed transactions have already released their locks
-		ReleaseTransactionLock(aTransactor);
+		TServerResources::iObserver->ReleaseTransactionLock(aTransactor,iSimRep->Uid());
 		}
 	
 	// transactions that haven't made any changes can be closed at any time
@@ -834,30 +834,13 @@ TInt CSharedRepository::CommitTransaction(CRepositoryTransactor& aTransactor, TU
 	return result;
 	}
 
-/**	Cancels the transaction, discarding changes.
-@post Not in a transaction
-*/
-void CSharedRepository::CancelTransaction(CRepositoryTransactor& aTransactor)
-	{
-	if (aTransactor.IsInTransaction())
-		{
-		ReleaseTransactionLock(aTransactor);
-	  	CObservable::TSharedRepositoryInfo* shrepinfo = TServerResources::iObserver->SharedRepositoryInfo(iSimRep->Uid());
-	  	ASSERT(shrepinfo);
-		shrepinfo->iTransactors.Remove(aTransactor);
-		//Remove the link to the next transaction
-		aTransactor.iLink.iNext = NULL;
-		aTransactor.Deque();
-		}
-	}
-
 TInt CSharedRepository::FailTransaction(CRepositoryTransactor& aTransactor, TInt aError, TUint32 aErrorKey)
 	{
 	ASSERT(aError != KErrNone); // must fail for a reason
 	if (aTransactor.IsInActiveTransaction())
 		{
 		// locks cannot be removed from a failed transaction, so release before failing
-		ReleaseTransactionLock(aTransactor);
+		TServerResources::iObserver->ReleaseTransactionLock(aTransactor,iSimRep->Uid());
 		aTransactor.SetFailed(aError, aErrorKey);
 		}
 	return aError; // to allow "return FailTransaction(error, errorKey);" - error written once
@@ -911,32 +894,7 @@ TInt CSharedRepository::AttemptPromoteTransactionToReadWrite(CRepositoryTransact
 	return KErrLocked;
 	}
 
-/** Private helper method which releases any read/write locks held in the shared repository
-by this transactor. Caller must set transactor's state or remove from queue as appropriate.
-@param aTransactor transactor whose read/write locks are to be released.
-@post Any read/write locks held by transactor are released.
-*/
-void CSharedRepository::ReleaseTransactionLock(CRepositoryTransactor& aTransactor)
-	{
-  	CObservable::TSharedRepositoryInfo* shrepinfo = TServerResources::iObserver->SharedRepositoryInfo(iSimRep->Uid());
-  	ASSERT(shrepinfo);
-	if (aTransactor.IsInActiveConcurrentReadWriteTransaction())
-		{
-		shrepinfo->iNumActiveConcurrentReadWriteTransactions--;
-		ASSERT(shrepinfo->iNumActiveConcurrentReadWriteTransactions >= 0); // sanity check
-		}
-	else if (aTransactor.IsInActiveReadTransaction())
-		{
-		shrepinfo->iPessimisticTransactionLockCount--;
-		ASSERT(shrepinfo->iPessimisticTransactionLockCount >= 0); // sanity check
-		}
-	else if (aTransactor.IsInActiveExclusiveReadWriteTransaction())
-		{
-		// can only be one exclusive read/write transaction active (lock value -1)
-		ASSERT(shrepinfo->iPessimisticTransactionLockCount == -1);
-		shrepinfo->iPessimisticTransactionLockCount = 0;
-		}
-	}
+
 	
 void CSharedRepository::ExternalizeCre(RWriteStream& aStream) const
 	{

@@ -90,6 +90,8 @@ public:
 
 	void Notify(TUid aUid, TUint32 aVal) const;
 	
+	void ReleaseTransactionLock(CRepositoryTransactor& aTransactor,TUid aRepositoryUid);
+	void CancelTransaction(CRepositoryTransactor& aTransactor,TUid aRepositoryUid);	
 	TInt FindOpenRepository(TUid aUid) const;
 	void RemoveOpenRepository(CSharedRepository* aRepository);
 	

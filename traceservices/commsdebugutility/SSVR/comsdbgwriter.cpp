@@ -134,8 +134,6 @@ void CLogManager::ConstructL()
 
 TInt CLogManager::ThreadEntryPoint(TAny* aPtr)
 	{
-	__UHEAP_MARK;
-
 	MLogArrayAccess* arrayAccess = static_cast<MLogArrayAccess*> (aPtr);
 
 	CTrapCleanup* cleanupStack = CTrapCleanup::New();
@@ -147,8 +145,6 @@ TInt CLogManager::ThreadEntryPoint(TAny* aPtr)
 	TRAPD(err, CLogManager::DoRunThreadL(*arrayAccess));
 
 	delete cleanupStack;
-
-	__UHEAP_MARKEND;
 
 	return err;
 	}

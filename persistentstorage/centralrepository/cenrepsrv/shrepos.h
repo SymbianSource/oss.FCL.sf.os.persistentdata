@@ -80,7 +80,6 @@ public:
 															
 	TInt StartTransaction(CRepositoryTransactor& aTransactor, TInt aMode);
 	TInt CommitTransaction(CRepositoryTransactor& aTransactor, TUint32& aKeyInfo);
-	void CancelTransaction(CRepositoryTransactor& aTransactor);
 	TInt FailTransaction(CRepositoryTransactor& aTransactor, TInt aError, TUint32 aErrorKey);
 	void FailAllTransactions(const CRepositoryTransactor* aExcludeTransactor);
 	TInt AttemptPromoteTransactionToReadWrite(CRepositoryTransactor& aTransactor);
@@ -122,7 +121,6 @@ private:
 	void 	DoRestoreConsistencyL();
 	TInt	CreateRepositoryFromCreFileL(TCentRepLocation aLocation);
 	TInt	ReadSettingSavePolicyL(CIniFileIn& aFile,TServerSetting& aSetting, TSettingsAccessPolicy* &aPolicy, TBool& aSingleMetaFound);
-	void ReleaseTransactionLock(CRepositoryTransactor& aTransactor);
 	TInt DoCommitTransactionSettings(CRepositoryTransactor& aTransactor, TUint32& aKeyInfo);
 	void Notify(TUint32 aVal) const;
 	

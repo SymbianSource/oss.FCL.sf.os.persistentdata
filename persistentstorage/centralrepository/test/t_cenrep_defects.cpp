@@ -2737,10 +2737,73 @@ LOCAL_C void PDEF141519L()
     __UHEAP_MARKEND;
     } 
 
+LOCAL_C void ConnectStartSuicideTransL(void)
+    {
+    const TUid KLargeReposUid1 ={0xcccccc00};   
+    CRepository* repository=CRepository::NewL(KLargeReposUid1);
+    repository->StartTransaction(CRepository::EConcurrentReadWriteTransaction);
+    }
+
+LOCAL_C TInt SuicidalTransThread(TAny*)
+    {
+    CTrapCleanup* cleanup = CTrapCleanup::New();
+    if(!cleanup)
+        return KErrNoMemory;
+
+    TRAP_IGNORE(ConnectStartSuicideTransL());
+    //purposely waiting to be killed
+    User::WaitForAnyRequest();
+    return 0;
+    }
+
+LOCAL_C void DEF143352L()
+    {
+    CleanupCDriveL();    
+    __UHEAP_MARK;
+
+    const TUid KLargeReposUid1 ={0xcccccc00};
+    //create on in this thread and start transaction too
+    CRepository* rep1=CRepository::NewL(KLargeReposUid1);
+    User::LeaveIfError(rep1->StartTransaction(CRepository::EConcurrentReadWriteTransaction));
+    
+    //create thread to connect, start transaction on the same repository as previous
+    RThread testThread;
+    _LIT(KThreadName1, "Martin");
+    testThread.Create(KThreadName1, SuicidalTransThread, KDefaultStackSize, KMinHeapSize, 0x100000, NULL);
+
+    TRequestStatus requestStatus;
+    testThread.Logon(requestStatus);
+    testThread.Resume();
+
+    //wait for the first client to complete the start transaction
+    User::After(1000000);
+    
+    //opening another big keyspace to force the eviction(cache size is 100K) both repository is about 78K in the heap
+    //cccccc03 is exactly the same as cccccc00
+    const TUid KLargeReposUid2 ={0xcccccc04};
+    CRepository* rep2=CRepository::NewL(KLargeReposUid2);
+   
+    //now kill the thread we have created
+    testThread.Kill(KErrDied);
+    User::WaitForRequest(requestStatus);
+    TEST2(requestStatus.Int(), KErrDied);
+    
+    //Wait for the session to be cleaned up
+    User::After(1000000);
+    
+    //now current test thread will retry the same connection
+    //at this stage server will panic with kern-exec 3
+    CRepository* rep4=CRepository::NewL(KLargeReposUid1);
+    
+    delete rep1;
+    delete rep2;
+    delete rep4;
+    
+    __UHEAP_MARKEND;
+    }
 	
 LOCAL_C void FuncTestsL()
 	{
-
 	TheTest.Start(_L("DEF053500 - Central repository integer type key entries cannot handle hex values"));
 
 	DEF053500L();
@@ -2856,6 +2919,9 @@ LOCAL_C void FuncTestsL()
 
 	TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-UT-4086 PDEF141518: centralrepositorysrv.exe crashes and phone doesn't boot up "));
 	PDEF141519L(); 
+
+	TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-XXXX DEF143352: CentralRepository server crash in CObservable::RefreshTransactorAccessPolicies "));
+	DEF143352L();
 
 	TheTest.End();
 	}

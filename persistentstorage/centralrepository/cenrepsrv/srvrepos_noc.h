@@ -54,7 +54,7 @@ public:
 		}
 	inline void CancelTransaction() // serves as both rollback and async cancel
 		{
-		iRepository->CancelTransaction(*this);
+		TServerResources::iObserver->CancelTransaction(*this,iUid);
 		}
 	void CleanupCancelTransactionPushL();
 	inline TInt FailTransaction(TInt aError, TUint32 aErrorKey)
