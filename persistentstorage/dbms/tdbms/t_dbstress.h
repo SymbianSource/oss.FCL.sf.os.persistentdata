@@ -12,13 +12,8 @@
 //
 // Description:
 //
-
-// MSVC++ up to 5.0 has problems with expanding inline functions
-// This disables the mad warnings for the whole project
-#if defined(NDEBUG) && defined(__VC32__) && _MSC_VER<=1100
-#pragma warning(disable : 4710)			// function not expanded. MSVC 5.0 is stupid
-#endif
-
+#ifndef T_DBSTRESS_H
+#define T_DBSTRESS_H
 
 #include <d32dbms.h>
 #include <s32file.h>
@@ -32,7 +27,7 @@ GLREF_C TInt StartThread(RThread& aThread,TRequestStatus& aStat);
 GLREF_C TInt Random(TInt aRange);
 
 GLREF_D TPtrC KTestDatabase,KTestDir,KLogFile;
-GLREF_D RTest test;
+GLREF_D RTest TheTest;
 GLREF_D TInt NewCount;
 GLREF_D TInt OldCount;
 GLREF_D TInt TransId;
@@ -49,3 +44,13 @@ private:
 
 GLREF_D Timer RunTimer;
 
+#undef  TEST_STRING
+#define TEST_STRING(s) _S(s)
+
+void Check1(TInt aValue, const TText* aFile, TInt aLine);
+void Check2(TInt aValue, TInt aExpected, const TText* aFile, TInt aLine);
+
+#define TEST(arg) ::Check1((arg), TEST_STRING(__FILE__), __LINE__)
+#define TEST2(aValue, aExpected) ::Check2(aValue, aExpected, TEST_STRING(__FILE__), __LINE__)
+
+#endif// T_DBSTRESS_H

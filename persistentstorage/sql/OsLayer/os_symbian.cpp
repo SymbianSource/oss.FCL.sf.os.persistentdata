@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -819,7 +819,7 @@ private:
 	static TInt DoGetDeviceCharacteristics(const TDriveInfo& aDriveInfo, const TVolumeIOParamInfo& aVolumeInfo);
 	static TInt DoGetSectorSize(const TDriveInfo& aDriveInfo, const TVolumeIOParamInfo& aVolumeInfo);
 	static TInt DoGetDeviceCharacteristicsAndSectorSize(TDbFile& aDbFile, TInt& aRecReadBufSize);
-	
+	static TInt DoFileSizeCorruptionCheck(TDbFile& aDbFile, const TDesC& aFname, TInt aFmode);
 	};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2107,6 +2107,64 @@ The stored values will be used later by TFileIo::DeviceCharacteristics() and TFi
 /**
 SQLite OS porting layer API.
 
+The behaviour of the RFile/RFile64::SetSize operation is not atomic for non-rugged drives. 
+When RFile/RFile64::SetSize() is called 2 operations occurs:-
+
+1)The cluster chain of the file is updated.
+2)The new file size is added to the file cache.
+
+If a power loss occurs after a SetSize there is a chance that the cluster chain was updated 
+but the new file size is not yet flushed to the file. This puts the file into an inconsistent state.
+This is most likely to occur in the journal file where the time between a SetSize and Flush can 
+be long. 
+
+For this reason this check is added when the file is opened to see if the end of the file can 
+be read straight away, if an error is returned then it is assumed that the SetSize has not be 
+completed previously. In this case the file is deleted and re-created.
+ 
+@param aDbFile A pointer to a TDbFile instance, that contains the file handle.
+@param aFname A string of 16-bit wide characters containing name of the file to be checked.
+@param aFmode The mode in which the file is opened. These mode are documented in TFileMode.
+
+@return KErrNone,          The operation has completed succesfully;
+                           Note that other system-wide error codes may also be returned.
+@see TFileMode
+@see TVfs::Open()
+@see TDbFile
+*/
+/* static */ TInt TVfs::DoFileSizeCorruptionCheck(TDbFile& aDbFile, const TDesC& aFname, TInt aFmode)
+    {
+    const TInt KMinSize = 16;
+    TInt64 size;
+    TInt err = KErrNone ;
+    TBuf8<KMinSize> buf;
+
+    err = aDbFile.iFileBuf.Size(size);
+    if (err != KErrNone)
+        {
+        return err;
+        }
+    TBool IsMinFileSize = (size >= KMinSize);
+    
+    if (IsMinFileSize)
+        {
+        err = aDbFile.iFileBuf.Read(size - KMinSize, buf);
+        }
+    
+    if (err == KErrCorrupt || err == KErrEof || !IsMinFileSize)
+        {
+        COsLayerData& osLayerData = COsLayerData::Instance();
+    
+        aDbFile.iFileBuf.Close();
+        (void) osLayerData.iFs.Delete(aFname);
+        err = aDbFile.iFileBuf.Create(osLayerData.iFs, aFname, aFmode);
+        }
+    return err;
+    }
+
+/**
+SQLite OS porting layer API.
+
 Opens or creates a file which name is in the aFileName parameter.
 If the function succeeds, the file handle and other related information will be stored in the place pointed by the 
 aDbFile parameter, a memory block of sizeof(TDbFile) size for which is allocated by the caller.
@@ -2211,6 +2269,12 @@ with the reported by the OS API error. The stored error code will be used later 
 				{
 				__FS_CALL(EFsOpFileOpen, 0);
 				err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
+				
+				if(err == KErrNone && ((aFlags & SQLITE_OPEN_MAIN_JOURNAL) || (aFlags & SQLITE_OPEN_TEMP_JOURNAL) || 
+                        (aFlags & SQLITE_OPEN_SUBJOURNAL) || (aFlags & SQLITE_OPEN_MASTER_JOURNAL)))
+				    {
+                    err = TVfs::DoFileSizeCorruptionCheck(dbFile, fname, fmode);
+				    }
 				}
 			if((err != KErrNone && err != KErrNoMemory && err != KErrDiskFull) && (aFlags & SQLITE_OPEN_READWRITE))
 				{
@@ -2219,7 +2283,7 @@ with the reported by the OS API error. The stored error code will be used later 
 				fmode &= ~EFileWrite;
 				__FS_CALL(EFsOpFileOpen, 0);
    				err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
-   				}
+				}
 			if(err != KErrNone && prevErr == KErrAccessDenied)
 				{
 				err = KErrAccessDenied;

@@ -14,6 +14,11 @@
 // T_LOGSERVCRASH.CPP
 // This tests the fix implemented for DEF047320
 // 
+// If this test starts failing, then go and check the CentralRepository private data cage 
+// (c:\\private\\10202be9 or z:\\private\\10202be9) if 101f401d.txt file is there.
+// If it is then delete it and try the test again.
+// (The problem is that if there is an existing 101f401d.txt file, then the contact match count value
+// will be loaded from that file, not from the LogEng resource file)
 //
 
 #include <s32file.h>
@@ -135,6 +140,8 @@ LOCAL_C void TestEventViewL(CLogClient& aClient)
 		aClient.ChangeEvent(*event, active->iStatus);
 		CActiveScheduler::Start();
 
+		//If the test fails on the next line with -1 or -12 error, it is possible that the contacts database is missing:
+		//c:\private\10003a73\SQLite__Contacts.cdb. Copy it to the specified location and rerun the test.
 		TEST2(active->iStatus.Int(), KErrNone);
 		TEST(event->EventType() == KLogCallEventTypeUid);
 		TEST(event->RemoteParty() == KTestRemoteParty1);
@@ -155,6 +162,9 @@ LOCAL_C void TestEventViewL(CLogClient& aClient)
 			{
 			eventFlags=KTestFlags1;
 			}
+		//If the test fails on the next line, it is quite possible that there is a
+		//z:\private\10202be9a\101f401d.txt file that sets the contacts match count to 0.
+		//Delete the file and run the test again.
 		TEST(event->Flags() == eventFlags);
 		TEST(event->Contact()==(TLogContactItemId) count+1);
 

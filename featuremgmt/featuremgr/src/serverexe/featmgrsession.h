@@ -159,6 +159,8 @@ NONSHARABLE_CLASS(CFeatMgrSession) : public CSession2
         */
         void DispatchMessageL( const RMessage2& aMessage );
         
+        TBool IsWriteOperation( const TInt aFunction ) const;
+        
     private:    // Data
         
         /**

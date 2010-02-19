@@ -31,7 +31,7 @@ t_stordelim
 t_stordictfs
 t_storembed
 t_storshape
-t_stortdict
+t_stordict
 t_storstrm
 t_storverify
 t_storconv
