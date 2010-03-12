@@ -127,6 +127,10 @@ void CreateTestEnv()
 	TEST2(err, KErrNone);
 
 	err = TheFs.MkDir(KTestDir);
+	if(err != KErrNone)
+	    {
+	    RDebug::Print(_L("*** CreateTestEnv(), RFs::MkDir(), err=%d\r\n"), err);
+	    }
 	TEST(err == KErrNone || err == KErrAlreadyExists);
 	}
 

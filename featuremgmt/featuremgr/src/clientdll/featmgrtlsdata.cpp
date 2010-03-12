@@ -30,7 +30,20 @@ static CFeatMgrTlsData* TlsData( )
 
     return tlsData;
     }
-    
+
+
+EXPORT_C TInt GetClientCount( )
+    {
+        CFeatMgrTlsData* tlsData = STATIC_CAST( CFeatMgrTlsData*, Dll::Tls() );
+        if (tlsData)
+            {
+            return tlsData->ClientCount();
+            }
+        else
+            {
+            return 0;
+            }
+    }
 
 // ============================ MEMBER FUNCTIONS ===============================
 
@@ -119,6 +132,14 @@ void CFeatMgrTlsData::DecreaseClientCount()
 	INFO_LOG1( "FeatMgr: TLS decrease, clients now(%d)", iClientCount );
     }
 
+// -----------------------------------------------------------------------------
+// CFeatMgrTlsData::ClientCount()
+// -----------------------------------------------------------------------------
+//
+TInt CFeatMgrTlsData::ClientCount()
+    {
+        return iClientCount;
+    }
 // -----------------------------------------------------------------------------
 // CFeatMgrTlsData::FeatureSupported()
 // -----------------------------------------------------------------------------
@@ -275,10 +296,39 @@ TInt CFeatMgrTlsData::SWIEnd( ) const
     return iFeatMgrClient.SWIEnd(); 
 	}
 
+/////////////////////////////////////////////////////////////////////////////////
 
 // debug only API functions
-
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
+
+/** 
+*/
+void CFeatMgrTlsData::ResourceMark()
+    {
+    iFeatMgrClient.ResourceMark();
+    }
+
+/** 
+*/
+void CFeatMgrTlsData::ResourceCheck()
+    {
+    iFeatMgrClient.ResourceCheck();
+    }
+
+/** 
+*/
+TInt CFeatMgrTlsData::ResourceCount()
+    {
+    return iFeatMgrClient.ResourceCount();
+    }
+
+/** 
+*/
+void CFeatMgrTlsData::SetHeapFailure(TInt aAllocFailType, TInt aRate)
+    {
+    iFeatMgrClient.SetHeapFailure(aAllocFailType, aRate);
+    }
+
 // -----------------------------------------------------------------------------
 // CFeatMgrTlsData::NumberOfNotifyFeatures()
 // -----------------------------------------------------------------------------

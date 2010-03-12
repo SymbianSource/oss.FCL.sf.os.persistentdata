@@ -35,9 +35,6 @@ _LIT( KPanicCategory, "EnhancedFeatMgrServer" );
 _LIT( KPanicCategory, "FeatMgrServer" );
 #endif // EXTENDED_FEATURE_MANAGER_TEST
 
-// LOCAL FUNCTION PROTOTYPES
-TInt E32Main(); // Process entry point
-
 // ============================ MEMBER FUNCTIONS ===============================
 
 // -----------------------------------------------------------------------------
@@ -49,7 +46,7 @@ TInt E32Main(); // Process entry point
 CFeatMgrServer::CFeatMgrServer( const TInt aPriority, const TServerType aType  )
     :
     CPolicyServer( aPriority, KFeatMgrPlatSecPolicy, aType ), iBurState(this),
-    iBackupInProgress(EFalse),
+    iBURInProgress(EFalse),
     iPluginsReady(EFalse), 
     iPluginsDeleted( EFalse ),
     iPendingRequests( ETrue ),
@@ -444,10 +441,10 @@ TBool CFeatMgrServer::PluginsReady() const
 // -----------------------------------------------------------------------------
 // CFeatMgrServer::BackupIsInProgress()
 // -----------------------------------------------------------------------------
-TBool CFeatMgrServer::BackupIsInProgress() const
+TBool CFeatMgrServer::BURIsInProgress() const
     {
     FUNC_LOG
-    return(iBackupInProgress);
+    return(iBURInProgress);
     }
    	
 // -----------------------------------------------------------------------------
@@ -681,7 +678,7 @@ BURStatus CFeatMgrServer::Goto_ErrorState( BURStatus aCurrent  )
 	switch( aCurrent )
 		{
 		case( EFeatMgrBURState_BackupStarted ) :
-			iBackupInProgress = EFalse;
+			iBURInProgress = EFalse;
 			ServicePendingRequests();
 			break;
 		case( EFeatMgrBURState_RestoreStarted ) :
@@ -711,7 +708,7 @@ BURStatus CFeatMgrServer::Goto_ErrorState( BURStatus aCurrent  )
 BURStatus CFeatMgrServer::Goto_StartBackupState( BURStatus /* aCurrent */ )
 	{
 	BURStatus aNewState = EFeatMgrBURState_BackupStarted;  // state++
-	iBackupInProgress = ETrue;
+	iBURInProgress = ETrue;
 	return aNewState;
 	}
 
@@ -719,7 +716,7 @@ BURStatus CFeatMgrServer::Goto_EndBackupState( BURStatus /* aCurrent */  )
 	{
 	BURStatus aNewState = EFeatMgrBURState_BackupEnded;   // state++
 	
-	iBackupInProgress = EFalse;
+	iBURInProgress = EFalse;
 	ServicePendingRequests();
 	// no error from ServicePendingRequests() is possible
 	
@@ -730,7 +727,7 @@ BURStatus CFeatMgrServer::Goto_StartRestoreState( BURStatus /* aCurrent */  )
 	{
 	// remarkably like Goto_StartBackupState
 	BURStatus aNewState = EFeatMgrBURState_RestoreStarted;  // state++
-	iPluginsReady = EFalse;
+	iBURInProgress = ETrue;
 	return aNewState;
 	}
 
@@ -738,6 +735,7 @@ BURStatus CFeatMgrServer::Goto_EndRestoreState( BURStatus /* aCurrent */  )
 	{
 	BURStatus aNewState = EFeatMgrBURState_Error;   // fail safe
 	TInt err( KErrNone );
+	iBURInProgress = EFalse;
 	iPluginsReady    = EFalse;
     iPluginsDeleted  = EFalse;
     iPendingRequests = ETrue;
@@ -857,69 +855,5 @@ void CFeatMgrServer::ClearFeatures( void )
 
     return;
 }
-
-
-// ============================= LOCAL FUNCTIONS ===============================
-
-// -----------------------------------------------------------------------------
-// Function that starts the FeatMgrServer.
-// -----------------------------------------------------------------------------
-//
-static void RunServerL()
-    {
-    FUNC_LOG
-
-    // Naming the server thread after the startup helps to debug panics
-    User::LeaveIfError( User::RenameProcess( KServerProcessName ) );
-    
-    User::LeaveIfError( User::RenameThread( KServerProcessName ) );
-     
-    // Create and install the active scheduler we need
-    CActiveScheduler* scheduler = new(ELeave) CActiveScheduler;
-    CleanupStack::PushL( scheduler );
-    
-    CActiveScheduler::Install( scheduler );
-    
-    // Now we are ready to instantiate the actual CServer2 instance
-    CFeatMgrServer* server = CFeatMgrServer::NewLC( KServerCActivePriority );
-
-	// Initialisation complete, now signal the client
-	RProcess::Rendezvous(KErrNone);
-
-    INFO_LOG( "RunServerL() - Starting scheduler..." );
-
-	// Ready to run
-	CActiveScheduler::Start();
-
-    INFO_LOG( "RunServerL() - Scheduler stopped" );
-
-	// Cleanup the server and scheduler
-	CleanupStack::PopAndDestroy( server );
-	CleanupStack::PopAndDestroy( scheduler );
-    }
-
-// -----------------------------------------------------------------------------
-// Main function
-// -----------------------------------------------------------------------------
-//
-TInt E32Main()
-    {
-    FUNC_LOG
-
-	__UHEAP_MARK;
-
-	CTrapCleanup* cleanup = CTrapCleanup::New();
-	TInt ret = KErrNoMemory;
-
-	if ( cleanup )
-		{
-		TRAP( ret, RunServerL() );
-		delete cleanup;
-		}
-
-	__UHEAP_MARKEND;
-
-	return ret;
-    }
 
 //  End of File  

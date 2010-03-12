@@ -460,6 +460,12 @@ void ColumnNameTest()
 	err = TheStmt.ColumnName(0, colName);
 	TEST2(err, KErrNone);
 	TEST2(colName.Compare(_L("RES")), 0);
+	//Too big column index
+    err = TheStmt.ColumnName(1323, colName);
+    TEST2(err, KErrNotFound);
+    //Negative column index 
+    err = TheStmt.ColumnName(-100, colName);
+    TEST2(err, KErrNotFound);
 	TheStmt.Close();
 	//Select constant
 	err = TheStmt.Prepare(TheDb, _L("SELECT (Id + Data) AS RES, 55.89 FROM t2"));
@@ -529,7 +535,20 @@ void ParamNameTest()
 		TEST2(err, KErrNone);
 		TEST2(paramName.Compare(expectedParamName), 0);
 		}
+    //Too big parameter index
+    err = TheStmt.ParamName(1323, paramName);
+    TEST2(err, KErrNotFound);
+    //Negative parameter index 
+    err = TheStmt.ParamName(-100, paramName);
+    TEST2(err, KErrNotFound);
 	TheStmt.Close();
+	
+	//SQL statement without parameters
+    err = TheStmt.Prepare(TheDb, _L("INSERT INTO T (A1, A2) VALUES (1, '1')"));
+    TEST2(err, KErrNone);
+    err = TheStmt.ParamName(0, paramName);
+    TEST2(err, KErrNotFound);
+    TheStmt.Close();
 
 	// Create insert statement, then check param names
 	err = TheStmt.Prepare(TheDb, _L("INSERT INTO T (A1, A2) VALUES (:prm1, ?)"));

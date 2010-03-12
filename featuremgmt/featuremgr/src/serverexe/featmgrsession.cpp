@@ -130,12 +130,21 @@ void CFeatMgrSession::ServiceL( const RMessage2& aMessage )
     {
     FUNC_LOG
     // If plugins are not ready all request will be queued. 
-    // During backup operation, all write request e.g. EnableFeature will be queued
+    // During backup & restore operation, all write request 
+    //  e.g. EnableFeature will return with KErrServerBusy
     TInt msgCmd = aMessage.Function();
-    if ( !iFeatMgrServer.PluginsReady() || ( iFeatMgrServer.BackupIsInProgress() && IsWriteOperation( msgCmd ) ) )
+    if ( !iFeatMgrServer.PluginsReady() || ( iFeatMgrServer.BURIsInProgress()  && IsWriteOperation( msgCmd ) ) )
         {
-        INFO_LOG( "CFeatMgrSession::ServiceL() - plugins not ready or backup is in progress" );
-        iList.AddLast( *CFeatMgrPendingRequest::NewL( aMessage ) );        
+        if ( iFeatMgrServer.BURIsInProgress() )
+            {
+            INFO_LOG( "CFeatMgrSession::ServiceL() - backup/restore is in progress - no write operation allowed" );
+            aMessage.Complete( KErrServerBusy );
+            }
+        else
+            {
+            INFO_LOG( "CFeatMgrSession::ServiceL() - plugins not ready" );
+            iList.AddLast( *CFeatMgrPendingRequest::NewL( aMessage ) );
+            }
         }
     else
         {
@@ -525,8 +534,39 @@ void CFeatMgrSession::DispatchMessageL( const RMessage2& aMessage )
             
     		break;
     	    }
-    	    
+
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
+    	    
+        case EFeatMgrResourceMark:
+            ResourceCountMarkStart();
+            break;
+            
+        case EFeatMgrResourceCheck:
+            ResourceCountMarkEnd(aMessage);
+            break;
+        
+        case EFeatMgrResourceCount:
+            {
+            TInt retCode = CountResources();
+            User::Leave(retCode);
+            }
+            break;
+        
+        case EFeatMgrSetHeapFailure:
+            {
+            RAllocator::TAllocFail mode = static_cast <RAllocator::TAllocFail> (aMessage.Int0());
+            TInt failAllocNum = aMessage.Int1();
+            if(mode == RHeap::EBurstFailNext || mode == RHeap::EBurstRandom || mode == RHeap::EBurstTrueRandom || mode == RHeap::EBurstDeterministic)
+                {
+                User::__DbgSetBurstAllocFail(RHeap::EUser, mode, failAllocNum, 20);
+                }
+            else
+                {
+                User::__DbgSetAllocFail(RHeap::EUser, mode, failAllocNum);
+                }
+            }
+            break;
+
     	    // debug only API 
     	    // returns the size of the iNotifyFeatures array
         case EFeatMgrNumberOfNotifyFeatures:
@@ -590,6 +630,10 @@ void CFeatMgrSession::ServiceNotifications( TFeatureServerEntry& aFeature,
         }
     }
 
+TInt CFeatMgrSession::CountResources()
+    {
+    return User::CountAllocCells();
+    }
 
 // ============================= LOCAL FUNCTIONS ===============================
 

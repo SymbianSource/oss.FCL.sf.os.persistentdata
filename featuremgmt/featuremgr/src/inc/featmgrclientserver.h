@@ -173,7 +173,13 @@ enum TFeatMgrServRequest
     * Software Installation ended
     * 
     */ 
-    EFeatMgrSWIEnd 
+    EFeatMgrSWIEnd,
+    
+    EFeatMgrResourceMark,
+    EFeatMgrResourceCheck,
+    EFeatMgrResourceCount,
+    EFeatMgrSetHeapFailure
+    
     };
 
 

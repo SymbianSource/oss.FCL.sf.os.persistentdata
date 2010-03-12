@@ -40,8 +40,8 @@ const TUint KFeatMgrPlatSecRangeCount = 3;
 const TInt KFeatMgrPlatSecRanges[KFeatMgrPlatSecRangeCount] =
     {
     0,  // IPC 0-7 Always passed
-    8,  // IPC 8-13 WriteDeviceData
-    16  // IPC Not supported 16 ->
+    8,  // IPC 8-19 WriteDeviceData
+    20  // IPC Not supported: 20 = 16 messages + 4 "resource check" messages
     };
 
 
@@ -51,8 +51,8 @@ const TInt KFeatMgrPlatSecRanges[KFeatMgrPlatSecRangeCount] =
 const TUint8 KFeatMgrPlatSecElementsIndex[KFeatMgrPlatSecRangeCount] =
     {
     CPolicyServer::EAlwaysPass,             // IPC 0-3
-    0,                                      // IPC 8-13
-    CPolicyServer::ENotSupported            // IPC 16 -> 
+    0,                                      // IPC 8-19
+    CPolicyServer::ENotSupported            // IPC 20 -> 
     };
 
 #else
@@ -69,8 +69,8 @@ const TUint8 KFeatMgrPlatSecElementsIndex[KFeatMgrPlatSecRangeCount] =
 const TInt KFeatMgrPlatSecRanges[KFeatMgrPlatSecRangeCount] =
     {
     0,   // IPC 0-9 Always passed
-    10,  // IPC 10-15 WriteDeviceData
-    18   // IPC Not supported 18 ->
+    10,  // IPC 10-21 WriteDeviceData
+    22   // IPC Not supported 22 ->
     };
 /**
  * IPC segments and their capability requirements
@@ -78,8 +78,8 @@ const TInt KFeatMgrPlatSecRanges[KFeatMgrPlatSecRangeCount] =
 const TUint8 KFeatMgrPlatSecElementsIndex[KFeatMgrPlatSecRangeCount] =
     {
     CPolicyServer::EAlwaysPass,             // IPC 0-3
-    0,                                      // IPC 10-15
-    CPolicyServer::ENotSupported            // IPC 18 ->
+    0,                                      // IPC 10-21
+    CPolicyServer::ENotSupported            // IPC 22 ->
     };
 
 #endif

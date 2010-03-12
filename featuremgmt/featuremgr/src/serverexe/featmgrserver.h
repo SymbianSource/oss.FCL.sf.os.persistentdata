@@ -116,7 +116,7 @@ NONSHARABLE_CLASS(CFeatMgrServer) :
          Else returns EFalse.
          @return backup status
         */
-        TBool BackupIsInProgress() const;
+        TBool BURIsInProgress() const;
 
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
         /**
@@ -278,7 +278,7 @@ NONSHARABLE_CLASS(CFeatMgrServer) :
         CBurState iBurState;
         
         // ETrue when backup in progress
-        TBool iBackupInProgress;
+        TBool iBURInProgress;
         
         // ETrue when feature info received from all plugins
         TBool iPluginsReady;

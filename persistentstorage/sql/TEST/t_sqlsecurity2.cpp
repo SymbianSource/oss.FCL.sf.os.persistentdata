@@ -96,6 +96,14 @@ void ReadOnlyDatabaseTest()
 	//Attempt to modify the database schema
 	err = TheDb.Exec(_L("CREATE TABLE C(FFF TEXT)"));
 	TEST2(err, KErrPermissionDenied);
+    err = TheDb.Exec(_L("CREATE TEMP TABLE TBL100(COL1 INTEGER)"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("CREATE INDEX IDX100 ON TBL100(COL1)"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("DROP INDEX IDX100"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("DROP TABLE TBL100"));
+    TEST(err >= 0);
 	//Attempt to update the user data
 	err = TheDb.Exec(_L("UPDATE A SET F1 = 11 WHERE F1 = 1"));
 	TEST2(err, KErrPermissionDenied);

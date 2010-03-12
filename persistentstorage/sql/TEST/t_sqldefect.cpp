@@ -36,7 +36,8 @@ _LIT(KTestDatabase3, "c:\\test\\t_sqldefect_3.db");
 _LIT(KTestDatabase4, "z:\\test\\t_inc095412.db");	//Created outside this test app
 _LIT(KTestDatabase5, "c:\\test\\t_sqldefect_5.db");
 _LIT(KTestDatabase6, "c:\\test\\t_def120237.db");
-
+_LIT(KTestDatabase7, "c:\\test\\t_def144027.db");
+_LIT(KTestDatabase7Journal, "c:\\test\\t_def144027.db-journal");
 
 // This value has been found by performing the OOM test
 // with an allocation limit of 2000 and then taking a value
@@ -49,6 +50,8 @@ const TInt KDEF115954MaxAllocLimit = 1300;
 void DeleteTestFiles()
 	{
 	TheDb.Close();
+	(void)TheFs.Delete(KTestDatabase7Journal);
+	(void)RSqlDatabase::Delete(KTestDatabase7);
 	(void)RSqlDatabase::Delete(KTestDatabase6);
 	(void)RSqlDatabase::Delete(KTestDatabase5);
 	(void)RSqlDatabase::Delete(KTestDatabase3);
@@ -1582,9 +1585,55 @@ void PDEF143461L()
     TEST2(err, 1);
     }
 
+/**
+@SYMTestCaseID          PDS-SQL-CT-4166
+@SYMTestCaseDesc        Tests for DEF144027: SQL Open returns error if the reported and actual file size are different
+@SYMTestPriority        Medium
+@SYMTestActions         1) Create a simple database and close it (this will automatically delete the journal file
+                        2) Create a 15 bytes garbage journal file which is just less than the minimum file size allowed.
+                        3) Reopen the database and checks that the open operation does not fail even thou we've used a 
+                        garbage journal file which is too small
+@SYMTestExpectedResults The RSqlDatabase::Open operation should not fail
+@SYMDEF                 DEF144027
+                        DEF144238
+*/
+void DEF144027()
+    {
+    (void) RSqlDatabase::Delete(KTestDatabase7);
+    (void) TheFs.Delete(KTestDatabase7Journal);
+    
+    TInt err = TheDb.Create(KTestDatabase7);
+    TEST2(err, KErrNone);
+    
+    err = TheDb.Exec(_L("CREATE TABLE t1(NUM INTEGER)"));
+    TEST2(err, 1);
+    
+    err = TheDb.Exec(_L("INSERT INTO t1(NUM) VALUES (1)"));
+    TEST2(err, 1);
+    
+    TheDb.Close();
+    
+    //Created a garbage 15 bytes journal file 
+    RFile file;
+    err = file.Create(TheFs, KTestDatabase7Journal, EFileWrite);
+    TEST2(err, KErrNone);
+    
+    _LIT8(KJournalJunkData, "A123456789B1234");//15 bytes
+    err = file.Write(0, KJournalJunkData);
+    TEST2(err, KErrNone);
+    
+    file.Flush();
+    file.Close();
+    
+    //Here we check the open operation does not return an error, 
+    //even though there is a journal file less than 16 bytes
+    err = TheDb.Open(KTestDatabase7);
+    TEST2(err, KErrNone);
+    TheDb.Close();
+    }
+
 void DoTestsL()
 	{
-	
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1763 \"SQL against a detached db\" test "));
 	SqlDetachedDbTest();	
 
@@ -1665,6 +1714,9 @@ void DoTestsL()
     
     TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4157 PDEF143461 : CSqlSrvDatabase::LastErrorMessage() alignment problem"));
     PDEF143461L();
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4166 DEF144027: SQL Open returns error if the reported and actual file size are different"));
+    DEF144027();
 	}
 
 TInt E32Main()

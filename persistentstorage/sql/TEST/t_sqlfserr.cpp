@@ -27,6 +27,9 @@
 RTest TheTest(_L("t_sqlfserr test"));
 _LIT(KTestDir, "c:\\test\\");
 _LIT(KTestDbName, "c:\\test\\t_fserr.db");
+_LIT(KPrivateTestDbName, "c:\\private\\212A2C27\\t_fserr2.db");
+_LIT(KSecureTestDbName, "c:[212A2C27]t_fserr3.db");
+
 TFileName TheRmvMediaDbFileName;//The name of the file used for tests on a removable media
 RFs TheFs;
 RSqlDatabase TheDb;
@@ -55,6 +58,8 @@ TBool FileExists(const TDesC& aFileName)
 void DestroyTestEnv()
 	{
 	TheDb.Close();
+    (void)RSqlDatabase::Delete(KSecureTestDbName);
+    (void)RSqlDatabase::Delete(KPrivateTestDbName);
 	(void)RSqlDatabase::Delete(KTestDbName);
 	(void)RSqlDatabase::Delete(TheRmvMediaDbFileName);
 	TheFs.Close();
@@ -117,11 +122,11 @@ void SetupTestEnv()
 	sqlite3SymbianLibInit();
 	}
 
-TBool CheckRecord(TInt aId, const TDesC& aExpectedName, TBool aOpenDb = ETrue)
+TBool CheckRecord(const TDesC& aDbName, TInt aId, const TDesC& aExpectedName, TBool aOpenDb = ETrue)
 	{
 	if(aOpenDb)
 		{
-		TEST2(TheDb.Open(KTestDbName), KErrNone);
+		TEST2(TheDb.Open(aDbName), KErrNone);
 		}
 	TBuf<64> sql;
 	sql.Copy(_L("SELECT Name FROM A WHERE Id="));
@@ -179,13 +184,13 @@ void AlterDatabaseTest()
 				TheDb.Close();//close the database to recover from the last error
 				//check the database content - all bets are off in a case of an I/O error. 
 				//The existing record might have been updated.
-				TEST(CheckRecord(1, _L("Name")) || CheckRecord(1, _L("Name2")));
+				TEST(CheckRecord(KTestDbName, 1, _L("Name")) || CheckRecord(KTestDbName, 1, _L("Name2")));
 				}
 			else
 				{
 				TEST2(err, 1);
 				//check the database content has been modified by the operation. 
-				TEST(CheckRecord(1, _L("Name2"), EFalse));
+				TEST(CheckRecord(KTestDbName, 1, _L("Name2"), EFalse));
 				TheDb.Close();
 				}
 			}
@@ -193,7 +198,7 @@ void AlterDatabaseTest()
 	(void)TheFs.SetErrorCondition(KErrNone);
 	TEST2(err, 1);
 	//check the database content (transaction durability). 
-	TEST(CheckRecord(1, _L("Name2")));
+	TEST(CheckRecord(KTestDbName, 1, _L("Name2")));
 	err = RSqlDatabase::Delete(KTestDbName);
 	TEST2(err, KErrNone);
 	TheTest.Printf(_L("\r\n"));
@@ -245,13 +250,13 @@ void AlterDatabaseTest2()
 				TheDb.Close();//close the database to recover from the last error
 				//check the database content - all bets are off in a case of an I/O error. 
 				//The existing record might have been updated.
-				TEST(CheckRecord(1, _L("Name")) || CheckRecord(1, _L("Name2")));
+				TEST(CheckRecord(KTestDbName, 1, _L("Name")) || CheckRecord(KTestDbName, 1, _L("Name2")));
 				}
 			else
 				{
 				TEST2(err, 1);
 				//check the database content has been modified by the operation. 
-				TEST(CheckRecord(1, _L("Name2"), EFalse));
+				TEST(CheckRecord(KTestDbName, 1, _L("Name2"), EFalse));
 				TheDb.Close();
 				}
 			}
@@ -259,11 +264,25 @@ void AlterDatabaseTest2()
 	(void)TheFs.SetErrorCondition(KErrNone);
 	TEST2(err, 1);
 	//check the database content has been modified by the operation. 
-	TEST(CheckRecord(1, _L("Name2")));
+	TEST(CheckRecord(KTestDbName, 1, _L("Name2")));
 	err = RSqlDatabase::Delete(KTestDbName);
 	TEST2(err, KErrNone);
 	TheTest.Printf(_L("\r\n"));
 	}
+
+void CreateTestSecurityPolicy(RSqlSecurityPolicy& aSecurityPolicy)
+    {
+    TSecurityPolicy alwaysPassPolicy(TSecurityPolicy::EAlwaysPass);
+    TInt err = aSecurityPolicy.Create(alwaysPassPolicy);
+    TEST2(err, KErrNone);
+
+    err = aSecurityPolicy.SetDbPolicy(RSqlSecurityPolicy::ESchemaPolicy, alwaysPassPolicy);
+    TEST2(err, KErrNone);
+    err = aSecurityPolicy.SetDbPolicy(RSqlSecurityPolicy::EWritePolicy, alwaysPassPolicy);
+    TEST2(err, KErrNone);
+    err = aSecurityPolicy.SetDbPolicy(RSqlSecurityPolicy::EReadPolicy, alwaysPassPolicy);
+    TEST2(err, KErrNone);
+    }
 
 /**
 @SYMTestCaseID			SYSLIB-SQL-UT-3421
@@ -279,46 +298,63 @@ void AlterDatabaseTest2()
 */
 void OpenDatabaseTest()
 	{
-	(void)RSqlDatabase::Delete(KTestDbName);
-	TInt err = TheDb.Create(KTestDbName);
-	TEST2(err, KErrNone);
-	err = TheDb.Exec(_L("CREATE TABLE A(Id INTEGER,Name TEXT)"));
-	TEST(err >= 0);
-	err = TheDb.Exec(_L("INSERT INTO A(Id,Name) VALUES(1,'Name')"));
-	TEST2(err, 1);
-	TheDb.Close();
-
-	err = KErrNotFound;
-	for(TInt cnt=1;err<KErrNone;++cnt)
-		{		
-		TheTest.Printf(_L("%d \r"), cnt);		
-		for (TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
-			{
-			(void)TheFs.SetErrorCondition(fsError, cnt);
-			err = TheDb.Open(KTestDbName);
-			(void)TheFs.SetErrorCondition(KErrNone);
-			if(err != KErrNone)
-				{
-				TheDb.Close();//close the database to recover from the last error
-				//check the database content is still the same as before the "open" call
-				TEST(CheckRecord(1, _L("Name")));
-				}
-			else
-				{
-				TEST2(err, KErrNone);
-				//check the database content is still the same as before the operation, without closing the database
-				TEST(CheckRecord(1, _L("Name"), EFalse));
-				TheDb.Close();
-				}
-			}
-		}
-	(void)TheFs.SetErrorCondition(KErrNone);
-	TEST2(err, KErrNone);
-	//check the database content is the same as before the operation, after reopening the database.
-	TEST(CheckRecord(1, _L("Name")));
-	err = RSqlDatabase::Delete(KTestDbName);
-	TEST2(err, KErrNone);
-	TheTest.Printf(_L("\r\n"));
+    TPtrC dbName[] = {KTestDbName(), KPrivateTestDbName(), KSecureTestDbName()};
+    const TInt KDbNameCnt = sizeof(dbName) / sizeof(dbName[0]);
+    for(TInt k=0;k<KDbNameCnt;++k)
+        {	
+        TheTest.Printf(_L("Database: \"%S\"\r\n"), &dbName[k]);       
+        (void)RSqlDatabase::Delete(dbName[k]);
+        TInt err = KErrGeneral;
+        if(k == (KDbNameCnt - 1))
+            {
+            RSqlSecurityPolicy policy;
+            CreateTestSecurityPolicy(policy);
+            err = TheDb.Create(dbName[k], policy);
+            policy.Close();
+            }
+        else
+            {
+            err = TheDb.Create(dbName[k]);
+            }
+        TEST2(err, KErrNone);
+        err = TheDb.Exec(_L("CREATE TABLE A(Id INTEGER,Name TEXT)"));
+        TEST(err >= 0);
+        err = TheDb.Exec(_L("INSERT INTO A(Id,Name) VALUES(1,'Name')"));
+        TEST2(err, 1);
+        TheDb.Close();
+    
+        err = KErrNotFound;
+        for(TInt cnt=1;err<KErrNone;++cnt)
+            {		
+            TheTest.Printf(_L("%d \r"), cnt);		
+            for (TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
+                {
+                (void)TheFs.SetErrorCondition(fsError, cnt);
+                err = TheDb.Open(dbName[k]);
+                (void)TheFs.SetErrorCondition(KErrNone);
+                if(err != KErrNone)
+                    {
+                    TheDb.Close();//close the database to recover from the last error
+                    //check the database content is still the same as before the "open" call
+                    TEST(CheckRecord(dbName[k], 1, _L("Name")));
+                    }
+                else
+                    {
+                    TEST2(err, KErrNone);
+                    //check the database content is still the same as before the operation, without closing the database
+                    TEST(CheckRecord(dbName[k], 1, _L("Name"), EFalse));
+                    TheDb.Close();
+                    }
+                }
+            }
+        (void)TheFs.SetErrorCondition(KErrNone);
+        TEST2(err, KErrNone);
+        //check the database content is the same as before the operation, after reopening the database.
+        TEST(CheckRecord(dbName[k], 1, _L("Name")));
+        err = RSqlDatabase::Delete(dbName[k]);
+        TEST2(err, KErrNone);
+        TheTest.Printf(_L("\r\n"));
+        }
 	}
 
 /**
@@ -335,32 +371,45 @@ void OpenDatabaseTest()
 */
 void CreateDatabaseTest()
 	{
-	TInt err = -1;
-	for(TInt cnt=1;err<KErrNone;++cnt)
-		{		
-		TheTest.Printf(_L("%d \r"), cnt);		
-		for (TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
-			{
-			//Ideally, the database should be deleted by the SQL server, if RSqlDatabase::Create() fails.
-			//But SetErrorCondition() makes the error persistent, so the SQL server will fail to delete the file.
-			//This is the reason, RSqlDatabase::Delete()to be used, before simulating file I/O error.
-			(void)RSqlDatabase::Delete(KTestDbName);
-			(void)TheFs.SetErrorCondition(fsError, cnt);
-			err = TheDb.Create(KTestDbName);
-			(void)TheFs.SetErrorCondition(KErrNone);
-			TheDb.Close();
-			//If err != KErrNone, the database file should have been already deleted by the server and here is 
-			//the place to check that. But since the file I/O failure simulation makes the file I/O error 
-			//persistent, the file cannot be deleted by the server, because the "file delete" operation also fails.
-			}
-		}
-	(void)TheFs.SetErrorCondition(KErrNone);
-	TheDb.Close();
-	TEST2(err, KErrNone);
-	TEST(FileExists(KTestDbName));
-	err = RSqlDatabase::Delete(KTestDbName);
-	TEST2(err, KErrNone);
-	TheTest.Printf(_L("\r\n"));
+	RSqlSecurityPolicy policy;
+	CreateTestSecurityPolicy(policy);
+	
+	TPtrC dbName[] = {KTestDbName(), KPrivateTestDbName(), KSecureTestDbName()};
+	const TInt KDbNameCnt = sizeof(dbName) / sizeof(dbName[0]);
+	for(TInt k=0;k<KDbNameCnt;++k)
+	    {
+        TheTest.Printf(_L("Database: \"%S\"\r\n"), &dbName[k]);       
+        TInt err = -1;
+        for(TInt cnt=1;err<KErrNone;++cnt)
+            {		
+            TheTest.Printf(_L("%d \r"), cnt);		
+            for (TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
+                {
+                //Ideally, the database should be deleted by the SQL server, if RSqlDatabase::Create() fails.
+                //But SetErrorCondition() makes the error persistent, so the SQL server will fail to delete the file.
+                //This is the reason, RSqlDatabase::Delete()to be used, before simulating file I/O error.
+                (void)RSqlDatabase::Delete(dbName[k]);
+                (void)TheFs.SetErrorCondition(fsError, cnt);
+                err = (k == (KDbNameCnt - 1)) ? TheDb.Create(dbName[k], policy) : TheDb.Create(dbName[k]);
+                (void)TheFs.SetErrorCondition(KErrNone);
+                TheDb.Close();
+                //If err != KErrNone, the database file should have been already deleted by the server and here is 
+                //the place to check that. But since the file I/O failure simulation makes the file I/O error 
+                //persistent, the file cannot be deleted by the server, because the "file delete" operation also fails.
+                }
+            }
+        (void)TheFs.SetErrorCondition(KErrNone);
+        TheDb.Close();
+        TEST2(err, KErrNone);
+        if( k != (KDbNameCnt - 1))
+            {
+            TEST(FileExists(dbName[k]));
+            }
+        err = RSqlDatabase::Delete(dbName[k]);
+        TEST2(err, KErrNone);
+        TheTest.Printf(_L("\r\n"));
+	    }
+	policy.Close();
 	}
 
 /**
@@ -415,13 +464,13 @@ void SelectRecordTest()
 		stmt.Close();
 		TheDb.Close();
 		//check the database content is the same as before the operation
-		TEST(CheckRecord(1, _L("Name")));
+		TEST(CheckRecord(KTestDbName, 1, _L("Name")));
 		}
 	(void)TheFs.SetErrorCondition(KErrNone);
 	TEST(err >= 0);
 	TheDb.Close();
 	//check the database content is the same as before the operation, after reopening the database.
-	TEST(CheckRecord(1, _L("Name")));
+	TEST(CheckRecord(KTestDbName, 1, _L("Name")));
 	err = RSqlDatabase::Delete(KTestDbName);
 	TEST2(err, KErrNone);
 	TheTest.Printf(_L("\r\n"));
@@ -477,22 +526,22 @@ void InsertRecordTest()
 			{
 			TheDb.Close();//close the database to recover from the last error
 			//check that the database contains the "name" record that has been inserted before the file I/O failure test.
-			TEST(CheckRecord(1, _L("Name")));
+			TEST(CheckRecord(KTestDbName, 1, _L("Name")));
 			}
 		else
 			{
 			TEST2(err, 1);
 			//check the database content has been modified by the operation, without closing the database.
-			TEST(CheckRecord(1, _L("Name"), EFalse));
-			TEST(CheckRecord(2, _L("Name2"), EFalse));
+			TEST(CheckRecord(KTestDbName, 1, _L("Name"), EFalse));
+			TEST(CheckRecord(KTestDbName, 2, _L("Name2"), EFalse));
 			TheDb.Close();
 			}
 		}
 	(void)TheFs.SetErrorCondition(KErrNone);
 	TEST2(err, 1);
 	//check the database content (transaction durability).
-	TEST(CheckRecord(1, _L("Name")));
-	TEST(CheckRecord(2, _L("Name2")));
+	TEST(CheckRecord(KTestDbName, 1, _L("Name")));
+	TEST(CheckRecord(KTestDbName, 2, _L("Name2")));
 	(void)RSqlDatabase::Delete(KTestDbName);
 	TheTest.Printf(_L("\r\n"));
 	}

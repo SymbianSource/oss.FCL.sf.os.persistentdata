@@ -269,14 +269,6 @@ static TInt NonSecureChecks(TInt aDbOpType,const char* aDbObjName1, const char* 
 		case SQLITE_DROP_TRIGGER://          Trigger Name    Table Name      
 		case SQLITE_DROP_VIEW://             View Name       NULL            
 		case SQLITE_ALTER_TABLE://			 Database Name   Table Name
-		case SQLITE_CREATE_TEMP_INDEX://     Index Name      Table Name      
-		case SQLITE_CREATE_TEMP_TABLE://     Table Name      NULL            
-		case SQLITE_CREATE_TEMP_TRIGGER://   Trigger Name    Table Name      
-		case SQLITE_CREATE_TEMP_VIEW://      View Name       NULL            
-		case SQLITE_DROP_TEMP_INDEX://       Index Name      Table Name      
-		case SQLITE_DROP_TEMP_TABLE://       Table Name      NULL            
-		case SQLITE_DROP_TEMP_TRIGGER://     Trigger Name    Table Name      
-		case SQLITE_DROP_TEMP_VIEW://        View Name       NULL            
 		case SQLITE_SELECT://                NULL            NULL            
 		case SQLITE_TRANSACTION://           NULL            NULL          
 		case SQLITE_DELETE://                Table Name      NULL
@@ -294,6 +286,16 @@ static TInt NonSecureChecks(TInt aDbOpType,const char* aDbObjName1, const char* 
 		case SQLITE_PRAGMA://                Pragma Name     1st arg or NULL 
 			res = PragmaCheck(aDbObjName1, (aDbObjName2 != NULL), EFalse);
 			break;
+//All "temp" operations are handled earlier, in CSqlSrvDatabase::AuthorizeCallback(), where a check for "temp"
+//database name is performed.
+//      case SQLITE_CREATE_TEMP_INDEX://     Index Name      Table Name      
+//      case SQLITE_CREATE_TEMP_TABLE://     Table Name      NULL            
+//      case SQLITE_CREATE_TEMP_TRIGGER://   Trigger Name    Table Name      
+//      case SQLITE_CREATE_TEMP_VIEW://      View Name       NULL            
+//      case SQLITE_DROP_TEMP_INDEX://       Index Name      Table Name      
+//      case SQLITE_DROP_TEMP_TABLE://       Table Name      NULL            
+//      case SQLITE_DROP_TEMP_TRIGGER://     Trigger Name    Table Name      
+//      case SQLITE_DROP_TEMP_VIEW://        View Name       NULL            
 		default:
 			__SQLASSERT(EFalse, ESqlPanicInternalError);
 			break;
@@ -360,14 +362,6 @@ static TInt SecureChecks(const CSqlSecurityPolicy* aSecurityPolicy,TInt aDbOpTyp
 				}
 			break;
 		//No policy check
-		case SQLITE_CREATE_TEMP_INDEX://     Index Name      Table Name      
-		case SQLITE_CREATE_TEMP_TABLE://     Table Name      NULL            
-		case SQLITE_CREATE_TEMP_TRIGGER://   Trigger Name    Table Name      
-		case SQLITE_CREATE_TEMP_VIEW://      View Name       NULL            
-		case SQLITE_DROP_TEMP_INDEX://       Index Name      Table Name      
-		case SQLITE_DROP_TEMP_TABLE://       Table Name      NULL            
-		case SQLITE_DROP_TEMP_TRIGGER://     Trigger Name    Table Name      
-		case SQLITE_DROP_TEMP_VIEW://        View Name       NULL            
 		case SQLITE_SELECT://                NULL            NULL            
 		case SQLITE_TRANSACTION://           NULL            NULL            
 			break;
@@ -423,6 +417,16 @@ static TInt SecureChecks(const CSqlSecurityPolicy* aSecurityPolicy,TInt aDbOpTyp
 		//No policy check
 		case SQLITE_FUNCTION:
 			break;
+//All "temp" operations are handled earlier, in CSqlSrvDatabase::AuthorizeCallback(), where a check for "temp"
+//database name is performed.
+//      case SQLITE_CREATE_TEMP_INDEX://     Index Name      Table Name      
+//      case SQLITE_CREATE_TEMP_TABLE://     Table Name      NULL            
+//      case SQLITE_CREATE_TEMP_TRIGGER://   Trigger Name    Table Name      
+//      case SQLITE_CREATE_TEMP_VIEW://      View Name       NULL            
+//      case SQLITE_DROP_TEMP_INDEX://       Index Name      Table Name      
+//      case SQLITE_DROP_TEMP_TABLE://       Table Name      NULL            
+//      case SQLITE_DROP_TEMP_TRIGGER://     Trigger Name    Table Name      
+//      case SQLITE_DROP_TEMP_VIEW://        View Name       NULL            
 		default:
 			__SQLASSERT(EFalse, ESqlPanicInternalError);
 			break;

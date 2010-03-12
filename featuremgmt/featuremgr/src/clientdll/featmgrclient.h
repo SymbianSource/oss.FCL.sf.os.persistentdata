@@ -84,7 +84,7 @@ NONSHARABLE_CLASS(RFeatMgrClient) : public RSessionBase, public MFeatureClient
         TInt SWIStart() const;
         
         TInt SWIEnd() const; 
-        
+                
     private:
 
         /**
@@ -112,7 +112,10 @@ NONSHARABLE_CLASS(RFeatMgrClient) : public RSessionBase, public MFeatureClient
 		#ifdef EXTENDED_FEATURE_MANAGER_TEST
         // Public DEBUG API functions
     public:
-
+        void ResourceMark();
+        void ResourceCheck();
+        TInt ResourceCount();
+        void SetHeapFailure(TInt aAllocFailType, TInt aRate);
 		TInt NumberOfNotifyFeatures( void ) const;
 		TInt CountAllocCells( void ) const;
 		#endif    

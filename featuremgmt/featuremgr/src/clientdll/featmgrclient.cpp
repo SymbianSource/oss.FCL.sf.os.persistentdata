@@ -614,11 +614,37 @@ TInt RFeatMgrClient::SWIEnd() const
 
 // ========================== OTHER EXPORTED FUNCTIONS =========================
 
-
-
 // DEBUG only API functions
 
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
+/** 
+*/
+void RFeatMgrClient::ResourceMark()
+    {
+    (void)SendReceive(EFeatMgrResourceMark);
+    }
+
+/** 
+*/
+void RFeatMgrClient::ResourceCheck()
+    {
+    (void)SendReceive(EFeatMgrResourceCheck);
+    }
+
+/** 
+*/
+TInt RFeatMgrClient::ResourceCount()
+    {
+    return SendReceive(EFeatMgrResourceCount);
+    }
+
+/** 
+*/
+void RFeatMgrClient::SetHeapFailure(TInt aAllocFailType, TInt aRate)
+    {
+    (void)SendReceive(EFeatMgrSetHeapFailure, TIpcArgs(aAllocFailType, aRate));
+    }
+
 // -----------------------------------------------------------------------------
 // RFeatMgrClient::NumberOfNotifyFeatures()
 // -----------------------------------------------------------------------------

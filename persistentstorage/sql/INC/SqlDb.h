@@ -167,6 +167,10 @@ securityPolicy.Close();
 Note that in the cases where an 'overriding' security policy was not originally assigned,
 then the security policy returned will simply be the default security policy.
 
+Note: The database security policies are used to control the access to the objects (tables, indexes, triggers, views)
+in the main database. The access to the temporary tables, indexes, etc. is not a subject of any restrictions, e.g.
+a client with "read" database security policy only can create and use temporary tables, views, indexes, triggers.
+
 @see TSecurityPolicy
 @see RSqlDatabase
 @see RSqlSecurityPolicy::SetDbPolicy()

@@ -80,11 +80,9 @@ void CServerRepository::RestoreNotify(const CRestoredRepository& aRstRepos)
 /**
 Attempt to reset a single key to it's value in the file in the given location. Routine
 attempts to find a .cre file first. If ( and only if ) a cre file doesn't exist the 
-routine attempts to find a txt file.
-Note that it would be possible to use LoadRepositoryLC here but for the txt file
-that would take longer. This is because in LoadRepositoryLC the txt file is 
-completely processed. The Reset specific txt file opening code below is quicker because 
-it is just attempting to find the reset key.
+routine attempts to find a txt file. In the presence of multi rofs, it needs to perform
+merging of all the rom keyspaces first before doing a reset, hence we are not able to perform
+the reading line by line for efficiency purpose.
 */
 #ifdef SYMBIAN_CENTREP_SUPPORT_MULTIROFS	
 void CServerRepository::ResetFromIniFileL(TUint32 aId, 
@@ -113,6 +111,15 @@ void CServerRepository::ResetFromIniFileL(TUint32 aId,
 	CleanupStack::PopAndDestroy(rep);
 	}
 #else
+/**
+Attempt to reset a single key to it's value in the file in the given location. Routine
+attempts to find a .cre file first. If ( and only if ) a cre file doesn't exist the 
+routine attempts to find a txt file.
+Note that it would be possible to use LoadRepositoryLC here but for the txt file
+that would take longer. This is because in LoadRepositoryLC the txt file is 
+completely processed. The Reset specific txt file opening code below is quicker because 
+it is just attempting to find the reset key.
+*/
 void CServerRepository::ResetFromIniFileL(TUint32 aId, 
 										  TCentRepLocation aLocation,
 										  TBool& aKeyFound)
@@ -448,7 +455,9 @@ TInt CServerRepository::RFSRepositoryL()
 		TServerResources::iObserver->LoadRepositoryLC(uid, ETrue, defaultRepository, CIniFileIn::EInstallOnly);		
 		}
 	else
-		{	
+		{
+        // The repository must exist in the ROM or install directory (or both). 
+        ASSERT(romExists || installExists);
 		// Reset against empty repository if neither ROM or install file are found
 		defaultRepository = CSharedRepository::NewL(uid);
 		CleanupStack::PushL(defaultRepository);

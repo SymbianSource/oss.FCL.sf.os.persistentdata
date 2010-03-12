@@ -44,6 +44,7 @@ LIBRARY			estor.lib
 LIBRARY			hal.lib 
 STATICLIBRARY	sqlite.lib 
 
+UID				0 0x212A2C27
 VENDORID		0x70000001
 
 SMPSAFE

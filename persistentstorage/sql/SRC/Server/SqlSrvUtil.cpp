@@ -156,7 +156,7 @@ TBool UTF16ToUTF8(const TDesC& aIn, TDes8& aOut)
 	des.Append(TChar(0));
 	TInt len = wcstombs((char*)aOut.Ptr(), (const wchar_t*)des.Ptr(), KMaxFileName);
 	//Check the file name length. If it is longer than KMaxFileName characters, then the file name is not valid.
-	if(len >= 0 && len <= KMaxFileName)
+	if((TUint)len <= KMaxFileName)
 		{
 		aOut.SetLength(len);
 		return ETrue;
@@ -185,7 +185,7 @@ TBool UTF16ZToUTF8Z(const TDesC& aFileName, TDes8& aFileNameDestBuf)
 	const wchar_t* src = reinterpret_cast <const wchar_t*> (aFileName.Ptr());
 	TInt len = wcstombs((char*)aFileNameDestBuf.Ptr(), src, KMaxFileName);
 	//Check the file name length. If it is longer than KMaxFileName characters, then the file name is not valid.
-	if(len >= 0 && len <= KMaxFileName)
+	if((TUint)len <= KMaxFileName)
 		{
 		aFileNameDestBuf.SetLength(len + 1);
 		aFileNameDestBuf[len] = 0;

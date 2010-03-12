@@ -41,6 +41,8 @@ _LIT(KTestFile3, "c:\\test\\t_sqloslayer.db");
 const char* KTestFile1Z = "c:\\test\\t_sqloslayer.bin";
 const char* KTestFile2Z = "z:\\test\\TestDb1.db";
 const char* KTestFile3Z = "c:\\test\\t_sqloslayer.db";
+_LIT(KPrivateDir, "c:\\private\\21F12127\\");
+const char* KTestFile4Z = "c:\\test\\t_sqloslayer2.db";
 
 //In order to be able to compile the test, the following variables are defined (used inside the OS porting layer, when _SQLPROFILER macro is defined)
 #ifdef _SQLPROFILER
@@ -88,6 +90,63 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	}
 #define TEST(arg) ::Check1((arg), __LINE__)
 #define TEST2(aValue, aExpected) ::Check2(aValue, aExpected, __LINE__)
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+static TInt TheProcessHandleCount = 0;
+static TInt TheThreadHandleCount = 0;
+static TInt TheAllocatedCellsCount = 0;
+
+#ifdef _DEBUG
+static const TInt KBurstRate = 20;
+#endif
+
+static void MarkHandles()
+    {
+    RThread().HandleCount(TheProcessHandleCount, TheThreadHandleCount);
+    }
+
+static void MarkAllocatedCells()
+    {
+    TheAllocatedCellsCount = User::CountAllocCells();
+    }
+
+static void CheckAllocatedCells()
+    {
+    TInt allocatedCellsCount = User::CountAllocCells();
+    TEST2(allocatedCellsCount, TheAllocatedCellsCount);
+    }
+
+static void CheckHandles()
+    {
+    TInt endProcessHandleCount;
+    TInt endThreadHandleCount;
+    
+    RThread().HandleCount(endProcessHandleCount, endThreadHandleCount);
+
+    TEST2(TheProcessHandleCount, endProcessHandleCount);
+    TEST2(TheThreadHandleCount, endThreadHandleCount);
+    }
+
+static void OomPreStep(TInt
+#ifdef _DEBUG        
+    aFailingAllocationNo
+#endif
+                      )
+    {
+    MarkHandles();
+    MarkAllocatedCells();
+    __UHEAP_MARK;
+    __UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, aFailingAllocationNo, KBurstRate);
+    }
+
+static void OomPostStep()
+    {
+    __UHEAP_RESET;
+    __UHEAP_MARKEND;
+    CheckAllocatedCells();
+    CheckHandles();
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -405,35 +464,14 @@ void sqlite3SymbianLibInitOomTest()
 	TInt err = KErrNoMemory;
 	while(err == KErrNoMemory)
 		{
-		TInt processHandleCnt = 0;
-		TInt threadHandleCnt = 0;
-		RThread().HandleCount(processHandleCnt, threadHandleCnt);
-		TInt allocCellsCnt = User::CountAllocCells();
-		
-		__UHEAP_MARK;
-		
-		__UHEAP_SETBURSTFAIL(RHeap::EDeterministic, ++failingAllocNum, 10);
-		
+		OomPreStep(++failingAllocNum);
 		err = sqlite3SymbianLibInit();
-		
-		__UHEAP_SETBURSTFAIL(RHeap::ENone, 0, 0);
-
-		if(err != KErrNoMemory)
-			{
-			TEST2(err, KErrNone);
-			sqlite3SymbianLibFinalize();
-			}
-
-		__UHEAP_MARKEND;
-
-		TInt processHandleCnt2 = 0;
-		TInt threadHandleCnt2 = 0;
-		RThread().HandleCount(processHandleCnt2, threadHandleCnt2);
-		TEST2(processHandleCnt2, processHandleCnt);
-		TEST2(threadHandleCnt2, threadHandleCnt);
-
-		TInt allocCellsCnt2 = User::CountAllocCells();
-		TEST2(allocCellsCnt2, allocCellsCnt);
+        sqlite3SymbianLibFinalize();
+        OomPostStep();
+        if(err != KErrNoMemory)
+            {
+            TEST2(err, KErrNone);
+            }
 		}
 	TEST2(err, KErrNone);
 	TheTest.Printf(_L("=== sqlite3SymbianLibInit() OOM test succeeded at allcoation %d\r\n"), failingAllocNum);
@@ -585,6 +623,94 @@ void NegativeTest()
 	User::Free(osFile);
 	}
 
+void VfsOpenTempFileOomTest()
+    {
+    //Delete all temp files in this test private data cage.
+    CFileMan* fm = NULL;
+    TRAPD(err, fm = CFileMan::NewL(TheFs));
+    TEST2(err, KErrNone);
+    TBuf<50> path;
+    path.Copy(KPrivateDir);
+    path.Append(_L("*.$$$"));
+    err = fm->Delete(path);
+    TEST(err == KErrNone || err == KErrNotFound);
+    
+    sqlite3_vfs* vfs = sqlite3_vfs_find(NULL);
+    TEST(vfs != NULL);
+
+    sqlite3_file* osFile = (sqlite3_file*)User::Alloc(vfs->szOsFile);
+    TEST(osFile != NULL);
+    
+    TheTest.Printf(_L("Iteration: "));
+    TInt failingAllocNum = 0;
+    err = SQLITE_IOERR_NOMEM;
+    while(err == SQLITE_IOERR_NOMEM)
+        {
+        ++failingAllocNum;
+        TheTest.Printf(_L("%d "), failingAllocNum);
+        OomPreStep(failingAllocNum);
+        int outFlags = 0;
+        err = sqlite3OsOpen(vfs, NULL, osFile, SQLITE_OPEN_READWRITE, &outFlags);
+        if(err == SQLITE_OK)
+            {
+            err = sqlite3OsClose(osFile);
+            }
+        OomPostStep();
+        if(err != SQLITE_OK)
+            {
+            TEST2(err, SQLITE_IOERR_NOMEM);
+            }
+        //If the iteration has failed, then no temp file should exist in the test private data cage.
+        //If the iteration has succeeded, then sqlite3OsClose() should have deleted the temp file.
+        TInt err2 = fm->Delete(path);
+        TEST2(err2, KErrNotFound);
+        }
+    TEST2(err, SQLITE_OK);
+    TheTest.Printf(_L("\r\n=== TVfs::Open(<temp file>) OOM test succeeded at allcoation %d\r\n"), failingAllocNum);
+    
+    User::Free(osFile);
+    delete fm;
+    }
+
+void VfsCreateDeleteOnCloseFileOomTest()
+    {
+    sqlite3_vfs* vfs = sqlite3_vfs_find(NULL);
+    TEST(vfs != NULL);
+
+    sqlite3_file* osFile = (sqlite3_file*)User::Alloc(vfs->szOsFile);
+    TEST(osFile != NULL);
+    
+    TheTest.Printf(_L("Iteration: "));
+    TInt failingAllocNum = 0;
+    TInt err = SQLITE_IOERR_NOMEM;
+    while(err == SQLITE_IOERR_NOMEM)
+        {
+        ++failingAllocNum;
+        TheTest.Printf(_L("%d "), failingAllocNum);
+        OomPreStep(failingAllocNum);
+        int outFlags = 0;
+        err = sqlite3OsOpen(vfs, KTestFile4Z, osFile, SQLITE_OPEN_CREATE | SQLITE_OPEN_DELETEONCLOSE, &outFlags);
+        if(err == SQLITE_OK)
+            {
+            err = sqlite3OsClose(osFile);
+            }
+        OomPostStep();
+        if(err != SQLITE_OK)
+            {
+            TEST2(err, SQLITE_IOERR_NOMEM);
+            }
+        //Whether the iteration has failed or succeeded, the file should not exist.
+        TPtrC8 ptrname((const TUint8*)KTestFile4Z);
+        TBuf<50> fname;
+        fname.Copy(ptrname);
+        TInt err2 = TheFs.Delete(fname);
+        TEST2(err2, KErrNotFound);
+        }
+    TEST2(err, SQLITE_OK);
+    TheTest.Printf(_L("\r\n=== TVfs::Open(<delete on close file>) OOM test succeeded at allcoation %d\r\n"), failingAllocNum);
+    User::Free(osFile);
+    }
+
 /**
 @SYMTestCaseID			SYSLIB-SQL-CT-1650
 @SYMTestCaseDesc		SQL, OS porting layer tests.
@@ -612,6 +738,10 @@ void DoTests()
 	ProfilerDisabledTest();
 	TheTest.Printf(_L("OS porting layer test - negative tests\r\n"));
 	NegativeTest();
+    TheTest.Printf(_L("TVfs::Open(<temp file>) OOM test\r\n"));
+    VfsOpenTempFileOomTest();
+    TheTest.Printf(_L("TVfs::Open(<'delete on close' file>) OOM test\r\n"));
+    VfsCreateDeleteOnCloseFileOomTest();
 	}
 
 TInt E32Main()
@@ -619,6 +749,7 @@ TInt E32Main()
 	TheTest.Title();
 	
 	CTrapCleanup* tc = CTrapCleanup::New();
+	TheTest(tc != NULL);
 	
 	__UHEAP_MARK;
 	

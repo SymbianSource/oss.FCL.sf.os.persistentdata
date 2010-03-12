@@ -51,5 +51,10 @@ EXPORTS
 	_ZN15Dummy10Reserved16E4TUid @ 50 NONAME ABSENT
 	_ZN15RFeatureControl13DeleteFeatureE4TUid @ 51 NONAME
 	_ZN15RFeatureControl6SWIEndEv @ 52 NONAME
-	_ZN15RFeatureControl8SWIStartEv @ 53 NONAME 
+	_ZN15RFeatureControl8SWIStartEv @ 53 NONAME
+	_Z14GetClientCountv @ 54 NONAME
+	_ZN22TFeatMgrResourceTester14SetHeapFailureEii @ 55 NONAME
+	_ZN22TFeatMgrResourceTester4MarkEv @ 56 NONAME
+	_ZN22TFeatMgrResourceTester5CheckEv @ 57 NONAME
+	_ZN22TFeatMgrResourceTester5CountEv @ 58 NONAME
 

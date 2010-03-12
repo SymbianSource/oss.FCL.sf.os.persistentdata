@@ -303,7 +303,11 @@ Usage of the IPC call arguments:
 */
 TInt RSqlDbSession::Connect(TSqlSrvFunction aFunction, const TDesC& aDbFileName, const TDesC8& aSecurityPolicyData, const TDesC8* aConfig)
 	{
+#ifdef SYSLIBS_TEST
+    const TInt KDefaultMsgBufLen = 4;
+#else	
 	const TInt KDefaultMsgBufLen = 128;
+#endif	
 	iLastErrorMessage = HBufC::New(KDefaultMsgBufLen);
 	if(!iLastErrorMessage)
 		{

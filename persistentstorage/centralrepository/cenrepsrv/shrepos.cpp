@@ -496,6 +496,8 @@ The method reloads the repository content from a repository file.
 The current repository must be emptied (or must be empty already) before the call is made.
 @param aIniFile A reference to CIniFileIn object, which will be used to load
 				the repository content.
+@param aFirstLoad is used to indicate whether the file is reloaded for first time, this is used to prevent
+notification if not needed. For example file loading for merging purpose will not result in notification
 @return KErrCorrupt Corrupted repository file.
 		KErrNone	The repository content was seccessfully loaded into memory.
 		KErrNotFound Setting not found in the file.

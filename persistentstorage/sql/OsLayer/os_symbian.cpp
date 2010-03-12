@@ -700,17 +700,24 @@ public:
 	TFileName	iSysPrivDir;//"<system drive>:\" + process's private data path. Initialized in sqlite3SymbianFsOpen().
 							//Used for storing sqlite temporary files.
 	TInt64		iSeed;
-	RAllocator*	iAllocator;
 
-	enum {KZeroBufSize = SQLITE_DEFAULT_SECTOR_SIZE};
-    TBuf8<KZeroBufSize> iZeroBuf;
-	
 private:	
 	static COsLayerData* 	iOsLayerData;
 	TInt					iStoredOsErrorCode;	//Contains the last OS error code.
 	const RMessage2* 		iMessage;			//Fh data
 	TBool					iReadOnly;			//Fh data
 	};
+
+/**
+This functon returns a reference to the current thread allocator object.
+The static RAllocator& variable will be initialized once at the moment when the function is called for 
+first time. 
+*/
+static RAllocator& Allocator()
+    {
+    static RAllocator& allocator = User::Allocator();
+    return allocator;
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////       TDbFile struct declaration      /////////////////////////////////////////////////////
@@ -1042,7 +1049,6 @@ inline void COsLayerData::RetrieveAndResetFhData(const RMessage2*& aMsg, TBool& 
 Initializes the COsLayerData data members with their default values.
 */
 inline COsLayerData::COsLayerData() :
-	iAllocator(0),
 	iStoredOsErrorCode(KErrNone),
 	iMessage(0),
 	iReadOnly(EFalse)
@@ -1050,7 +1056,6 @@ inline COsLayerData::COsLayerData() :
 	TTime now;
 	now.UniversalTime();
 	iSeed = now.Int64();
-   	iZeroBuf.FillZ(COsLayerData::KZeroBufSize);
 	}
 
 /**
@@ -1084,7 +1089,6 @@ Note: No SQLite functions should be called inside the DoCreate() implementation,
 */
 TInt COsLayerData::DoCreate()
 	{
-	iAllocator = &User::Allocator();
 	__FS_CALL(EFsOpFsConnect, 0);
 	TInt err = iFs.Connect();
 	if(err != KErrNone)
@@ -1447,8 +1451,7 @@ static inline TDbFile& DbFile(sqlite3_file* aDbFile)
 SQLite OS porting layer API.
 
 Closes the file referred by aDbFile parameter.
-If aDbFile, which is actually a pointer to a TDbFile instance, the iFullName data member is not NULL, 
-then the file will be deleted.
+If aDbFile.iFullName data member is not NULL, then the file will be deleted.
 
 @param aDbFile A pointer to a TDbFile instance, than contains the file handle to be closed.
 
@@ -1465,7 +1468,8 @@ then the file will be deleted.
 	__FS_CALL(EFsOpFileClose, 0);
 	dbFile.iFileBuf.Close();
 	if(dbFile.iFullName)
-		{
+		{//"iFullName" will not be NULL only when TVfs::Open() is called with SQLITE_OPEN_DELETEONCLOSE flag.
+		 //That means - SQlite expects the file to be deleted after the file close operation. 
 		__FS_CALL(EFsOpFileDelete, 0);
 		(void)COsLayerData::Instance().iFs.Delete(*dbFile.iFullName);
 		delete dbFile.iFullName;
@@ -2301,6 +2305,11 @@ with the reported by the OS API error. The stored error code will be used later 
 		dbFile.iFileBuf.Close();	
 		delete dbFile.iFullName;
 		dbFile.iFullName = NULL;
+        if(!aFileName && fname.Length() > 0)
+            {//temporary file, the error is not KErrNone. Then delete the file (after a successfull 
+             //temporary file creation there could be a failed memory allocation)
+            (void)osLayerData.iFs.Delete(fname);
+            }
 		}
 	else
 		{
@@ -2614,7 +2623,7 @@ Memory allocation routine.
 extern "C" void* sqlite3SymbianMalloc(size_t aSize)
 	{
 	__MEM_CALL(EMemOpAlloc, aSize, 0);
-	return COsLayerData::Instance().iAllocator->Alloc(aSize);
+	return Allocator().Alloc(aSize);
 	}
 
 /**
@@ -2627,10 +2636,10 @@ Memory reallocation routine.
 extern "C" void* sqlite3SymbianRealloc(void* aPtr, size_t aSize)
 	{
 #ifdef _SQLPROFILER
-	TInt size = COsLayerData::Instance().iAllocator->AllocLen(aPtr);
+	TInt size = Allocator().AllocLen(aPtr);
 	__MEM_CALL(EMemOpRealloc, aSize, size);
 #endif
-	return COsLayerData::Instance().iAllocator->ReAlloc(aPtr, aSize);
+	return Allocator().ReAlloc(aPtr, aSize);
 	}
 
 /**
@@ -2643,10 +2652,10 @@ Memory free routine.
 extern "C" void sqlite3SymbianFree(void* aPtr)
 	{
 #ifdef _SQLPROFILER
-	TInt size = COsLayerData::Instance().iAllocator->AllocLen(aPtr);
+	TInt size = Allocator().AllocLen(aPtr);
 	__MEM_CALL(EMemOpFree, size, 0);
 #endif
-	COsLayerData::Instance().iAllocator->Free(aPtr);
+	Allocator().Free(aPtr);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

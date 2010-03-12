@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -42,6 +42,7 @@ _LIT8(KServerConfigString1, "   ;  cache_size =  1024 ; page_size =1024 ;encodin
 _LIT8(KServerConfigString2, " badconfigstring ");
 _LIT8(KServerConfigString3, " aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 _LIT8(KServerConfigString4, "");
+_LIT8(KServerConfigString5, "dfgdfrgdkfjgjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj43w3wk4jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
 
 const TUid KSecureUid = {0x1111CCCC};//The same as the UID in the MMP file
 
@@ -244,7 +245,12 @@ void OpenCloseDatabaseTest()
 	db.Close();
 	rc2 = RSqlDatabase::Delete(KTestCfgDbName);
 	TEST2(rc2, KErrNone);
-		
+
+    // create database with very long config specified
+    rc = db.Create(KTestCfgDbName, &KServerConfigString5);
+    TEST2(rc, KErrArgument);
+    db.Close();
+	
 	//Secure shared database file on an existing drive (C:). 
 	//Very long database file name (> 90 characters) but still a valid name.
 	rc = db.Create(KTestDbName4, securityPolicy);
@@ -1110,6 +1116,10 @@ void ColumnTextStreamTest()
 	//Read row 2 using ColumnText(TInt aColumnIndex, TDes& aDest).
 	rc = stmt.ColumnText(1, colData);
 	TEST2(rc, KErrNone);
+	//Too small target buffer
+	TBuf<3> buf1;
+    rc = stmt.ColumnText(1, buf1);
+    TEST2(rc, KErrOverflow);
 	
 	//Check the column value
 	for(i=0;i<KTextLen;++i)
@@ -1224,6 +1234,10 @@ void ColumnBinaryStreamTest()
 	rc = db.Exec(sql);
 	TEST2(rc, 1);
 
+    //Insert row 3: the binary column length is just 2 bytes
+    rc = db.Exec(_L("INSERT INTO A VALUES(3, x'A5D3')"));
+    TEST2(rc, 1);
+	
 	//Prepare SELECT SQL statement
 	_LIT8(KSqlStmt3, "SELECT * FROM A");
 	RSqlStatement stmt = PrepareSqlStmt<TDesC8, TBuf8<KSqlBufSize> >(db, KSqlStmt3, KErrNone);
@@ -1314,6 +1328,19 @@ void ColumnBinaryStreamTest()
 		TUint8 val = colBuf[i];
 		TEST(val = KHexVal2);	
 		}
+	
+    //Move on row 3. The binary column value length is just 2 bytes.
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    TBuf8<2> buf1;
+    rc = stmt.ColumnBinary(1, buf1); 
+    TEST2(rc, KErrNone);
+    TEST2(buf1.Length(), 2);
+    TBuf8<1> buf2;
+    rc = stmt.ColumnBinary(1, buf2); 
+    TEST2(rc, KErrOverflow);
 	
 	stmt.Close();
 	
@@ -1534,6 +1561,10 @@ void BinaryParameterStreamTest()
 	RSqlParamWriteStream paramStream;
 	rc = paramStream.BindBinary(stmt, 0);
 	TEST2(rc, KErrNone);
+	paramStream.Close();
+    //Open the parameter stream with BindBinaryL()
+    TRAP(rc, paramStream.BindBinaryL(stmt, 0));
+    TEST2(rc, KErrNone);
 
 	//Prepare and set the parameter value (NULL parameter value)
 	TPtr8 prmVal = buf->Des();
@@ -2058,6 +2089,14 @@ void AttachedSizeTest2()
 	TEST2(err, KSqlErrGeneral);
 	TPtrC msg = db.LastErrorMessage();
 	TheTest.Printf(_L("Non-existing attached database, error message: %S\r\n"), &msg);
+	
+    //An attempt to get the size when the attached database name contains "bad" unicode characters (cannot be converted to UTF8)
+    TBuf<2> dbName3;
+    dbName3.SetLength(2);
+    dbName3[0] = TChar(0xD800); 
+    dbName3[1] = TChar(0xFC00); 
+    err = db.Size(size1, dbName3);
+    TEST2(err, KErrGeneral);
 	
 	err = db.Detach(KAttachDbName);
 	TEST2(err, KErrNone);

@@ -102,6 +102,11 @@ t_sqlblob.mmp
 t_sqlauthorizer.mmp
 t_sqlfilebuf64.mmp
 t_sqldb64.mmp manual
+t_sqlstartup.mmp
+#ifndef WINS //hardware only
+t_sqlfilesrvcrash1.mmp manual
+t_sqlfilesrvcrash2.mmp manual
+#endif
 t_sqlenvdestroy.mmp
 
 

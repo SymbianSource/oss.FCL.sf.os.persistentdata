@@ -652,10 +652,15 @@ TInt CSqlStatementImpl::ColumnText(TInt aColumnIndex, TDes& aDest)
 			}
 		TPtr8 ptr(reinterpret_cast <TUint8*> (const_cast <TUint16*> (aDest.Ptr())), aDest.MaxLength() * sizeof(TUint16));
 		err = iSqlStmtSession.ReadColumnValue(aColumnIndex, ptr);
-		if(err == KErrNone || err == KErrOverflow)
-			{
-			aDest.SetLength(ptr.Length() / sizeof(TUint16));
-			}
+		switch(err)
+		    {
+	        case KErrNone:
+	        case KErrOverflow:
+	            aDest.SetLength(ptr.Length() / sizeof(TUint16));
+	            break;
+	        default:
+	            break;
+		    }
 		}
 	else
 		{

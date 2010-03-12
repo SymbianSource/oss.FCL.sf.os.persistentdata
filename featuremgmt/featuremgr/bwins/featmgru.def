@@ -46,4 +46,9 @@ EXPORTS
 	?DeleteFeature@RFeatureControl@@QAEHVTUid@@@Z @ 45 NONAME ; int RFeatureControl::DeleteFeature(class TUid)
 	?SWIEnd@RFeatureControl@@QAEHXZ @ 46 NONAME ; int RFeatureControl::SWIEnd(void) 
 	?SWIStart@RFeatureControl@@QAEHXZ @ 47 NONAME ; int RFeatureControl::SWIStart(void)
+	?SetHeapFailure@TFeatMgrResourceTester@@SAXHH@Z @ 48 NONAME ; void TFeatMgrResourceTester::SetHeapFailure(int, int)
+	?Mark@TFeatMgrResourceTester@@SAXXZ @ 49 NONAME ; void TFeatMgrResourceTester::Mark(void)
+	?Check@TFeatMgrResourceTester@@SAXXZ @ 50 NONAME ; void TFeatMgrResourceTester::Check(void)
+	?Count@TFeatMgrResourceTester@@SAHXZ @ 51 NONAME ; int TFeatMgrResourceTester::Count(void)
+	?GetClientCount@@YAHXZ @ 52 NONAME ; int GetClientCount(void)
 

@@ -21,9 +21,22 @@
 #include "../helper/helping_exe/group/bld.inf" 
 
 PRJ_TESTMMPFILES
-//RTest project files
-//../rtest/group/t_fmgrbackupmod.mmp
-//../rtest/group/t_fmgrbackupquery.mmp
+//Rtest project files
+// These backup and restore tests are techview tests, therefore need to be marked as manual for ONB purpose.  
+../rtest/group/t_fmgrbackupresponse.mmp manual
+../rtest/group/t_fmgrrestoreresponse.mmp manual
+
+// RTest for Textshell
+../rtest/group/t_fmgrapi.mmp
+../rtest/group/t_fmgroom.mmp
+../rtest/group/t_fmgrstartup.mmp
+../rtest/group/t_fmgrpanic.mmp
+../rtest/group/t_fmgrbadclient.mmp manual
+../rtest/group/t_fmgrsecurity1.mmp
+../rtest/group/t_fmgrnotify.mmp
+../rtest/group/t_fmgrperformance.mmp
+../rtest/group/t_fmgrswi.mmp
+../rtest/group/t_fmgrunitrefcount.mmp
 
 //TEF project files
 ../tef/tef_feature_generator/group/tef_feature_generator.mmp manual
@@ -69,9 +82,9 @@ PRJ_TESTEXPORTS
 ../tef/tef_efm_configured/data/partial.dat	z:/test/efm/scripts/partial.dat
 
 //iby files for the test components
-featmgr_test.iby												/epoc32/rom/include/featmgr_test.iby
-../rtest/group/featmgr_rtest.iby                                /epoc32/rom/include/featmgr_rtest.iby
-../tef/tef_efm_configured/group/efm_configured_testserver.iby 	/epoc32/rom/include/efm_configured_testserver.iby
+featmgr_techview_test.iby                                       /epoc32/rom/include/featmgr_techview_test.iby
+featmgr_textshell_test.iby                                      /epoc32/rom/include/featmgr_textshell_test.iby
+../tef/tef_efm_configured/group/efm_configured_testserver.iby   /epoc32/rom/include/efm_configured_testserver.iby
 ../tef/tef_efm_normal/group/efm_normal_testserver.iby 			/epoc32/rom/include/efm_normal_testserver.iby
 ../tef/tef_efm_unit/group/efm_unit_testserver.iby 				/epoc32/rom/include/efm_unit_testserver.iby
 ../tef/tef_feature_generator/group/tef_feature_generator.iby	/epoc32/rom/include/tef_feature_generator.iby

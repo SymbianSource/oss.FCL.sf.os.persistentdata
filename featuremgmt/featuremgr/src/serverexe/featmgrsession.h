@@ -139,6 +139,7 @@ NONSHARABLE_CLASS(CFeatMgrSession) : public CSession2
         * @param aMessage The message containing the client request
         */
         virtual void ServiceL( const RMessage2& aMessage );
+        virtual TInt CountResources();
 
     private:
 

@@ -519,17 +519,24 @@ void CSqlSrvSession::DbCreateObjectL(const RMessage2& aMessage, TSqlSrvFunction 
 	__SQLPANIC_CLIENT(!iDatabase, aMessage, ESqlPanicObjExists);
 	const TInt KSecurityPolicyLen = (aMessage.Int2() & 0x7fff0000) >> 16;
 	const TInt KConfigStringLen = aMessage.Int2() & 0xffff;
-	if(KSecurityPolicyLen < 0 || KConfigStringLen < 0 || KConfigStringLen > KSqlSrvMaxConfigStrLen)
+	if(KSecurityPolicyLen < 0 || (TUint)KConfigStringLen > KSqlSrvMaxConfigStrLen)
 		{
 		__SQLLEAVE(KErrArgument);	
 		}
-	TBuf8<KSqlSrvMaxConfigStrLen> configStr;
-	if(KConfigStringLen > 0)
-		{
-		aMessage.ReadL(3, configStr, KSecurityPolicyLen);
-		SQLPROFILER_REPORT_IPC(ESqlIpcRead, KConfigStringLen);
-		}
+	RBuf8 securityAndConfigBuf;
+	CleanupClosePushL(securityAndConfigBuf);
+	if((KSecurityPolicyLen + KConfigStringLen) > 0)
+	    {
+	    securityAndConfigBuf.CreateL(KSecurityPolicyLen + KConfigStringLen);
+        aMessage.ReadL(3, securityAndConfigBuf); 
+        SQLPROFILER_REPORT_IPC(ESqlIpcRead, (KSecurityPolicyLen + KConfigStringLen));
+	    }
 	TSqlSrvFileData& fileData = Server().FileData();
+	TPtrC8 configStr(KNullDesC8);
+	if(KConfigStringLen > 0)
+	    {
+	    configStr.Set(securityAndConfigBuf.Mid(KSecurityPolicyLen));//the first part of the buffer is for the security policies
+	    }
 	fileData.SetL(aMessage, aMessage.Int0(), 1, &configStr);
 	iDrive = fileData.Drive();
 	switch(aFunction)
@@ -543,7 +550,7 @@ void CSqlSrvSession::DbCreateObjectL(const RMessage2& aMessage, TSqlSrvFunction 
 			break;
 		case ESqlSrvDbCreateSecure:
 			{
-			if(!fileData.IsSecureFileNameFmt())
+			if(!fileData.IsSecureFileNameFmt() || KSecurityPolicyLen == 0)
 				{
 				__SQLLEAVE(KErrArgument);	
 				}
@@ -552,7 +559,7 @@ void CSqlSrvSession::DbCreateObjectL(const RMessage2& aMessage, TSqlSrvFunction 
 				{
 				__SQLLEAVE(KErrPermissionDenied);	
 				}
-			CSqlSecurityPolicy* policy = InternalizeSecurityPolicyL(aMessage);
+			CSqlSecurityPolicy* policy = CreateSecurityPolicyL(securityAndConfigBuf.Left(KSecurityPolicyLen));
 			iDatabase = CSqlSrvDatabase::CreateSecureL(fileData, policy);
 			}
 			break;
@@ -563,6 +570,7 @@ void CSqlSrvSession::DbCreateObjectL(const RMessage2& aMessage, TSqlSrvFunction 
 			__SQLLEAVE(KErrArgument);	
 			break;
 		}
+	CleanupStack::PopAndDestroy(&securityAndConfigBuf);
 	}
 
 /**
@@ -596,14 +604,8 @@ void CSqlSrvSession::DbCreateObjectFromHandleL(const RMessage2& aMessage)
 	const TBool KCreated = (aMessage.Int0() & 0x40000000) != 0;
 	const TInt KDbFileNameLen = aMessage.Int0() & 0x0000FFFF;
 	const TInt KConfigStringLen = (aMessage.Int0() & 0x3FFF0000) >> 16;
-	if(KConfigStringLen < 0 || KConfigStringLen > KSqlSrvMaxConfigStrLen)
-		{
-		__SQLLEAVE(KErrArgument);	
-		}
-	if(KDbFileNameLen < 1 || KDbFileNameLen > KMaxFileName)
-		{
-		__SQLLEAVE(KErrBadName);
-		}
+    __SQLPANIC_CLIENT((TUint)KConfigStringLen <= KSqlSrvMaxConfigStrLen, aMessage, ESqlPanicBadArgument);
+    __SQLPANIC_CLIENT((TUint)KDbFileNameLen <= KMaxFileName, aMessage, ESqlPanicBadArgument);
 	TDes16& buffer = Server().GetBuf16L(KDbFileNameLen + KConfigStringLen);
 	aMessage.ReadL(1, buffer);
 	SQLPROFILER_REPORT_IPC(ESqlIpcRead, ((KDbFileNameLen + KConfigStringLen) * sizeof(TText)));
@@ -881,7 +883,7 @@ void CSqlSrvSession::DbSize2L(const RMessage2& aMessage)
 	{
 	__SQLPANIC_CLIENT(iDatabase != NULL, aMessage, ESqlPanicInvalidObj);
 	const TInt KDbNameLen = aMessage.Int1();
-	if(KDbNameLen < 0 || KDbNameLen > KMaxFileName)
+	if((TUint)KDbNameLen > KMaxFileName)
 		{
 		__SQLLEAVE(KErrBadName);
 		}
@@ -928,7 +930,7 @@ TInt CSqlSrvSession::DbCompactL(const RMessage2& aMessage)
 		return 0;	
 		}
 	const TInt KDbNameLen = aMessage.Int1();
-	if(KDbNameLen < 0 || KDbNameLen > KMaxFileName)
+	if((TUint)KDbNameLen > KMaxFileName)
 		{
 		__SQLLEAVE(KErrBadName);
 		}
@@ -1140,8 +1142,8 @@ void CSqlSrvSession::ExtractNameL(RDesReadStream& aStrm, TDes8& aNameOut, const 
 			__SQLLEAVE(KErrBadName);
 			}
 	  	}
-
-	 if(len < 1 || len > KMaxFileName)
+	 __SQLASSERT(len > 0, ESqlPanicInternalError);//The "if" above should have hanled the case with "len == 0"
+	 if((TUint)len > KMaxFileName)
 	  {
 	  __SQLLEAVE(KErrBadName);
 	  }
@@ -1617,47 +1619,21 @@ TDes16& CSqlSrvSession::ReadString16L(const RMessage2& aMessage, TInt aArgNum, T
 	}
 
 /**
-The method reads the message argument 1 data and constructs a CSqlSecurityPolicy object from the data.
+The method constructs a CSqlSecurityPolicy object from the passed as an argument descriptor.
 
-@param aMessage Client request encapsulated in RMessage2 object.
+@param aSecurityPolicyData A descriptor with the security policy data.
 
 @return A pointer to the created CSqlSecurityPolicy instance.
 
-@leave KErrArgument, if aMessage argument 0 length is 0 or negative (no security data);
-       KErrNoMemory, out of memory condition has occured.
-
-Usage of the IPC call arguments:
-Arg 2: [in]  security policies buffer length in bytes if aFunction is ESqlSrvDbCreateSecure
-Arg 3: [in]  security policies buffer if aFunction is ESqlSrvDbCreateSecure
+@leave KErrNoMemory, out of memory condition has occured.
 */
-CSqlSecurityPolicy* CSqlSrvSession::InternalizeSecurityPolicyL(const RMessage2& aMessage)
+CSqlSecurityPolicy* CSqlSrvSession::CreateSecurityPolicyL(const TDesC8& aSecurityPolicyData)
 	{
-	// Leave if there is no security policy data
-	// The format of arg[2] is an unsigned int
-	// with the policy length shifted and concated to the config length
-	// the policy data is the first part of arg[3]
-	const TUint KConfigStrLenBitWidth = 16;
-	TInt securityPolicyLen = aMessage.Int2() >> KConfigStrLenBitWidth;
-	if(securityPolicyLen < 1)
-		{
-		__SQLLEAVE(KErrArgument);
-		}
 	TSecurityPolicy defaultPolicy(TSecurityPolicy::EAlwaysFail);
 	CSqlSecurityPolicy* dbPolicy = CSqlSecurityPolicy::NewLC(defaultPolicy);
 	RSqlBufFlat& bufFlat = dbPolicy->BufFlat();
-	if(securityPolicyLen > bufFlat.MaxSize())
-		{
-		__SQLLEAVE_IF_ERROR(bufFlat.ReAlloc(securityPolicyLen));
-		}
-	TPtr8& ptr = bufFlat.BufPtr();
-	aMessage.ReadL(3, ptr);
-	SQLPROFILER_REPORT_IPC(ESqlIpcRead, securityPolicyLen);
-	// trim off config data if any
-	TInt extraBytes = ptr.Length() - securityPolicyLen;
-	if(extraBytes > 0)
-		{
-		ptr.Delete(securityPolicyLen, extraBytes);
-		}
+    __SQLLEAVE_IF_ERROR(bufFlat.ReAlloc(aSecurityPolicyData.Length()));
+	bufFlat.BufPtr().Copy(aSecurityPolicyData);
 	CleanupStack::Pop(dbPolicy);
 	return dbPolicy;
 	}

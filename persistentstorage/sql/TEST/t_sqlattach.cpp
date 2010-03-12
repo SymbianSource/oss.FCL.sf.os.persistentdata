@@ -277,7 +277,19 @@ void Test1()
 	
 	err = TheDb.Detach(KAttachDb4);
 	TEST(err != KErrNone);	
-	
+
+    //Detach() with zero-length logical database name
+    err = TheDb.Detach(_L(""));
+    TEST2(err, KErrBadName);  
+    
+    //Detach() with logical database name containing "bad" unicode characters (cannot be converted to UTF8)
+    TBuf<2> dbName3;
+    dbName3.SetLength(2);
+    dbName3[0] = TChar(0xD800); 
+    dbName3[1] = TChar(0xFC00); 
+    err = TheDb.Detach(dbName3);
+    TEST2(err, KSqlErrGeneral);  
+    
 	TheDb.Close();
 	}
 

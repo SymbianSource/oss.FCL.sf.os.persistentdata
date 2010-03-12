@@ -239,6 +239,16 @@ void SimpleDbOpTest()
 	//...create as a non-secure database
 	err = db.Create(_L("C:[21212122]BBDb2.db"));
 	TEST2(err, KErrArgument);//secure database name, no security policy
+    //Very long private database name
+    err = db.Create(_L("c:\\private\\21212124\\hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh.db"));
+    TEST2(err, KErrBadName);
+    //Zero length private database name
+    err = db.Create(_L(""));
+    TEST2(err, KErrBadName);
+    //Private database + very long config string
+    _LIT8(KVeryLongConfig, "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj");
+    err = db.Create(KTestDb2, &KVeryLongConfig);
+    TEST2(err, KErrArgument);
 	//...create as a secure database
 	RSqlSecurityPolicy dbSecurity;
 	TSecurityPolicy policy(TSecurityPolicy::EAlwaysPass);
