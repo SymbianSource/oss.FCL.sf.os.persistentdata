@@ -485,6 +485,10 @@ void CLogAddEvent::OpenContactsL()
 	TRAPD(err,iContactPlugin->OpenContactsL());
 	if(KErrNone!=err)
 		{
+		if(err == KErrServerTerminated)
+		    {
+		    RDebug::Print(_L("+++LogEng, LogAdd.cpp, Contacts server crashed!\r\n"));
+		    }
 		// If DB doesn't open delete plugin
 		delete iContactPlugin;
 		iContactPlugin = NULL;

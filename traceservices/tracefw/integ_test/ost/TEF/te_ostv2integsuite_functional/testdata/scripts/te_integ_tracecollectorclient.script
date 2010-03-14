@@ -39,6 +39,12 @@ START_TEST_BLOCK    20000       te_ostv2integsuite_enabled              \testdat
 	COMMAND                     OstTraceTestWrapper               		TestDuplicates
 END_TEST_BLOCK
 
+PRINT Run OstTrace OST_DEBUG_ONLY wrapped trace points
+
+START_TEST_BLOCK    20000       te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
+    CREATE_OBJECT               OstTraceTestWrapper                     OstTraceTestWrapper
+    COMMAND                     OstTraceTestWrapper                     TestOstDebugOnlyWrap
+END_TEST_BLOCK
 
 
 

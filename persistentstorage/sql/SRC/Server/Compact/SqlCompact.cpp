@@ -173,7 +173,14 @@ void CSqlCompactor::ReleaseEntry(const TDesC& aFullName)
 			{
 			if(entry->Release() == 0)
 				{
-				iEntries.Remove(idx);
+				iEntries.Remove(idx);			
+#ifdef _DEBUG
+//This is used prevent the failure of the resource allocation checking for debug mode. 
+				if(iEntries.Count() == 0)
+				    {
+                    iEntries.Reset();
+				    }
+#endif  
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -102,6 +102,24 @@ void CFeatMgrSession::PanicClient( const RMessage2& aMessage, TFeatMgrPanic aPan
 	aMessage.Panic( KPanicCategory, aPanic );
     }
 
+TBool CFeatMgrSession::IsWriteOperation( const TInt aFunction ) const
+    {
+        switch ( aFunction )
+            {
+            case EFeatMgrEnableFeature:
+            case EFeatMgrDisableFeature:
+            case EFeatMgrAddFeature:
+            case EFeatMgrSetFeatureAndData:
+            case EFeatMgrSetFeatureData:
+            case EFeatMgrDeleteFeature:
+            case EFeatMgrSWIStart:
+            case EFeatMgrSWIEnd:
+                return ETrue;
+            default:
+                return EFalse;
+            }
+    }
+
 // -----------------------------------------------------------------------------
 // CFeatMgrSession::ServiceL
 // Calls request handling functions. Also traps any leaves and signals client if
@@ -111,10 +129,12 @@ void CFeatMgrSession::PanicClient( const RMessage2& aMessage, TFeatMgrPanic aPan
 void CFeatMgrSession::ServiceL( const RMessage2& aMessage )
     {
     FUNC_LOG
-    
-    if ( !iFeatMgrServer.PluginsReady() )
+    // If plugins are not ready all request will be queued. 
+    // During backup operation, all write request e.g. EnableFeature will be queued
+    TInt msgCmd = aMessage.Function();
+    if ( !iFeatMgrServer.PluginsReady() || ( iFeatMgrServer.BackupIsInProgress() && IsWriteOperation( msgCmd ) ) )
         {
-        INFO_LOG( "CFeatMgrSession::ServiceL() - plugins not ready" );
+        INFO_LOG( "CFeatMgrSession::ServiceL() - plugins not ready or backup is in progress" );
         iList.AddLast( *CFeatMgrPendingRequest::NewL( aMessage ) );        
         }
     else

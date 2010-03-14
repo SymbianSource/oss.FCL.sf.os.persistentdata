@@ -20,7 +20,7 @@
 //#define _INSTALL_FILE_SYSTEM
 #endif
 
-GLDEF_D RTest test(_L("t_dbstress: Stress testing DBMS"));
+GLDEF_D RTest TheTest(_L("t_dbstress: Stress testing DBMS"));
 
 GLDEF_D TPtrC KTestDir=_S("\\DBMS-TST\\");
 GLDEF_D TPtrC KLogFile=_L("T_STRESS.LOG");
@@ -61,7 +61,7 @@ TInt64 Timer::Stop()
 void Timer::Print()
 	{
 	TInt64 milli=Stop();
-	test.Printf(_L("  %u milliseconds\n"), I64LOW(milli) );
+	TheTest.Printf(_L("  %u milliseconds\n"), I64LOW(milli) );
 	}
 
 class Set
@@ -128,16 +128,41 @@ GLDEF_C TInt Random(TInt aRange)
 	return (Math::Random()>>11)%aRange;
 	}
 
-#undef test
-LOCAL_C void Test(TInt aValue,TInt anExpected,TInt aLine)
-	{
-	if (aValue==anExpected)
-		return;
-	test.Printf(_L("** Expected %d, was %d\n"),anExpected,aValue);
-	test(EFalse,aLine);
-	}
-#define test1(aTest) test(aTest,__LINE__)
-#define test2(aValue,anExpected) Test(aValue,anExpected,__LINE__)
+///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+
+TPtrC FileName(const TText* aFile)
+    {
+    TPtrC p(aFile);
+    TInt ix=p.LocateReverse('\\');
+    if (ix<0)
+        ix=p.LocateReverse('/');
+    if (ix>=0)
+        p.Set(p.Mid(1+ix));
+    return p;
+    }
+
+//Test macros and functions
+void Check1(TInt aValue, const TText* aFile, TInt aLine)
+    {
+    if(!aValue)
+        {
+        TPtrC fname(FileName(aFile));
+        TheTest.Printf(_L("*** Expression evaluated to false. %S-%d\r\n"), &fname, aLine);
+        TheTest(EFalse, aLine);
+        }
+    }
+void Check2(TInt aValue, TInt aExpected, const TText* aFile, TInt aLine)
+    {
+    if(aValue != aExpected)
+        {
+        TPtrC fname(FileName(aFile));
+        TheTest.Printf(_L("*** Expected %d, got %d. %S-%d\r\n"), aExpected, aValue, &fname, aLine);
+        TheTest(EFalse, aLine);
+        }
+    }
+
+///////////////////////////////////////////////////////////////////////////////////////
 
 LOCAL_C void CreateIndexL(RDbDatabase& aDatabase,const TDesC& aTable,const TDesC& aColumn,TBool aUnique)
 	{
@@ -145,7 +170,7 @@ LOCAL_C void CreateIndexL(RDbDatabase& aDatabase,const TDesC& aTable,const TDesC
 	key->AddL(aColumn);
 	if (aUnique)
 		key->MakeUnique();
-	test2(aDatabase.CreateIndex(aColumn,aTable,*key),KErrNone);
+	TEST2(aDatabase.CreateIndex(aColumn,aTable,*key),KErrNone);
 	CleanupStack::PopAndDestroy();
 	}
 
@@ -160,19 +185,19 @@ LOCAL_C void CreateDatabaseL()
 //	create the tables
 	TheDatabase.Begin();
 	CDbColSet* set=Set::CreateL(AccountsDef);
-	test2(TheDatabase.CreateTable(KAccounts,*set),KErrNone);
+	TEST2(TheDatabase.CreateTable(KAccounts,*set),KErrNone);
 	delete set;
 	CreateIndexL(TheDatabase,KAccounts,KAccountsID,ETrue);
 	CreateIndexL(TheDatabase,KAccounts,KAccountsBalance,EFalse);
 	set=Set::CreateL(TransactionsDef);
-	test2(TheDatabase.CreateTable(KTransactions,*set),KErrNone);
+	TEST2(TheDatabase.CreateTable(KTransactions,*set),KErrNone);
 	delete set;
 	CreateIndexL(TheDatabase,KTransactions,KTransactionDate,EFalse);
-	test2(TheDatabase.Commit(),KErrNone);
+	TEST2(TheDatabase.Commit(),KErrNone);
 	OldCount=NewCount=0;
 // prepare Accs table
 	TheDatabase.Begin();
-	test2(Accs.Prepare(TheDatabase,_L("select * from accounts"),Accs.EInsertOnly),KErrNone);
+	TEST2(Accs.Prepare(TheDatabase,_L("select * from accounts"),Accs.EInsertOnly),KErrNone);
 	Accs.InsertL();
 	Accs.SetColL(1,TInt32(ECash));
 	Accs.SetColL(2,KInitialCash);
@@ -188,7 +213,7 @@ LOCAL_C void CreateDatabaseL()
 		Accs.PutL();
 		TotalMonies+=KInitialBalance;
 		}
-	test2(TheDatabase.Commit(),KErrNone);
+	TEST2(TheDatabase.Commit(),KErrNone);
 	Accs.Close();
 	TheDatabase.Close();
 	CleanupStack::PopAndDestroy();	// store
@@ -207,7 +232,7 @@ LOCAL_C void DumpStateL()
 		{
 		Buf.Format(_L("id=%d"),id);
 		Accs.FirstL();
-		test1(Accs.FindL(Accs.EForwards,Buf)>=0);
+		TEST(Accs.FindL(Accs.EForwards,Buf)>=0);
 		Accs.GetL();
 		TInt balance=Accs.ColInt(2);
 		Buf.Format(_L("\nStatement for account %d: Previous balance %d\n"),id,balance);
@@ -235,7 +260,7 @@ LOCAL_C void DumpStateL()
 		User::LeaveIfError(file.Write(Buf));
 		}
 	CleanupStack::PopAndDestroy(2);
-	test1(0);
+	TEST(0);
 	}
 #endif
 
@@ -246,77 +271,77 @@ LOCAL_C void VerifyDatabaseL(CPersistentStore& aStore)
 	{
 	TheDatabase.OpenL(&aStore,aStore.Root());
 // check any indexes
-	test2(TheTable.Open(TheDatabase,KAccounts,TheTable.EReadOnly),KErrNone);
-	test2(TheTable.CountL(),KAccountIDs);
+	TEST2(TheTable.Open(TheDatabase,KAccounts,TheTable.EReadOnly),KErrNone);
+	TEST2(TheTable.CountL(),KAccountIDs);
 	TInt r=TheTable.SetIndex(KAccountsID);
 	if (r!=KErrCorrupt)
 		{
-		test2(r,KErrNone);
-		test2(TheTable.CountL(),KAccountIDs);
+		TEST2(r,KErrNone);
+		TEST2(TheTable.CountL(),KAccountIDs);
 		for (TInt id=ECash;id<=EPenny;++id)
 			{
-			test1(TheTable.NextL());
+			TEST(TheTable.NextL());
 			TheTable.GetL();
-			test2(TheTable.ColInt(1),id);
+			TEST2(TheTable.ColInt(1),id);
 			}
-		test1(!TheTable.NextL());
+		TEST(!TheTable.NextL());
 		}
 	r=TheTable.SetIndex(KAccountsBalance);
 	if (r!=KErrCorrupt)
 		{
-		test2(r,KErrNone);
-		test2(TheTable.CountL(),KAccountIDs);
-		test1(TheTable.FirstL());
+		TEST2(r,KErrNone);
+		TEST2(TheTable.CountL(),KAccountIDs);
+		TEST(TheTable.FirstL());
 		TheTable.GetL();
 		TInt last=TheTable.ColInt(2);
 		for (TInt ii=1;ii<KAccountIDs;++ii)
 			{
-			test1(TheTable.NextL());
+			TEST(TheTable.NextL());
 			TheTable.GetL();
 			TInt bal=TheTable.ColInt(2);
-			test1(bal>=last);
+			TEST(bal>=last);
 			last=bal;
 			}
-		test1(!TheTable.NextL());
+		TEST(!TheTable.NextL());
 		}
 	TheTable.Close();
-	test2(TheTable.Open(TheDatabase,KTransactions,TheTable.EReadOnly),KErrNone);
+	TEST2(TheTable.Open(TheDatabase,KTransactions,TheTable.EReadOnly),KErrNone);
 	TInt count=TheTable.CountL();
 	r=TheTable.SetIndex(KTransactionDate);
 	if (r!=KErrCorrupt)
 		{
-		test2(r,KErrNone);
-		test2(TheTable.CountL(),count);
+		TEST2(r,KErrNone);
+		TEST2(TheTable.CountL(),count);
 		if (count)
 			{
-			test1(TheTable.FirstL());
+			TEST(TheTable.FirstL());
 			TheTable.GetL();
 			TInt last=TheTable.ColInt(1);
 			while (--count!=0)
 				{
-				test1(TheTable.NextL());
+				TEST(TheTable.NextL());
 				TheTable.GetL();
 				TInt date=TheTable.ColInt(1);
-				test1(date>last);
+				TEST(date>last);
 				last=date;
 				}
-			test1(!TheTable.NextL());
+			TEST(!TheTable.NextL());
 			}
 		else
-			test1(!TheTable.FirstL());
+			TEST(!TheTable.FirstL());
 		}
 	TheTable.Close();
 // verify database integrity
 	TInt balance[KAccountIDs];
-	test2(Accs.Prepare(TheDatabase,_L("select id,statement_balance,balance from accounts"),Accs.EReadOnly),KErrNone);
-	test2(Accs.CountL(),KAccountIDs);
+	TEST2(Accs.Prepare(TheDatabase,_L("select id,statement_balance,balance from accounts"),Accs.EReadOnly),KErrNone);
+	TEST2(Accs.CountL(),KAccountIDs);
 	while (Accs.NextL())
 		{
 		Accs.GetL();
 		TInt id=Accs.ColInt(1);
 		balance[id]=Accs.ColInt(2);
 		}
-	test2(Trans.Prepare(TheDatabase,_L("select t_date,from_id,to_id,amount from Transactions"),Trans.EReadOnly),KErrNone);
+	TEST2(Trans.Prepare(TheDatabase,_L("select t_date,from_id,to_id,amount from Transactions"),Trans.EReadOnly),KErrNone);
 	TInt transact=0;
 	while (Trans.NextL())
 		{
@@ -328,10 +353,10 @@ LOCAL_C void VerifyDatabaseL(CPersistentStore& aStore)
 		balance[from]-=amount;
 		balance[to]+=amount;
 		}
-	test2(transact,Trans.CountL());
+	TEST2(transact,Trans.CountL());
 	if (NewCount!=-1 && transact!=NewCount)
 		{
-		test2(transact,OldCount);
+		TEST2(transact,OldCount);
 		++ShotDuringCommit;
 		}
 	OldCount=NewCount=transact;
@@ -344,11 +369,11 @@ LOCAL_C void VerifyDatabaseL(CPersistentStore& aStore)
 		if (balance[id]!=Accs.ColInt(3))
 			DumpStateL();
 #else
-		test(balance[id]==Accs.ColInt(3));
+		TEST(balance[id]==Accs.ColInt(3));
 #endif
 		total+=balance[id];
 		}
-	test2(total,TotalMonies);
+	TEST2(total,TotalMonies);
 	Trans.Close();
 	Accs.Close();
 	TheDatabase.Close();
@@ -376,7 +401,7 @@ LOCAL_C void CompactL(CStreamStore& aStore)
 	TInt t=aStore.ReclaimL();
 	Stopwatch.Start();
 	t-=aStore.CompactL();
-	test.Printf(_L("  compacted %d byte(s) in"),t);
+	TheTest.Printf(_L("  compacted %d byte(s) in"),t);
 	Stopwatch.Print();
 	aStore.CommitL();
 	}
@@ -408,7 +433,7 @@ LOCAL_C void RunTestL(TInt aTestExecutionTime = 0)
 	__ASSERT_ALWAYS(aTestExecutionTime >= 0, User::Invariant());
 
 	RThread().SetPriority(EPriorityMore);
-	test.Start(_L("Create the database"));
+	TheTest.Start(_L("Create the database"));
 	CreateDatabaseL();
 
 	TTimeIntervalMinutes timeInterval(aTestExecutionTime);
@@ -420,9 +445,9 @@ LOCAL_C void RunTestL(TInt aTestExecutionTime = 0)
 
 	for (TBool condition=ETrue; condition; condition = aTestExecutionTime > 0 ? (timeCurrent < timeEnd) : ETrue)
 		{
-		test.Next(_L("Main loop"));
-		test.Start(_L("Kick off the thread"));
-		test2 (StartThread(TheThread,TheStatus),KErrNone);
+		TheTest.Next(_L("Main loop"));
+		TheTest.Start(_L("Kick off the thread"));
+		TEST2 (StartThread(TheThread,TheStatus),KErrNone);
 		// random delay
 		for (;;)
 			{
@@ -432,50 +457,50 @@ LOCAL_C void RunTestL(TInt aTestExecutionTime = 0)
 			if (Random(1000)<30)
 				break;
 			}
-		test.Next(_L("End the thread"));
+		TheTest.Next(_L("End the thread"));
 		TInt exit=EndThread();
 		if (exit!=1)
-			test.Printf(_L("  thread failed with error %d\n"),exit);
+		    TheTest.Printf(_L("  thread failed with error %d\n"),exit);
 //
 		++Shot;
 		CFileStore* store=NULL;
 		for (TInt ii=0;;++ii)
 			{
-			test.Printf(_L("Opening %d\r"),ii);
+			TheTest.Printf(_L("Opening %d\r"),ii);
 			TRAPD(r,store=CFileStore::OpenL(TheFs,KTestDatabase,EFileRead|EFileWrite));
 			if (r==KErrNone)
 				break;
-			test (r==KErrInUse);
+			TEST2(r, KErrInUse);
 			User::After(100000);
 			}
-		test.Next(_L("Verify & Recover"));
-		test2 (Verify(*store),KErrNone);
+		TheTest.Next(_L("Verify & Recover"));
+		TEST2 (Verify(*store),KErrNone);
 		TInt64 tps(TransId);
 		tps*=1000u;
 		tps/=RunningTime;
-		test.Printf(_L("    Iteration %d, TPS %d, during commit %d%%\n"),Shot,I64LOW(tps),(100*ShotDuringCommit)/Shot);
+		TheTest.Printf(_L("    Iteration %d, TPS %d, during commit %d%%\n"),Shot,I64LOW(tps),(100*ShotDuringCommit)/Shot);
 		TInt r=Recover(*store);
 		if (r==KErrNoMemory || r==KErrDiskFull)
 			{	// need to compact before completing recovery
-			test.Next(_L("No space, compacting"));
-			test2 (Compact(*store),KErrNone);
-			test.Next(_L("Verify & Recover again"));
-			test2 (Verify(*store),KErrNone);
+			TheTest.Next(_L("No space, compacting"));
+			TEST2 (Compact(*store),KErrNone);
+			TheTest.Next(_L("Verify & Recover again"));
+			TEST2 (Verify(*store),KErrNone);
 			r=Recover(*store);
 			}
-		test2 (r,KErrNone);
-		test.Next(_L("Verify & Compact"));
-//		test2 (Verify(*store),KErrNone);
-		test2 (Compact(*store),KErrNone);
-		test.Next(_L("Verify"));
-		test2 (Verify(*store),KErrNone);
+		TEST2 (r,KErrNone);
+		TheTest.Next(_L("Verify & Compact"));
+//		TEST2 (Verify(*store),KErrNone);
+		TEST2 (Compact(*store),KErrNone);
+		TheTest.Next(_L("Verify"));
+		TEST2 (Verify(*store),KErrNone);
 //
 		delete store;
-		test.End();
+		TheTest.End();
 
 		timeCurrent.UniversalTime();
 		}
-		test.End();
+	TheTest.End();
 	}
 
 /**
@@ -488,20 +513,20 @@ LOCAL_C void RunTestL(TInt aTestExecutionTime = 0)
 */
 static void RunVerify()
 	{
-	test.Start(_L(" @SYMTestCaseID:SYSLIB-DBMS-CT-0636 Open store "));
+	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-DBMS-CT-0636 Open store "));
 	CFileStore* store=NULL;
 	TRAPD(r,store=CFileStore::OpenL(TheFs,KTestDatabase,EFileRead|EFileWrite));
-	test2 (r,KErrNone);
-	test.Next(_L("Verify"));
+	TEST2 (r,KErrNone);
+	TheTest.Next(_L("Verify"));
 	NewCount=-1;
 	TotalMonies=KInitialCash + (EPenny-EJohn+1)*KInitialBalance;
-	test2 (Verify(*store),KErrNone);
-	test.Next(_L("Recover"));
-	test2 (Recover(*store),KErrNone);
-	test.Next(_L("Verify"));
-	test2 (Verify(*store),KErrNone);
+	TEST2 (Verify(*store),KErrNone);
+	TheTest.Next(_L("Recover"));
+	TEST2 (Recover(*store),KErrNone);
+	TheTest.Next(_L("Verify"));
+	TEST2 (Verify(*store),KErrNone);
 	delete store;
-	test.End();
+	TheTest.End();
 	}
 
 //
@@ -510,28 +535,28 @@ static void RunVerify()
 LOCAL_C void setupTestDirectory()
     {
 	TInt r=TheFs.Connect();
-	test2(r,KErrNone);
+	TEST2(r,KErrNone);
 //
 	r=TheFs.MkDir(KTestDir);
-	test1(r==KErrNone || r==KErrAlreadyExists);
+	TEST(r==KErrNone || r==KErrAlreadyExists);
 	r=TheFs.SetSessionPath(KTestDir);
-	test2(r,KErrNone);
+	TEST2(r,KErrNone);
 	}
 
-LOCAL_C CTrapCleanup* setupCleanup()
 //
 // Initialise the cleanup stack.
 //
+LOCAL_C CTrapCleanup* setupCleanup()
     {
 	CTrapCleanup* cleanup=CTrapCleanup::New();
-	test1(cleanup!=NULL);
+	TEST(cleanup!=NULL);
 	TRAPD(r,\
 		{\
 		for (TInt i=KTestCleanupStack;i>0;i--)\
 			CleanupStack::PushL((TAny*)0);\
 		CleanupStack::Pop(KTestCleanupStack);\
 		});
-	test2(r,KErrNone);
+	TEST2(r,KErrNone);
 	return cleanup;
 	}
 
@@ -548,7 +573,7 @@ LOCAL_C CTrapCleanup* setupCleanup()
 // (KDefaultTestExecutionTime constant bellow).
 GLDEF_C TInt E32Main()
     {
-	test.Title();
+    TheTest.Title();
 	setupTestDirectory();
 	CTrapCleanup* cleanup=setupCleanup();
 	__UHEAP_MARK;
@@ -590,11 +615,11 @@ GLDEF_C TInt E32Main()
 		{
 		RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err2, &KLogFile);
 		}
-	test2(err, KErrNone);
+	TEST2(err, KErrNone);
 //
 	__UHEAP_MARKEND;
 	delete cleanup;
 	TheFs.Close();
-	test.Close();
+	TheTest.Close();
 	return 0;
     }

@@ -743,8 +743,9 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 */
 LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	{
-	//Note: if this tests starts failing, then go and check the CentralRepository private data cage (c:\\private\\10202be9) , if this file - 101f401d.txt, is there.
-	//If it is - delete it and try the test again.
+	//Note: if this test starts failing, then go and check the CentralRepository private data cage 
+	//(c:\\private\\10202be9 or z:\\private\\10202be9) if 101f401d.txt file is there.
+	//If it is then delete it and try the test again.
 	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-UT-4015 "));
 	//Get the contact match count and contact name format.This should be from resource file.
 	TInt16 contactMatchCount;

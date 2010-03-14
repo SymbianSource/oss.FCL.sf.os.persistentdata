@@ -18,7 +18,7 @@
 &EN
 
 ;Header
-#{"sqlite3"}, (0x2002533B), 1,0,0, TYPE=SA
+#{"sqlite3"}, (0x2002AF5F), 1,0,0, TYPE=SA
 
 ;Localised vendor name
 %{"Nokia"}

@@ -22,6 +22,9 @@
 //main efm test script
 data=DATAZ_\test\efm\scripts\tef_featmgr.script		test\efm\scripts\tef_featmgr.script
 
+//rtest tests .iby files
+//#include "featmgr_rtest.iby"
+
 //tef tests .iby files
 #include "efm_configured_testserver.iby"
 #include "efm_normal_testserver.iby"

@@ -170,7 +170,7 @@ void CThread::Rollback()
 void CThread::Reset()
 	{
 	iLog.Write(_L8("\nReset"));
-	test(iOpen);
+	TEST(iOpen);
 	iAccs.Reset();
 	iTrans.Reset();
 	}
@@ -256,7 +256,7 @@ void CThread::AccountL(TInt anAccount)
 	{
 	Sql.Format(_L("id=%d"),anAccount);
 	iAccs.FirstL();
-	test(iAccs.FindL(iAccs.EForwards,Sql)>=0);
+	TEST(iAccs.FindL(iAccs.EForwards,Sql)>=0);
 	}
 
 //
@@ -274,7 +274,7 @@ void CThread::TransactionL()
 	TInt to=(Random(KAccountIDs-1)+from+1)%KAccountIDs;
 	AccountL(from);
 	iAccs.GetL();
-	test(iAccs.ColInt(1)==from);
+	TEST(iAccs.ColInt(1)==from);
 	TInt avail=iAccs.ColInt(2)+KOverdraftLimit;
 	TInt amount;
 	if (to==ECash)
@@ -370,7 +370,7 @@ void CThread::StatementTimeL()
 void CThread::VerifyL()
 	{
 	TInt balance[KAccountIDs];
-	test(iAccs.CountL()==KAccountIDs);
+	TEST(iAccs.CountL()==KAccountIDs);
 	for (iAccs.BeginningL();iAccs.NextL();)
 		{
 		iAccs.GetL();
@@ -388,7 +388,7 @@ void CThread::VerifyL()
 		balance[from]-=amount;
 		balance[to]+=amount;
 		}
-	test(transact==iTrans.CountL());
+	TEST(transact==iTrans.CountL());
 	for (iAccs.BeginningL();iAccs.NextL();)
 		{
 		iAccs.GetL();

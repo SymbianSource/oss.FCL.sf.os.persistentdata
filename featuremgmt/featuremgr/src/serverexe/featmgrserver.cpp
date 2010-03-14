@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -49,6 +49,7 @@ TInt E32Main(); // Process entry point
 CFeatMgrServer::CFeatMgrServer( const TInt aPriority, const TServerType aType  )
     :
     CPolicyServer( aPriority, KFeatMgrPlatSecPolicy, aType ), iBurState(this),
+    iBackupInProgress(EFalse),
     iPluginsReady(EFalse), 
     iPluginsDeleted( EFalse ),
     iPendingRequests( ETrue ),
@@ -439,6 +440,15 @@ TBool CFeatMgrServer::PluginsReady() const
     FUNC_LOG
     return(iPluginsReady);
    	}
+
+// -----------------------------------------------------------------------------
+// CFeatMgrServer::BackupIsInProgress()
+// -----------------------------------------------------------------------------
+TBool CFeatMgrServer::BackupIsInProgress() const
+    {
+    FUNC_LOG
+    return(iBackupInProgress);
+    }
    	
 // -----------------------------------------------------------------------------
 // CFeatMgrServer::ServicePendingRequests()
@@ -671,7 +681,7 @@ BURStatus CFeatMgrServer::Goto_ErrorState( BURStatus aCurrent  )
 	switch( aCurrent )
 		{
 		case( EFeatMgrBURState_BackupStarted ) :
-			iPluginsReady = ETrue;
+			iBackupInProgress = EFalse;
 			ServicePendingRequests();
 			break;
 		case( EFeatMgrBURState_RestoreStarted ) :
@@ -701,7 +711,7 @@ BURStatus CFeatMgrServer::Goto_ErrorState( BURStatus aCurrent  )
 BURStatus CFeatMgrServer::Goto_StartBackupState( BURStatus /* aCurrent */ )
 	{
 	BURStatus aNewState = EFeatMgrBURState_BackupStarted;  // state++
-	iPluginsReady = EFalse;
+	iBackupInProgress = ETrue;
 	return aNewState;
 	}
 
@@ -709,7 +719,7 @@ BURStatus CFeatMgrServer::Goto_EndBackupState( BURStatus /* aCurrent */  )
 	{
 	BURStatus aNewState = EFeatMgrBURState_BackupEnded;   // state++
 	
-	iPluginsReady = ETrue;
+	iBackupInProgress = EFalse;
 	ServicePendingRequests();
 	// no error from ServicePendingRequests() is possible
 	
@@ -728,8 +738,7 @@ BURStatus CFeatMgrServer::Goto_EndRestoreState( BURStatus /* aCurrent */  )
 	{
 	BURStatus aNewState = EFeatMgrBURState_Error;   // fail safe
 	TInt err( KErrNone );
-	
-    iPluginsReady    = EFalse;
+	iPluginsReady    = EFalse;
     iPluginsDeleted  = EFalse;
     iPendingRequests = ETrue;
     iFeaturesReady   = EFalse;

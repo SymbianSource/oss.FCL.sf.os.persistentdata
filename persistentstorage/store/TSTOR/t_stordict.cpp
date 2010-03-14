@@ -12,30 +12,37 @@
 //
 // Description:
 //
-
-#if !defined(__E32TEST_H__)
 #include <e32test.h>
-#endif
-
 #include <s32mem.h>
 
 //
 // CTestStreamDictionary
+// The only reason this class to be used here is to 
+// get an access to CStreamDictionary::iArray (private data member). 
 //
-
 class CTestStreamDictionary : public CStreamDictionary
 	{
 public:
-	struct TEntry {TUid uid;TStreamId id;};
+	struct TEntry 
+	    {
+	    TUid uid;
+	    TStreamId id;
+	    };
 public:
 	static CTestStreamDictionary* NewL();
 	CTestStreamDictionary();
-//*	TUid Uid(TInt aInt) { return (*iEntryList)[aInt].iUid; }
-//*	TStreamId StreamId(TInt aInt) { return (*iEntryList)[aInt].iStreamId; }
-//*	TInt Count() { return iEntryList->Count(); }
-	TUid Uid(TInt aInt) { return (*iCheat)[aInt].uid; }
-	TStreamId StreamId(TInt aInt) { return (*iCheat)[aInt].id; }
-	TInt Count() { return iCheat->Count(); }
+	TUid Uid(TInt aInt) 
+	    { 
+	    return (*iCheat)[aInt].uid; 
+	    }
+	TStreamId StreamId(TInt aInt) 
+	    { 
+	    return (*iCheat)[aInt].id; 
+	    }
+	TInt Count() 
+	    { 
+	    return iCheat->Count(); 
+	    }
 private:
 	CArrayFixSeg<TEntry>* iCheat;
 	};
@@ -43,37 +50,64 @@ private:
 CTestStreamDictionary* CTestStreamDictionary::NewL()
 	{
 	CTestStreamDictionary* thing=new(ELeave) CTestStreamDictionary();
-//*	CleanupStack::PushL(thing);
-//*	thing->ConstructL();
-//*	CleanupStack::Pop();
 	return thing;
 	}
 
 CTestStreamDictionary::CTestStreamDictionary()
-	: iCheat((CArrayFixSeg<TEntry>*)&iCheat-1) // modification to get to count etc
-	{}
+	: iCheat((CArrayFixSeg<TEntry>*)&iCheat-1) //Now iCheat points to the base class' private data member: 
+	                                           //CStreamDictionary::iArray.
+                                               //This way it is possible to call iArray's methods (even though it is private).
+	{
+	}
 
 
 //
 // Test code
 //
 
-const TInt KTestCleanupStack=0x40;
 const TInt KTestExpandSize=0x20;
 
-LOCAL_D RTest test(_L("t_stordict"));
-LOCAL_D CTrapCleanup* TheTrapCleanup;
+static RTest TheTest(_L("t_stordict"));
 
 // some uid-stream pairs to use for testing
 const TUid testUid1={1};
-LOCAL_D TStreamId testStreamId1=TStreamId(1);
+static TStreamId testStreamId1=TStreamId(1);
 //
 const TUid testUid2={57};
-LOCAL_D TStreamId testStreamId2=TStreamId(57);
+static TStreamId testStreamId2=TStreamId(57);
 //
 const TUid testUid3={99999};
-LOCAL_D TStreamId testStreamId3=TStreamId(425);
+static TStreamId testStreamId3=TStreamId(425);
 //
+
+//Put test data files to be deleted at the end here!
+void DeleteDataFiles()
+    {
+    }
+
+//Tests macros and functions.
+//If (!aValue) then the test will be panicked, the test data files will be deleted.
+static void Check(TInt aValue, TInt aLine)
+    {
+    if(!aValue)
+        {
+        DeleteDataFiles();
+        TheTest(EFalse, aLine);
+        }
+    }
+//If (aValue != aExpected) then the test will be panicked, the test data files will be deleted.
+static void Check(TInt aValue, TInt aExpected, TInt aLine)
+    {
+    if(aValue != aExpected)
+        {
+        RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+        DeleteDataFiles();
+        TheTest(EFalse, aLine);
+        }
+    }
+//Use these to test conditions.
+#define TEST(arg) ::Check((arg), __LINE__)
+#define TEST2(aValue, aExpected) ::Check(aValue, aExpected, __LINE__)
 
 /**
 @SYMTestCaseID          SYSLIB-STORE-CT-1201
@@ -86,32 +120,30 @@ LOCAL_D TStreamId testStreamId3=TStreamId(425);
 template <class T1,class T2>
 void testCopyL(T1& aCopy,const T2& anOriginal)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1201 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1201 "));
 	CBufSeg* buf=0;
 	TRAPD(r,buf=CBufSeg::NewL(KTestExpandSize));
-	if (r!=KErrNone)
-		test.Panic(_L("Allocating buffer"));
+    TEST2(r, KErrNone);
 //
 // Write anOriginal out to the buffer.
 //
 	RBufWriteStream out;
 	out.Append(*buf);
 	TRAP(r,out<<anOriginal);
-	test(r==KErrNone);
+	TEST2(r, KErrNone);
 	TRAP(r,out.CommitL());
-	if (r!=KErrNone)
-		test.Panic(_L("Committing write stream"));
+    TEST2(r, KErrNone);
 //
 // Read anOriginal in from the buffer.
 //
 	RBufReadStream in(*buf);
 	TRAP(r,in>>aCopy);
-	test(r==KErrNone);
+    TEST2(r, KErrNone);
 //
 // See if it's consumed the lot.
 //
 	TUint8 b;
-	test(in.Source()->ReadL(&b,1)==0);
+	TEST2(in.Source()->ReadL(&b,1), 0);
 //
 	delete buf;
 	}
@@ -126,14 +158,14 @@ void testCopyL(T1& aCopy,const T2& anOriginal)
 */
 void testIsEqual(CTestStreamDictionary* aCopy,CTestStreamDictionary* aOrig)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1202 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1202 "));
 	TInt origCount=aOrig->Count();
-	test(origCount==aCopy->Count());
+	TEST(origCount==aCopy->Count());
 	//
 	for (TInt i=0 ; i<origCount ; i++)
 		{
-		test(aOrig->Uid(i)==aCopy->Uid(i));
-		test(aOrig->StreamId(i)==aCopy->StreamId(i));
+		TEST(aOrig->Uid(i)==aCopy->Uid(i));
+		TEST(aOrig->StreamId(i)==aCopy->StreamId(i));
 		}
 	}
 
@@ -149,51 +181,51 @@ LOCAL_C void simpleTestsL()
 	{
 	CTestStreamDictionary* dic=CTestStreamDictionary::NewL();
 	// attempt finding and removing with an empty dictionary
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1203 Manipulating an empty dictionary "));
-	test(dic->Count()==0);
-	test(dic->At(testUid1)==KNullStreamId);
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1203 Manipulating an empty dictionary "));
+	TEST2(dic->Count(), 0);
+	TEST(dic->At(testUid1)==KNullStreamId);
 	dic->Remove(testUid1);
-	test(dic->Count()==0);
-	test(dic->IsNull());
+	TEST2(dic->Count(), 0);
+	TEST(dic->IsNull());
 	//
 	// assign an entry
-	test.Next(_L("Assigning entries and manipulating them"));
+	TheTest.Next(_L("Assigning entries and manipulating them"));
 	TRAPD(ret,dic->AssignL(testUid1,testStreamId1));
-	test(ret==KErrNone);
-	test(dic->Count()==1);
-	test(!dic->IsNull());
-	test(dic->At(testUid1)==testStreamId1);
+	TEST2(ret, KErrNone);
+	TEST2(dic->Count(), 1);
+	TEST(!dic->IsNull());
+	TEST(dic->At(testUid1)==testStreamId1);
 	//
 	// assign another entry
 	TRAP(ret,dic->AssignL(testUid2,testStreamId2));
-	test(ret==KErrNone);
-	test(dic->Count()==2);
-	test(dic->At(testUid2)==testStreamId2);
+	TEST2(ret, KErrNone);
+	TEST2(dic->Count(), 2);
+	TEST(dic->At(testUid2)==testStreamId2);
 	//
 	// re-assign uid1
 	TRAP(ret,dic->AssignL(testUid1,testStreamId3));
-	test(ret==KErrNone);
-	test(dic->Count()==2);
-	test(dic->At(testUid1)==testStreamId3);
+	TEST2(ret, KErrNone);
+	TEST2(dic->Count(), 2);
+	TEST(dic->At(testUid1)==testStreamId3);
 	//
 	// test finding and removing a non-existant entry from a non-empty dictionary
-	test(dic->At(testUid3)==KNullStreamId);
+	TEST(dic->At(testUid3)==KNullStreamId);
 	dic->Remove(testUid3);
-	test(dic->Count()==2);
+	TEST2(dic->Count(), 2);
 	//
 	// test removing an entry
 	dic->Remove(testUid1);
-	test(dic->Count()==1);
-	test(dic->At(testUid1)==KNullStreamId);
-	test(dic->At(testUid2)==testStreamId2);
-	test(!dic->IsNull());
+	TEST2(dic->Count(), 1);
+	TEST(dic->At(testUid1)==KNullStreamId);
+	TEST(dic->At(testUid2)==testStreamId2);
+	TEST(!dic->IsNull());
 	//
 	// test removing the other entry
 	dic->Remove(testUid2);
-	test(dic->Count()==0);
-	test(dic->IsNull());
-	test(dic->At(testUid1)==KNullStreamId);
-	test(dic->At(testUid2)==KNullStreamId);
+	TEST2(dic->Count(), 0);
+	TEST(dic->IsNull());
+	TEST(dic->At(testUid1)==KNullStreamId);
+	TEST(dic->At(testUid2)==KNullStreamId);
 	//
 	delete dic;
 	}
@@ -213,63 +245,53 @@ LOCAL_C void streamingTestsL()
 	CTestStreamDictionary* copy=CTestStreamDictionary::NewL();
 	//
 	// copy an empty dictionary
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1204 Streaming an empty dictionary "));
-	test(orig->IsNull());
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1204 Streaming an empty dictionary "));
+	TEST(orig->IsNull());
 	testCopyL(*copy,*orig);
-	test(copy->IsNull());
+	TEST(copy->IsNull());
 	//
 	// copy a dictionary containing a range of entries
-	test.Next(_L("Streaming a dictionary containing entries"));
+	TheTest.Next(_L("Streaming a dictionary containing entries"));
 	TRAPD(ret,orig->AssignL(testUid1,testStreamId1));
 	TRAP(ret,orig->AssignL(testUid2,testStreamId2));
 	TRAP(ret,orig->AssignL(testUid3,testStreamId3));
 	testCopyL(*copy,*orig);
 	testIsEqual(copy,orig);
-	test(!copy->IsNull());
+	TEST(!copy->IsNull());
 	//
 	delete orig;
 	delete copy;
 	}
 
-
-//
-// Initialise the cleanup stack.
-//
-LOCAL_C void setupCleanup()
+void DoTestL()
     {
-	TheTrapCleanup=CTrapCleanup::New();
-	TRAPD(r,\
-		{\
-		for (TInt i=KTestCleanupStack;i>0;i--)\
-			CleanupStack::PushL((TAny*)1);\
-		test(r==KErrNone);\
-		CleanupStack::Pop(KTestCleanupStack);\
-		});
-	}
+    simpleTestsL();
+    streamingTestsL();
+    }
 
-
-GLDEF_C TInt E32Main()
+TInt E32Main()
 	{
-	setupCleanup();
-	//
-	test.Title();
-	test.Start(_L("Testing CStreamDictionary..."));
-	//
-	// run the testcode (inside an alloc heaven harness)
-	__UHEAP_MARK;
+    __UHEAP_MARK;
+	
+    TheTest.Title();
+	
+    CTrapCleanup* trapCleanup = CTrapCleanup::New();
+    TheTest(trapCleanup != NULL);
 
-	TRAPD(r,simpleTestsL());
-		test(r==KErrNone);
+	TheTest.Start(_L("Testing CStreamDictionary..."));
+	
+	TRAPD(err, DoTestL());
+    TEST2(err, KErrNone);
 
-	TRAP(r,streamingTestsL());
-		test(r==KErrNone);
+    DeleteDataFiles();
+    
+    TheTest.End();
+    TheTest.Close();
 
-	__UHEAP_MARKEND;
-
- 	test.End();
-	test.Close();
-
-	delete TheTrapCleanup;
+    delete trapCleanup;
+    
+    __UHEAP_MARKEND;
+    
 	return KErrNone;
 	}
 
