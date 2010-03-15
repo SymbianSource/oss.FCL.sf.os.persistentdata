@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -17,16 +17,14 @@
 #include <e32math.h>
 #include <logview.h>
 #include <s32mem.h> 
-#include "TEST.H"
+#include "t_logutil2.h"
 
 #define UNUSED_VAR(a) a = a
-
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
 
 const TLogContactItemId KTestContact = 0x1234;
 const TInt KTestEventNum = 10;
 
-RTest test(_L("Log Client Basic API Test Harness"));
+RTest TheTest(_L("t_logapi"));
 
 const TUid KTestEventUid = {0x10005393};
 _LIT(KTestEventDesc1, "Event Type Description");
@@ -58,31 +56,6 @@ const TLogRecentSize KTestMaxRecentLogSize = 0xF;
 const TLogAge KTestMaxEventAge = 0xFFFFFFF;
 
 TInt gTheId;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////  Thread panic macros   ////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static void ThrCheck1(TInt aValue, TInt aLine)
-	{
-	if(!aValue)
-		{
-		RDebug::Print(_L("*** Line %d. Boolean expression evaluated to false!\r\n"), aLine);
-		User::Panic(_L("ThrChk1"), 1);
-		}
-	}
-
-static void ThrCheck2(TInt aValue, TInt aExpected, TInt aLine)
-	{
-	if(aValue != aExpected)
-		{
-		RDebug::Print(_L("*** Line %d. Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
-		User::Panic(_L("ThrChk2"), 2);
-		}
-	}
-
-#define TTEST(arg) ThrCheck1((arg), __LINE__)
-#define TTEST2(aValue, aExpected) ThrCheck2(aValue, aExpected, __LINE__)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -318,7 +291,7 @@ LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0836 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0836 "));
 	LOGTEXT("TestChangeEventTypeL()");	
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
@@ -376,7 +349,7 @@ LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 //
 //
 	{
-    test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0837 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0837 "));
 	LOGTEXT("TestChangeEventTypeL()");	
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
@@ -421,7 +394,7 @@ LOCAL_C void TestAddEventL(CLogClient& aClient)
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1329 "));	
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1329 "));	
 	CLogEventType* type = CLogEventType::NewL();
 	CleanupStack::PushL(type);
 
@@ -491,7 +464,7 @@ LOCAL_C void TestAddEventL(CLogClient& aClient)
 */
 LOCAL_C void TestClientFailL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0838 "));	
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0838 "));	
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -529,7 +502,7 @@ LOCAL_C void TestGetEventL(CLogClient& aClient)
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0839 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0839 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -619,7 +592,7 @@ LOCAL_C void TestChangeEventL(CLogClient& aClient)
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0840 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0840 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -699,7 +672,7 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0841 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0841 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -746,7 +719,7 @@ LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	//Note: if this test starts failing, then go and check the CentralRepository private data cage 
 	//(c:\\private\\10202be9 or z:\\private\\10202be9) if 101f401d.txt file is there.
 	//If it is then delete it and try the test again.
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-UT-4015 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-UT-4015 "));
 	//Get the contact match count and contact name format.This should be from resource file.
 	TInt16 contactMatchCount;
 	TInt16 contactNameFormat;
@@ -862,7 +835,7 @@ LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	User::After(1000);
 	theLog.Write(_L8("Deleting the Log engine database... \n"));	
 	TestUtils::DeleteDatabaseL();
-	test.Next(_L("Delay of 2 min, the necessary time to central repository to unload its cache... "));	
+	TheTest.Next(_L("Delay of 2 min, the necessary time to central repository to unload its cache... "));	
 	User::After(125000000); // Delay to time to cenrep to unload its cache.
 	}
 #endif
@@ -881,7 +854,7 @@ LOCAL_C void TestGetConfigL(CLogClient& aClient)
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0842 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0842 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -923,7 +896,7 @@ LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0843 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0843 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -965,7 +938,7 @@ LOCAL_C void TestGetStringL(CLogClient& aClient)
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0844 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0844 "));
 	TBuf<KLogMaxSharedStringLength> str;
 	
 	TInt err = aClient.GetString(str, R_LOG_DIR_IN);
@@ -1064,11 +1037,11 @@ LOCAL_C void TestGetStringL(CLogClient& aClient)
 */
 LOCAL_C void TestClearEventLogL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0845 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0845 "));
 	TTime now;
 	now.UniversalTime();
 	TDateTime d = now.DateTime();
-	RDebug::Print(_L("TimeNow: Y=%d, M=%d, D=%d, H=%d, M=%d, S=%d\n"), d.Year(), d.Month() + 1, d.Day() + 1, d.Hour(), d.Minute(), d.Second());
+	TheTest.Printf(_L("TimeNow: Y=%d, M=%d, D=%d, H=%d, M=%d, S=%d\n"), d.Year(), d.Month() + 1, d.Day() + 1, d.Hour(), d.Minute(), d.Second());
 
 	TTime date1(now);
 	date1 -= TTimeIntervalDays(1);
@@ -1178,7 +1151,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient)
 	//////////////////////////////////////////////////////////////////////////////	
 	//Clear all events before (current date - 1 day).
 	//Then cancel the operation.
-	RDebug::Print(_L("=.= ClearLog 1\n"));
+	TheTest.Printf(_L("=.= ClearLog 1\n"));
 	active->StartL();
 	aClient.ClearLog(date1, active->iStatus);
 	aClient.Cancel();
@@ -1188,7 +1161,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient)
 	//////////////////////////////////////////////////////////////////////////////	
 	//Clear all events before (current date - 1 day).
 	//event3 and event4 should be removed.
-	RDebug::Print(_L("=.= ClearLog 2\n"));
+	TheTest.Printf(_L("=.= ClearLog 2\n"));
 	active->StartL();
 	aClient.ClearLog(date1, active->iStatus);
 	CActiveScheduler::Start();
@@ -1196,31 +1169,31 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient)
 
 	//////////////////////////////////////////////////////////////////////////////	
 	//Get event1. It should be there - its time is (current date - 1 day + 10 seconds).
-	RDebug::Print(_L("=.= GetEvent 1\n"));
+	TheTest.Printf(_L("=.= GetEvent 1\n"));
 	active->StartL();
 	aClient.GetEvent(*event1, active->iStatus);
 	CActiveScheduler::Start();
 	if(active->iStatus != KErrNone) 
 		{
-		RDebug::Print(_L("=1= error code:%d\n"),active->iStatus.Int());
+		TheTest.Printf(_L("=1= error code:%d\n"),active->iStatus.Int());
 		}
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	//////////////////////////////////////////////////////////////////////////////	
 	//Get event2. It should be there - its time is (current date - 1 day + 10 seconds).
-	RDebug::Print(_L("=.= GetEvent 2\n"));
+	TheTest.Printf(_L("=.= GetEvent 2\n"));
 	active->StartL();
 	aClient.GetEvent(*event2, active->iStatus);
 	CActiveScheduler::Start();
 	if(active->iStatus != KErrNone) 
 		{
-		RDebug::Print(_L("=2= error code:%d\n"),active->iStatus.Int());
+		TheTest.Printf(_L("=2= error code:%d\n"),active->iStatus.Int());
 		}
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	//////////////////////////////////////////////////////////////////////////////	
 	//Get event3. It should not be there - its time is (current date - 2 days).
-	RDebug::Print(_L("=.= GetEvent 3\n"));
+	TheTest.Printf(_L("=.= GetEvent 3\n"));
 	active->StartL();
 	aClient.GetEvent(*event3, active->iStatus);
 	CActiveScheduler::Start();
@@ -1228,7 +1201,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient)
 
 	//////////////////////////////////////////////////////////////////////////////	
 	//Get event4. It should not be there - its time is (current date - 2 days).
-	RDebug::Print(_L("=.= GetEvent 4\n"));
+	TheTest.Printf(_L("=.= GetEvent 4\n"));
 	active->StartL();
 	aClient.GetEvent(*event4, active->iStatus);
 	CActiveScheduler::Start();
@@ -1237,7 +1210,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient)
 	//////////////////////////////////////////////////////////////////////////////	
 	//Clear all events happened before (current date).
 	//event1 and event2 should be removed.
-	RDebug::Print(_L("=#= ClearLog 1\n"));
+	TheTest.Printf(_L("=#= ClearLog 1\n"));
 	active->StartL();
 	aClient.ClearLog(now, active->iStatus);
 	CActiveScheduler::Start();
@@ -1245,7 +1218,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient)
 
 	//////////////////////////////////////////////////////////////////////////////	
 	//Get event1. It should not be there - its time is (current date - 1 day + 10 seconds).
-	RDebug::Print(_L("=#= GetEvent 1\n"));
+	TheTest.Printf(_L("=#= GetEvent 1\n"));
 	active->StartL();
 	aClient.GetEvent(*event1, active->iStatus);
 	CActiveScheduler::Start();
@@ -1253,7 +1226,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient)
 
 	//////////////////////////////////////////////////////////////////////////////	
 	//Get event2. It should not be there - its time is (current date - 1 day + 10 seconds).
-	RDebug::Print(_L("=#= GetEvent 2\n"));
+	TheTest.Printf(_L("=#= GetEvent 2\n"));
 	active->StartL();
 	aClient.GetEvent(*event2, active->iStatus);
 	CActiveScheduler::Start();
@@ -1458,7 +1431,7 @@ LOCAL_C void TestThreadDieL()
 	TRequestStatus status;
 
 	TName name;
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0846 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0846 "));
 	_LIT(KThreadName, "Test thread");
 	name.Format(KThreadName);
 
@@ -1487,7 +1460,7 @@ LOCAL_C void TestThreadDieL()
 */
 LOCAL_C void TestMultipleClientAccessL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0847 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0847 "));
 	RThread threadArray[KTestThreadCount];
 	TRequestStatus statusArray[KTestThreadCount];
 
@@ -1509,18 +1482,18 @@ LOCAL_C void TestMultipleClientAccessL()
 	count = KTestThreadCount;
 	while(count--)
 		{
-		RDebug::Print(_L("   ** Resume thread %d\r\n"), count);
+		TheTest.Printf(_L("   ** Resume thread %d\r\n"), count);
 		threadArray[count].Resume();
 		}
 
-	RDebug::Print(_L("   ** Waiting threads to complete....\r\n"));
+	TheTest.Printf(_L("   ** Waiting threads to complete....\r\n"));
 	
 	// Wait for all the threads to complete
 	count = KTestThreadCount;
 	while(count--)
 		{
 		User::WaitForRequest(statusArray[count]);
-		RDebug::Print(_L("   ** Thread %d completed\r\n"), count);
+		TheTest.Printf(_L("   ** Thread %d completed\r\n"), count);
 		TEST(threadArray[count].ExitType() != EExitPanic);
 		threadArray[count].Close();
 		}
@@ -1537,8 +1510,8 @@ LOCAL_C void TestMultipleClientAccessL()
 LOCAL_C void TestNoNotifierL()
 	{
 	TestUtils::DeleteDatabaseL();
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0848 "));
-	RDebug::Print(_L("TestNoNotifierL - begin\n"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0848 "));
+	TheTest.Printf(_L("TestNoNotifierL - begin\n"));
 
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1546,44 +1519,44 @@ LOCAL_C void TestNoNotifierL()
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 	
-	RDebug::Print(_L("TestAddEventTypeL\n"));
+	TheTest.Printf(_L("TestAddEventTypeL\n"));
 	TestAddEventTypeL(*client);
 
-	RDebug::Print(_L("TestGetEventTypeL\n"));
+	TheTest.Printf(_L("TestGetEventTypeL\n"));
 	TestGetEventTypeL(*client);
 
-	RDebug::Print(_L("TestChangeEventTypeL\n"));
+	TheTest.Printf(_L("TestChangeEventTypeL\n"));
 	TestChangeEventTypeL(*client);
 
-	RDebug::Print(_L("TestDeleteEventTypeL\n"));
+	TheTest.Printf(_L("TestDeleteEventTypeL\n"));
 	TestDeleteEventTypeL(*client);
 
-	RDebug::Print(_L("TestAddEventL\n"));
+	TheTest.Printf(_L("TestAddEventL\n"));
 	TestAddEventL(*client);
 
-	RDebug::Print(_L("TestGetEventL\n"));
+	TheTest.Printf(_L("TestGetEventL\n"));
 	TestGetEventL(*client);
 
-	RDebug::Print(_L("TestChangeEventL\n"));
+	TheTest.Printf(_L("TestChangeEventL\n"));
 	TestChangeEventL(*client);
 
-	RDebug::Print(_L("TestDeleteEventL\n"));
+	TheTest.Printf(_L("TestDeleteEventL\n"));
 	TestDeleteEventL(*client);
 
-	RDebug::Print(_L("TestGetConfigL\n"));
+	TheTest.Printf(_L("TestGetConfigL\n"));
 	TestGetConfigL(*client);
 
-	RDebug::Print(_L("TestChangeConfigL\n"));
+	TheTest.Printf(_L("TestChangeConfigL\n"));
 	TestChangeConfigL(*client);
 
-	RDebug::Print(_L("TestGetStringL\n"));
+	TheTest.Printf(_L("TestGetStringL\n"));
 	TestGetStringL(*client);
 
-	RDebug::Print(_L("TestClearEventLogL\n"));
+	TheTest.Printf(_L("TestClearEventLogL\n"));
 	TestClearEventLogL(*client);
 
 	CleanupStack::PopAndDestroy(2); // active, client
-	RDebug::Print(_L("TestNoNotifierL - end\n"));
+	TheTest.Printf(_L("TestNoNotifierL - end\n"));
 	}
 
 /**
@@ -1597,7 +1570,7 @@ LOCAL_C void TestNoNotifierL()
 */
 LOCAL_C void TestLogChangeDefinitionL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-CT-4016"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-CT-4016"));
 	TestUtils::DeleteDatabaseL();
 
 	CLogEvent* event = CLogEvent::NewL();
@@ -1657,12 +1630,12 @@ LOCAL_C void TestLogChangeDefinitionL(CLogClient& aClient)
 	const CLogChangeDefinition& changes = changeObs->Changes();
 
 	changeCount = changes.Count();
-	RDebug::Print(_L("Change Count: %d\n"), changeCount);
+	TheTest.Printf(_L("Change Count: %d\n"), changeCount);
 	TEST2(changeCount, KTestEventNum);
 	for(TInt i=0; i<changeCount; i++)
 		{
 		type = changes.At(i, logId, viewIndex);
-		RDebug::Print(_L("Change Type: %d, logId: %d, viewIndex: %d\n"), type, logId, viewIndex);
+		TheTest.Printf(_L("Change Type: %d, logId: %d, viewIndex: %d\n"), type, logId, viewIndex);
 		TEST(changes.Find(logId)==i);
 		TEST(changes.Find(logId, ELogChangeTypeEventAdded)>=0);
 		TEST(changes.Find(TLogId(100000000), ELogChangeTypeEventAdded)==KErrNotFound);
@@ -1736,7 +1709,7 @@ static TInt LaunchThread(TAny* /*aAny*/)
 */
 LOCAL_C void TestStartupL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0849 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0849 "));
 	RThread thread1;
 	RThread thread2;
 
@@ -1775,27 +1748,27 @@ LOCAL_C void TestStartupL()
 */
 LOCAL_C void TestInvalidSchemaL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0850 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0850 "));
 	TestUtils::TestInvalidSchemaL();
 	}
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGAPI"));
+	TestUtils::Initialize(_L("t_logapi"));
 	
 	// This test should be first to ensure no clients kicking around
-	test.Next(_L("Invalid database scheme"));
+	TheTest.Next(_L("Invalid database scheme"));
 	TestInvalidSchemaL();
 	theLog.Write(_L8("Test 0 OK\n"));
 
-	test.Start(_L("Simultaneous Startup"));
+	TheTest.Start(_L("Simultaneous Startup"));
 	TestStartupL();
 	theLog.Write(_L8("Test 1 OK\n"));
 
 	CLogChangeNotifier* notifier = CLogChangeNotifier::NewL();
 	CleanupStack::PushL(notifier);
 
-	test.Next(_L("Dying thread test"));
+	TheTest.Next(_L("Dying thread test"));
 	TestThreadDieL();
 	theLog.Write(_L8("Test 2 OK\n"));
 	
@@ -1807,16 +1780,16 @@ void doTestsL()
 	CTestActive* active = new(ELeave) CTestActive(CActive::EPriorityIdle - 500);
 	CleanupStack::PushL(active);
 	
-	test.Next(_L("Additional tests on CLogChangeDefinition."));
+	TheTest.Next(_L("Additional tests on CLogChangeDefinition."));
 	TestLogChangeDefinitionL(*client);
 	theLog.Write(_L8("Test 2.1 OK\n"));
 	TestUtils::DeleteDatabaseL();
 	
-	test.Next(_L("Client death"));
+	TheTest.Next(_L("Client death"));
 	TestClientFailL();
 	theLog.Write(_L8("Test 3 OK\n"));
 
-	test.Next(_L("Testing client API"));
+	TheTest.Next(_L("Testing client API"));
 	TestNoNotifierL();
 	theLog.Write(_L8("Test 4 OK\n"));
 
@@ -1828,14 +1801,14 @@ void doTestsL()
 	active->StartL();
 	client->NotifyChange(delay, active->iStatus);
 
-	test.Next(_L("Delete Event Type"));
+	TheTest.Next(_L("Delete Event Type"));
 	TestDeleteEventTypeL(*client);
 	theLog.Write(_L8("Test 5 OK\n"));
 
 	CActiveScheduler::Start();
 	TEST(active->iStatus.Int() >= 0);
 
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0834 Add Event Type "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0834 Add Event Type "));
 	TestAddEventTypeL(*client);
 	theLog.Write(_L8("Test 6 OK\n"));
 
@@ -1858,11 +1831,11 @@ void doTestsL()
 	client->NotifyChange(delay, active->iStatus);
 
 	// The following doesn't make any changes
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0835 Get Event Type "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0835 Get Event Type "));
 	TestGetEventTypeL(*client);
 	theLog.Write(_L8("Test 7 OK\n"));
 
-	test.Next(_L("Change Event Type"));
+	TheTest.Next(_L("Change Event Type"));
 	TestChangeEventTypeL(*client);
 	theLog.Write(_L8("Test 8 OK\n"));
 
@@ -1871,7 +1844,7 @@ void doTestsL()
 	active->StartL();
 	client->NotifyChange(delay, active->iStatus);
 
-	test.Next(_L("Delete Event Type"));
+	TheTest.Next(_L("Delete Event Type"));
 	TestDeleteEventTypeL(*client);
 	theLog.Write(_L8("Test 9 OK\n"));
 
@@ -1880,7 +1853,7 @@ void doTestsL()
 	active->StartL();
 	client->NotifyChange(delay, active->iStatus);
 
-	test.Next(_L("Add Event"));
+	TheTest.Next(_L("Add Event"));
 	TestAddEventL(*client);
 	theLog.Write(_L8("Test 10 OK\n"));
 
@@ -1890,11 +1863,11 @@ void doTestsL()
 	client->NotifyChange(delay, active->iStatus);
 
 	// The following doesn't make any changes
-	test.Next(_L("Get Event"));
+	TheTest.Next(_L("Get Event"));
 	TestGetEventL(*client);
 	theLog.Write(_L8("Test 11 OK\n"));
 
-	test.Next(_L("Change Event"));
+	TheTest.Next(_L("Change Event"));
 	TestChangeEventL(*client);
 	theLog.Write(_L8("Test 12 OK\n"));
 
@@ -1903,7 +1876,7 @@ void doTestsL()
 	active->StartL();
 	client->NotifyChange(delay, active->iStatus);
 
-	test.Next(_L("Delete Event"));
+	TheTest.Next(_L("Delete Event"));
 	TestDeleteEventL(*client);
 	theLog.Write(_L8("Test 13 OK\n"));
 
@@ -1913,11 +1886,11 @@ void doTestsL()
 	client->NotifyChange(delay, active->iStatus);
 
 	// The following doesn't make any changes
-	test.Next(_L("Get Config"));
+	TheTest.Next(_L("Get Config"));
 	TestGetConfigL(*client);
 	theLog.Write(_L8("Test 14 OK\n"));
 
-	test.Next(_L("Change Config"));
+	TheTest.Next(_L("Change Config"));
 	TestChangeConfigL(*client);
 	theLog.Write(_L8("Test 15 OK\n"));
 
@@ -1927,11 +1900,11 @@ void doTestsL()
 	client->NotifyChange(delay*3, active->iStatus);
 
 	// The following doesn't make any changes
-	test.Next(_L("Get String"));
+	TheTest.Next(_L("Get String"));
 	TestGetStringL(*client);
 	theLog.Write(_L8("Test 16 OK\n"));
 
-	test.Next(_L("Clear Event Log"));
+	TheTest.Next(_L("Clear Event Log"));
 	TestClearEventLogL(*client);
 	theLog.Write(_L8("Test 17 OK\n"));
 
@@ -1940,11 +1913,11 @@ void doTestsL()
 	active->StartL();
 	client->NotifyChange(delay, active->iStatus);
 
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0833 Test global change API "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0833 Test global change API "));
 	TestClientObserverMechanismL(*client);
 	theLog.Write(_L8("Test 18 OK\n"));
 
-	test.Next(_L("Multiple client access"));
+	TheTest.Next(_L("Multiple client access"));
 	TestMultipleClientAccessL();
 	theLog.Write(_L8("Test 19 OK\n"));
 	
@@ -1966,7 +1939,7 @@ void doTestsL()
 	theLog.Write(_L8("Allocating a new CLogClient object... \n"));
 	CLogClient* theClient = CLogClient::NewL(theFs);
 	CleanupStack::PushL(theClient);	
-	test.Next(_L("TestGetConfigSettingsFromRepositoryFileL () "));
+	TheTest.Next(_L("TestGetConfigSettingsFromRepositoryFileL () "));
 	TestGetConfigSettingsFromRepositoryFileL(*theClient);
 	theLog.Write(_L8("TestGetConfigSettingsFromRepositoryFileL () OK\n"));
 	theLog.Write(_L8("Destroying the CLogClient object... \n"));	

@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -23,13 +23,10 @@
 
 #include <s32file.h>
 #include <e32math.h>
-
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log Event Test Harness"));
+RTest TheTest(_L("t_logservercrash"));
 
 const TInt KTestEventNum = 10;
 const TLogDurationType KTestDurationType1 = 1;
@@ -60,7 +57,7 @@ TBool TheMatchingIsEnabled = EFalse;
 */	
 LOCAL_C void TestKillServerL()
 	{	
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1021 Before Killing Server "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1021 Before Killing Server "));
 	User::After(2000000);
 	
 	// for EKA2 find process and Kill
@@ -73,7 +70,7 @@ LOCAL_C void TestKillServerL()
 	LEAVE_IF_ERROR( server.Open(findProcess, EOwnerProcess) );
 	server.Kill(0);		
  
-	test.Next(_L("Server is Killed"));
+	TheTest.Next(_L("Server is Killed"));
 	User::After(2000000);
 	}
 
@@ -87,7 +84,7 @@ LOCAL_C void TestKillServerL()
 */	
 LOCAL_C void TestEventViewL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1022 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1022 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -209,7 +206,7 @@ void doTestsL()
 	TheMatchingIsEnabled = TestUtils::MatchingEnabledL();
 	
 	// test 0 adds an event
-	TestUtils::Initialize(_L("T_LOGSERVERCRASH"));
+	TestUtils::Initialize(_L("t_logservercrash"));
 	TestUtils::DeleteDatabaseL();
 
 	CLogClient* client = CLogClient::NewL(theFs);
@@ -218,22 +215,21 @@ void doTestsL()
 	CLogChangeNotifier* notifier = CLogChangeNotifier::NewL();
 	CleanupStack::PushL(notifier);
 
-	test.Start(_L("Event View With No Filter: Before Killing Sever"));
-	test.Next(_L("Test Add Event"));
+	TheTest.Start(_L("Event View With No Filter: Before Killing Sever"));
+	TheTest.Next(_L("Test Add Event"));
 	TestEventViewL(*client);
 	theLog.Write(_L8("Test 0 OK\n"));
 
 	// Test 1 stops the server
-	test.Next(_L("Test Kill Server"));
+	TheTest.Next(_L("Test Kill Server"));
 	TestKillServerL();
 	theLog.Write(_L8("Test 1 OK\n"));
 
 	// Test 2 checks the server is going again
-	test.Start(_L("Event View With No Filter : After Killing Sever"));
-	test.Next(_L("Test Add Event"));
+	TheTest.Next(_L("Event View With No Filter : After Killing Sever"));
+	TheTest.Next(_L("Test Add Event"));
 	TestEventViewL(*client);
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.End();
 	CleanupStack::PopAndDestroy(2);
 	}

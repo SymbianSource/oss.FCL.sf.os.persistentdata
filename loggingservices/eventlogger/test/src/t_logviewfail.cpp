@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,12 +14,10 @@
 //
 
 #include <s32file.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log View Heap (Client) Failure Test Harness"));
+RTest TheTest(_L("t_logviewfail"));
 
 const TLogContactItemId KTestContact = 0x123;
 _LIT(KTestStatus, "Test Status Text");
@@ -36,7 +34,7 @@ _LIT(KTestStatus, "Test Status Text");
 */
 LOCAL_C void TestEventViewConstructWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0961-0001 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0961-0001 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -102,7 +100,7 @@ LOCAL_C void TestEventViewConstructWithHeapFailL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewConstructWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0962-0001 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0962-0001 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -172,7 +170,7 @@ LOCAL_C void TestRecentViewConstructWithHeapFailL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewConstructWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0963-0001 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0963-0001 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -254,7 +252,7 @@ LOCAL_C void TestDuplicateViewConstructWithHeapFailL(CLogClient& aClient)
 */
 LOCAL_C void TestEventViewSetupWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0964-0001 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0964-0001 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -373,7 +371,7 @@ LOCAL_C void TestEventViewSetupWithHeapFailL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewSetupWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0965-0001 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0965-0001 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -529,7 +527,7 @@ LOCAL_C void TestRecentViewSetupWithHeapFailL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewSetupWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0966 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0966 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -699,7 +697,7 @@ LOCAL_C void TestDuplicateViewSetupWithHeapFailL(CLogClient& aClient)
 */
 LOCAL_C void TestNavigationWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0967 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0967 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -912,7 +910,7 @@ LOCAL_C void TestNavigationWithHeapFailL(CLogClient& aClient)
 */
 LOCAL_C void TestViewCountWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0968 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0968 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -975,7 +973,7 @@ LOCAL_C void TestViewCountWithHeapFailL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewRemoveWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0969 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0969 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -1105,7 +1103,7 @@ LOCAL_C void TestRecentViewRemoveWithHeapFailL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewRemoveWithHeapFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0970 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0970 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -1236,31 +1234,31 @@ LOCAL_C void TestDuplicateViewRemoveWithHeapFailL(CLogClient& aClient)
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGVIEWFAIL"));
+	TestUtils::Initialize(_L("t_logviewfail"));
 	TestUtils::DeleteDatabaseL();
 
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
-	test.Start(_L("Heap Failure in Client"));
+	TheTest.Start(_L("Heap Failure in Client"));
 
-	test.Next(_L("View Construction"));
+	TheTest.Next(_L("View Construction"));
 	TestEventViewConstructWithHeapFailL(*client);
 	TestRecentViewConstructWithHeapFailL(*client);
 	TestDuplicateViewConstructWithHeapFailL(*client);
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("View Setup"));
+	TheTest.Next(_L("View Setup"));
 	TestEventViewSetupWithHeapFailL(*client);
 	TestRecentViewSetupWithHeapFailL(*client);
 	TestDuplicateViewSetupWithHeapFailL(*client);
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("View Navigation"));
+	TheTest.Next(_L("View Navigation"));
 	TestNavigationWithHeapFailL(*client);
 	theLog.Write(_L8("Test 3 OK\n"));
 
-	test.Next(_L("Other"));
+	TheTest.Next(_L("Other"));
 	TestViewCountWithHeapFailL(*client);
 	TestRecentViewRemoveWithHeapFailL(*client);
 	TestDuplicateViewRemoveWithHeapFailL(*client);

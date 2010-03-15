@@ -61,6 +61,7 @@ SOURCE			SqlSrvStrings.cpp
 SOURCE			SqlSrvStatementUtil.cpp
 SOURCE			SqlSrvSecurityMap.cpp
 SOURCE			SqlSrvUtil.cpp
+SOURCE			SqlSrvResourceProfiler.cpp
 
 SOURCEPATH		../SRC/Server/Compact
 SOURCE			SqlCompact.cpp

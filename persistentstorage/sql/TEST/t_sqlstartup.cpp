@@ -347,6 +347,7 @@ TInt E32Main()
 	TheTest.Title();
 	
 	CTrapCleanup* tc = CTrapCleanup::New();
+	TheTest(tc != NULL);
 	
 	__UHEAP_MARK;
 	

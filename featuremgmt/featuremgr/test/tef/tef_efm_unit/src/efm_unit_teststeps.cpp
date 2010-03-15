@@ -285,7 +285,7 @@ TVerdict CServerMergePluginFeaturesTestStep::doTestStepPostambleL()
 TVerdict CServerMergePluginFeaturesTestStep::doTestStepL()
 	{
 	// This is a void method, so we can't actually check directly if this worked
-	ifeatureSet->MergePluginFeatures(irfa);
+	ifeatureSet->MergePluginFeaturesL(irfa);
 
 	// .. so get the supported features in this array and check
 	RFeatureUidArray rf;
@@ -363,7 +363,7 @@ TVerdict CServerMergePluginFeaturesTestStep2::doTestStepPostambleL()
 TVerdict CServerMergePluginFeaturesTestStep2::doTestStepL()
 	{
 	// This is a void method, so we can't actually check directly if this worked
-	ifeatureSet->MergePluginFeatures(ifc);
+	ifeatureSet->MergePluginFeaturesL(ifc);
 
 	// .. so get the supported features in this array and check
 	RFeatureUidArray rf;

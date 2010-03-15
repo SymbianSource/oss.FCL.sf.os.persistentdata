@@ -100,7 +100,7 @@ NONSHARABLE_CLASS(CFeatMgrTlsData) : public CBase, public MFeatureClient
         TInt RequestNotification( RFeatureUidArray& aFeatures, TUid& aFeatUid, 
                 TRequestStatus& aStatus );
 
-        TInt ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus );
+        void ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus );
 
         TInt RequestNotifyCancel( TUid aFeature ) const;
 

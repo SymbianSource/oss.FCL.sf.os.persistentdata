@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -129,7 +129,7 @@ inline void TSqlSrvFileData::InitL(RFs& aFs, const TDriveName& aSysDriveName, co
 								   const TDesC& aConfigFileName, const CDbConfigFiles* aDbConfigFiles)
 	{
 	iFs = aFs;
-	iSysDrivePrivatePath.Set(aSysDriveName, &aServerPrivatePath, 0);
+	__SQLLEAVE_IF_ERROR(iSysDrivePrivatePath.Set(aSysDriveName, &aServerPrivatePath, 0));
 	iConfig.InitL(aFs, aConfigFileName);
 	iConfig.GetConfigParamsL(KNullDesC8, iConfigParams);//iConfigParams initialized with the config file params 
 														//(because an empty configuration string is passed as an argument)

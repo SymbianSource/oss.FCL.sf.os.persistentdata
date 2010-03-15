@@ -16,11 +16,10 @@
 //
 
 /**
- @file
- @internalTechnology
+@file
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
 */
-
-
 
 #ifndef __FLOGGER_H__
 #define __FLOGGER_H__
@@ -28,19 +27,24 @@
 #include <e32base.h>
 
 /** Maximum log buffer size.
-@internalTechnology */
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
+*/
 const TInt KLogBufferSize=150;
 
 // [All of this start up stuff copied from DBMS]
 
 class FLogger
 /** Controls the flogger server.
-@internalComponent */
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
+*/
 	{
 public:
 	class TSignal
 /**
-@internalComponent
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
 */
 		{
 		friend class FLogger;
@@ -67,7 +71,9 @@ private:
 
 
 /** The mode used to write to the log file.
-@internalTechnology */
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
+*/
 enum TFileLoggingMode 
 	{
 	/** Log file mode has not been explicitly set. */
@@ -82,7 +88,9 @@ enum TFileLoggingMode
 
 NONSHARABLE_CLASS(TLogFormatter16Overflow) :public TDes16Overflow
 /** Unicode overflow handler.
-@internalComponent */
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
+*/
 	{
 public:
 	virtual void Overflow(TDes16& aDes);
@@ -90,7 +98,9 @@ public:
 
 NONSHARABLE_CLASS(TLogFormatter8Overflow) :public TDes8Overflow
 /** Overflow handler.
-@internalComponent */
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
+*/
 	{
 public:
 	virtual void Overflow(TDes8& aDes);
@@ -98,7 +108,9 @@ public:
 
 class TLogFormatter
 /** Formatting methods for log file data.
-@internalComponent */
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
+*/
 	{
 public:
 	TLogFormatter();
@@ -120,7 +132,9 @@ private:
 
 class TLogFile
 /** General access to packaged log files.
-@internalComponent */
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
+*/
 	{
 public:
 	TLogFile();
@@ -146,7 +160,9 @@ class RFileLogger : public RSessionBase
 
 The file logger API contains both static and non-static versions of access 
 functions to the file logging system. 
-@internalTechnology */
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
+*/
 	{
 public:
 	IMPORT_C RFileLogger();

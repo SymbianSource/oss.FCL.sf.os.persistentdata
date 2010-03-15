@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -132,6 +132,13 @@ void RSqlMap<KEY, DATA, REFCNTR, DESTRUCTOR>::Remove(const KEY& aKey)
 			{
 			iDestructor.Destroy(pair.iKey, pair.iData);
 			iSet.Remove(idx);
+#ifdef _DEBUG
+//This is used prevent the failure of the resource allocation checking in debug mode. 
+                if(iSet.Count() == 0)
+                    {
+                    iSet.Reset();
+                    }
+#endif  
 			}
 		return;
 		}

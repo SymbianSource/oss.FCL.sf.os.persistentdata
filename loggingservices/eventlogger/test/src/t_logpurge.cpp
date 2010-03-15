@@ -1,4 +1,4 @@
-// Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2003-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,12 +14,10 @@
 //
 
 #include <s32file.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log Purge Test Harness"));
+RTest TheTest(_L("t_logpurge"));
 
 const TInt KTestEventNum = 10;
 const TInt KTestEventAge = 5;
@@ -42,7 +40,7 @@ _LIT(KTestRemoteParty, "Test Remote Party %d");
 */
 LOCAL_C void TestMaxLogSizeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0875 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0875 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
@@ -198,7 +196,7 @@ LOCAL_C void TestMaxLogSizeL(CLogClient& aClient)
 */
 LOCAL_C void TestMaxLogSizeConfigL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0876 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0876 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
@@ -296,7 +294,7 @@ LOCAL_C void TestMaxLogSizeConfigL(CLogClient& aClient)
 */
 LOCAL_C void TestMaxLogAgeL(CLogClient& aClient, TLogAge aMaxLogAge)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0877 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0877 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
@@ -398,7 +396,7 @@ LOCAL_C void TestMaxLogAgeL(CLogClient& aClient, TLogAge aMaxLogAge)
 */
 LOCAL_C void TestMaxRecentSize1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0878 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0878 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -519,7 +517,7 @@ LOCAL_C void TestMaxRecentSize1L(CLogClient& aClient)
 */
 LOCAL_C void TestMaxRecentSizeConfigL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0879 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0879 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -623,7 +621,7 @@ LOCAL_C void TestMaxRecentSizeConfigL(CLogClient& aClient)
 */
 LOCAL_C void TestMaxRecentSize2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0880 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0880 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -753,7 +751,7 @@ LOCAL_C void TestMaxRecentSize2L(CLogClient& aClient)
 */
 LOCAL_C void TestNoPurgeWithGetL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0881 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0881 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
@@ -834,7 +832,7 @@ LOCAL_C void TestNoPurgeWithGetL(CLogClient& aClient)
 */
 LOCAL_C void TestClearLog1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0882 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0882 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
@@ -916,7 +914,7 @@ LOCAL_C void TestClearLog1L(CLogClient& aClient)
 */
 LOCAL_C void TestClearLog2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0883 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0883 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
@@ -1255,52 +1253,52 @@ void ClearLogRecentSimIdL(CLogClient& aClient)
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGPURGE"));
+	TestUtils::Initialize(_L("t_logpurge"));
 	TestUtils::DeleteDatabaseL();
 
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
-	test.Start(_L("Maximum Log Size"));
+	TheTest.Start(_L("Maximum Log Size"));
 	TestMaxLogSizeL(*client);
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("Purge Log When Config Changed"));
+	TheTest.Next(_L("Purge Log When Config Changed"));
 	TestMaxLogSizeConfigL(*client);
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("Test purge by Maximum Log Age enabled/disabled"));
+	TheTest.Next(_L("Test purge by Maximum Log Age enabled/disabled"));
 	TestMaxLogAgeL(*client, 0);	// disable purging by age
 	TestMaxLogAgeL(*client, KTestEventAge * 60 * 60 * 24);  
 	theLog.Write(_L8("Test 3 OK\n"));
 
-	test.Next(_L("Maximum Recent List Size"));
+	TheTest.Next(_L("Maximum Recent List Size"));
 	TestMaxRecentSize1L(*client);
 	theLog.Write(_L8("Test 4 OK\n"));
 
-	test.Next(_L("Purge Recent Lists When Config Changed"));
+	TheTest.Next(_L("Purge Recent Lists When Config Changed"));
 	TestMaxRecentSizeConfigL(*client);
 	theLog.Write(_L8("Test 5 OK\n"));
 
-	test.Next(_L("Maximum Recent List Size With Duplicates"));
+	TheTest.Next(_L("Maximum Recent List Size With Duplicates"));
 	TestMaxRecentSize2L(*client);
 	theLog.Write(_L8("Test 6 OK\n"));
 
-	test.Next(_L("Check no purge when retrieving event"));
+	TheTest.Next(_L("Check no purge when retrieving event"));
 	TestNoPurgeWithGetL(*client);
 	theLog.Write(_L8("Test 7 OK\n"));
 
-	test.Next(_L("Check ClearLog works for different locales"));
+	TheTest.Next(_L("Check ClearLog works for different locales"));
 	TestClearLog1L(*client);
 	TestClearLog2L(*client);
  	theLog.Write(_L8("Test 8 OK\n"));
 
 #ifdef SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM	
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4036 CLogClient::ClearLog() + SimId test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4036 CLogClient::ClearLog() + SimId test"));
  	ClearLogSimIdL(*client);
  	theLog.Write(_L8("Test 9 OK\n"));
 
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4037 CLogClient::ClearLog()/recent + SimId test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4037 CLogClient::ClearLog()/recent + SimId test"));
  	ClearLogRecentSimIdL(*client);
  	theLog.Write(_L8("Test 10 OK\n"));
 #endif 	

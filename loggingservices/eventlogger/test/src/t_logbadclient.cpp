@@ -18,6 +18,7 @@
 #include <e32math.h>
 #include "LogServShared.h"
 #include "logservcli.h"
+#include "t_logutil.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -78,48 +79,6 @@ static TLogClientServerData TheLogIpcData;
 static TPtrC8 TheLogIpcDataPtr((const TUint8*)&TheLogIpcData, sizeof(TheLogIpcData));
 
 ///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-//Test macros and functions
-void Check1(TInt aValue, TInt aLine, TBool aPrintThreadName = EFalse)
-	{
-	if(!aValue)
-		{
-		if(aPrintThreadName)
-			{
-			RThread th;
-			TName name = th.Name();
-			RDebug::Print(_L("*** Thread %S, Line %d\r\n"), &name, aLine);
-			}
-		else
-			{
-			RDebug::Print(_L("*** Line %d\r\n"), aLine);
-			}
-		TheTest(EFalse, aLine);
-		}
-	}
-void Check2(TInt aValue, TInt aExpected, TInt aLine, TBool aPrintThreadName = EFalse)
-	{
-	if(aValue != aExpected)
-		{
-		if(aPrintThreadName)
-			{
-			RThread th;
-			TName name = th.Name();
-			RDebug::Print(_L("*** Thread %S, Line %d Expected error: %d, got: %d\r\n"), &name, aLine, aExpected, aValue);
-			}
-		else
-			{
-			RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
-			}
-		TheTest(EFalse, aLine);
-		}
-	}
-#define TEST(arg) ::Check1((arg), __LINE__)
-#define TEST2(aValue, aExpected) ::Check2(aValue, aExpected, __LINE__)
-#define TTEST(arg) ::Check1((arg), __LINE__, ETrue)
-#define TTEST2(aValue, aExpected) ::Check2(aValue, aExpected, __LINE__, ETrue)
-
-///////////////////////////////////////////////////////////////////////////////////////
 
 void PrintIterationCount(TInt aIteration)
 	{
@@ -130,7 +89,7 @@ void PrintIterationCount(TInt aIteration)
 		TDateTime dt = time.DateTime();
 		TBuf<16> tbuf;
 		tbuf.Format(_L("%02d:%02d:%02d.%06d"), dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond());
-		RDebug::Print(_L("-----[%S] Test iterations: %d\r\n"), &tbuf, aIteration);
+		TheTest.Printf(_L("-----[%S] Test iterations: %d\r\n"), &tbuf, aIteration);
 		}
 	}
 
@@ -290,20 +249,20 @@ void BadClientTest()
 			TheTest.Printf(_L("##Iteration %d. Function %d. Thread \"%S\" already exists!\r\n"), data.iIteration, data.iFunction, &KTestThreadName);
 			for(TInt i=0;i<KMaxMessageArguments;++i)
 				{
-				RDebug::Print(_L("##Arg %d, Type %d\r\n"), i + 1, data.iArgType[i]);
+				TheTest.Printf(_L("##Arg %d, Type %d\r\n"), i + 1, data.iArgType[i]);
 				switch(data.iArgType[i])
 					{
 					case EIntArgType:
-						RDebug::Print(_L("Integer, value=%d\r\n"), data.iIntArg[i]);
+					    TheTest.Printf(_L("Integer, value=%d\r\n"), data.iIntArg[i]);
 						break;
 					case ETextArgType:
-						RDebug::Print(_L("Text, length=%d\r\n"), data.iTextArg[i].Length());
+					    TheTest.Printf(_L("Text, length=%d\r\n"), data.iTextArg[i].Length());
 						break;
 					case EBinArgType:
-						RDebug::Print(_L("Binary, length=%d\r\n"), data.iBinArg[i].Length());
+					    TheTest.Printf(_L("Binary, length=%d\r\n"), data.iBinArg[i].Length());
 						break;
 					default:
-						RDebug::Print(_L("Invalid argument type: %d\r\n"), data.iArgType[i]);
+					    TheTest.Printf(_L("Invalid argument type: %d\r\n"), data.iArgType[i]);
 						break;
 					}
 				}
@@ -325,24 +284,24 @@ void BadClientTest()
 			{
 			if(exitReason == KPanicCode)
 				{
-				RDebug::Print(_L("##Server terminated!\r\n"));
-				RDebug::Print(_L("##Iteration=%d, Function=%d\r\n"), data.iIteration, data.iFunction);
+				TheTest.Printf(_L("##Server terminated!\r\n"));
+				TheTest.Printf(_L("##Iteration=%d, Function=%d\r\n"), data.iIteration, data.iFunction);
 				for(TInt i=0;i<KMaxMessageArguments;++i)
 					{
-					RDebug::Print(_L("##Arg %d, Type %d\r\n"), i + 1, data.iArgType[i]);
+					TheTest.Printf(_L("##Arg %d, Type %d\r\n"), i + 1, data.iArgType[i]);
 					switch(data.iArgType[i])
 						{
 						case EIntArgType:
-							RDebug::Print(_L("Integer, value=%d\r\n"), data.iIntArg[i]);
+						    TheTest.Printf(_L("Integer, value=%d\r\n"), data.iIntArg[i]);
 							break;
 						case ETextArgType:
-							RDebug::Print(_L("Text, length=%d\r\n"), data.iTextArg[i].Length());
+						    TheTest.Printf(_L("Text, length=%d\r\n"), data.iTextArg[i].Length());
 							break;
 						case EBinArgType:
-							RDebug::Print(_L("Binary, length=%d\r\n"), data.iBinArg[i].Length());
+						    TheTest.Printf(_L("Binary, length=%d\r\n"), data.iBinArg[i].Length());
 							break;
 						default:
-							RDebug::Print(_L("Invalid argument type: %d\r\n"), data.iArgType[i]);
+						    TheTest.Printf(_L("Invalid argument type: %d\r\n"), data.iArgType[i]);
 							break;
 						}
 					}

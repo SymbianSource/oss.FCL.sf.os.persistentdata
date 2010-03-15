@@ -1,4 +1,4 @@
-// Copyright (c) 1999-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1999-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -87,8 +87,8 @@ PRJ_TESTMMPFILES
 ../test/t_logwrap.mmp
 ../test/t_logcontact.mmp
 ../test/t_logcntmatch.mmp
-../test/t_maxnumberlength.MMP
-../test/t_OrderById.MMP
+../test/t_logmaxnumlen.mmp
+../test/t_logorderbyid.mmp
 ../test/t_logservercrash.mmp
 ../test/t_loghicaphelper.mmp		support
 ../test/t_loglowcapability.mmp

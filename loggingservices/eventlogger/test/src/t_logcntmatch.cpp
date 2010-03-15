@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -22,7 +22,7 @@
 #include <bautils.h>
 #include <logserv.rsg>
 #include <barsc.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,9 +61,8 @@ _LIT(KFamilyName, "BBB");
 _LIT(KPhoneNumber, "0123456789");
 _LIT(KTestNum, "1234567890");
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
+RTest TheTest(_L("t_logcntmatch"));
 
-RTest test(_L("Contact Matching Test Harness"));
 TBool TheMatchingIsEnabled = EFalse;
 //TheContactNameFmt variable must be initialized before tests. 
 //It gives an information what is the contact name format in the logs.
@@ -354,15 +353,15 @@ void DEF068087L(CLogClient& aClient)
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGCONTACT"));
+	TestUtils::Initialize(_L("t_logcntmatch"));
 
-	test.Start(_L("Prepare the test environment"));
+	TheTest.Start(_L("Prepare the test environment"));
 
 	TheMatchingIsEnabled = TestUtils::MatchingEnabledL();
 
 	if (!TheMatchingIsEnabled)
 		{
-		test.Printf(_L("Contacts matching not enabled. Contacts matching tests NOT run\n"));
+		TheTest.Printf(_L("Contacts matching not enabled. Contacts matching tests NOT run\n"));
 		return;
 		}
 
@@ -375,11 +374,11 @@ void doTestsL()
 	
 	//All tests bellow are likely to fail if 101f401d.txt file exists in CentralRepository private data cage
 	//and the contact mach count is set to 0 in that file.
-    test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1392: DEF068087: Chinese names don't display in Chinese name format"));
+    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1392: DEF068087: Chinese names don't display in Chinese name format"));
 	::DEF068087L(*client);
-    test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1016: Contacts matching - test1"));
+    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1016: Contacts matching - test1"));
 	TestContactMatch1L(*client);
-    test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1017: Contacts matching - test2"));
+    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1017: Contacts matching - test2"));
 	TestContactMatch2L(*client);
 
 	TestUtils::DeleteDatabaseL();

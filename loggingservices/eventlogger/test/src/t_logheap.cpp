@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,11 +15,9 @@
 
 #include <s32file.h>
 #include <logview.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log Client API Heap Failure Test Harness"));
+RTest TheTest(_L("t_logheap"));
 
 const TUid KTestEventUid = {0x10005393};
 _LIT(KTestEventDesc1, "Event Type Description");
@@ -66,7 +64,7 @@ _LIT(KClientSide, "client side");
 */
 LOCAL_C void TestStartup1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0884 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0884 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
@@ -108,7 +106,7 @@ LOCAL_C void TestStartup1L()
 		}
 
 	CleanupStack::PopAndDestroy(3); // client, active, event
-    test.Printf(_L("===CLogClient::ChangeEvent() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::ChangeEvent() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -121,7 +119,7 @@ LOCAL_C void TestStartup1L()
 */
 LOCAL_C void TestBasicL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0885 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0885 "));
 	
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
@@ -227,7 +225,7 @@ LOCAL_C void TestBasicL(CLogClient& aClient)
 */
 LOCAL_C void TestConstruction1L(TBool aCreateDb)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0886 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0886 "));
 
 	if(aCreateDb)
 	    {
@@ -258,7 +256,7 @@ LOCAL_C void TestConstruction1L(TBool aCreateDb)
 		}
 
 	delete client;
-    test.Printf(_L("==CLogClient::NewL()+\"%S\" client side OOM test succeeded at iteration %d\n"), aCreateDb ? &KCreateDb : &KOpenDb, failCount);
+    TheTest.Printf(_L("==CLogClient::NewL()+\"%S\" client side OOM test succeeded at iteration %d\n"), aCreateDb ? &KCreateDb : &KOpenDb, failCount);
 	}
 
 /**s
@@ -271,7 +269,7 @@ LOCAL_C void TestConstruction1L(TBool aCreateDb)
 */
 LOCAL_C void TestConstruction3L(TBool aCreateDb)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0887 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0887 "));
 
     if(aCreateDb)
         {
@@ -303,7 +301,7 @@ LOCAL_C void TestConstruction3L(TBool aCreateDb)
 		}
 
 	delete client;
-    test.Printf(_L("==CLogClient::NewL()+\"%S\" server side OOM test succeeded at iteration %d\n"), aCreateDb ? &KCreateDb : &KOpenDb, failCount);
+    TheTest.Printf(_L("==CLogClient::NewL()+\"%S\" server side OOM test succeeded at iteration %d\n"), aCreateDb ? &KCreateDb : &KOpenDb, failCount);
 	}
 
 /**
@@ -317,7 +315,7 @@ LOCAL_C void TestConstruction3L(TBool aCreateDb)
 */
 LOCAL_C void TestAddEventType1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0888 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0888 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -371,7 +369,7 @@ LOCAL_C void TestAddEventType1L()
 	TEST2(active->iStatus.Int(), KErrAlreadyExists);
 
 	CleanupStack::PopAndDestroy(3, client); // active, type, client
-   test.Printf(_L("===CLogClient::AddEventType() client side OOM test succeeded at iteration %d\n"), failCount);
+   TheTest.Printf(_L("===CLogClient::AddEventType() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -386,7 +384,7 @@ LOCAL_C void TestAddEventType1L()
 */
 LOCAL_C void TestAddEventType3L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0889 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0889 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -441,7 +439,7 @@ LOCAL_C void TestAddEventType3L()
 	TEST2(active->iStatus.Int(), KErrAlreadyExists);
 
 	CleanupStack::PopAndDestroy(3, client); // active, type, client
-	test.Printf(_L("===CLogClient::AddEventType() server side OOM test succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("===CLogClient::AddEventType() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -455,7 +453,7 @@ LOCAL_C void TestAddEventType3L()
 */
 LOCAL_C void TestGetEventType1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0890 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0890 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -496,7 +494,7 @@ LOCAL_C void TestGetEventType1L()
 	TEST(type->LoggingEnabled());
 
 	CleanupStack::PopAndDestroy(3, client); // active, type, client
-    test.Printf(_L("===CLogClient::GetEventType() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::GetEventType() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -510,7 +508,7 @@ LOCAL_C void TestGetEventType1L()
 */
 LOCAL_C void TestGetEventType3L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0891 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0891 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -551,7 +549,7 @@ LOCAL_C void TestGetEventType3L()
 	TEST(type->LoggingEnabled());
 
 	CleanupStack::PopAndDestroy(3, client); // active, type, client
-    test.Printf(_L("===CLogClient::GetEventType() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::GetEventType() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -565,7 +563,7 @@ LOCAL_C void TestGetEventType3L()
 */
 LOCAL_C void TestChangeEventType1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0892 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0892 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -632,7 +630,7 @@ LOCAL_C void TestChangeEventType1L()
 	TEST(type->LoggingEnabled() == EFalse);
 
 	CleanupStack::PopAndDestroy(3, client); // type, active, client
-    test.Printf(_L("===CLogClient::ChangeEventType() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::ChangeEventType() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -646,7 +644,7 @@ LOCAL_C void TestChangeEventType1L()
 */
 LOCAL_C void TestChangeEventType3L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0893 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0893 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -713,7 +711,7 @@ LOCAL_C void TestChangeEventType3L()
 	TEST(type->LoggingEnabled() == EFalse);
 
 	CleanupStack::PopAndDestroy(3, client); // type, active, client
-    test.Printf(_L("===CLogClient::ChangeEventType() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::ChangeEventType() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -728,7 +726,7 @@ LOCAL_C void TestChangeEventType3L()
 */
 LOCAL_C void TestDeleteEventType1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0894 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0894 "));
 
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -779,7 +777,7 @@ LOCAL_C void TestDeleteEventType1L()
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(3, client); // type, active, client
-    test.Printf(_L("===CLogClient::DeleteEventType() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::DeleteEventType() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -794,7 +792,7 @@ LOCAL_C void TestDeleteEventType1L()
 */
 LOCAL_C void TestDeleteEventType3L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0895 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0895 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -846,7 +844,7 @@ LOCAL_C void TestDeleteEventType3L()
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(3, client); // type, active, client
-    test.Printf(_L("===CLogClient::DeleteEventType() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::DeleteEventType() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -860,7 +858,7 @@ LOCAL_C void TestDeleteEventType3L()
 */
 LOCAL_C void TestAddEvent1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0896 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0896 "));
 
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -933,7 +931,7 @@ LOCAL_C void TestAddEvent1L()
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	CleanupStack::PopAndDestroy(4, client); // event, active, type, client
-    test.Printf(_L("===CLogClient::AddEvent() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::AddEvent() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -948,7 +946,7 @@ LOCAL_C void TestAddEvent1L()
 LOCAL_C void TestAddEvent3L()
 	{
 	
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0897 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0897 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1021,7 +1019,7 @@ LOCAL_C void TestAddEvent3L()
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	CleanupStack::PopAndDestroy(4, client); // event, active, type, client
-    test.Printf(_L("===CLogClient::AddEvent() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::AddEvent() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1036,7 +1034,7 @@ LOCAL_C void TestAddEvent3L()
 */
 LOCAL_C void TestGetEvent1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0898 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0898 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1084,7 +1082,7 @@ LOCAL_C void TestGetEvent1L()
 	TEST(event->Data() == KTestData1);
 
 	CleanupStack::PopAndDestroy(3, client); // event, active, client
-    test.Printf(_L("===CLogClient::AddEvent() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::AddEvent() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1098,7 +1096,7 @@ LOCAL_C void TestGetEvent1L()
 */
 LOCAL_C void TestGetEvent3L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0899 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0899 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1146,7 +1144,7 @@ LOCAL_C void TestGetEvent3L()
 	TEST(event->Data() == KTestData1);
 
 	CleanupStack::PopAndDestroy(3, client); // event, active, client
-    test.Printf(_L("===CLogClient::GetEvent() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::GetEvent() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1161,7 +1159,7 @@ LOCAL_C void TestGetEvent3L()
 */
 LOCAL_C void TestChangeEvent3L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0900 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0900 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1255,7 +1253,7 @@ LOCAL_C void TestChangeEvent3L()
 	TEST(event->Data() == KTestData2);
 
 	CleanupStack::PopAndDestroy(3, client); // event, active, client
-    test.Printf(_L("===CLogClient::ChangeEvent() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::ChangeEvent() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1269,7 +1267,7 @@ LOCAL_C void TestChangeEvent3L()
 */
 LOCAL_C void TestChangeEvent1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0901 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0901 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1363,7 +1361,7 @@ LOCAL_C void TestChangeEvent1L()
 	TEST(event->Data() == KTestData2);
 
 	CleanupStack::PopAndDestroy(3, client); // event, active, client
-    test.Printf(_L("===CLogClient::ChangeEvent() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::ChangeEvent() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1377,7 +1375,7 @@ LOCAL_C void TestChangeEvent1L()
 */
 LOCAL_C void TestDeleteEvent1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0902 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0902 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1431,7 +1429,7 @@ LOCAL_C void TestDeleteEvent1L()
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(3); // event, active, client
-    test.Printf(_L("===CLogClient::DeleteEvent() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::DeleteEvent() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1445,7 +1443,7 @@ LOCAL_C void TestDeleteEvent1L()
 */
 LOCAL_C void TestDeleteEvent3L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0903 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0903 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1499,7 +1497,7 @@ LOCAL_C void TestDeleteEvent3L()
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(3, client); // event, active, client
-    test.Printf(_L("===CLogClient::DeleteEvent() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::DeleteEvent() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1514,7 +1512,7 @@ LOCAL_C void TestDeleteEvent3L()
 */
 LOCAL_C void TestGetConfig1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0904 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0904 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1552,7 +1550,7 @@ LOCAL_C void TestGetConfig1L()
 	TEST(config.iMaxRecentLogSize > 0);
 
 	CleanupStack::PopAndDestroy(2, client); // active, client
-    test.Printf(_L("===CLogClient::GetConfig() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::GetConfig() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1567,7 +1565,7 @@ LOCAL_C void TestGetConfig1L()
 */
 LOCAL_C void TestGetConfig3L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0905 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0905 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1605,7 +1603,7 @@ LOCAL_C void TestGetConfig3L()
 	TEST(config.iMaxRecentLogSize > 0);
 
 	CleanupStack::PopAndDestroy(2, client); // active, client
-    test.Printf(_L("===CLogClient::GetConfig() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::GetConfig() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1620,7 +1618,7 @@ LOCAL_C void TestGetConfig3L()
 */
 LOCAL_C void TestChangeConfig1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0906 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0906 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1682,7 +1680,7 @@ LOCAL_C void TestChangeConfig1L()
 	TEST(config.iMaxEventAge == KTestMaxEventAge);
 
 	CleanupStack::PopAndDestroy(2, client); // active, client
-    test.Printf(_L("===CLogClient::ChangeConfig() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::ChangeConfig() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1697,7 +1695,7 @@ LOCAL_C void TestChangeConfig1L()
 */
 LOCAL_C void TestChangeConfig3L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0907 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0907 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1759,7 +1757,7 @@ LOCAL_C void TestChangeConfig3L()
 	TEST(config.iMaxEventAge == KTestMaxEventAge);
 
 	CleanupStack::PopAndDestroy(2, client); // active, client
-    test.Printf(_L("===CLogClient::ChangeConfig() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::ChangeConfig() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1773,7 +1771,7 @@ LOCAL_C void TestChangeConfig3L()
 */
 LOCAL_C void TestGetString1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0908 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0908 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1804,7 +1802,7 @@ LOCAL_C void TestGetString1L()
 			}
 		}
 	CleanupStack::PopAndDestroy(client);
-    test.Printf(_L("===CLogClient::GetString() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::GetString() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1819,7 +1817,7 @@ LOCAL_C void TestGetString1L()
 */
 LOCAL_C void TestClearEventLog1L(TBool aMicroSeconds)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0909 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0909 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -1933,7 +1931,7 @@ LOCAL_C void TestClearEventLog1L(TBool aMicroSeconds)
 	client->GetEvent(*event1, active->iStatus);
 	CActiveScheduler::Start();
 	if (active->iStatus != KErrNone) 
-		RDebug::Print(_L("error code:%d failcoount:%d\n"),active->iStatus.Int(),failCount);
+	    TheTest.Printf(_L("error code:%d failcoount:%d\n"),active->iStatus.Int(),failCount);
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	active->StartL();
@@ -1967,7 +1965,7 @@ LOCAL_C void TestClearEventLog1L(TBool aMicroSeconds)
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(6, client); // event4, event3, event2, event1, active, client
-    test.Printf(_L("===CLogClient::ClearLog() client side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::ClearLog() client side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1982,7 +1980,7 @@ LOCAL_C void TestClearEventLog1L(TBool aMicroSeconds)
 */
 LOCAL_C void TestClearEventLog3L(TBool aMicroSeconds)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0910 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0910 "));
 	
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
@@ -2129,7 +2127,7 @@ LOCAL_C void TestClearEventLog3L(TBool aMicroSeconds)
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(6, client); // event4, event3, event2, event1, active, client
-    test.Printf(_L("===CLogClient::ClearLog() server side OOM test succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("===CLogClient::ClearLog() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 	
 	/**
@@ -2145,7 +2143,7 @@ LOCAL_C void TestClearEventLog3L(TBool aMicroSeconds)
 */
 LOCAL_C void TestDEF093601L(TBool aClientTest)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1910 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1910 "));
 	if(aClientTest)
 		TestClearEventLog3L(EFalse);
 	else
@@ -2281,7 +2279,7 @@ void ClearLogSimIdOomTestL(TBool aServerSideOomTest)
 	TEST2(active->iStatus.Int(), KErrNotFound);	
 	
 	CleanupStack::PopAndDestroy(4, client); //event2, event1, active, client
-    test.Printf(_L("===CLogClient::ClearLog() + SimId %S OOM test succeeded at iteration %d\n"), aServerSideOomTest ? &KServerSide : &KClientSide, failCount);
+    TheTest.Printf(_L("===CLogClient::ClearLog() + SimId %S OOM test succeeded at iteration %d\n"), aServerSideOomTest ? &KServerSide : &KClientSide, failCount);
 	}
 
 /**
@@ -2399,82 +2397,82 @@ void ClearLogRecentSimIdOomTestL(TBool aServerSideOomTest)
 	TEST(!rc);
 	
 	CleanupStack::PopAndDestroy(5, client); //view, event2, event1, active, client
-    test.Printf(_L("===CLogClient::ClearLog()/Recent + SimId %S OOM test succeeded at iteration %d\n"), aServerSideOomTest ? &KServerSide : &KClientSide, failCount);
+    TheTest.Printf(_L("===CLogClient::ClearLog()/Recent + SimId %S OOM test succeeded at iteration %d\n"), aServerSideOomTest ? &KServerSide : &KClientSide, failCount);
 	}
 
 #endif//SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM	
 
 LOCAL_C void doClientFailureL()
 	{
-	test.Next(_L("Server startup"));
+	TheTest.Next(_L("Server startup"));
 	TestStartup1L();
 	User::After(100000);
 
-	test.Next(_L("Construction + create logeng database"));
+	TheTest.Next(_L("Construction + create logeng database"));
 	TestConstruction1L(ETrue); // Creates database
-    test.Next(_L("Construction + open logeng database"));
+    TheTest.Next(_L("Construction + open logeng database"));
 	TestConstruction1L(EFalse); // Opens existing database
 	TestUtils::DeleteDatabaseL();
 	theLog.Write(_L8("Test 1.1 OK\n"));
 
-	test.Next(_L("Add Event Type"));
+	TheTest.Next(_L("Add Event Type"));
 	TestAddEventType1L();
 	theLog.Write(_L8("Test 1.2 OK\n"));
 
-	test.Next(_L("Get Event Type"));
+	TheTest.Next(_L("Get Event Type"));
 	TestGetEventType1L();
 	theLog.Write(_L8("Test 1.3 OK\n"));
 
-	test.Next(_L("Change Event Type"));
+	TheTest.Next(_L("Change Event Type"));
 	TestChangeEventType1L();
 	theLog.Write(_L8("Test 1.4 OK\n"));
 
-	test.Next(_L("Delete Event Type"));
+	TheTest.Next(_L("Delete Event Type"));
 	TestDeleteEventType1L();
 	theLog.Write(_L8("Test 1.5 OK\n"));
 
-	test.Next(_L("Add Event"));
+	TheTest.Next(_L("Add Event"));
 	TestAddEvent1L();
 	theLog.Write(_L8("Test 1.6 OK\n"));
 
-	test.Next(_L("Get Event"));
+	TheTest.Next(_L("Get Event"));
 	TestGetEvent1L();
 	theLog.Write(_L8("Test 1.7 OK\n"));
 
-	test.Next(_L("Change Event"));
+	TheTest.Next(_L("Change Event"));
 	TestChangeEvent1L();
 	theLog.Write(_L8("Test 1.8 OK\n"));
 
-	test.Next(_L("Delete Event"));
+	TheTest.Next(_L("Delete Event"));
 	TestDeleteEvent1L();
 	theLog.Write(_L8("Test 1.9 OK\n"));
 
-	test.Next(_L("Get Config"));
+	TheTest.Next(_L("Get Config"));
 	TestGetConfig1L();
 	theLog.Write(_L8("Test 1.10 OK\n"));
 
-	test.Next(_L("Change Config"));
+	TheTest.Next(_L("Change Config"));
 	TestChangeConfig1L();
 	theLog.Write(_L8("Test 1.11 OK\n"));
 
-	test.Next(_L("Get String"));
+	TheTest.Next(_L("Get String"));
 	TestGetString1L();
 	theLog.Write(_L8("Test 1.12 OK\n"));
 	
-	test.Next(_L("Clear Event Log"));
+	TheTest.Next(_L("Clear Event Log"));
 	TestClearEventLog1L(ETrue);
 	theLog.Write(_L8("Test 1.13 OK\n"));
 	
-	test.Next(_L("DEF093601"));
+	TheTest.Next(_L("DEF093601"));
 	TestDEF093601L(EFalse);
 	theLog.Write(_L8("Test 1.14 OK\n"));
 
 #ifdef SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM	
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4038 Clear Event Log + SimId"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4038 Clear Event Log + SimId"));
 	ClearLogSimIdOomTestL(EFalse);
 	theLog.Write(_L8("Test 1.15 OK\n"));
 	
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4039 Clear Event Log/Recent + SimId"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4039 Clear Event Log/Recent + SimId"));
 	ClearLogRecentSimIdOomTestL(EFalse);
 	theLog.Write(_L8("Test 1.16 OK\n"));
 #endif	
@@ -2482,67 +2480,67 @@ LOCAL_C void doClientFailureL()
 
 LOCAL_C void doLogServFailureL()
 	{
-	test.Next(_L("Construction + create logeng database"));
+	TheTest.Next(_L("Construction + create logeng database"));
 	TestConstruction3L(ETrue); // Creates database
-    test.Next(_L("Construction + open logeng database"));
+    TheTest.Next(_L("Construction + open logeng database"));
 	TestConstruction3L(EFalse); // Opens existing database
 	TestUtils::DeleteDatabaseL();
 	theLog.Write(_L8("Test 2.1 OK\n"));
 
-	test.Next(_L("Add Event Type"));
+	TheTest.Next(_L("Add Event Type"));
 	TestAddEventType3L();
 	theLog.Write(_L8("Test 2.2 OK\n"));
 
-	test.Next(_L("Get Event Type"));
+	TheTest.Next(_L("Get Event Type"));
 	TestGetEventType3L();
 	theLog.Write(_L8("Test 2.3 OK\n"));
 
-	test.Next(_L("Change Event Type"));
+	TheTest.Next(_L("Change Event Type"));
 	TestChangeEventType3L();
 	theLog.Write(_L8("Test 2.4 OK\n"));
 
-	test.Next(_L("Delete Event Type"));
+	TheTest.Next(_L("Delete Event Type"));
 	TestDeleteEventType3L();
 	theLog.Write(_L8("Test 2.5 OK\n"));
 
-	test.Next(_L("Add Event"));
+	TheTest.Next(_L("Add Event"));
 	TestAddEvent3L();
 	theLog.Write(_L8("Test 2.6 OK\n"));
 
-	test.Next(_L("Get Event"));
+	TheTest.Next(_L("Get Event"));
 	TestGetEvent3L(); 
 	theLog.Write(_L8("Test 2.7 OK\n"));
 
-	test.Next(_L("Change Event"));
+	TheTest.Next(_L("Change Event"));
 	TestChangeEvent3L();
 	theLog.Write(_L8("Test 2.8 OK\n"));
 
-	test.Next(_L("Delete Event"));
+	TheTest.Next(_L("Delete Event"));
 	TestDeleteEvent3L();
 	theLog.Write(_L8("Test 2.9 OK\n"));
 
-	test.Next(_L("Get Config"));
+	TheTest.Next(_L("Get Config"));
 	TestGetConfig3L();
 	theLog.Write(_L8("Test 2.10 OK\n"));
 
-	test.Next(_L("Change Config"));
+	TheTest.Next(_L("Change Config"));
 	TestChangeConfig3L();
 	theLog.Write(_L8("Test 2.11 OK\n"));
 
-	test.Next(_L("Clear Event Log"));
+	TheTest.Next(_L("Clear Event Log"));
 	TestClearEventLog3L(ETrue);
 	theLog.Write(_L8("Test 2.12 OK\n"));
 	
-	test.Next(_L("DEF093601"));
+	TheTest.Next(_L("DEF093601"));
 	TestDEF093601L(ETrue);
 	theLog.Write(_L8("Test 2.13 OK\n"));
 	
 #ifdef SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM	
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4038 Clear Event Log + SimId"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4038 Clear Event Log + SimId"));
 	ClearLogSimIdOomTestL(ETrue);
 	theLog.Write(_L8("Test 2.14 OK\n"));
 
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4039 Clear Event Log/Recent + SimId"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4039 Clear Event Log/Recent + SimId"));
 	ClearLogRecentSimIdOomTestL(ETrue);
 	theLog.Write(_L8("Test 2.15 OK\n"));
 #endif	
@@ -2550,11 +2548,11 @@ LOCAL_C void doLogServFailureL()
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGHEAP"));
+	TestUtils::Initialize(_L("t_logheap"));
 
-	test.Start(_L("Log Client"));
+	TheTest.Start(_L("Log Client"));
 	doClientFailureL();
 
-	test.Next(_L("Log Server"));
+	TheTest.Next(_L("Log Server"));
 	doLogServFailureL();
 	}

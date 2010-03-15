@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -384,16 +384,12 @@ void RFeatMgrClient::ListSupportedFeaturesL( RFeatureUidArray& aSupportedFeature
 // RFeatMgrClient::ReRequestNotification(TUid&, TRequestStatus&)
 // -----------------------------------------------------------------------------
 //
-TInt RFeatMgrClient::ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus )
+void RFeatMgrClient::ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus )
     {
     TPckgBuf<TInt> pckg;
-    TInt retval( KErrNone );
-    
-	iFeaturePckg.Set( (TUint8*) &aFeatUid.iUid, sizeof(TUid), sizeof(TUid) );
-	TIpcArgs args( &iFeaturePckg );
-	SendReceive( EFeatMgrReqNotify, args, aStatus );
-
-    return retval;
+    iFeaturePckg.Set( (TUint8*) &aFeatUid.iUid, sizeof(TUid), sizeof(TUid) );
+	  TIpcArgs args( &iFeaturePckg );
+  	SendReceive( EFeatMgrReqNotify, args, aStatus );
     }
 
 // -----------------------------------------------------------------------------
@@ -617,6 +613,9 @@ TInt RFeatMgrClient::SWIEnd() const
 // DEBUG only API functions
 
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
+
+#pragma BullseyeCoverage off
+
 /** 
 */
 void RFeatMgrClient::ResourceMark()
@@ -684,6 +683,8 @@ TInt RFeatMgrClient::CountAllocCells( void ) const
     INFO_LOG1( "RFeatMgrClient::CountAllocCells - return %d", sizePckg() );
     return sizePckg();
     }
+
+#pragma BullseyeCoverage on
 
 #endif
 

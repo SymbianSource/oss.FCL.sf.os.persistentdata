@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -20,11 +20,9 @@
 #include <e32math.h>
 #include <bautils.h>
 #include <logview.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("LogEng compatibility"));
+RTest TheTest(_L("t_logcompat"));
 
 #ifdef SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM	
 
@@ -82,7 +80,7 @@ void CheckEventProperties(CLogEvent& aEvent, TLogId aEventId, const TDesC& aEven
 	TEST(aEvent.SimId() == aSimId);
 	TPtrC eventStatus = aEvent.Subject();
 	TPtrC eventNumber = aEvent.Number();
-	test.Printf(_L("Id:%d No:%S Sub:%S Contact Id:0x%x SimId:%u\n"), aEvent.Id(), &eventNumber, &eventStatus, aEvent.Contact(), aEvent.SimId());
+	TheTest.Printf(_L("Id:%d No:%S Sub:%S Contact Id:0x%x SimId:%u\n"), aEvent.Id(), &eventNumber, &eventStatus, aEvent.Contact(), aEvent.SimId());
 	}
 
 void DoGetEventTestL(TLogId aEventId, const TDesC& aEventNumber, TSimId aSimId, CTestActive& aActive, CLogClient& aLogClient)
@@ -651,32 +649,34 @@ void ClearLogTestL()
 
 void doTestsL()
 	{
+    TestUtils::Initialize(_L("t_logcompat"));
+	
 #ifdef _DEBUG	
-	test.Start(_L("Copy the old LogEng database"));
+	TheTest.Start(_L("Copy the old LogEng database"));
 	TestUtils::CopyOldDbL();
 	//
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4018: \"Get Event\" compatibility test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4018: \"Get Event\" compatibility test"));
 	GetEventTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4019: \"Change Event\" compatibility test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4019: \"Change Event\" compatibility test"));
 	ChangeEventTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4020: \"Add Event\" compatibility test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4020: \"Add Event\" compatibility test"));
 	AddEventTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4021: \"Delete Event\" compatibility test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4021: \"Delete Event\" compatibility test"));
 	DeleteEventTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4022: \"Event View\" compatibility test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4022: \"Event View\" compatibility test"));
 	EventViewTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4023: \"Event View 2\" compatibility test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4023: \"Event View 2\" compatibility test"));
 	EventViewTest2L();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4024: \"Event View 3\" compatibility test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4024: \"Event View 3\" compatibility test"));
 	EventViewTest3L();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4043: \"CLogEvent data\" compatibility test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4043: \"CLogEvent data\" compatibility test"));
 	EventDataTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4046: \"CLogClient::ClearLog()\" compatibility test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4046: \"CLogClient::ClearLog()\" compatibility test"));
 	ClearLogTestL();
 	//
 	TestUtils::DeleteDatabaseL();
 #else
-	test.Start(_L("This test works only in debug mode, otherwise the LogEng server cannot be stopped. See TestUtils::CopyOldDbL()"));
+	TheTest.Start(_L("This test works only in debug mode, otherwise the LogEng server cannot be stopped. See TestUtils::CopyOldDbL()"));
 #endif
 	}
 
@@ -684,7 +684,7 @@ void doTestsL()
 
 void doTestsL()
 	{
-	test.Start(_L("The LogEng compatibility test cases are compiled only when SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM macro is defined!"));
+	TheTest.Start(_L("The LogEng compatibility test cases are compiled only when SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM macro is defined!"));
 	}
 
 #endif//SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM 	

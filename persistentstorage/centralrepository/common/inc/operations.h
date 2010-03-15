@@ -63,6 +63,7 @@ void DeleteSettingsRangeL(RSettingPointerArray& aSourceList,TUint32 aPartialKey,
 			{
 			// create a new placeholder and set as deleted
 			TServerSetting newSetting(key);
+			newSetting.SetMeta(settingToDelete.Meta());
 			newSetting.SetDeleted();
 			GetWritableSettingList().OrderedInsertL(newSetting);
 			}

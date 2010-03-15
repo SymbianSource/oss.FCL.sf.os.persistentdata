@@ -153,7 +153,7 @@ class MFeatureClient
          * @param aStatus Client request to be signalled asynchronously.
          * @return One of the Symbian OS system-wide error codes.
          */
-        virtual TInt ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus ) = 0;
+        virtual void ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus ) = 0;
         
         /**
         * Cancel notification request for single feature's changes.

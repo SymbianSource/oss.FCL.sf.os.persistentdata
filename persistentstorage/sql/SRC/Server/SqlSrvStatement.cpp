@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -28,7 +28,7 @@
 //This is the name prefix which will be given to the nameless parameters.
 //For example, if the SQL string is:
 //   SELECT * FROM A WHERE ColA1 = ? AND ColA2 = ?
-//then the names which will be give to the parameters will be:
+//then the names which will be given to the parameters will be:
 //"?0" and "?1"
 _LIT(KNamelessParameter, "?");
 
@@ -90,7 +90,7 @@ This function is called by the bound statement object to notify the current HSql
 bound statement is about to be finalized. That means, when the "stream close" operation on the client side 
 makes an attempt to synch the HSqlSrvStmtParamBuf object, no attempt should be made to bound the parameter data,
 because the statement object is gone.
-After this call the bound statement objects seases to exist.
+After this call the bound statement objects ceases to exist.
 
 Actions, performed by this method:
  - if the buffer type is "simple bind", the buffer will be destroyed. No reason to keep it alive, there is no bound IPC
@@ -200,7 +200,7 @@ CSqlSrvStatement::~CSqlSrvStatement()
 /**
 Sets SQL statement parameter values.
 
-Only parameters, which values are set by the client, will be processed.
+Only parameters, whose values are set by the client, will be processed.
 
 @param aParamBuf Flat buffer with parameter values.
 
@@ -277,7 +277,7 @@ void CSqlSrvStatement::BindL(const RSqlBufFlat& aParamBuf)
 /**
 Collects column names in a flat buffer and returns a reference to the buffer. 
 
-@return A const reference to a flat buffer containing the column values.
+@return A const reference to a flat buffer containing the column names.
 
 @leave KErrNoMemory, an out of memory condition has occurred.
 
@@ -306,7 +306,7 @@ const RSqlBufFlat& CSqlSrvStatement::ColumnNamesL()
 /**
 Collects parameter names in a flat buffer and returns a reference to the buffer. 
 
-@return A const reference to a flat buffer containing the column values.
+@return A const reference to a flat buffer containing the parameter names.
 
 @leave KErrNoMemory, an out of memory condition has occurred.
 
@@ -692,9 +692,6 @@ This function is used by the DBMS emulation library only.
 The function retrieves the declared column types from the SQLITE library, compiles them in a single string
 and then returns the string to the caller.
 
-The function also initializes iColumnText8 array, where particular array element with index "idx" will 
-be set to 1, if the column with index "idx" is a 8-bit text column.
-
 @return A pointer to a heap allocated HBufC object with the delcared column types. The caller is responsible
 		for the HBufC object destruction.
 */
@@ -716,9 +713,10 @@ HBufC* CSqlSrvStatement::GetDeclColumnTypesL()
 	}
 
 /**
-Creates a new HSqlSrvStmtParamBuf object.
+Creates a new HSqlSrvStmtParamBuf object for the parameter with index "aParamIndex" or
+reuses the existing one.
 
-@param aParameterIndex Parameter index, zero based.
+@param aParamIndex Parameter index, zero based.
 @param aDataType Parameter value type - binary, text8 or text16.
 @param aIsStreamBuf True if the param data will be retrieved from an IPC stream
 
@@ -746,7 +744,7 @@ HSqlSrvStmtParamBuf* CSqlSrvStatement::GetParamBufL(TInt aParamIndex, HSqlSrvStm
 
 /**
 This function will extend the iParamBufArray array (filling the new array items with NULL), if it is needed - 
-to ensure that there is enough place for the buffer for the parameter identified by aParamIndex.
+to ensure that there is enough place in the buffer for the parameter identified by aParamIndex.
 
 @param aParamIndex The parameter index
 

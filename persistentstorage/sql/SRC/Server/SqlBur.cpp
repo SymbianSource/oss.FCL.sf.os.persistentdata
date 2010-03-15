@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -90,10 +90,7 @@ CSqlBackupClient::~CSqlBackupClient()
 	Cancel();
 	
 	// release the pub/sub property
-	iProperty.Close();
-	
-	// make sure the file list is released
-	iFileList.Reset();
+	iBurProperty.Close();
 	
 	// the file list array
 	iFileList.Close();
@@ -111,7 +108,7 @@ CSqlBackupClient::~CSqlBackupClient()
 void CSqlBackupClient::ConstructL()
 	{
 	// attach to backup/restore publish/subscribe property
-	__SQLLEAVE_IF_ERROR(iProperty.Attach(KUidSystemCategory,KUidBackupRestoreKey));
+	__SQLLEAVE_IF_ERROR(iBurProperty.Attach(KUidSystemCategory,KUidBackupRestoreKey));
 	
 	// add us to the scheduler
 	CActiveScheduler::Add(this);
@@ -121,12 +118,12 @@ void CSqlBackupClient::ConstructL()
 	StartL();	
 	}
 
-/** Nuke outstanding requests
+/** 
+Cancel the outstanding B&R request
 */
 void CSqlBackupClient::DoCancel()
 	{
-	// lose any oustanding reqs
-	iProperty.Cancel();
+	iBurProperty.Cancel();
 	}
 
 /** Not implemented
@@ -152,7 +149,7 @@ void CSqlBackupClient::StartL()
 */	
 void CSqlBackupClient::NotifyChange()
 	{
-	iProperty.Subscribe(iStatus);
+	iBurProperty.Subscribe(iStatus);
 	SetActive();
 	}
 
@@ -165,7 +162,7 @@ void CSqlBackupClient::NotifyChange()
 void CSqlBackupClient::TestBurStatusL()
 	{
 	TInt status;
-	if(iProperty.Get(status)!=KErrNotFound)
+	if(iBurProperty.Get(status)!=KErrNotFound)
 		{
 		status&=KBURPartTypeMask;
 		switch(status)
@@ -811,14 +808,8 @@ TUint64 CSqlBackupClient::CheckSumL(const RFile64& aOpenFile) const
 		// calculate the checksum
 		for(TInt i=0;i<len;++i)
 			{
-			TUint64 carry=total&(0x8000000000000000ULL);
-			total<<=1;
-			if(carry)
-				{
-				total|=1;
-				}
-			TUint in=ptr[i];
- 			total+=in;
+			total = (total << 1) | (total >> 63);
+			total += ptr[i];
  			}
 		};		
 	CleanupStack::PopAndDestroy(block);
@@ -835,10 +826,19 @@ TUint64 CSqlBackupClient::CheckSumL(const RFile64& aOpenFile) const
 //Attention!!! This function won't work properly if aInBuf parameter contains odd number of bytes!!!
 //(a legacy problem, if it is a problem at all, because the B&R engine probably sends the data in chunks with even size)
 //
+//How the function works. It is called during the restore process and aInBuf parameter contains a block of raw
+//data sent by the B&R server. The calling function, RestoreBaseDataSectionL(), uses a state 
+//machine to processes the incoming data. At particular moment RestoreBaseDataSectionL() will process the data header 
+//and will have to read "aDataLen" 16-bit characters at position "aInBufReadPos". If there are "aDataLen" characters
+//at position "aInBufReadPos" and enough free space in "aOutBuf", CopyBufData() will copy all of them,  
+//otherwise CopyBufData() will copy as much characters as possible (in which case RestoreBaseDataSectionL() will
+//stay in the same state, waiting for more data from the B&R server).
+//
 void CSqlBackupClient::CopyBufData(const TDesC8& aInBuf, TInt& aInBufReadPos, TDes& aOutBuf, TInt aDataLen)
 	{
 	__SQLASSERT(aInBufReadPos >= 0, ESqlPanicBadArgument);
-	__SQLASSERT(aDataLen > 0, ESqlPanicBadArgument);
+    __SQLASSERT(aDataLen > 0, ESqlPanicBadArgument);
+    __SQLASSERT(!(aInBuf.Length() & 0x01), ESqlPanicInternalError);
 	
 	TInt needed = (aDataLen - aOutBuf.Length()) << K8to16bitShift;
 	TInt available = aInBuf.Size() - aInBufReadPos;

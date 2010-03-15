@@ -20,8 +20,8 @@
 #include "featurepanics.h"
 #include <featurecontrol.h>
 #include <featurenotifier.h>
-#include "..\src\inc\featmgrconfiguration.h"
-#include "..\src\inc\featmgrclientserver.h"
+#include "../src/inc/featmgrconfiguration.h"
+#include "../src/inc/featmgrclientserver.h"
 
 using namespace NFeature;
 

@@ -22,6 +22,15 @@
 #include "SqliteSymbian.h"
 #include "SqlResourceTester.h"
 
+//In order to be able to compile the test, the following variables are defined (used inside the OS porting layer, 
+//when _SQLPROFILER macro is defined)
+#ifdef _SQLPROFILER
+TInt TheSqlSrvProfilerFileRead = 0;
+TInt TheSqlSrvProfilerFileWrite = 0;
+TInt TheSqlSrvProfilerFileSync = 0;
+TInt TheSqlSrvProfilerFileSetSize = 0;
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// This test works only if the whole SQL component is built with SYSLIBS_TEST macro defined! ///
 /////////////////////////////////////////////////////////////////////////////////////////////////

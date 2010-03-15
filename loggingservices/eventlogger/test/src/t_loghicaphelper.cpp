@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -24,7 +24,7 @@
 #include <bautils.h>
 #include <barsc.h>
 #include <logserv.rsg>
-#include "TEST.H"
+#include "t_logutil2.h"
 
 const TUid KTestEventUid = {0x10005393};
 _LIT(KTestEventDesc1, "Event Type Description");
@@ -44,36 +44,10 @@ _LIT(KLogEngPrivatePath, "c:\\private\\101f401d\\");
 
 _LIT(KLogHiCapHelperPanic, "TLHCHlpr");
 
+RTest TheTest(_L("t_loghicaphelper")); //used in t_logutil.cpp only
+
 RFs theFs;
 CActiveScheduler *TheTestScheduler = NULL;
-
-//===========================================================================================
-
-static TPtrC FileName(const TText* aFile)
-    {
-    TPtrC p(aFile);
-    TInt ix=p.LocateReverse('\\');
-    if (ix<0)
-        ix=p.LocateReverse('/');
-    if (ix>=0)
-        p.Set(p.Mid(1+ix));
-    return p;
-    }
-
-void LogLeave(TInt aErr, const TText* aFile, TInt aLine)
-    {
-    TPtrC fname(FileName(aFile));
-    RDebug::Print(_L("*** LogEng test leave, err=%d, file: %S-%d\r\n"), aErr, &fname, aLine);
-    User::Leave(aErr);
-    }
-
-#undef  TEST_STRING
-#define TEST_STRING(s) _S(s)
-
-#undef  LEAVE
-#undef  LEAVE_IF_ERROR
-#define LEAVE(err)           LogLeave(err, TEST_STRING(__FILE__), __LINE__)
-#define LEAVE_IF_ERROR(err)  (err < KErrNone ? LogLeave(err, TEST_STRING(__FILE__), __LINE__) : void(0))
 
 //===========================================================================================
 
@@ -690,7 +664,7 @@ TInt E32Main()
 	{	
 	__UHEAP_MARK;
 	
-	Initialize(_L("T_HICAPHELPER"));
+	Initialize(_L("t_loghicaphelper"));
 
 	CTrapCleanup* tc = CTrapCleanup::New();
 	if(!tc)

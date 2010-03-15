@@ -108,12 +108,12 @@ NONSHARABLE_CLASS(CFeatMgrFeatureRegistry) : public CBase, MSWICallBack
         /**
         * Merges features to common feature array from plugin.
         */
-        void MergePluginFeatures( RArray<FeatureInfoCommand::TFeature>& aList );
+        void MergePluginFeaturesL( RArray<FeatureInfoCommand::TFeature>& aList );
 
         /**
         * Merges features to common feature array from plugin.
         */
-        void MergePluginFeatures( RFeatureArray& aList );
+        void MergePluginFeaturesL( RFeatureArray& aList );
 
         /**
         * Returns feature support status.
@@ -161,7 +161,7 @@ NONSHARABLE_CLASS(CFeatMgrFeatureRegistry) : public CBase, MSWICallBack
 		 * This function will handle the required notifications for new, deleted and changed features
 		 * after a restore operation has taken place.
          */ 
-        TInt HandleRestoredFeatureNotificationsL( void );
+        void HandleRestoredFeatureNotificationsL();
         
         /**
 		 * Returns the fully qualified path and filename for the runtime feature data file.
@@ -243,7 +243,7 @@ NONSHARABLE_CLASS(CFeatMgrFeatureRegistry) : public CBase, MSWICallBack
         void ValidateHeaderL( RFileReadStream& stream, TUint32& count, TUint32& countDSRs );
         void WriteHeaderAndEntriesL( RFileWriteStream &aStream, RFeatureServerArray& aArray );
         TInt ValidateFeatureFlag(TBitFlags32 aFlags);
-        TInt ValidateRuntimeFeatureFlagL(TBitFlags32 aFlags);
+        void ValidateRuntimeFeatureFlagL(TBitFlags32 aFlags);
         
      private:
         

@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -19,12 +19,10 @@
 #include <e32math.h>
 #include <bautils.h>
 #include <logview.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 #include "LogServSqlStrings.h"
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("t_logapi2"));
+RTest TheTest(_L("t_logapi2"));
 
 _LIT(KTestRemoteParty1, "Remote Party");
 _LIT(KTestDirection1, "Direction");
@@ -148,7 +146,7 @@ void DoAddEventsL()
 	TTime st_time;
 	st_time.UniversalTime();
 	
-	test.Printf(_L("Added events:\n"));
+	TheTest.Printf(_L("Added events:\n"));
 	TInt diffEvCount = KDiffEvCount;
 	for(TInt i=0;i<TheAddedEventCount;++i)
 		{
@@ -175,10 +173,10 @@ void DoAddEventsL()
 		TEST2(active->iStatus.Int(), KErrNone);
 		if((i % 50) == 0 && i > 0)
 			{
-			test.Printf(_L("%d\r"), i);
+			TheTest.Printf(_L("%d\r"), i);
 			}
 		}
-	test.Printf(_L("%d\n"), TheAddedEventCount);
+	TheTest.Printf(_L("%d\n"), TheAddedEventCount);
 	
 	TTime end_time;
 	end_time.UniversalTime();
@@ -189,7 +187,7 @@ void DoAddEventsL()
 	CleanupStack::PopAndDestroy(client);
 	
 	TTimeIntervalMicroSeconds us = end_time.MicroSecondsFrom(st_time);
-	test.Printf(_L("%d events added. Time: %ld milliseconds\n"), TheAddedEventCount, us.Int64() / 1000);
+	TheTest.Printf(_L("%d events added. Time: %ld milliseconds\n"), TheAddedEventCount, us.Int64() / 1000);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -360,7 +358,7 @@ void AddEventOomTestL(TLogAddEventOps aLogAddEventOp, TInt aExpectedError)
 	CleanupStack::PopAndDestroy(active);
 	CleanupStack::PopAndDestroy(client);
 	
-	test.Printf(_L("===CLogClient::AddEvent() server side OOM test succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("===CLogClient::AddEvent() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -446,7 +444,7 @@ void ChangeEventOomTestL(TBool aEventExists)
 	CleanupStack::PopAndDestroy(active);
 	CleanupStack::PopAndDestroy(client);
 	
-	test.Printf(_L("===CLogClient::ChangeEvent() server side OOM test succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("===CLogClient::ChangeEvent() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -504,7 +502,7 @@ void DeleteEventOomTestL(TBool aEventExists)
 	CleanupStack::PopAndDestroy(active);
 	CleanupStack::PopAndDestroy(client);
 	
-	test.Printf(_L("===CLogClient::DeleteEvent() server side OOM test succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("===CLogClient::DeleteEvent() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -564,7 +562,7 @@ void GetEventOomTestL(TLogGetEventOps aGetEventOp, TInt aExpectedError)
 	CleanupStack::PopAndDestroy(active);
 	CleanupStack::PopAndDestroy(client);
 	
-	test.Printf(_L("===CLogClient::GetEvent() server side OOM test succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("===CLogClient::GetEvent() server side OOM test succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -701,11 +699,11 @@ void ComplexFilterSetTestL()
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	TInt count = view->CountL();
-	test.Printf(_L("===Events count: %d\n"), count);
+	TheTest.Printf(_L("===Events count: %d\n"), count);
 	TTime end_time;
 	end_time.UniversalTime();
 	TTimeIntervalMicroSeconds us = end_time.MicroSecondsFrom(st_time);
-	test.Printf(_L("SetFilter(). Time: %ld milliseconds\n"), us.Int64() / 1000);
+	TheTest.Printf(_L("SetFilter(). Time: %ld milliseconds\n"), us.Int64() / 1000);
 
 	st_time.UniversalTime();
 	if(view->FirstL(active->iStatus))
@@ -722,7 +720,7 @@ void ComplexFilterSetTestL()
 		}
 	end_time.UniversalTime();
 	us = end_time.MicroSecondsFrom(st_time);
-	test.Printf(_L("Event view walk completed. Events count: %d. Time: %ld milliseconds\n"), count, us.Int64() / 1000);
+	TheTest.Printf(_L("Event view walk completed. Events count: %d. Time: %ld milliseconds\n"), count, us.Int64() / 1000);
 		
 	CleanupStack::PopAndDestroy(filterList);
 	CleanupStack::PopAndDestroy(filter3);
@@ -766,7 +764,7 @@ static void StopLogServerL()
 #else//_DEBUG
 static void StopLogServerL()
     {
-    RDebug::Print(_L("StopLogServerL(): the LogEng server cannot be stopped in release mode. ELogMakeTransient is a debug message.\n"));
+    TheTest.Printf(_L("StopLogServerL(): the LogEng server cannot be stopped in release mode. ELogMakeTransient is a debug message.\n"));
     }
 #endif//_DEBUG
 
@@ -1018,40 +1016,41 @@ void ComplexRecentListTestL()
 
 void doTestsL()
 	{
+    TestUtils::Initialize(_L("t_logapi2"));
 	TestUtils::DeleteDatabaseL();
 	//
-	test.Start(_L("Preparation. Adding 200 events..."));
+	TheTest.Start(_L("Preparation. Adding 200 events..."));
 	DoAddEventsL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4029: AddEvent() server side OOM test when logged events count is max (200)"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4029: AddEvent() server side OOM test when logged events count is max (200)"));
 	AddEventOomTestL(ELogOpAddEvent, KErrNone);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4029: AddEvent() server side OOM test when logged events count is max (200). Invalid event type."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4029: AddEvent() server side OOM test when logged events count is max (200). Invalid event type."));
 	AddEventOomTestL(ELogOpAddEventInvalidType, KErrNotFound);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4030: AddEvent() server side OOM test when logged events count is max (200). Logging disabled."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4030: AddEvent() server side OOM test when logged events count is max (200). Logging disabled."));
 	AddEventOomTestL(ELogOpAddEventLoggingDisabled, KErrNotSupported);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4030: ChangeEvent() server side OOM test when logged events count is max (200). The event does exist."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4030: ChangeEvent() server side OOM test when logged events count is max (200). The event does exist."));
 	ChangeEventOomTestL(ETrue);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4030: ChangeEvent() server side OOM test when logged events count is max (200). The event does not exist."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4030: ChangeEvent() server side OOM test when logged events count is max (200). The event does not exist."));
 	ChangeEventOomTestL(EFalse);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4032: GetEvent() server side OOM test when logged events count is max (200)."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4032: GetEvent() server side OOM test when logged events count is max (200)."));
 	GetEventOomTestL(ELogOpGetEvent, KErrNone);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4032: GetEvent() server side OOM test when logged events count is max (200). The event does not exist."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4032: GetEvent() server side OOM test when logged events count is max (200). The event does not exist."));
 	GetEventOomTestL(ELogOpGetEventNotExists, KErrNotFound);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4032: GetEvent() server side OOM test when logged events count is max (200). The event id is 0."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4032: GetEvent() server side OOM test when logged events count is max (200). The event id is 0."));
 	GetEventOomTestL(ELogOpGetEventZeroId, KErrNotFound);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4031: DeleteEvent() server side OOM test when logged events count is max (200). The event does exist."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4031: DeleteEvent() server side OOM test when logged events count is max (200). The event does exist."));
 	DeleteEventOomTestL(ETrue);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4031: DeleteEvent() server side OOM test when logged events count is max (200). The event does not exist."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4031: DeleteEvent() server side OOM test when logged events count is max (200). The event does not exist."));
 	DeleteEventOomTestL(EFalse);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4033: Attempt to change one of the standard event types."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4033: Attempt to change one of the standard event types."));
 	ChangeStandardEventTypeTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4042: \"Cancel Operation\" test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4042: \"Cancel Operation\" test"));
 	CancelOperationTest();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4034: Complex filter set test."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4034: Complex filter set test."));
 	ComplexFilterSetTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4047: Check for updated configuration values"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4047: Check for updated configuration values"));
 	DoCheckUpdateConfigL();
 #ifdef SYSLIBS_TEST
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4035: Complex recent list test."));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4035: Complex recent list test."));
 	ComplexRecentListTestL();
 #endif
 	//

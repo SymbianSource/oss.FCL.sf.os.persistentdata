@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,20 +15,32 @@
 
 #include "../group/LogEng.cfg"
 
-TARGET        t_logapi.exe
-CAPABILITY	  WriteDeviceData ReadDeviceData WriteUserData ReadUserData 
-TARGETTYPE    exe
-SOURCEPATH	../test/src
-SOURCE        t_logapi.cpp test.cpp
-SOURCE		  t_logservsession.cpp
-USERINCLUDE   ../test/inc
-USERINCLUDE   ../Shared
+TARGET        	t_logapi.exe
+TARGETTYPE    	exe
+
+CAPABILITY	  	WriteDeviceData ReadDeviceData WriteUserData ReadUserData 
+
+USERINCLUDE   	../test/inc
+USERINCLUDE   	../Shared
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
-LIBRARY       euser.lib efsrv.lib logwrap.lib logcli.lib bafl.lib edbms.lib estor.lib
+
+SOURCEPATH		../test/src
+SOURCE        	t_logapi.cpp 
+SOURCE        	t_logutil.cpp
+SOURCE        	t_logutil2.cpp
+SOURCE		  	t_logservsession.cpp
+
+LIBRARY			euser.lib 
+LIBRARY			efsrv.lib 
+LIBRARY			logwrap.lib 
+LIBRARY			logcli.lib 
+LIBRARY			bafl.lib 
+LIBRARY			edbms.lib 
+LIBRARY			estor.lib
 
 #ifdef MMPSWITCH_LOGGING_ENABLED
-LIBRARY				flogger.lib
-MACRO				LOGGING_ENABLED
+LIBRARY			flogger.lib
+MACRO			LOGGING_ENABLED
 #endif
 
 VENDORID 0x70000001

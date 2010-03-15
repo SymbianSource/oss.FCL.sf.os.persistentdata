@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,10 +13,8 @@
 // Description:
 //
 
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
-
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
 
 #define PRECONDITION_TRUE(x) TEST((x))
 #define PRECONDITION_EQ(x,y) TEST2((x),(y))
@@ -24,11 +22,11 @@
 // If LOWCAP is defined in the .mmp file 'hiCapabilityTest' will be set to FALSE.
 #ifdef LOWCAP
 	TBool hiCapabilityTest = EFalse;
-	RTest test(_L("Log Client Low Capability Secure View Test"));
+	RTest TheTest(_L("t_logsecureview_lowcap"));
 	_LIT(KTestTitle, "t_logsecureview (low capability)");
 #else
 	TBool hiCapabilityTest = ETrue;
-	RTest test(_L("Log Client High Capability Secure View Test"));
+	RTest TheTest(_L("t_logsecureview_hicap"));
 	_LIT(KTestTitle, "t_logsecureview (high capability)");
 #endif
 
@@ -43,7 +41,7 @@
 */
 LOCAL_C void TestDuplicateRemoveIdL(CLogViewDuplicate* aView)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0135 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0135 "));
 	TLogId id = aView->Event().Id();
 	TRAPD(error, aView->RemoveL(id));
 	
@@ -69,7 +67,7 @@ LOCAL_C void TestDuplicateRemoveIdL(CLogViewDuplicate* aView)
 */
 LOCAL_C void TestDuplicateRemoveCurrentL(CLogViewDuplicate* aView, CTestActive* aTestActive)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0136 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0136 "));
 	aTestActive->StartL();
 	PRECONDITION_TRUE(aView->FirstL(aTestActive->iStatus));
 	CActiveScheduler::Start();
@@ -103,7 +101,7 @@ LOCAL_C void TestDuplicateRemoveCurrentL(CLogViewDuplicate* aView, CTestActive* 
 */
 LOCAL_C void TestRecentClearDuplicatesL(CLogViewRecent* aRecentView, CLogViewDuplicate* aDuplicateView)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0137 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0137 "));
 	TRAPD(error, aRecentView->ClearDuplicatesL());
 
 	if(hiCapabilityTest)
@@ -128,7 +126,7 @@ LOCAL_C void TestRecentClearDuplicatesL(CLogViewRecent* aRecentView, CLogViewDup
 */
 LOCAL_C void TestRecentRemoveIdL(CLogViewRecent* aView)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0138 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0138 "));
 	TLogId id = aView->Event().Id();
 	TRAPD(error, aView->RemoveL(id));
 	
@@ -154,7 +152,7 @@ LOCAL_C void TestRecentRemoveIdL(CLogViewRecent* aView)
 */
 LOCAL_C void TestRecentRemoveCurrentL(CLogViewRecent* aView, CTestActive* aTestActive)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0139 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0139 "));
 	aTestActive->StartL();
 	PRECONDITION_TRUE(aView->FirstL(aTestActive->iStatus));
 	CActiveScheduler::Start();
@@ -200,19 +198,19 @@ LOCAL_C void TestViewsL()
 	PRECONDITION_EQ(testActive->iStatus.Int(), KErrNone);
 	PRECONDITION_EQ(duplicateView->CountL(), 4);
 	
-	test.Start(_L("RemoveL on duplicate view with id as argument"));
+	TheTest.Start(_L("RemoveL on duplicate view with id as argument"));
 	TestDuplicateRemoveIdL(duplicateView);
 
-	test.Next(_L("RemoveL on duplicate view at current cursor position"));
+	TheTest.Next(_L("RemoveL on duplicate view at current cursor position"));
 	TestDuplicateRemoveCurrentL(duplicateView, testActive);
 
-	test.Next(_L("ClearDuplicatesL on recent view"));
+	TheTest.Next(_L("ClearDuplicatesL on recent view"));
 	TestRecentClearDuplicatesL(recentView, duplicateView);
 
-	test.Next(_L("RemoveL on recent view with id as argument"));
+	TheTest.Next(_L("RemoveL on recent view with id as argument"));
 	TestRecentRemoveIdL(recentView);
 	
-	test.Next(_L("RemoveL on recent view at current cursor position"));
+	TheTest.Next(_L("RemoveL on recent view at current cursor position"));
 	TestRecentRemoveCurrentL(recentView, testActive);
 
 	CleanupStack::PopAndDestroy(4);

@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -27,11 +27,11 @@ Creates a new CSqlCompactConn instance.
 
 @param aFullName The full database name, including the path.
 @param aFreePageCallback A reference to an object containing the free pages threshold and the callback
-					     that needs to be called when the free page count reaches ot is above the threshold.
+					     that needs to be called when the free page count reaches or is above the threshold.
 						 aFreePageCallback.iThreshold must be set to be in Kb. 	
 						 If the function call completes successfully and the free pages space is above the threshold,
 						 the aFreePageCallback.iThreshold will be set to contain the free pages count.
-						 Otherwise aFreePageCallback.iThreshold will be initizized with zero.
+						 Otherwise aFreePageCallback.iThreshold will be initialized with zero.
 
 @return A pointer to the created CSqlCompactConn instance
 
@@ -129,13 +129,13 @@ void CSqlCompactConn::ConstructL(const TDesC& aFullName, TSqlFreePageCallback& a
 	
 	TBuf8<KMaxFileName + 1> fname;
 	(void)::UTF16ToUTF8Z(aFullName, fname);//The file is first open by the main connection. 
-										   //The conversion here should always succeeds.
+										   //The conversion here should always succeed.
 										   //Even in a case of a conversion failure, the next line will report a failure.
 	__SQLLEAVE_IF_ERROR(::CreateDbHandle8(fname, iHandle));
 	
 	TInt pageSize = PageSizeL();
-	TInt64 freePageThersholdKb = aFreePageCallback.iThreshold;//"TInt64" because the calculation of the pages may cause an overflow on the next line
-	aFreePageCallback.iThreshold = (freePageThersholdKb * 1024) / pageSize;//the threshold can be 0
+	TInt64 freePageThresholdKb = aFreePageCallback.iThreshold;//"TInt64" because the calculation of the pages may cause an overflow on the next line
+	aFreePageCallback.iThreshold = (freePageThresholdKb * 1024) / pageSize;//the threshold can be 0
 	
 	TBuf8<sizeof(KMainDb8) + 1> dbName;
 	dbName.Copy(KMainDb8);
@@ -145,7 +145,7 @@ void CSqlCompactConn::ConstructL(const TDesC& aFullName, TSqlFreePageCallback& a
 	TInt64 freePageCount = FreePageCountL();//"TInt64" because the calculation of the free space may cause an overflow on the next line
 	TInt freePageSpaceKb = (freePageCount * pageSize) / 1024;
 	//Set iThreshold with the free pages count, if right now the database has free space above the threshold.
-	aFreePageCallback.iThreshold = freePageSpaceKb >= freePageThersholdKb ? freePageCount : 0;
+	aFreePageCallback.iThreshold = freePageSpaceKb >= freePageThresholdKb ? freePageCount : 0;
 	}
 
 /**

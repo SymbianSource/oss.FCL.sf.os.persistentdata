@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,7 +14,7 @@
 //
 
 #include <s32file.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
 /*
 This test may fail occasionally, especially after changing the LogEng server code. The reported error is KErrCorrupt.
@@ -45,9 +45,7 @@ may be found. I think that it is there to prevent exactly the problem with
 SetErrorCondition()/DBMS interaction.
 */
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log Client API File Failure Test Harness"));
+RTest TheTest(_L("t_logfile"));
 
 const TUid KTestEventUid = {0x10005393};
 _LIT(KTestEventDesc1, "Event Type Description");
@@ -86,7 +84,7 @@ const TLogAge KTestMaxEventAge = 0xFFFFFFF;
 */
 LOCAL_C void TestBasicL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1334 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1334 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -191,7 +189,7 @@ LOCAL_C void TestBasicL(CLogClient& aClient)
 */
 LOCAL_C void TestConstructionL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0911 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0911 "));
 	CLogClient* client = NULL;
 
 	TInt failCount = 0;
@@ -228,7 +226,7 @@ LOCAL_C void TestConstructionL()
 		}
 
 	delete client;
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -242,7 +240,7 @@ LOCAL_C void TestConstructionL()
 */
 LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0912 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0912 "));
 	CLogEventType* type = CLogEventType::NewL();
 	CleanupStack::PushL(type);
 
@@ -303,7 +301,7 @@ LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrAlreadyExists);
 
 	CleanupStack::PopAndDestroy(2); // active, type
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -317,7 +315,7 @@ LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
 */
 LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0913 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0913 "));
 	CLogEventType* type = CLogEventType::NewL();
 	CleanupStack::PushL(type);
 
@@ -354,7 +352,7 @@ LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
 	TEST(type->LoggingEnabled());
 
 	CleanupStack::PopAndDestroy(2); // active, type
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -368,7 +366,7 @@ LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
 */
 LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0914 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0914 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -438,7 +436,7 @@ LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 	TEST(type->LoggingEnabled() == EFalse);
 
 	CleanupStack::PopAndDestroy(2); // type, active
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -452,7 +450,7 @@ LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 */
 LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0915 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0915 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -510,7 +508,7 @@ LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(2); // type, active
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -525,7 +523,7 @@ LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 */
 LOCAL_C void TestAddEventL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0916 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0916 "));
 	// Ensure we always start from the same state
     TestUtils::DeleteDatabaseL();
 
@@ -619,7 +617,7 @@ LOCAL_C void TestAddEventL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	CleanupStack::PopAndDestroy(3); // event, active, type
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -634,7 +632,7 @@ LOCAL_C void TestAddEventL(CLogClient& aClient)
 */
 LOCAL_C void TestGetEventL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0917 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0917 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -678,7 +676,7 @@ LOCAL_C void TestGetEventL(CLogClient& aClient)
 	TEST(event->Data() == KTestData1);
 
 	CleanupStack::PopAndDestroy(2); // event, active
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -693,7 +691,7 @@ LOCAL_C void TestGetEventL(CLogClient& aClient)
 */
 LOCAL_C void TestChangeEventL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0918 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0918 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -753,7 +751,7 @@ LOCAL_C void TestChangeEventL(CLogClient& aClient)
 			aClient.GetEvent(*event, active->iStatus);
 			CActiveScheduler::Start();
 			if (active->iStatus != KErrNone) 
-				RDebug::Print(_L("error code:%d failcount:%d\n"),active->iStatus.Int(),failCount);
+			    TheTest.Printf(_L("error code:%d failcount:%d\n"),active->iStatus.Int(),failCount);
 			TEST2(active->iStatus.Int(), KErrNone);
 
 			TEST(event->Id() == 0);
@@ -796,7 +794,7 @@ LOCAL_C void TestChangeEventL(CLogClient& aClient)
 	TEST(event->Data() == KTestData2);
 
 	CleanupStack::PopAndDestroy(2); // event, active
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -811,7 +809,7 @@ LOCAL_C void TestChangeEventL(CLogClient& aClient)
 */
 LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0919 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0919 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -869,7 +867,7 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(2); // event, active
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -884,7 +882,7 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 */
 LOCAL_C void TestGetConfigL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0920 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0920 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -918,7 +916,7 @@ LOCAL_C void TestGetConfigL(CLogClient& aClient)
 	TEST(config.iMaxRecentLogSize > 0);
 
 	CleanupStack::PopAndDestroy(); // active
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -933,7 +931,7 @@ LOCAL_C void TestGetConfigL(CLogClient& aClient)
 */
 LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0921 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0921 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -1002,7 +1000,7 @@ LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 	TEST(config.iMaxEventAge == KTestMaxEventAge);
 
 	CleanupStack::PopAndDestroy(); // active
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1017,7 +1015,7 @@ LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 */
 LOCAL_C void TestGetStringL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0922 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0922 "));
 	TBuf<KLogMaxSharedStringLength> str;
 	
 	TInt failCount = 0;
@@ -1043,7 +1041,7 @@ LOCAL_C void TestGetStringL(CLogClient& aClient)
 			TEST(str.Length() == 0);
 			}
 		}
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1063,7 +1061,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient
 #endif		
 		)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0923 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0923 "));
 	TTime now;
 	now.UniversalTime();
 	
@@ -1174,7 +1172,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient
 	aClient.GetEvent(*event1, active->iStatus);
 	CActiveScheduler::Start();
 	if (active->iStatus != KErrNone) 
-		RDebug::Print(_L("error code:%d\n"),active->iStatus.Int());
+	    TheTest.Printf(_L("error code:%d\n"),active->iStatus.Int());
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	active->StartL();
@@ -1208,17 +1206,17 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(5); // event4, event3, event2, event1, active
-    RDebug::Print(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
 	}
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGFILE"));
+	TestUtils::Initialize(_L("t_logfile"));
 
-    test.Start(_L("Construction + create db"));
+    TheTest.Start(_L("Construction + create db"));
 	TestUtils::DeleteDatabaseL();
 	TestConstructionL(); // Creates database
-    test.Next(_L("Construction + open db"));
+    TheTest.Next(_L("Construction + open db"));
 	TestConstructionL(); // Opens existing database
 	TestUtils::DeleteDatabaseL();
 	theLog.Write(_L8("Test 1 OK\n"));
@@ -1226,58 +1224,58 @@ void doTestsL()
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
-	test.Next(_L("Add Event Type"));
+	TheTest.Next(_L("Add Event Type"));
 	TestAddEventTypeL(*client);
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("Get Event Type"));
+	TheTest.Next(_L("Get Event Type"));
 	TestGetEventTypeL(*client);
 	theLog.Write(_L8("Test 3 OK\n"));
 
-	test.Next(_L("Change Event Type"));
+	TheTest.Next(_L("Change Event Type"));
 	TestChangeEventTypeL(*client);
 	theLog.Write(_L8("Test 4 OK\n"));
 
-	test.Next(_L("Delete Event Type"));
+	TheTest.Next(_L("Delete Event Type"));
 	TestDeleteEventTypeL(*client);
 	theLog.Write(_L8("Test 5 OK\n"));
 
 	TestUtils::DeleteDatabaseL();
 
-	test.Next(_L("Add Event"));
+	TheTest.Next(_L("Add Event"));
 	TestAddEventL(*client);
 	theLog.Write(_L8("Test 6 OK\n"));
 
-	test.Next(_L("Get Event"));
+	TheTest.Next(_L("Get Event"));
 	TestGetEventL(*client);
 	theLog.Write(_L8("Test 7 OK\n"));
 
-	test.Next(_L("Change Event"));
+	TheTest.Next(_L("Change Event"));
 	TestChangeEventL(*client);
 	theLog.Write(_L8("Test 8 OK\n"));
 
-	test.Next(_L("Delete Event"));
+	TheTest.Next(_L("Delete Event"));
 	TestDeleteEventL(*client);
 	theLog.Write(_L8("Test 9 OK\n"));
 
-	test.Next(_L("Get Config"));
+	TheTest.Next(_L("Get Config"));
 	TestGetConfigL(*client);
 	theLog.Write(_L8("Test 10 OK\n"));
 
-	test.Next(_L("Change Config"));
+	TheTest.Next(_L("Change Config"));
 	TestChangeConfigL(*client);
 	theLog.Write(_L8("Test 11 OK\n"));
 
-	test.Next(_L("Get String"));
+	TheTest.Next(_L("Get String"));
 	TestGetStringL(*client);
 	theLog.Write(_L8("Test 12 OK\n"));
 
-	test.Next(_L("Clear Event Log"));
+	TheTest.Next(_L("Clear Event Log"));
 	TestClearEventLogL(*client);
 	theLog.Write(_L8("Test 13 OK\n"));
 
 #ifdef SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM	
-	test.Next(_L("Clear Event Log + SimId"));
+	TheTest.Next(_L("Clear Event Log + SimId"));
 	TestClearEventLogL(*client, ETrue);
 	theLog.Write(_L8("Test 14 OK\n"));
 #endif	

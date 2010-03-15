@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -23,8 +23,10 @@ USERINCLUDE		../Shared
 USERINCLUDE		../LogServ/inc
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
-SOURCEPATH		src
-SOURCE			t_logapi2.cpp test.cpp
+SOURCEPATH		../test/src
+SOURCE			t_logapi2.cpp 
+SOURCE			t_logutil.cpp
+SOURCE        	t_logutil2.cpp
 SOURCE			t_logservsession.cpp
 
 SOURCEPATH		../LogServ/src

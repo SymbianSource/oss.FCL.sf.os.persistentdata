@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,14 +15,12 @@
 
 #define __PROFILING__
 #include <s32file.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
+RTest TheTest(_L("t_logbench"));
 
-RTest test(_L("Log Engine Benchmark Test Harness"));
 TLogConfig theConfig;
-
 
 _LIT(KTestString, "%dabcdefghijklmnopqrstuvwxyz");
 _LIT(KResultFile, "C:\\LOGENG_TEST.TXT");
@@ -72,7 +70,7 @@ LOCAL_C TInt DatabaseSizeL()
 */
 LOCAL_C void TestSetupL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0988 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0988 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -82,9 +80,9 @@ LOCAL_C void TestSetupL(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 
-	test.Printf(_L("  Log size: %d\n"), theConfig.iMaxLogSize);
-	test.Printf(_L("  Recent list size: %d\n"), theConfig.iMaxRecentLogSize);
-	test.Printf(_L("  Max Event Age: %d\n"), theConfig.iMaxEventAge);
+	TheTest.Printf(_L("  Log size: %d\n"), theConfig.iMaxLogSize);
+	TheTest.Printf(_L("  Recent list size: %d\n"), theConfig.iMaxRecentLogSize);
+	TheTest.Printf(_L("  Max Event Age: %d\n"), theConfig.iMaxEventAge);
 
 	TestUtils::DeleteDatabaseL();
 
@@ -95,7 +93,7 @@ LOCAL_C void TestSetupL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Wait for user interation
-	//test.Printf(_L("  Quick tests performed if no key pressed in next 10 seconds\n"));
+	//TheTest.Printf(_L("  Quick tests performed if no key pressed in next 10 seconds\n"));
     //TKeyCode key;
 	//if (!TestUtils::WaitForKeyL(10000000, key))
 		{
@@ -122,7 +120,7 @@ LOCAL_C void TestSetupL(CLogClient& aClient)
 */
 LOCAL_C void BenchmarkTestL(CLogClient& aClient, RFile& aFile)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0989 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0989 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -172,7 +170,7 @@ LOCAL_C void BenchmarkTestL(CLogClient& aClient, RFile& aFile)
 		TInt serverHeapSize = GetServerHeapSizeL();
 
 		// Store details in file
-		test.Printf(_L("  Num: %d, Time: %d, Db Size: %d, Hs: %d, Server Hs: %d\n"), count, I64INT(interval.Int64()), dbSize, heapSize, serverHeapSize);
+		TheTest.Printf(_L("  Num: %d, Time: %d, Db Size: %d, Hs: %d, Server Hs: %d\n"), count, I64INT(interval.Int64()), dbSize, heapSize, serverHeapSize);
 		buf.Format(_L8("%d,%d,%d,%d,%d\n"), count, I64INT(interval.Int64()), dbSize, heapSize, serverHeapSize);
 		aFile.Write(buf);
 		}
@@ -203,7 +201,7 @@ LOCAL_C void BenchmarkTestL(CLogClient& aClient, RFile& aFile)
 		TInt serverHeapSize = GetServerHeapSizeL();
 
 		// Store details in file
-		test.Printf(_L("  Count: %d, Time: %d, Hs: %d, Server Hs: %d\n"), count, I64INT(interval.Int64()), heapSize, serverHeapSize);
+		TheTest.Printf(_L("  Count: %d, Time: %d, Hs: %d, Server Hs: %d\n"), count, I64INT(interval.Int64()), heapSize, serverHeapSize);
 		buf.Format(_L8("%d,%d,%d,%d\n"), count++, I64INT(interval.Int64()), heapSize, serverHeapSize);
 		aFile.Write(buf);
 		}
@@ -222,7 +220,7 @@ LOCAL_C void BenchmarkTestL(CLogClient& aClient, RFile& aFile)
 */
 LOCAL_C void DoTestRecentViewsL(CLogClient& aClient, TLogRecentList aList, TInt aRecentCount, TInt aDuplicateCount)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0990 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0990 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -273,7 +271,7 @@ LOCAL_C void DoTestRecentViewsL(CLogClient& aClient, TLogRecentList aList, TInt 
 */
 LOCAL_C void DoTestClearDuplicateL(CLogClient& aClient, TLogRecentList aList, RFile& aFile)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0991 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0991 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -294,7 +292,7 @@ LOCAL_C void DoTestClearDuplicateL(CLogClient& aClient, TLogRecentList aList, RF
 	TTimeIntervalMicroSeconds interval = after.MicroSecondsFrom(before);
 
 	TBuf8<256> buf;
-	test.Printf(_L("Clearing Duplicates for List %d, %d\n"), recent->RecentList(), I64INT(interval.Int64()));
+	TheTest.Printf(_L("Clearing Duplicates for List %d, %d\n"), recent->RecentList(), I64INT(interval.Int64()));
 	buf.Format(_L8("Clearing Duplicates for List %d, %d\n"), recent->RecentList(), I64INT(interval.Int64()));
 	aFile.Write(buf);
 
@@ -311,7 +309,7 @@ LOCAL_C void DoTestClearDuplicateL(CLogClient& aClient, TLogRecentList aList, RF
 */
 LOCAL_C void TestRecentListsL(CLogClient& aClient, RFile& aFile)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0992 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0992 "));
 	aFile.Write(_L8("Recent Lists\n"));
 
 	CTestActive* active = new(ELeave)CTestActive();
@@ -399,7 +397,7 @@ LOCAL_C void TestRecentListsL(CLogClient& aClient, RFile& aFile)
 
 		// Store details in file
 		TBuf8<256> buf;
-		test.Printf(_L("  Count: %d, Add: %d, Nav: %d\n"), duplicates, I64INT(interval1.Int64()), I64INT(interval2.Int64()));
+		TheTest.Printf(_L("  Count: %d, Add: %d, Nav: %d\n"), duplicates, I64INT(interval1.Int64()), I64INT(interval2.Int64()));
 		buf.Format(_L8("%d,%d,%d\n"), duplicates, I64INT(interval1.Int64()), I64INT(interval2.Int64()));
 		aFile.Write(buf);
 		}
@@ -414,7 +412,7 @@ LOCAL_C void TestRecentListsL(CLogClient& aClient, RFile& aFile)
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGBENCH"));
+	TestUtils::Initialize(_L("t_logbench"));
 
 	CLogChangeNotifier* notifier = CLogChangeNotifier::NewL();
 	CleanupStack::PushL(notifier);
@@ -431,20 +429,20 @@ void doTestsL()
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 
-	test.Start(_L("Setup"));
+	TheTest.Start(_L("Setup"));
 	TestSetupL(*client);
 	theLog.Write(_L8("Test 1 OK\n"));
 	
 	RFile results;
 	LEAVE_IF_ERROR(results.Replace(theFs, KResultFile, EFileWrite|EFileShareExclusive));
 
-	test.Next(_L("Benchmark tests"));
+	TheTest.Next(_L("Benchmark tests"));
 	BenchmarkTestL(*client, results);
 	theLog.Write(_L8("Test 2 OK\n"));
 
 	TestUtils::DeleteDatabaseL();
 
-	test.Next(_L("Recent List tests"));
+	TheTest.Next(_L("Recent List tests"));
 	TestRecentListsL(*client, results);
 	theLog.Write(_L8("Test 3 OK\n"));
 

@@ -179,10 +179,6 @@ private:
 	//Profiler related
 #ifdef _SQLPROFILER
 public:
-    inline void	ProfilerReset()
-    	{
-    	iFileReadCount = 0; iFileReadAmount = 0; iFileWriteCount = 0; iFileWriteAmount = 0; iFileSizeCount = 0; iFileSetSizeCount = 0; iFileFlushCount = 0;
-    	}
 	TInt		iFileReadCount;		//The number of the non-buffered file reads (RFile64::Read() calls).
 	TInt64		iFileReadAmount;	//The amount of the data read from the file.
 	TInt		iFileWriteCount;	//The number of the non-buffered file writes (RFile64::Write() calls).

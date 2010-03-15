@@ -21,7 +21,7 @@
 #include <featureuids.h>
 #include <featurecontrol.h>
 #include <featdiscovery.h>
-#include "..\src\inc\featmgrconfiguration.h"
+#include "../src/inc/featmgrconfiguration.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 

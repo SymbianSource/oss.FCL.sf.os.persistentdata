@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -68,6 +68,7 @@ file=ABI_DIR\BUILD_DIR\T_SQLOOM1.EXE		\TEST\T_SQLOOM1.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLOOM2.EXE		\TEST\T_SQLOOM2.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLOOM3.EXE		\TEST\T_SQLOOM3.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLOOM4.EXE		\TEST\T_SQLOOM4.EXE
+file=ABI_DIR\BUILD_DIR\T_SQLOOM5.EXE		\TEST\T_SQLOOM5.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLMULTI.EXE		\TEST\T_SQLMULTI.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLCOLLATE.EXE		\TEST\T_SQLCOLLATE.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLTRANS.EXE		\TEST\T_SQLTRANS.EXE

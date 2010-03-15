@@ -143,7 +143,18 @@ void CFeatMgrSession::ServiceL( const RMessage2& aMessage )
         else
             {
             INFO_LOG( "CFeatMgrSession::ServiceL() - plugins not ready" );
-            iList.AddLast( *CFeatMgrPendingRequest::NewL( aMessage ) );
+            CFeatMgrPendingRequest* request=NULL;
+            TRAPD(error,request=CFeatMgrPendingRequest::NewL( aMessage ));
+            if (error!=KErrNone)
+              {
+              LOG_IF_ERROR1( error, "CFeatMgrSession::ServiceL(): Error in Adding Pending Request: %d", error );
+              //cannot create pending request so need to indicate to the client rather than letting the cient wait forever.
+              aMessage.Complete(error);              
+              }
+            else
+              {
+              iList.AddLast(*request);
+              }
             }
         }
     else
@@ -537,6 +548,8 @@ void CFeatMgrSession::DispatchMessageL( const RMessage2& aMessage )
 
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
     	    
+#pragma BullseyeCoverage off
+    	    
         case EFeatMgrResourceMark:
             ResourceCountMarkStart();
             break;
@@ -586,7 +599,10 @@ void CFeatMgrSession::DispatchMessageL( const RMessage2& aMessage )
             aMessage.WriteL( 0, resPckg );
     	    
     	    break;
-    	    }    
+    	    }
+    	    
+#pragma BullseyeCoverage on
+    	    
 #endif
 
         // Cannot identify the message.

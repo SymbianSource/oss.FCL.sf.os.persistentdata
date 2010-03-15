@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -1668,11 +1668,11 @@ void CSqlSrvSession::Extract(const RMessage2& aMessage, TSqlSrvFunction& aFuncti
 		TSqlSrvHandleType handleType = static_cast <TSqlSrvHandleType> (msgCode & KSqlSrvHandleTypeMask);
 		aHandle = (msgCode & KSqlSrvHandleMask) >> KSqlSrvHandleShiftBits;
 		__SQLPANIC_CLIENT(aHandle > 0, aMessage, ESqlPanicBadArgument);
-		if(aFunction >= ESqlSrvStmtClose && aFunction < ESqlSrvStreamBase)
+		if(aFunction < ESqlSrvStreamBase)
 			{
 			__SQLPANIC_CLIENT(handleType == ESqlSrvStatementHandle, aMessage, ESqlPanicBadArgument);
 			}
-		else if(aFunction > ESqlSrvStreamBase)
+		else
 			{
 			__SQLPANIC_CLIENT(handleType == ESqlSrvStreamHandle, aMessage, ESqlPanicBadArgument);
 			}

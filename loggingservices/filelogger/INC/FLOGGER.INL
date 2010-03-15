@@ -14,8 +14,9 @@
 //
 
 /**
- @file
- @internalTechnology
+@file
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
 */
 
 #ifndef __FLOGGER_INL__

@@ -39,10 +39,8 @@ const TUid KInvalidFeatureUid   = {KInvalidFeatureId};
 static TInt TheProcessHandleCount = 0;
 static TInt TheThreadHandleCount = 0;
 static TInt TheAllocatedCellsCount = 0;
-
-#ifdef EXTENDED_FEATURE_MANAGER_TEST
 static const TInt KBurstRate = 20;
-#endif
+
 
 enum TFeatMgrOomTestMode
     {
@@ -560,14 +558,15 @@ void PostTest()
     
     TEntry entry;
     TInt err = fsSession.Entry(KZFeaturesDir, entry);
+    TEST2 (err, KErrNone);
     if (err == KErrNone)
         {
+        //if not extended this is attempting to delte from the Z drive
+#ifdef EXTENDED_FEATURE_MANAGER_TEST
         err = BaflUtils::DeleteFile(fsSession,KZFeaturesFile);
         TEST2 (err, KErrNone);
-        
+#endif        
         }
-    TEST2 (err, KErrNone);
-    
     // close file server session
     fsSession.Close();
     }

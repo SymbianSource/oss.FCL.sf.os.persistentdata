@@ -16,8 +16,9 @@
 //
 
 /**
- @file
- @internalTechnology
+@file
+@publishedAll
+@deprecated Migrate to Open System Trace Instrumentation API instead
 */
 
 #ifndef __COMMSDEBUGUTILITY_H__
@@ -67,7 +68,8 @@ _LIT(KFloggerPanic, "Comsdbgutil.dll");		///< The text which defines any flogger
 /**
  * Panic codes
  *
- * @internalTechnology
+ * @publishedAll
+ * @deprecated Migrate to Open System Trace Instrumentation API instead
  * @note The order of the panic numbers should not be changed.
  *       New panic codes must be added at the end of this enum.
  *       All panic codes are assigned to values to ease debugging.
@@ -81,7 +83,7 @@ enum TFloggerPanics
 /**
  * Logging Mode codes
  *
- * @internalTechnology
+ * @publishedAll
  * @deprecated As of version 8.0 the logging modes are deprecated due to the introduction
  *             of a single log file. Appent mode is the default for all write operations,
  *             while Overwrite can be achieved using new __FLOG_CLEAR macro, or ClearLog API.
@@ -101,7 +103,9 @@ class RFileLoggerBody;
 /**
  * Flogger - File and Serial Logger client interface 
  *
- * @internalTechnology 
+ * @publishedAll
+ * @deprecated Migrate to Open System Trace Instrumentation API instead
+ * 
  * This class is responsible for providing all functions
  * clients require of the flogger system. It is preferred, though,
  * that clients use the provided macros which refer to these API's

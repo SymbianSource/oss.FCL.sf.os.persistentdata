@@ -226,7 +226,6 @@ CFeatMgrServer::~CFeatMgrServer()
         } 
     
     delete iTimer;
-    iFs.Close();
     iPluginList.Close();
     
     // De register Backup and Restore and cleanup memory
@@ -239,6 +238,7 @@ CFeatMgrServer::~CFeatMgrServer()
     	}
     
     delete iRegistry;
+    iFs.Close();
     }
 
 
@@ -528,7 +528,7 @@ void CFeatMgrServer::FeatureInfoL( RArray<FeatureInfoCommand::TFeature>& aFeatur
         {
         if ( iPluginList[i].iPluginHandler == aPluginHandler )
             {
-            iRegistry->MergePluginFeatures( aFeatureList );
+            iRegistry->MergePluginFeaturesL( aFeatureList );
             // Send command to load enhanced feature info
             TRAPD( err, iPluginList[i].iPluginHandler->SendCommandL( 
                 FeatureInfoCommand::ELoadEnhancedFeatureInfoCmdId ) );
@@ -572,7 +572,7 @@ void CFeatMgrServer::FeatureInfoL( RFeatureArray& aFeatureList,
         {
         if ( iPluginList[i].iPluginHandler == aPluginHandler )
             {
-            iRegistry->MergePluginFeatures( aFeatureList );
+            iRegistry->MergePluginFeaturesL( aFeatureList );
             // Send another command if something left to process
             iPluginList[i].iPluginReady = ETrue;
             }
@@ -820,8 +820,6 @@ void CFeatMgrServer::LoadFeaturesL( void )
 void CFeatMgrServer::HandleRestoredNotificationsL( void )
 	{
 	iRegistry->HandleRestoredFeatureNotificationsL();
-	
-	return;
 	}
 
 /**

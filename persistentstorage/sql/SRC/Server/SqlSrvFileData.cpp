@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -196,12 +196,18 @@ void TSqlSrvFileData::SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aF
 	{
 	__SQLASSERT((TUint)aFileNameArgNum < KMaxMessageArguments, ESqlPanicBadArgument);
 	__SQLASSERT(iSysDrivePrivatePath.DriveAndPath().Length() > 0, ESqlPanicInternalError);
-	
+		
 	if(aFileNameLen < 1 || aFileNameLen > KMaxFileName)
 		{
 		__SQLLEAVE(KErrBadName);
 		}
+#ifdef SQLSRV_STARTUP_TEST
+	aMessage.Int0();//prevents compiler warning
+	aFileNameArgNum = aFileNameArgNum;//prevents compiler warning
+	iFileName.Copy(*(const TDesC*)aConfigStr);
+#else
 	aMessage.ReadL(aFileNameArgNum, iFileName);
+#endif	
 	SQLPROFILER_REPORT_IPC(ESqlIpcRead, (aFileNameLen * sizeof(TText)));
 	TParse parsedFileName;
 	__SQLLEAVE_IF_ERROR(parsedFileName.Set(iFileName, 0, 0));//prophylactic check, leave if the file name cannot be parsed
@@ -217,7 +223,9 @@ void TSqlSrvFileData::SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aF
 		::CreatePrivateDataPathL(iFs, iDrive);
 		}
 	iReadOnly = ::IsReadOnlyFileL(iFs, FileName());
+#ifndef SQLSRV_STARTUP_TEST
 	::ExtractConfigParamsL(aConfigStr, iConfigParams, iConfig);
+#endif	
 	}
 
 /**

@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -19,64 +19,13 @@
 #include "LogCliServShared.h"
 #include "logservpanic.h"
 #include "logpackage.h"
+#include "t_logutil.h"
 
-LOCAL_D RTest				TheTest(_L("T_LogServIPC"));
+RTest	TheTest(_L("t_logservipc"));
 
 _LIT(KServerName, "!LogServ");
 _LIT(KServerProcess, "LogServ");
 
-//===========================================================================================
-
-static TPtrC FileName(const TText* aFile)
-    {
-    TPtrC p(aFile);
-    TInt ix=p.LocateReverse('\\');
-    if (ix<0)
-        ix=p.LocateReverse('/');
-    if (ix>=0)
-        p.Set(p.Mid(1+ix));
-    return p;
-    }
-
-void LogLeave(TInt aErr, const TText* aFile, TInt aLine)
-    {
-    TPtrC fname(FileName(aFile));
-    RDebug::Print(_L("*** LogEng test leave, err=%d, file: %S-%d\r\n"), aErr, &fname, aLine);
-    User::Leave(aErr);
-    }
-
-#undef  TEST_STRING
-#define TEST_STRING(s) _S(s)
-
-#undef  LEAVE
-#undef  LEAVE_IF_ERROR
-#define LEAVE(err)           LogLeave(err, TEST_STRING(__FILE__), __LINE__)
-#define LEAVE_IF_ERROR(err)  (err < KErrNone ? LogLeave(err, TEST_STRING(__FILE__), __LINE__) : void(0))
-
-//===========================================================================================
-
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-//Test macross and functions
-
-static void Check(TInt aValue, TInt aLine)
-	{
-	if(!aValue)
-		{
-		TheTest(EFalse, aLine);
-		}
-	}
-static  void Check(TInt aValue, TInt aExpected, TInt aLine)
-	{
-	if(aValue != aExpected)
-		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
-		TheTest(EFalse, aLine);
-		}
-	}
-#define TEST(arg) ::Check((arg), __LINE__)
-#define TEST2(aValue, aExpected) ::Check(aValue, aExpected, __LINE__)
-	
 ///////////////////////////////////////////////////////////////////////////////////////
 //
 
@@ -280,44 +229,6 @@ void RIpcFuzzTest::RunTestL(const TDesC& aTargetSrvName,
 				break;			
 			}
 	}
-
-TInt KillProcess(const TDesC& aProcessName)
-	{
-	TFullName name;
-
-	RDebug::Print(_L("Find and kill \"%S\" process.\n"), &aProcessName);
-
-	TBuf<64> pattern(aProcessName);
-	TInt length = pattern.Length();
-	pattern += _L("*");
-	TFindProcess procFinder(pattern);
-
-	while (procFinder.Next(name) == KErrNone)
-		{
-		if (name.Length() > length)
-			{//If found name is a string containing aProcessName string.
-			TChar c(name[length]);
-			if (c.IsAlphaDigit() ||
-				c == TChar('_') ||
-				c == TChar('-'))
-				{
-				// If the found name is other valid application name
-				// starting with aProcessName string.
-				RDebug::Print(_L(":: Process name: \"%S\".\n"), &name);
-				continue;
-				}
-			}
-		RProcess proc;
-		if (proc.Open(name) == KErrNone)
-			{
-			proc.Kill(0);
-			RDebug::Print(_L("\"%S\" process killed.\n"), &name);
-			}
-		proc.Close();
-		}
-	return KErrNone;
-	}
-
 
 TInt FuzzServerL(TAny* aTestInfo)
 	{

@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -30,7 +30,10 @@
 #include <stdio.h>
 #endif
 
-static CSqlServer* TheServer = NULL;//The single CSqlServer instance
+#ifndef SQLSRV_STARTUP_TEST
+static  
+#endif
+CSqlServer* TheServer = NULL;//The single CSqlServer instance
 
 _LIT(KMatchAllDbFiles, "*");
 _LIT(KDefaultICollationDllName, "");
@@ -420,7 +423,12 @@ Implements MSqlPolicyInspector::Check() method.
 */
 TBool CSqlServer::Check(const TSecurityPolicy& aPolicy) const
 	{
+#ifdef SQLSRV_STARTUP_TEST
+	aPolicy.Package();//to prevent compiler warning
+	return ETrue;
+#else	
 	return aPolicy.CheckPolicy(CServer2::Message());
+#endif
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -498,9 +506,6 @@ void CSqlServer::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
 			fileNameCol = NULL;
 			} while((err = findFile.FindWild(fileNameCol)) == KErrNone);//Get the next set of files
 		}//end of "if(err == KErrNone)"
-	//TODO: once DEF144134 gets fixed, the next 2 lines shall be removed
-	delete fileNameCol;
-	fileNameCol = NULL;
 	__SQLASSERT(!fileNameCol, ESqlPanicInternalError);
 	if(err != KErrNotFound && err != KErrNone)
 		{

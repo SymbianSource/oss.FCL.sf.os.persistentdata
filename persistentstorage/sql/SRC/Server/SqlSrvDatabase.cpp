@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -731,7 +731,7 @@ void CSqlSrvDatabase::DetachDbL(const TDesC& aDbName)
 	TInt err = FinalizeAttachedDb(aDbName);
 	if(err == KErrNone)
 		{
-		TRAP(err, RemoveFromMapsL(aDbName));//ignore the error
+		TRAP_IGNORE(RemoveFromMapsL(aDbName));
 		}
 	else
 		{
@@ -1564,6 +1564,7 @@ void CSqlSrvDatabase::DoCommonConstructOpenL(const TSqlSrvFileData& aFileData, T
 		const TUint8* mapKey = NULL;
 		//Load database security policy, update the security policy map
 		UpdateSecurityMapL(EFalse, aFileData, mapKey, iSecurityPolicy);
+		iSecureDbName = mapKey;//used in CSqlSrvDatabase destructor. 
 		mapKey = NULL;//it is not used
 		//Check that the caller has at least one of {Schema, Read, Write} policies.
 		BasicSecurityPolicyCheckL(*iSecurityPolicy);

@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -19,35 +19,11 @@
 #include <e32test.h>
 #include <s32file.h>
 #include <numberconversion.h>
-
-
-RTest TheTest(_L("t_logapi_helper"));
+#include "t_logutil.h"
 
 _LIT(KSeparator, ";"); // Invalid filepath char used to separate filenames
 
-//////////////////////////////////////////////////////////////////////////////////////////
-//Tests macros and functions.
-//If (!aValue) then the test will be panicked, the test data files will be deleted.
-static void Check(TInt aValue, TInt aLine)
-    {
-    if(!aValue)
-        {
-        TheTest.Printf(_L("*** Boolean expression evaluated to false\r\n"));
-        TheTest(EFalse, aLine);
-        }
-    }
-//If (aValue != aExpected) then the test will be panicked, the test data files will be deleted.
-static void Check(TInt aValue, TInt aExpected, TInt aLine)
-    {
-    if(aValue != aExpected)
-        {
-        TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
-        TheTest(EFalse, aLine);
-        }
-    }
-//Use these to test conditions.
-#define TEST(arg) Check((arg), __LINE__)
-#define TEST2(aValue, aExpected) Check(aValue, aExpected, __LINE__)
+RTest TheTest(_L("t_logapi_helper"));
 
 /*
 This method helps to do operations on files and folders, like copy, delete, rename, create directory (MkDir)

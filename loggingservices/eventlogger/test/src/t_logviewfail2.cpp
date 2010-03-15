@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,12 +14,10 @@
 //
 
 #include <s32file.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("File Failure Test Harness"));
+RTest TheTest(_L("t_logviewfail2"));
 
 const TLogContactItemId KTestContact = 0x123;
 _LIT(KTestStatus, "Test Status Text");
@@ -35,7 +33,7 @@ _LIT(KTestStatus, "Test Status Text");
 */
 LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0971 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0971 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -90,7 +88,7 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -99,14 +97,14 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    RDebug::Print(_L("Test-1 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-1 has succeeded at iteration %d\n"), failCount);
 
 	list->AppendL(filter);
 	CleanupStack::Pop(); // filter
@@ -145,7 +143,7 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -154,7 +152,7 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
@@ -165,7 +163,7 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 	list->ResetAndDestroy();
 	CleanupStack::PopAndDestroy(4); // list, view, event, active
 
-    RDebug::Print(_L("Test-2 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-2 has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -178,7 +176,7 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0972 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0972 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -229,7 +227,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -238,14 +236,14 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    RDebug::Print(_L("Test-1 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-1 has succeeded at iteration %d\n"), failCount);
 
 	CLogFilterList* list = new(ELeave)CLogFilterList;
 	CleanupStack::PushL(list);
@@ -280,7 +278,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -289,14 +287,14 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    RDebug::Print(_L("Test-2 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-2 has succeeded at iteration %d\n"), failCount);
 
 	list->AppendL(filter);
 	CleanupStack::Pop(); // filter
@@ -333,7 +331,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -342,7 +340,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
@@ -353,7 +351,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 	list->ResetAndDestroy();
 	CleanupStack::PopAndDestroy(4); // list, view, event, active
 
-    RDebug::Print(_L("Test-3 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-3 has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -367,7 +365,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0973 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0973 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -432,7 +430,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -441,14 +439,14 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    RDebug::Print(_L("Test-1 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-1 has succeeded at iteration %d\n"), failCount);
 
 	CLogFilterList* list = new(ELeave)CLogFilterList;
 	CleanupStack::PushL(list);
@@ -483,7 +481,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -492,14 +490,14 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    RDebug::Print(_L("Test-2 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-2 has succeeded at iteration %d\n"), failCount);
 
 	list->AppendL(filter);
 	CleanupStack::Pop(); // filter
@@ -536,7 +534,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -545,7 +543,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
@@ -556,7 +554,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 	list->ResetAndDestroy();
 	CleanupStack::PopAndDestroy(5); // list, duplicate, view, event, active
 
-    RDebug::Print(_L("Test-3 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-3 has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -570,7 +568,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 */
 LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0974 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0974 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -624,7 +622,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -633,14 +631,14 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    RDebug::Print(_L("Test-1 (\"View Next\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-1 (\"View Next\") has succeeded at iteration %d\n"), failCount);
 
 	failCount = 0;
 	finished = EFalse;
@@ -681,7 +679,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -690,14 +688,14 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    RDebug::Print(_L("Test-2 (\"View Previous\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-2 (\"View Previous\") has succeeded at iteration %d\n"), failCount);
 
 	failCount = 0;
 	finished = EFalse;
@@ -738,7 +736,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -747,14 +745,14 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    RDebug::Print(_L("Test-3 (\"View First\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-3 (\"View First\") has succeeded at iteration %d\n"), failCount);
 
 	failCount = 0;
 	finished = EFalse;
@@ -795,7 +793,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 				{
 				if(active->iStatus.Int() != KErrGeneral)
 					{
-					RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
 				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
@@ -804,7 +802,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
@@ -814,7 +812,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 
 	CleanupStack::PopAndDestroy(4); // filter, view, event, active
 
-    RDebug::Print(_L("Test-4 (\"View Last\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-4 (\"View Last\") has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -827,7 +825,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 */
 LOCAL_C void TestViewCountWithFileFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0975 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0975 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -872,7 +870,7 @@ LOCAL_C void TestViewCountWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
@@ -882,7 +880,7 @@ LOCAL_C void TestViewCountWithFileFailL(CLogClient& aClient)
 
 	CleanupStack::PopAndDestroy(4); // filter, view, event, active
 
-    RDebug::Print(_L("The test (\"View Count\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("The test (\"View Count\") has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -895,7 +893,7 @@ LOCAL_C void TestViewCountWithFileFailL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewRemoveWithFileFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0976 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0976 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -966,7 +964,7 @@ LOCAL_C void TestRecentViewRemoveWithFileFailL(CLogClient& aClient)
 			CActiveScheduler::Start();
 			if(active->iStatus.Int() != KErrNone)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 				}
 			TEST2(active->iStatus.Int(), KErrNone);
 
@@ -976,14 +974,14 @@ LOCAL_C void TestRecentViewRemoveWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 		}
 	CleanupStack::PopAndDestroy(3); // view, event, active
 	
-    RDebug::Print(_L("The test (\"View Remove\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("The test (\"View Remove\") has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -996,7 +994,7 @@ LOCAL_C void TestRecentViewRemoveWithFileFailL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewRemoveWithFileFailL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0977 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0977 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -1078,7 +1076,7 @@ LOCAL_C void TestDuplicateViewRemoveWithFileFailL(CLogClient& aClient)
 			CActiveScheduler::Start();
 			if(active->iStatus.Int() != KErrNone)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 				}
 			TEST2(active->iStatus.Int(), KErrNone);
 
@@ -1088,41 +1086,41 @@ LOCAL_C void TestDuplicateViewRemoveWithFileFailL(CLogClient& aClient)
 			{
 			if(error != KErrGeneral)
 				{
-				RDebug::Print(_L("Iter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
 			TEST2(error, KErrGeneral);
 			}
 		}
 	CleanupStack::PopAndDestroy(4); // duplicate, view, event, active
     
-    RDebug::Print(_L("The test (\"View Remove Duplicates\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("The test (\"View Remove Duplicates\") has succeeded at iteration %d\n"), failCount);
 	}
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGVIEWFAIL2"));
+	TestUtils::Initialize(_L("t_logviewfail2"));
 	TestUtils::DeleteDatabaseL();
 
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
-	test.Start(_L("Event View Setup"));
+	TheTest.Start(_L("Event View Setup"));
 	TestEventViewSetupWithFileFailL(*client);
-    test.Next(_L("Recent View Setup"));
+    TheTest.Next(_L("Recent View Setup"));
 	TestRecentViewSetupWithFileFailL(*client);
-    test.Next(_L("Duplicated View Setup"));
+    TheTest.Next(_L("Duplicated View Setup"));
 	TestDuplicateViewSetupWithFileFailL(*client);
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("View Navigation"));
+	TheTest.Next(_L("View Navigation"));
 	TestNavigationWithFileFailL(*client);
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("View Count"));
+	TheTest.Next(_L("View Count"));
 	TestViewCountWithFileFailL(*client);
-    test.Next(_L("View Remove"));
+    TheTest.Next(_L("View Remove"));
 	TestRecentViewRemoveWithFileFailL(*client);
-    test.Next(_L("View Remove Duplicates"));
+    TheTest.Next(_L("View Remove Duplicates"));
 	TestDuplicateViewRemoveWithFileFailL(*client);
 	theLog.Write(_L8("Test 3 OK\n"));
 

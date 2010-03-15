@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -205,9 +205,9 @@ static TInt DoSingleStmtExec16(sqlite3 *aDbHandle, const TDesC16& aSql)
 	__SQLASSERT(aDbHandle != NULL, ESqlPanicInvalidObj);
 	sqlite3_stmt* stmtHandle = NULL;
 	const void* stmtTail = NULL;
-	//sqlite3_prepare16_v2() expects parameter #3 to be one of the following:
-	// - byte length of the sql statement, excluding terminating zero;
-	// - negative value - zero-terminated sql statement;
+    //sqlite3_prepare16_v2() expects parameter #3 to be one of the following:
+    // - byte length of the sql statement (parameter #2), excluding terminating zero;
+    // - negative value - the sql statement (parameter #2) is zero-terminated;
 	TInt err = sqlite3_prepare16_v2(aDbHandle, aSql.Ptr(), aSql.Length() * sizeof(TUint16) - sizeof(TUint16), &stmtHandle, &stmtTail);
 	__SQLASSERT(err == SQLITE_OK ? !stmtTail || User::StringLength((const TUint16*)stmtTail) == 0 : !stmtHandle, ESqlPanicInternalError);
 	if(stmtHandle)	//stmtHandle can be NULL for statements like this: ";".
@@ -383,9 +383,9 @@ TInt DbExecStmt8(sqlite3 *aDbHandle, const TDesC8& aSqlStmt)
 static TInt DoPrepareStmt16(sqlite3* aDbHandle, const TDesC& aStmt, sqlite3_stmt** aStmtHandle, TBool& aHasTail)
 	{
 	const void* stmtTail = NULL;
-	//sqlite3_prepare16_v2() expects parameter #3 to be one of the following:
-	// - byte length of the sql statement, excluding terminating zero;
-	// - negative value - zero-terminated sql statement;
+    //sqlite3_prepare16_v2() expects parameter #3 to be one of the following:
+    // - byte length of the sql statement (parameter #2), excluding terminating zero;
+    // - negative value - the sql statement (parameter #2) is zero-terminated;
 	TInt err = sqlite3_prepare16_v2(aDbHandle, aStmt.Ptr(), aStmt.Length() * sizeof(TUint16) - sizeof(TUint16), aStmtHandle, &stmtTail);
 	aHasTail = stmtTail && static_cast <const TUint16*> (stmtTail)[0] != 0;
 	PRINT_ERRMSG16(err != SQLITE_OK, aDbHandle, "DoPrepareStmt16()", aStmt);
@@ -402,9 +402,9 @@ static TInt DoPrepareStmt16(sqlite3* aDbHandle, const TDesC& aStmt, sqlite3_stmt
 static TInt DoPrepareStmt8(sqlite3* aDbHandle, const TUint8* aStmt, sqlite3_stmt** aStmtHandle, TBool& aHasTail)
 	{
 	const char* stmtTail = NULL;
-	//sqlite3_prepare_v2() expects parameter #3 to be one of the following:
-	// - byte length of the sql statement;
-	// - negative value - zero-terminated sql statement;
+    //sqlite3_prepare_v2() expects parameter #3 to be one of the following:
+    // - byte length of the sql statement (parameter #2), excluding terminating zero;
+    // - negative value - the sql statement (parameter #2) is zero-terminated;
 	TInt err = sqlite3_prepare_v2(aDbHandle, reinterpret_cast <const char*> (aStmt), -1, aStmtHandle, &stmtTail);
 	aHasTail = stmtTail && stmtTail[0] != 0;
 	PRINT_ERRMSG8(err != SQLITE_OK, aDbHandle, "DoPrepareStmt8()", TPtrC8(aStmt, aStmt ? User::StringLength(aStmt) : 0));
@@ -414,7 +414,8 @@ static TInt DoPrepareStmt8(sqlite3* aDbHandle, const TUint8* aStmt, sqlite3_stmt
 	return err;
 	}
 
-//This function accepts as arguments the SQLITE error, the length of non-parsed part of the SQL statement
+//This function accepts as arguments the SQLITE error code, 
+//"aHasTail" boolean flag set to true if the SQL string contains more than one SQL statement 
 //and the statement handle.
 //
 //It checks the arguments and returns an error if:
@@ -436,7 +437,8 @@ static TInt ProcessPrepareError(TInt aSqliteError, TBool aHasTail, sqlite3_stmt*
 	return KErrNone;
 	}
 
-//This function accepts as arguments the SQLITE error, the length of non-parsed part of the SQL statement
+//This function accepts as arguments the SQLITE error code, 
+//"aHasTail" boolean flag set to true if the SQL string contains more than one SQL statement 
 //and the statement handle.
 //
 //It checks the arguments and leaves if:
@@ -956,9 +958,9 @@ TInt DbCompact(sqlite3* aDbHandle, const TDesC& aDbName, TInt aPageCount, TInt& 
 	sqlite3_stmt* stmtHandle = NULL;
 	const char* stmtTail = NULL;
 	aProcessedPageCount = 0;
-	//sqlite3_prepare16() expects parameter #3 to be one of the following:
-	// - byte length of the sql statement, excluding terminating zero;
-	// - negative value - zero-terminated sql statement;
+	//sqlite3_prepare_v2() expects parameter #3 to be one of the following:
+	// - byte length of the sql statement (parameter #2), excluding terminating zero;
+	// - negative value - the sql statement (parameter #2) is zero-terminated;
 	TInt err = sqlite3_prepare_v2(aDbHandle, (const char*)sql.Ptr(), sql.Length() - sizeof(TUint8), &stmtHandle, &stmtTail);
 	__SQLASSERT(err == SQLITE_OK ? !stmtTail || User::StringLength((const TUint8*)stmtTail) == 0 : !stmtHandle, ESqlPanicInternalError);
 	if(stmtHandle)	//stmtHandle can be NULL for statements like this: ";".
