@@ -30,6 +30,9 @@
 // FORWARD DECLARATIONS
 class MFeatureObserver;
 
+//Exported function for test purpose only 
+IMPORT_C TInt GetClientCount();
+
 // CLASS DECLARATION
 
 /**
@@ -67,6 +70,11 @@ NONSHARABLE_CLASS(CFeatMgrTlsData) : public CBase, public MFeatureClient
         * Decrease client count for this thread
         */
 		void DecreaseClientCount();
+		
+		/**
+        * Get client count for this thread. Used for testing purpose only
+        */
+        int ClientCount();
         
 		/**
         * From MFeatureClient
@@ -128,6 +136,10 @@ NONSHARABLE_CLASS(CFeatMgrTlsData) : public CBase, public MFeatureClient
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
 		// Debug only API functions
     public:
+        void ResourceMark();
+        void ResourceCheck();
+        TInt ResourceCount();
+        void SetHeapFailure(TInt aAllocFailType, TInt aRate);
 		TInt NumberOfNotifyFeatures( void ) const;
 		TInt CountAllocCells( void ) const;
 #endif

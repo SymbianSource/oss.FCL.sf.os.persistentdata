@@ -102,7 +102,7 @@ END_TESTCASE SYSLIB-EFM-CT-4046
 
 // -------------------------
 
-START_TESTCASE SYSLIB-EFM-CT-4047
+//START_TESTCASE SYSLIB-EFM-CT-4047
 //! @SYMTestCaseID           SYSLIB-EFM-CT-4047
 //! @SYMTestCaseDesc         Check that feature requests made during a BUR operation are queued and then 
 //!							implemented after the BUR operation has completed. This is to test the queue 
@@ -173,13 +173,13 @@ START_TESTCASE SYSLIB-EFM-CT-4047
 //!							on all occasions.
 //! @SYMDEF                  DEF107378
 
-RUN_TEST_STEP  100  tef_efm_bursuite  QueueBackupStep
-RUN_TEST_STEP  100  tef_efm_bursuite  QueueRestoreStep
-END_TESTCASE SYSLIB-EFM-CT-4047
+//RUN_TEST_STEP  100  tef_efm_bursuite  QueueBackupStep
+//RUN_TEST_STEP  100  tef_efm_bursuite  QueueRestoreStep
+//END_TESTCASE SYSLIB-EFM-CT-4047
 
 // -------------------------
 
-START_TESTCASE SYSLIB-EFM-CT-4048
+//START_TESTCASE SYSLIB-EFM-CT-4048
 //! @SYMTestCaseID           SYSLIB-EFM-CT-4048
 //! @SYMTestCaseDesc         To test that a notification occurs when a feature is notified during a BUR operation. 
 //!							This is to test the queue mechanism of the feature manager. 
@@ -238,9 +238,9 @@ START_TESTCASE SYSLIB-EFM-CT-4048
 //! @SYMDEF                  DEF107378
 
 
-RUN_TEST_STEP 100 tef_efm_bursuite NotifyBackupStep
-RUN_TEST_STEP 100 tef_efm_bursuite NotifyRestoreStep
-END_TESTCASE SYSLIB-EFM-CT-4048
+//RUN_TEST_STEP 100 tef_efm_bursuite NotifyBackupStep
+//RUN_TEST_STEP 100 tef_efm_bursuite NotifyRestoreStep
+//END_TESTCASE SYSLIB-EFM-CT-4048
 
 // -------------------------
 

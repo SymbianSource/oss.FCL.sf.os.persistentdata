@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -733,8 +733,8 @@ void DEF105681L()
 						of the available memory and the amount of free disk space - factors which cannot be easily 
 						resolved on target hardware.
 						The test creates a database with a table: T(Id INTEGER, Data BLOB). 
-						One record with a BLOB (0.9Mb size) is inserted using RSqlDatabase::Exec().
-						Another record with a BLOB (1.8Mb size) is inserted using RSqlStatement and BLOB parameter.
+						One record with a BLOB (either 0.79Mb or 0.9Mb) is inserted using RSqlDatabase::Exec().
+						Another record with a BLOB (either 1.58 or 1.8Mb) is inserted using RSqlStatement and BLOB parameter.
 						If the defect is not fixed, after the first INSERT the SQL server will not free occupied by
 						the statement memory. The available heap memory won't be enough for the execution of the second INSERT statement.
 						The second INSERT will fail with KErrNoMemory.
@@ -746,7 +746,12 @@ void DEF105681L()
 void DEF106391()
 	{
 #if defined __WINS__ ||	defined __WINSCW__
-	const TInt KBlobSize = 900 * 1024;
+#ifndef SYMBIAN_USE_SQLITE_VERSION_3_6_4
+    const TInt KBlobSize = 900 * 1024;
+#else
+    const TInt KBlobSize = 790 * 1024;
+#endif    
+
 	_LIT8(KConfigStr, "encoding=UTF-8");
 
 	HBufC8* sqlBuf = HBufC8::New(KBlobSize * 2 + 200);//"+ 200" - for the SQL INSERT statement
@@ -1504,6 +1509,79 @@ void DEF143047()
     (void)RSqlDatabase::Delete(KTestDatabase1);
     }
 
+/**
+@SYMTestCaseID          PDS-SQL-UT-4157
+@SYMTestCaseDesc        Test for PDEF143461  Calling CSqlSrvDatabase::LastErrorMessage() does not panic with the descriptor alignment error
+@SYMTestPriority        Normal
+@SYMTestActions         Test for PDEF143461  - CSqlSrvDatabase::LastErrorMessage() alignment problem.
+                        This tests the following SQLite Error messages to make sure it doesn't panic:
+                        1)library routine called out of sequence
+                        2)out of memory
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 PDEF143461 
+*/
+void PDEF143461L()
+    {
+    (void) RSqlDatabase::Delete(KTestDatabase6);
+    
+    //Create and setup the database file
+    RSqlDatabase db;
+    TInt err =0;
+    err = db.Create(KTestDatabase6);
+    TEST2(err, KErrNone);
+    err = db.Exec(_L("CREATE TABLE t(num INTEGER)"));
+    TEST2(err, 1);
+    err = db.Exec(_L("INSERT INTO t VALUES(1)"));
+    TEST2(err, 1);
+    err = db.Exec(_L("INSERT INTO t VALUES(2)"));
+    TEST2(err, 1);
+
+    
+    //Purposely commit an error so LastErrorMessage can be called 
+    RSqlStatement stmt;
+    err = stmt.Prepare(db, _L("DELETE FROM t WHERE ROWID=?"));
+    TEST2(err, KErrNone);
+    err = stmt.BindInt(0, 1);
+    TEST2(err, KErrNone);        
+    err = stmt.Exec();
+    TEST2(err, 1);
+    
+    //Should have reset stmt here
+    err = stmt.BindInt(0, 2);
+    TEST2(err, KErrNone); 
+    err = stmt.Exec();
+    TEST2(err, KSqlErrMisuse);
+    
+    //Test "library routine called out of sequence" error message 
+    //If the defect is not fixed then it will panic here   
+    TPtrC errMsg = db.LastErrorMessage();
+    RDebug::Print(_L("errMsg=%S\r\n"), &errMsg);
+
+    stmt.Close();
+    db.Close();
+    
+    TInt allocationNo = 0;
+    //The mask allows the out of memory simulation of the SQL Server to be delayed until the database is opened
+    const TInt KDelayedDbHeapFailureMask = 0x1000;
+    
+    do
+        {
+        TSqlResourceTester::SetDbHeapFailure(RHeap::EDeterministic |KDelayedDbHeapFailureMask, ++allocationNo);
+        err = db.Open(KTestDatabase6);
+        TEST2(err, KErrNone);
+        err = db.Exec(_L("INSERT INTO t VALUES(3)"));
+        TSqlResourceTester::SetDbHeapFailure(RHeap::ENone, 0);
+        
+        TheTest.Printf(_L("%d    \r"), allocationNo);
+        //Test "out of memory" error message, if the defect is not fixed then it will panic here   
+        TPtrC errMsg = db.LastErrorMessage();
+        RDebug::Print(_L("errMsg=%S\r\n"), &errMsg);
+        db.Close();
+        }
+    while (err == KErrNoMemory);
+    TEST2(err, 1);
+    }
+
 void DoTestsL()
 	{
 	
@@ -1584,6 +1662,9 @@ void DoTestsL()
     
     TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4153 DEF143047: SQL, default \"max parameter count\" value, compatibility problem."));
     DEF143047();
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4157 PDEF143461 : CSqlSrvDatabase::LastErrorMessage() alignment problem"));
+    PDEF143461L();
 	}
 
 TInt E32Main()

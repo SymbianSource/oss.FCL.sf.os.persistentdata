@@ -11,9 +11,12 @@
 // Contributors:
 //
 // Description:
-// The "contacts matching" part of the test will work only if r_log_contact_match_count 
-// resource value is not 0. See LogServ.rss file.
-// 
+//
+// If this test starts failing, then go and check the CentralRepository private data cage 
+// (c:\\private\\10202be9 or z:\\private\\10202be9) if 101f401d.txt file is there.
+// If it is then delete it and try the test again.
+// (The problem is that if there is an existing 101f401d.txt file, then the contact match count value
+// will be loaded from that file, not from the LogEng resource file)
 //
 
 #include <bautils.h>
@@ -370,6 +373,8 @@ void doTestsL()
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	
+	//All tests bellow are likely to fail if 101f401d.txt file exists in CentralRepository private data cage
+	//and the contact mach count is set to 0 in that file.
     test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1392: DEF068087: Chinese names don't display in Chinese name format"));
 	::DEF068087L(*client);
     test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1016: Contacts matching - test1"));

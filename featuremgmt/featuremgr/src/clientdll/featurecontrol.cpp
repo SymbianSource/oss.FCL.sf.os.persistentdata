@@ -26,7 +26,7 @@ _LIT( KPanicCategory, "RFeatureControl" );
 
 // ============================= LOCAL FUNCTIONS ===============================
 
-static CFeatMgrTlsData* TlsData( )
+CFeatMgrTlsData* TlsData( )
     {
     CFeatMgrTlsData* tlsData = STATIC_CAST( CFeatMgrTlsData*, Dll::Tls() );
 

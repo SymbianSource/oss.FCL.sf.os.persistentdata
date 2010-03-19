@@ -595,14 +595,8 @@ session is already open.
 		{
 		TBuf<KLogBufferSize> n;
 		n.Copy(aBuf);
- 	 	if (iLogFile.Valid())
-			{
-			TFileName logFileName = iLogFile.Name();
-			RDebug::Print(_L("FLG %S %S"),&logFileName,&n);
-			} else
-				{
-				RDebug::Print(_L("FLG %S "),&n);
-				}
+		TFileName logFileName = iLogFile.Name();
+		RDebug::Print(_L("FLG %S %S"),&logFileName,&n);
 		} else 		
 			{
 			TPckg<TLogFile> logFilePckg(iLogFile);
@@ -628,15 +622,8 @@ Each line is preceded in the date and time.
  		{
  	 	TBuf<KLogBufferSize> n;
  	 	n.Copy(aBuf);
- 	 	if (iLogFile.Valid())
-			{
-			TFileName logFileName = iLogFile.Name();
-			RDebug::Print(_L("FLG %S %S"),&logFileName,&n);
-			} else
-				{
-				RDebug::Print(_L("FLG %S "),&n);
-				}
- 	 	
+		TFileName logFileName = iLogFile.Name();
+		RDebug::Print(_L("FLG %S %S"),&logFileName,&n);
  		} else
  			{
  			SendReceive(ECreateWriteAndCloseLog, TIpcArgs( &logFilePckg, &aBuf));		// ignore error

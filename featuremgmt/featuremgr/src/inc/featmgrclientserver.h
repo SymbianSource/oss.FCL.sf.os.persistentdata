@@ -28,6 +28,9 @@
 // DATA TYPES
 
 // Opcodes used in message passing between client and server
+// Important:   Make sure IsWriteOperation function of CFeatMgrSession
+//              is updated if a new enum for function that will modify
+//              feature (write operation) is added. 
 enum TFeatMgrServRequest
     {
 	/**
@@ -170,7 +173,13 @@ enum TFeatMgrServRequest
     * Software Installation ended
     * 
     */ 
-    EFeatMgrSWIEnd 
+    EFeatMgrSWIEnd,
+    
+    EFeatMgrResourceMark,
+    EFeatMgrResourceCheck,
+    EFeatMgrResourceCount,
+    EFeatMgrSetHeapFailure
+    
     };
 
 

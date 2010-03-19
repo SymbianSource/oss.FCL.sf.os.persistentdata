@@ -38,6 +38,7 @@ SOURCE			te_apirunconfig.cpp
 SOURCE			te_tracecontrolclearconfig.cpp
 SOURCE			te_tracecontrolcmds.cpp
 SOURCE			te_tracecontroldefaultconfig.cpp
+SOURCE			te_ctor_disabled.cpp
 
 SOURCEPATH    	../te_ostv2integsuite_functional/src/
 SOURCE        	te_tracecollectorclient.cpp

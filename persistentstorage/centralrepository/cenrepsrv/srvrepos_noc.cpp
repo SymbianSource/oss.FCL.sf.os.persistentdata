@@ -448,7 +448,9 @@ TInt CServerRepository::RFSRepositoryL()
 		TServerResources::iObserver->LoadRepositoryLC(uid, ETrue, defaultRepository, CIniFileIn::EInstallOnly);		
 		}
 	else
-		{	
+		{
+        // The repository must exist in the ROM or install directory (or both). 
+        ASSERT(romExists || installExists);
 		// Reset against empty repository if neither ROM or install file are found
 		defaultRepository = CSharedRepository::NewL(uid);
 		CleanupStack::PushL(defaultRepository);

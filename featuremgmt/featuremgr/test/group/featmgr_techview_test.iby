@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -11,13 +11,18 @@
 // Contributors:
 //
 // Description:
-//
+// For all Techview tests (TEF + RTest).
+// 
 
 #ifndef __FEATMGR_TEST_IBY__
 #define __FEATMGR_TEST_IBY__
 
 // Make sure that the feature manager production code is included in the ROM.
 #include "featmgr.iby"
+
+// Techview RTests.
+file=ABI_DIR\BUILD_DIR\t_fmgrbackupresponse.exe     test\t_fmgrbackupresponse.exe
+file=ABI_DIR\BUILD_DIR\t_fmgrrestoreresponse.exe    test\t_fmgrrestoreresponse.exe
 
 //main efm test script
 data=DATAZ_\test\efm\scripts\tef_featmgr.script		test\efm\scripts\tef_featmgr.script

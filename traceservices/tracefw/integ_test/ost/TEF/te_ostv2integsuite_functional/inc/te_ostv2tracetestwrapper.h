@@ -44,6 +44,9 @@ private:
 
 private:
 	TInt CheckResults(const TDesC& aLogFilename);
+	void TestDuplicatesL();
+	void TestOstDebugOnlyWrapL();
+	TInt OpenUlogger(RULogger& aLogger);
 	};
 
 _LIT(KOstTraceTestWrapper, "OstTraceTestWrapper");

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -102,6 +102,24 @@ void CFeatMgrSession::PanicClient( const RMessage2& aMessage, TFeatMgrPanic aPan
 	aMessage.Panic( KPanicCategory, aPanic );
     }
 
+TBool CFeatMgrSession::IsWriteOperation( const TInt aFunction ) const
+    {
+        switch ( aFunction )
+            {
+            case EFeatMgrEnableFeature:
+            case EFeatMgrDisableFeature:
+            case EFeatMgrAddFeature:
+            case EFeatMgrSetFeatureAndData:
+            case EFeatMgrSetFeatureData:
+            case EFeatMgrDeleteFeature:
+            case EFeatMgrSWIStart:
+            case EFeatMgrSWIEnd:
+                return ETrue;
+            default:
+                return EFalse;
+            }
+    }
+
 // -----------------------------------------------------------------------------
 // CFeatMgrSession::ServiceL
 // Calls request handling functions. Also traps any leaves and signals client if
@@ -111,11 +129,22 @@ void CFeatMgrSession::PanicClient( const RMessage2& aMessage, TFeatMgrPanic aPan
 void CFeatMgrSession::ServiceL( const RMessage2& aMessage )
     {
     FUNC_LOG
-    
-    if ( !iFeatMgrServer.PluginsReady() )
+    // If plugins are not ready all request will be queued. 
+    // During backup & restore operation, all write request 
+    //  e.g. EnableFeature will return with KErrServerBusy
+    TInt msgCmd = aMessage.Function();
+    if ( !iFeatMgrServer.PluginsReady() || ( iFeatMgrServer.BURIsInProgress()  && IsWriteOperation( msgCmd ) ) )
         {
-        INFO_LOG( "CFeatMgrSession::ServiceL() - plugins not ready" );
-        iList.AddLast( *CFeatMgrPendingRequest::NewL( aMessage ) );        
+        if ( iFeatMgrServer.BURIsInProgress() )
+            {
+            INFO_LOG( "CFeatMgrSession::ServiceL() - backup/restore is in progress - no write operation allowed" );
+            aMessage.Complete( KErrServerBusy );
+            }
+        else
+            {
+            INFO_LOG( "CFeatMgrSession::ServiceL() - plugins not ready" );
+            iList.AddLast( *CFeatMgrPendingRequest::NewL( aMessage ) );
+            }
         }
     else
         {
@@ -505,8 +534,39 @@ void CFeatMgrSession::DispatchMessageL( const RMessage2& aMessage )
             
     		break;
     	    }
-    	    
+
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
+    	    
+        case EFeatMgrResourceMark:
+            ResourceCountMarkStart();
+            break;
+            
+        case EFeatMgrResourceCheck:
+            ResourceCountMarkEnd(aMessage);
+            break;
+        
+        case EFeatMgrResourceCount:
+            {
+            TInt retCode = CountResources();
+            User::Leave(retCode);
+            }
+            break;
+        
+        case EFeatMgrSetHeapFailure:
+            {
+            RAllocator::TAllocFail mode = static_cast <RAllocator::TAllocFail> (aMessage.Int0());
+            TInt failAllocNum = aMessage.Int1();
+            if(mode == RHeap::EBurstFailNext || mode == RHeap::EBurstRandom || mode == RHeap::EBurstTrueRandom || mode == RHeap::EBurstDeterministic)
+                {
+                User::__DbgSetBurstAllocFail(RHeap::EUser, mode, failAllocNum, 20);
+                }
+            else
+                {
+                User::__DbgSetAllocFail(RHeap::EUser, mode, failAllocNum);
+                }
+            }
+            break;
+
     	    // debug only API 
     	    // returns the size of the iNotifyFeatures array
         case EFeatMgrNumberOfNotifyFeatures:
@@ -570,6 +630,10 @@ void CFeatMgrSession::ServiceNotifications( TFeatureServerEntry& aFeature,
         }
     }
 
+TInt CFeatMgrSession::CountResources()
+    {
+    return User::CountAllocCells();
+    }
 
 // ============================= LOCAL FUNCTIONS ===============================
 

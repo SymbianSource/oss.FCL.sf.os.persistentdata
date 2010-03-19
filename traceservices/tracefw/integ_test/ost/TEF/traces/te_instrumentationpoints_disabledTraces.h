@@ -1,4 +1,4 @@
-// Created by TraceCompiler 1.3.1
+// Created by TraceCompiler 2.1.3
 // DO NOT EDIT, CHANGES WILL BE LOST
 
 #ifndef __TE_INSTRUMENTATIONPOINTS_DISABLEDTRACES_H__
@@ -6,6 +6,12 @@
 
 #define KOstTraceComponentID 0x1028722f
 
+#define TEST_OSTTraceFunctionalityEntry0 0x8a0003
+#define TEST_OSTTraceFunctionalityEntry1 0x8a0004
+#define TEST_OSTTraceFunctionalityExt 0x8a0005, ( TUint )&( aApiRunConfig ), ( TUint )&( aApiRunResults )
+#define TEST_OstTraceFunctionExit0 0x8a0006
+#define TEST_OSTTRACEFUNCTIONEXIT1 0x8a0007
+#define TEST_OSTTRACEFUNCTIONEXITEXT 0x8a0008
 #define TEST_OstTraceDef0 0x810001
 #define TEST_OstTraceDef1 0x810002
 #define TEST_OstTraceDefData 0x810003
@@ -24,17 +30,85 @@
 #define TEST_OSTTRACEEXT5 0x810010
 #define TEST_OSTTRACEDATA96 0x810011
 #define TEST_OSTTRACEDATA1000 0x810012
-#define TEST_OSTTraceFunctionalityEntry0 0x8a0001
-#define TEST_OSTTraceFunctionalityEntry1 0x8a0002
-#define TEST_OSTTraceFunctionalityExt 0x8a0003, ( TUint )&( aApiRunConfig ), ( TUint )&( aApiRunResults )
-#define TEST_OstTraceFunctionExit0 0x8a0004
-#define TEST_OSTTRACEFUNCTIONEXIT1 0x8a0005
-#define TEST_OSTTRACEFUNCTIONEXITEXT 0x8a0006
 #define TEST_OSTTRACEEVENTSTART0 0x8b0001
 #define TEST_OSTTRACEEVENTSTART1 0x8b0002
 #define TEST_OSTTRACEEVENTSTOP 0x8b0003
 #define TEST_OSTTRACESTATE0 0x870001
 #define TEST_OSTTRACESTATE1 0x870002
+
+
+inline TBool OstTraceGenExt( TUint32 aTraceID, TUint aParam1, TUint aParam2, TUint aParam3 )
+    {
+    TBool retval = BTraceFiltered8( EXTRACT_GROUP_ID(aTraceID), EOstTraceActivationQuery, KOstTraceComponentID, aTraceID );
+    if ( retval )
+        {
+        TUint8 data[ 12 ];
+        TUint8* ptr = data;
+        *( ( TUint* )ptr ) = aParam1;
+        ptr += sizeof ( TUint );
+        *( ( TUint* )ptr ) = aParam2;
+        ptr += sizeof ( TUint );
+        *( ( TUint* )ptr ) = aParam3;
+        ptr += sizeof ( TUint );
+        ptr -= 12;
+        retval = OstSendNBytes( EXTRACT_GROUP_ID(aTraceID), EOstTrace, KOstTraceComponentID, aTraceID, ptr, 12 );
+        }
+    return retval;
+    }
+
+inline TBool OstTraceGenExt( TUint32 aTraceID, TUint32 aParam1, TUint32 aParam2, TUint32 aParam3 )
+    {
+    TBool retval = BTraceFiltered8( EXTRACT_GROUP_ID(aTraceID), EOstTraceActivationQuery, KOstTraceComponentID, aTraceID );
+    if ( retval )
+        {
+        TUint8 data[ 12 ];
+        TUint8* ptr = data;
+        *( ( TUint* )ptr ) = aParam1;
+        ptr += sizeof ( TUint );
+        *( ( TUint* )ptr ) = aParam2;
+        ptr += sizeof ( TUint );
+        *( ( TUint* )ptr ) = aParam3;
+        ptr += sizeof ( TUint );
+        ptr -= 12;
+        retval = OstSendNBytes( EXTRACT_GROUP_ID(aTraceID), EOstTrace, KOstTraceComponentID, aTraceID, ptr, 12 );
+        }
+    return retval;
+    }
+
+
+inline TBool OstTraceGen2( TUint32 aTraceID, TUint aParam1, TInt aParam2 )
+    {
+    TBool retval = BTraceFiltered8( EXTRACT_GROUP_ID(aTraceID), EOstTraceActivationQuery, KOstTraceComponentID, aTraceID );
+    if ( retval )
+        {
+        TUint8 data[ 8 ];
+        TUint8* ptr = data;
+        *( ( TUint* )ptr ) = aParam1;
+        ptr += sizeof ( TUint );
+        *( ( TInt* )ptr ) = aParam2;
+        ptr += sizeof ( TInt );
+        ptr -= 8;
+        retval = OstSendNBytes( EXTRACT_GROUP_ID(aTraceID), EOstTrace, KOstTraceComponentID, aTraceID, ptr, 8 );
+        }
+    return retval;
+    }
+
+inline TBool OstTraceGen2( TUint32 aTraceID, TUint32 aParam1, TInt32 aParam2 )
+    {
+    TBool retval = BTraceFiltered8( EXTRACT_GROUP_ID(aTraceID), EOstTraceActivationQuery, KOstTraceComponentID, aTraceID );
+    if ( retval )
+        {
+        TUint8 data[ 8 ];
+        TUint8* ptr = data;
+        *( ( TUint* )ptr ) = aParam1;
+        ptr += sizeof ( TUint );
+        *( ( TInt* )ptr ) = aParam2;
+        ptr += sizeof ( TInt );
+        ptr -= 8;
+        retval = OstSendNBytes( EXTRACT_GROUP_ID(aTraceID), EOstTrace, KOstTraceComponentID, aTraceID, ptr, 8 );
+        }
+    return retval;
+    }
 
 
 inline TBool OstTraceGen1( TUint32 aTraceID, const TDesC8& aParam1 )
@@ -254,80 +328,6 @@ inline TBool OstTraceGen1( TUint32 aTraceID, TInt8 aParam1 )
         ptr += sizeof ( TUint8 );
         ptr -= 4;
         retval = BTraceFilteredContext12( EXTRACT_GROUP_ID(aTraceID), EOstTrace, KOstTraceComponentID, aTraceID, *( ( TUint32* )ptr ) );
-        }
-    return retval;
-    }
-
-
-inline TBool OstTraceGenExt( TUint32 aTraceID, TUint aParam1, TUint aParam2, TUint aParam3 )
-    {
-    TBool retval = BTraceFiltered8( EXTRACT_GROUP_ID(aTraceID), EOstTraceActivationQuery, KOstTraceComponentID, aTraceID );
-    if ( retval )
-        {
-        TUint8 data[ 12 ];
-        TUint8* ptr = data;
-        *( ( TUint* )ptr ) = aParam1;
-        ptr += sizeof ( TUint );
-        *( ( TUint* )ptr ) = aParam2;
-        ptr += sizeof ( TUint );
-        *( ( TUint* )ptr ) = aParam3;
-        ptr += sizeof ( TUint );
-        ptr -= 12;
-        retval = OstSendNBytes( EXTRACT_GROUP_ID(aTraceID), EOstTrace, KOstTraceComponentID, aTraceID, ptr, 12 );
-        }
-    return retval;
-    }
-
-inline TBool OstTraceGenExt( TUint32 aTraceID, TUint32 aParam1, TUint32 aParam2, TUint32 aParam3 )
-    {
-    TBool retval = BTraceFiltered8( EXTRACT_GROUP_ID(aTraceID), EOstTraceActivationQuery, KOstTraceComponentID, aTraceID );
-    if ( retval )
-        {
-        TUint8 data[ 12 ];
-        TUint8* ptr = data;
-        *( ( TUint* )ptr ) = aParam1;
-        ptr += sizeof ( TUint );
-        *( ( TUint* )ptr ) = aParam2;
-        ptr += sizeof ( TUint );
-        *( ( TUint* )ptr ) = aParam3;
-        ptr += sizeof ( TUint );
-        ptr -= 12;
-        retval = OstSendNBytes( EXTRACT_GROUP_ID(aTraceID), EOstTrace, KOstTraceComponentID, aTraceID, ptr, 12 );
-        }
-    return retval;
-    }
-
-
-inline TBool OstTraceGen2( TUint32 aTraceID, TUint aParam1, TInt aParam2 )
-    {
-    TBool retval = BTraceFiltered8( EXTRACT_GROUP_ID(aTraceID), EOstTraceActivationQuery, KOstTraceComponentID, aTraceID );
-    if ( retval )
-        {
-        TUint8 data[ 8 ];
-        TUint8* ptr = data;
-        *( ( TUint* )ptr ) = aParam1;
-        ptr += sizeof ( TUint );
-        *( ( TInt* )ptr ) = aParam2;
-        ptr += sizeof ( TInt );
-        ptr -= 8;
-        retval = OstSendNBytes( EXTRACT_GROUP_ID(aTraceID), EOstTrace, KOstTraceComponentID, aTraceID, ptr, 8 );
-        }
-    return retval;
-    }
-
-inline TBool OstTraceGen2( TUint32 aTraceID, TUint32 aParam1, TInt32 aParam2 )
-    {
-    TBool retval = BTraceFiltered8( EXTRACT_GROUP_ID(aTraceID), EOstTraceActivationQuery, KOstTraceComponentID, aTraceID );
-    if ( retval )
-        {
-        TUint8 data[ 8 ];
-        TUint8* ptr = data;
-        *( ( TUint* )ptr ) = aParam1;
-        ptr += sizeof ( TUint );
-        *( ( TInt* )ptr ) = aParam2;
-        ptr += sizeof ( TInt );
-        ptr -= 8;
-        retval = OstSendNBytes( EXTRACT_GROUP_ID(aTraceID), EOstTrace, KOstTraceComponentID, aTraceID, ptr, 8 );
         }
     return retval;
     }

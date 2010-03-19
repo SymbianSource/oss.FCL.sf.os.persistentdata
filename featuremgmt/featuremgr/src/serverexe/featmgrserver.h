@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -107,9 +107,16 @@ NONSHARABLE_CLASS(CFeatMgrServer) :
          Feature info received. 
          Else returns EFalse.
         
-         @return feature support status
+         @return plugins loading status
         */
         TBool PluginsReady() const;
+        
+        /**
+         Returns ETrue if backup is in progress 
+         Else returns EFalse.
+         @return backup status
+        */
+        TBool BURIsInProgress() const;
 
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
         /**
@@ -269,6 +276,10 @@ NONSHARABLE_CLASS(CFeatMgrServer) :
         CFeatMgrTimer* iTimer;     
 
         CBurState iBurState;
+        
+        // ETrue when backup in progress
+        TBool iBURInProgress;
+        
         // ETrue when feature info received from all plugins
         TBool iPluginsReady;
                 

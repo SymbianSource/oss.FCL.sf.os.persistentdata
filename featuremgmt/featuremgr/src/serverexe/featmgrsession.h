@@ -139,6 +139,7 @@ NONSHARABLE_CLASS(CFeatMgrSession) : public CSession2
         * @param aMessage The message containing the client request
         */
         virtual void ServiceL( const RMessage2& aMessage );
+        virtual TInt CountResources();
 
     private:
 
@@ -158,6 +159,8 @@ NONSHARABLE_CLASS(CFeatMgrSession) : public CSession2
         * @param aMessage The message containing the client request
         */
         void DispatchMessageL( const RMessage2& aMessage );
+        
+        TBool IsWriteOperation( const TInt aFunction ) const;
         
     private:    // Data
         

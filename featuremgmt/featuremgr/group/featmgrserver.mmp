@@ -40,6 +40,7 @@ SOURCE          featmgrfeatureentry.cpp
 SOURCE          featmgrpatchdata.cpp
 SOURCE          burstate.cpp
 SOURCE          swilistener.cpp 
+SOURCE          featmgrstartup.cpp 
 
 SOURCEPATH      ../src/shared
 SOURCE          featurecmn.cpp

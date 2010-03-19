@@ -32,6 +32,7 @@ SOURCE          featmgr.cpp
 SOURCE          featurecontrol.cpp
 SOURCE          featmgrtlsdata.cpp
 SOURCE          featurenotifier.cpp
+SOURCE          featmgrresourcetester.cpp
 
 SOURCEPATH      ../src/shared
 SOURCE          featurecmn.cpp
