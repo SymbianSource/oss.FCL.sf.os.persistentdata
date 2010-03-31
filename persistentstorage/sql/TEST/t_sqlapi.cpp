@@ -1341,7 +1341,7 @@ void ColumnBinaryStreamTest()
     TBuf8<1> buf2;
     rc = stmt.ColumnBinary(1, buf2); 
     TEST2(rc, KErrOverflow);
-	
+    
 	stmt.Close();
 	
 	//Deallocate buf
@@ -1353,6 +1353,86 @@ void ColumnBinaryStreamTest()
 	rc = RSqlDatabase::Delete(KTestDbName1);
 	TEST2(rc, KErrNone);
 	}
+
+/**
+@SYMTestCaseID          PDS-SQL-CT-4174
+@SYMTestCaseDesc        Test for DEF144937: SQL, SQL server, the code coverage can be improved in some areas.
+@SYMTestPriority        High
+@SYMTestActions         The test creates a test database with a table with 3 records.
+                        The first record has a BLOB column with 0 length.
+                        The second record has a BLOB column with length less than KSqlMaxDesLen
+                        (in debug mode) in which case no IPC call is needed to be made in order 
+                        to access the column value via stream.
+                        The third record has a BLOB column with length exactly KSqlMaxDesLen 
+                        in which case an IPC call will be made in order to retrieve the column value,
+                        but the column value will be copied directly to the client - no stream object is created. 
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF144937
+*/  
+void ColumnBinaryStreamTest2()
+    {
+    RSqlDatabase db;    
+    TInt rc = db.Create(KTestDbName1);
+    TEST2(rc, KErrNone);
+
+    enum {KSqlBufSize = 128};
+    
+    //Create a table
+    _LIT8(KSqlStmt1, "CREATE TABLE A(Fld1 INTEGER, Fld2 BLOB);");
+    ExecSqlStmtOnDb<TDesC8, TBuf8<KSqlBufSize> >(db, KSqlStmt1(), KErrNone);
+    
+    //Insert one record where the BLOB length is 0. 
+    //Insert second record where the BLOB length is smaller than the max inline column length - KSqlMaxDesLen.
+    //Insert third record where the BLOB length is exactly the max inline column length - KSqlMaxDesLen.
+    _LIT8(KSqlStmt2, "INSERT INTO A VALUES(1, '');INSERT INTO A VALUES(2, x'0102030405');INSERT INTO A VALUES(3, x'0102030405060708');");
+    ExecSqlStmtOnDb<TDesC8, TBuf8<KSqlBufSize> >(db, KSqlStmt2(), KErrNone);
+    
+    RSqlStatement stmt;
+    rc = stmt.Prepare(db, _L("SELECT Fld2 FROM A"));
+    TEST2(rc, KErrNone);
+
+    TBuf8<16> databuf;
+    
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    //ColumnBinary() does not make an IPC call because the BLOB length is 0.
+    RSqlColumnReadStream strm;
+    rc = strm.ColumnBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+    TRAP(rc, strm.ReadL(databuf, stmt.ColumnSize(0)));
+    strm.Close();
+    TEST2(rc, KErrNone);
+    TEST2(databuf.Length(), 0);
+
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    //ColumnBinary() does not make an IPC call because the BLOB length is less than the max inline 
+    //column length - KSqlMaxDesLen.
+    rc = strm.ColumnBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+    TRAP(rc, strm.ReadL(databuf, stmt.ColumnSize(0)));
+    strm.Close();
+    TEST2(rc, KErrNone);
+    TEST(databuf == _L8("\x1\x2\x3\x4\x5"));
+
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    //ColumnBinary() makes an IPC call  (in _DEBUG mode) because:
+    // - the column length is exactly KSqlMaxDesLen.  
+    // - but at the same time the column length is equal to KIpcBufSize (in debug mode).
+    rc = strm.ColumnBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+    TRAP(rc, strm.ReadL(databuf, stmt.ColumnSize(0)));
+    strm.Close();
+    TEST2(rc, KErrNone);
+    TEST(databuf == _L8("\x1\x2\x3\x4\x5\x6\x7\x8"));
+    
+    stmt.Close();
+    db.Close();
+
+    rc = RSqlDatabase::Delete(KTestDbName1);
+    TEST2(rc, KErrNone);
+    }
 
 /**
 @SYMTestCaseID			SYSLIB-SQL-CT-1608
@@ -2194,6 +2274,9 @@ void DoTestsL()
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1621 RSqlColumnReadStream test. Long binary column "));
 	ColumnBinaryStreamTest();
 
+    TheTest.Next (_L(" @SYMTestCaseID:PDS-SQL-CT-4174 CSqlSrvSession::NewOutputStreamL() coverage test"));
+	ColumnBinaryStreamTest2();
+	
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1608 RSqlParamWriteStream test. Long text parameter "));
 	TextParameterStreamTest();
 

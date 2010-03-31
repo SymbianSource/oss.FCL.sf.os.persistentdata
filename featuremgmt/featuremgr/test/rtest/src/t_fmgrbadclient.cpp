@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -85,7 +85,7 @@ void Check1(TInt aValue, TInt aLine, TBool aPrintThreadName = EFalse)
             }
         else
             {
-            RDebug::Print(_L("*** Expression evaluated to false. Line %d\r\n"), aLine);
+            TheTest.Printf(_L("*** Expression evaluated to false. Line %d\r\n"), aLine);
             }
         TheTest(EFalse, aLine);
         }
@@ -168,6 +168,7 @@ public:
     void Close();
     TInt SendReceive(TInt aFunction);
     TInt SendReceive(TInt aFunction, const TIpcArgs& aArgs);
+    void SendReceive(TInt aFunction, const TIpcArgs& aArgs, TRequestStatus& aStatus);
 
 private:
     TInt DoCreateSession();
@@ -196,6 +197,11 @@ TInt RTestFeatMgrSession::SendReceive(TInt aFunction)
 TInt RTestFeatMgrSession::SendReceive(TInt aFunction, const TIpcArgs& aArgs)
     {
     return RSessionBase::SendReceive(aFunction, aArgs); 
+    }
+
+void RTestFeatMgrSession::SendReceive(TInt aFunction, const TIpcArgs& aArgs, TRequestStatus& aStatus)
+    {
+    RSessionBase::SendReceive(aFunction, aArgs, aStatus); 
     }
 
 TInt RTestFeatMgrSession::DoCreateSession()
@@ -236,7 +242,7 @@ TInt RTestFeatMgrSession::DoCreateSession()
     return err;
     }
     
-void PrintIterationCount(TInt aIteration)
+void PrintIterationCount(TInt aIteration, TBool aFromThread = EFalse)
     {
     if((aIteration % 100) == 0)
         {
@@ -245,7 +251,14 @@ void PrintIterationCount(TInt aIteration)
         TDateTime dt = time.DateTime();
         TBuf<16> tbuf;
         tbuf.Format(_L("%02d:%02d:%02d.%06d"), dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond());
-        RDebug::Print(_L("-----[%S] Test iterations: %d\r\n"), &tbuf, aIteration);
+        if(aFromThread)
+            {
+            RDebug::Print(_L("-----[%S] Test iterations: %d\r\n"), &tbuf, aIteration);
+            }
+        else
+            {
+            TheTest.Printf(_L("-----[%S] Test iterations: %d\r\n"), &tbuf, aIteration);
+            }
         }
     }
 
@@ -272,9 +285,7 @@ TInt ThreadFunc1(void* aData)
 
     while(++data.iIteration <= KTestIterCount)
         {
-        RDebug::Print(_L("++++ %d\r\n"), data.iIteration);
-        
-        PrintIterationCount(data.iIteration);
+        PrintIterationCount(data.iIteration, ETrue);
         TIpcArgs args;
         data.iFunction = Math::Rand(data.iSeed) % (EFeatMgrSWIEnd + 1);//EFeatMgrSWIEnd - the last server message number (without resource checking IPCs))
         for(TInt i=0;i<KMaxMessageArguments;++i)
@@ -309,7 +320,23 @@ TInt ThreadFunc1(void* aData)
         //Send arguments
         User::SetJustInTime(EFalse);
         TInt err = KErrNone;
-        err = sess.SendReceive(data.iFunction, args);
+        if(data.iFunction == EFeatMgrReqNotify)
+            {
+            TRequestStatus status;
+            sess.SendReceive(data.iFunction, args, status);
+            if(status == KRequestPending)
+                {
+                err = sess.SendReceive(EFeatMgrReqNotifyCancelAll);
+                }
+            else
+                {
+                err = status.Int();
+                }
+            }
+        else
+            {
+            err = sess.SendReceive(data.iFunction, args);
+            }
         if(err == KErrServerTerminated)
             {
             User::Panic(KPanicCategory, KPanicCode);
@@ -395,7 +422,7 @@ void BadClientTest()
 
 void DoTestsL()
     {
-    //TODO: this test won't pass
+    //This test won't pass
     TheTest.Start(_L("@SYMTestCaseID:PDS-EFM-CT-4065 Bad client test"));
     BadClientTest();
     }

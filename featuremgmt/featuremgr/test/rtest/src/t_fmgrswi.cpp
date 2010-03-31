@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -99,9 +99,25 @@ TInt KillProcess(const TDesC& aProcessName)
 
 /**
 @SYMTestCaseID          PDS-EFM-CT-4111
-@SYMTestCaseDesc        
+@SYMTestCaseDesc        The test demonstrates that there is a problem in the FeatMgr code that processes SWI events.
+                        Test steps:
+                        1) The test sets KSAUidSoftwareInstallKeyValue property in order to simulate that SWI has started.
+                        2) The test calls RFeatureControl::SWIStart() to notify the server that SWI started.
+                        3) The test adds a new feature. Since this happens during the SWI process the new feature
+                           will be cached by the FeatMgr server.
+                        4) The test simulates a file I/O error to happen on iteration #4. The failure should occur
+                           at the moment when the server tries to persist the new feature that is in the cache.
+                        5) The test notifies the server that SWI has completed: KSAUidSoftwareInstallKeyValue value set
+                           and RFeatureControl::SWIEnd() called.
+                           When the server receives the "end of SWI" notification, the server will try to persist
+                           the cached new feature. But because of the simulated file I/O error the server will fail
+                           to store the new feature to the features.dat file. But in accordance with the current
+                           design of the server, no error will be reported back to the client.
+                        6) The test kills the FeatMgr server. The server cache is gone.
+                        7) The test restarts the server and attempts to request the new feature. The new feature
+                           is missing.
 @SYMTestPriority        High
-@SYMTestActions         
+@SYMTestActions         FeatMgr SWI test with simulated file I/O error during SWI.
 @SYMTestExpectedResults Test must not fail
 @SYMDEF                 DEF144262
 */

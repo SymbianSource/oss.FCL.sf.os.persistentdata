@@ -187,10 +187,7 @@ void CreateDatabaseOomTest()
     delete TheServer;
     TheServer = NULL;
     
-    if(err != KErrNoMemory)
-        {
-        TEST2(err, KErrNone);   
-        }
+    TEST2(err, KErrNone);   
     TheTest.Printf(_L("\r\n===CSqlSrvDatabase::CreateL() OOM test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
     }
 
@@ -235,10 +232,7 @@ void OpenDatabaseOomTest()
     delete TheServer;
     TheServer = NULL;
     
-    if(err != KErrNoMemory)
-        {
-        TEST2(err, KErrNone);   
-        }
+    TEST2(err, KErrNone);   
     TheTest.Printf(_L("\r\n===CSqlSrvDatabase::OpenL() [non-secure db] OOM test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
     }
 
@@ -287,10 +281,7 @@ void CreateSecureDatabaseOomTest()
     delete TheServer;
     TheServer = NULL;
     
-    if(err != KErrNoMemory)
-        {
-        TEST2(err, KErrNone);   
-        }
+    TEST2(err, KErrNone);   
     TheTest.Printf(_L("\r\n===CSqlSrvDatabase::CreateSecureL() OOM test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
     }
 
@@ -335,10 +326,7 @@ void OpenSecureDatabaseOomTest()
     delete TheServer;
     TheServer = NULL;
     
-    if(err != KErrNoMemory)
-        {
-        TEST2(err, KErrNone);   
-        }
+    TEST2(err, KErrNone);   
     TheTest.Printf(_L("\r\n===CSqlSrvDatabase::OpenL() [secure db] OOM test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
     }
 
@@ -515,11 +503,169 @@ Cleanup:
     delete TheServer;
     TheServer = NULL;
     
-    if(err != KErrNoMemory)
-        {
-        TEST2(err, KErrNone);   
-        }
+    (void)TheFs.Delete(KDbFile4);
+    (void)TheFs.Delete(KDbFile3);
+    
+    TEST2(err, KErrNone);   
     TheTest.Printf(_L("\r\n===CSqlSrvDatabase::OpenL() & CSqlSrvDatabase::AttachDbL() OOM test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
+    }
+
+/**
+@SYMTestCaseID          PDS-SQL-UT-4172
+@SYMTestCaseDesc        CSqlSrvDatabase::OpenL() & CSqlSrvDatabase::AttachDbL() OOM test.
+@SYMTestPriority        High
+@SYMTestActions         The test runs CSqlSrvDatabase::OpenL() and CSqlSrvDatabase::AttachDbL() in an OOM test.
+                        Two secure databases are created and then, in an OOM loop, the test executes this sequence of
+                        commands: open first database, attach the second database, detach the attached database,
+                        close the first database. 
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF144577, PDEF44845
+*/  
+void OpenAttachDatabaseOomTest2()
+    {
+    TheServer = NULL; 
+    TRAPD(err, TheServer = CreateSqlServerL());
+    TEST2(err, KErrNone);
+    
+    CreateSecureTestDb(KDbFile3);
+    CreateSecureTestDb(KDbFile4);
+    
+    TInt failingAllocationNo = 0;
+    TheTest.Printf(_L("Iteration:\r\n"));
+    
+    RMessage2 msg;
+    TSqlSrvFileData& fdata = TheServer->FileData();
+    
+    err = KErrNoMemory;
+    while(err == KErrNoMemory)
+        {
+        TheTest.Printf(_L(" %d"), ++failingAllocationNo);
+        OomPreStep(failingAllocationNo);
+        
+        TRAP(err, fdata.SetL(msg, KDbFile3().Length(), 0, (const TDesC8*)&KDbFile3));
+        if(err == KErrNone)
+            {
+            CSqlSrvDatabase* db = NULL;
+            TRAP(err, db = CSqlSrvDatabase::OpenL(fdata));
+            if(err == KErrNone)
+                {
+                TRAP(err, fdata.SetL(msg, KDbFile4().Length(), 0, (const TDesC8*)&KDbFile4));
+                if(err == KErrNone)
+                    {
+                    TRAP(err, db->AttachDbL(fdata, _L("db2")));
+                    if(err == KErrNone)
+                        {
+                        TRAP(err, db->DetachDbL(_L("db2")));
+                        }
+                    }
+                delete db;
+                }
+            }
+        OomPostStep();
+        }
+    
+    (void)TheFs.Delete(KDbFile4);
+    (void)TheFs.Delete(KDbFile3);
+    
+    delete TheServer;
+    TheServer = NULL;
+     
+    TEST2(err, KErrNone);   
+    TheTest.Printf(_L("\r\n===CSqlSrvDatabase::OpenL() & CSqlSrvDatabase::AttachDbL() OOM test 2 succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
+    }
+
+/**
+@SYMTestCaseID          PDS-SQL-UT-4173
+@SYMTestCaseDesc        CSqlSrvDatabase::OpenL() & CSqlSrvDatabase::CreateSecureL() OOM test.
+@SYMTestPriority        High
+@SYMTestActions         The test runs CSqlSrvDatabase::OpenL() and CSqlSrvDatabase::CreateSecureL() in an OOM test.
+                        The test creates a secure database then executes CSqlSrvDatabase::OpenL() in an OOM loop.
+                        After that the database is deleted and the test executes CSqlSrvDatabase::CreateSecureL() in an OOM loop.
+                        The purpose of the test is to check that the CSqlSrver maps are properly updated when
+                        the database is closed.
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF144577, PDEF44845
+*/  
+void OpenCreateDatabaseOomTest()
+    {
+    TheServer = NULL; 
+    TRAPD(err, TheServer = CreateSqlServerL());
+    TEST2(err, KErrNone);
+    
+    (void)TheFs.Delete(KDbFile2);
+    CreateSecureTestDb(KDbFile2);
+    
+    TheTest.Printf(_L("Iteration:\r\n"));
+
+    //Open the database
+    TInt failingAllocationNo = 0;
+    err = KErrNoMemory;
+    while(err == KErrNoMemory)
+        {
+        TheTest.Printf(_L(" %d"), ++failingAllocationNo);
+        OomPreStep(failingAllocationNo);
+        
+        RMessage2 msg;
+        TSqlSrvFileData& fdata = TheServer->FileData();
+        TRAP(err, fdata.SetL(msg, KDbFile2().Length(), 0, (const TDesC8*)&KDbFile2));
+        if(err == KErrNone)
+            {
+            CSqlSrvDatabase* db = NULL;
+            TRAP(err, db = CSqlSrvDatabase::OpenL(fdata));
+            if(err == KErrNone)
+                {
+                delete db;
+                }
+            else
+                {
+                TEST(!db);
+                }
+            }
+        OomPostStep();
+        }
+    TEST2(err, KErrNone);   
+    err = TheFs.Delete(KDbFile2);
+    TEST2(err, KErrNone);   
+    //Create the database
+    TInt failingAllocationNo2 = 0;
+    err = KErrNoMemory;
+    while(err == KErrNoMemory)
+        {
+        TheTest.Printf(_L(" %d"), ++failingAllocationNo2);
+        OomPreStep(failingAllocationNo2);
+        RMessage2 msg;
+        TSqlSrvFileData& fdata = TheServer->FileData();
+        TRAP(err, fdata.SetL(msg, KDbFile2().Length(), 0, (const TDesC8*)&KDbFile2));
+        if(err == KErrNone)
+            {
+            TSecurityPolicy defaultPolicy(TSecurityPolicy::EAlwaysPass);
+            CSqlSecurityPolicy* policy = NULL;
+            TRAP(err, policy = CSqlSecurityPolicy::NewL(defaultPolicy));
+            if(err == KErrNone)
+                {
+                CSqlSrvDatabase* db = NULL;
+                TRAP(err, db = CSqlSrvDatabase::CreateSecureL(fdata, policy));
+                if(err == KErrNone)
+                    {
+                    delete db;
+                    }
+                else
+                    {
+                    TEST(!db);
+                    }
+                }
+            }
+        OomPostStep();
+        }
+    
+    (void)TheFs.Delete(KDbFile2);
+    
+    delete TheServer;
+    TheServer = NULL;
+     
+    TEST2(err, KErrNone);   
+    TheTest.Printf(_L("\r\n===CSqlSrvDatabase::OpenL() & CSqlSrvDatabase::CreateSecureL() OOM test succeeded at heap failure rate of %d ===\r\n"), 
+                   failingAllocationNo + failingAllocationNo2);
     }
 
 void DoTests()
@@ -545,7 +691,13 @@ void DoTests()
     
     TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4171 CSqlSrvDatabase::OpenL() & CSqlSrvDatabase::AttachDbL() OOM unit test"));
     OpenAttachDatabaseOomTest();
-    
+
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4172 CSqlSrvDatabase::OpenL() & CSqlSrvDatabase::AttachDbL() OOM unit test - 2"));
+    OpenAttachDatabaseOomTest2();
+
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4173 CSqlSrvDatabase::OpenL() & CSqlSrvDatabase::CreateL() OOM unit test"));
+    OpenCreateDatabaseOomTest();
+
     delete scheduler;
 #endif //_DEBUG    
 	}

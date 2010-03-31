@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -550,9 +550,9 @@ void CFeatMgrFeatureRegistry::ReadFeatureFilesL()
     //check that there is at least one DSR 
     if (!iRangeList.Count()) 
     	{
-    	_LIT( KPanicCategory, "FeatMgrServer" );
+    	_LIT(KPanicCategory, "FeatMgrServer");
     	ERROR_LOG( "CFeatMgrFeatureRegistry::ReadFilesFromDirL() - no DSR found in ROM; this indicates a system integration error  - going to panic" );
-    	User::Panic( KPanicCategory, EPanicNoDSR );    
+    	::FmgrFatalErrorL(KErrNotFound, KPanicCategory, EPanicNoDSR);    
     	}
     }
 
@@ -562,7 +562,7 @@ void CFeatMgrFeatureRegistry::ReadFeatureFilesL()
 //
 void CFeatMgrFeatureRegistry::ReadFilesFromDirL( const TDesC& aDirName )
     {
-	_LIT( KPanicCategory, "FEATMGR-READFILE" );
+    _LIT(KPanicCategory, "FEATMGR-READFILE");
 
     CDir* dir = NULL; 
     TInt err( KErrNone );
@@ -581,7 +581,7 @@ void CFeatMgrFeatureRegistry::ReadFilesFromDirL( const TDesC& aDirName )
         }  
     else if( err == KErrPathNotFound )
     	{
-    	__ASSERT_ALWAYS( EFalse, User::Panic( KPanicCategory, EPanicNoFeatureFiles) );
+    	::FmgrFatalErrorL(err, KPanicCategory, EPanicNoFeatureFiles);
     	}
 	else
         {            
@@ -722,7 +722,7 @@ void CFeatMgrFeatureRegistry::ReadFileL( const TDesC& aFullPath )
         	}
         else //File is not as runtime file.
         	{
-        	err = ValidateFeatureFlag(flags);
+        	ValidateFeatureFlagL(flags);
         	}
         
         //If a feature flag defined in system drive (c:) is invalid, it will not be added to Feature Manager 
@@ -1025,7 +1025,7 @@ void CFeatMgrFeatureRegistry::MergePluginFeaturesL( RFeatureArray& aList )
     for ( TInt i = 0; i < count; i++ )
         {
         //Check for feature flag errors
-        ValidateFeatureFlag(aList[i].FeatureFlags()) ; 
+        ValidateFeatureFlagL(aList[i].FeatureFlags()) ; 
         const TUid uid( aList[i].FeatureUid() );
         TInt index = SearchFeature( uid );
         
@@ -1063,10 +1063,9 @@ void CFeatMgrFeatureRegistry::MergePluginFeaturesL( RFeatureArray& aList )
 // -----------------------------------------------------------------------------
 //  
    
-TInt CFeatMgrFeatureRegistry::ValidateFeatureFlag(TBitFlags32 aFlags)
+void CFeatMgrFeatureRegistry::ValidateFeatureFlagL(TBitFlags32 aFlags)
 	{
-	_LIT( KPanicCategory, "FEATMGR-FLAGS" );
-
+	_LIT(KPanicCategory, "FEATMGR-FLAGS");
 	
 	if(!aFlags.IsSet(EFeatureRuntime)) //ROM defined feature flag error check
 		{
@@ -1076,8 +1075,7 @@ TInt CFeatMgrFeatureRegistry::ValidateFeatureFlag(TBitFlags32 aFlags)
 	    	 if(aFlags.IsSet(EFeatureModifiable) || aFlags.IsSet(EFeaturePersisted) || aFlags.IsSet(EFeatureUninitialized) )
 	    	 	{
 	    	 	//error 
-	    	 	__ASSERT_ALWAYS(EFalse, User::Panic( KPanicCategory, EFmpInvalidFeatureBitFlagsRule1));
-                return KErrArgument;
+	    	 	::FmgrFatalErrorL(KErrArgument, KPanicCategory, EFmpInvalidFeatureBitFlagsRule1);
 	    	  	}
 	    	}
 	    	
@@ -1087,17 +1085,14 @@ TInt CFeatMgrFeatureRegistry::ValidateFeatureFlag(TBitFlags32 aFlags)
 	       	if (aFlags.IsSet(EFeaturePersisted) || aFlags.IsSet(EFeatureUninitialized) )
 	       	 	{
 	        	//error 
-	        	__ASSERT_ALWAYS(EFalse, User::Panic( KPanicCategory, EFmpInvalidFeatureBitFlagsRule2));
-                return KErrArgument;
+	       	 	::FmgrFatalErrorL(KErrArgument, KPanicCategory, EFmpInvalidFeatureBitFlagsRule2);
 	        	}	
 	        }
 		}
 	else // Runtime feature this should not be in the rom
 		{		
-		__ASSERT_ALWAYS(EFalse, User::Panic( KPanicCategory, EPanicInvalidFeatureInfo));
-		return KErrArgument;
+		::FmgrFatalErrorL(KErrArgument, KPanicCategory, EPanicInvalidFeatureInfo);
 		}
-	return KErrNone;
 	}
 
 /**

@@ -511,18 +511,20 @@ Arg 1: [in]  database file name
 Arg 2: [in]  PPPPCCCC, where PPPP is the security policy length, CCCC is the config string length.
 Arg 3: [in]  security policies buffer | config string
 
-@leave KErrArgument If config string length or security policy length is invalid (negative length or too big length)
 @panic SqlDb 1 Client panic. iDatabase is not NULL (it has been created already)
+@panic SqlDb 4 Client panic. Negative or too big config string length
+@panic SqlDb 4 Client panic. Negative security policy length, or zero length if the request is to create a secure database 
 */
 void CSqlSrvSession::DbCreateObjectL(const RMessage2& aMessage, TSqlSrvFunction aFunction)
 	{
 	__SQLPANIC_CLIENT(!iDatabase, aMessage, ESqlPanicObjExists);
 	const TInt KSecurityPolicyLen = (aMessage.Int2() & 0x7fff0000) >> 16;
+    //If the security policy length is negative then this is a programming error.
+    __SQLPANIC_CLIENT(KSecurityPolicyLen >= 0, aMessage, ESqlPanicBadArgument);
 	const TInt KConfigStringLen = aMessage.Int2() & 0xffff;
-	if(KSecurityPolicyLen < 0 || (TUint)KConfigStringLen > KSqlSrvMaxConfigStrLen)
-		{
-		__SQLLEAVE(KErrArgument);	
-		}
+	//If KConfigStringLen is invalid then this is a programming error. 
+	//If the client sends a too big config string - this is handled in the client side session.
+    __SQLPANIC_CLIENT((TUint)KConfigStringLen <= KSqlSrvMaxConfigStrLen, aMessage, ESqlPanicBadArgument);
 	RBuf8 securityAndConfigBuf;
 	CleanupClosePushL(securityAndConfigBuf);
 	if((KSecurityPolicyLen + KConfigStringLen) > 0)
@@ -550,7 +552,8 @@ void CSqlSrvSession::DbCreateObjectL(const RMessage2& aMessage, TSqlSrvFunction 
 			break;
 		case ESqlSrvDbCreateSecure:
 			{
-			if(!fileData.IsSecureFileNameFmt() || KSecurityPolicyLen == 0)
+		    __SQLPANIC_CLIENT(KSecurityPolicyLen > 0, aMessage, ESqlPanicBadArgument);
+			if(!fileData.IsSecureFileNameFmt())
 				{
 				__SQLLEAVE(KErrArgument);	
 				}
@@ -1524,14 +1527,13 @@ TInt CSqlSrvSession::NewOutputStreamL(const RMessage2& aMessage, MStreamBuf* aSt
 	aStreamBuf->PushL();
 	iIpcStreams.AllocL();
 	TInt size = aStreamBuf->SizeL();
+	__SQLASSERT(size >= 0, ESqlPanicInternalError);
 	TPckgBuf<TIpcStreamBuf> ipcBuf;
-	if(size > 0)						// read the first buffer-full
-		{
-		TInt len = Min(size, KIpcBufSize);
-		aStreamBuf->ReadL(ipcBuf().iData, len);
-		}
+    // read the first buffer-full
+    TInt len = Min(size, KIpcBufSize);
+    aStreamBuf->ReadL(ipcBuf().iData, len);
 	TInt handle = 0;
-	if(size < 0 || size > KIpcBufSize)
+	if(size > KIpcBufSize)
 		{								// create the stream object
 		HIpcStream* ipcStream = new (ELeave) HIpcStream(aStreamBuf, KIpcBufSize);
 		handle = iIpcStreams.Add(ipcStream);
@@ -1542,12 +1544,9 @@ TInt CSqlSrvSession::NewOutputStreamL(const RMessage2& aMessage, MStreamBuf* aSt
 		{
 		CleanupStack::PopAndDestroy(aStreamBuf);
 		}
-	if(size >= 0)
-		{
-		ipcBuf().iExt = size;
-		aMessage.WriteL(2, ipcBuf);
-		SQLPROFILER_REPORT_IPC(ESqlIpcWrite, size);
-		}
+    ipcBuf().iExt = size;
+    aMessage.WriteL(2, ipcBuf);
+    SQLPROFILER_REPORT_IPC(ESqlIpcWrite, size);
 	return handle;
 	}
 

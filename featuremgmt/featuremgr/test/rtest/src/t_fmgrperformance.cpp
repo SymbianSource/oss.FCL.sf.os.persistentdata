@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -246,7 +246,7 @@ void FeatureControlTest()
 @SYMTestExpectedResults Test must not fail
 @SYMDEF                 DEF144262
 */
-void FeatureManagerTest()
+void FeatureManagerTestL()
     {
     TUint32 start = User::FastCounter();
     FeatureManager::InitializeLibL();
@@ -271,7 +271,7 @@ void DoTestsL()
     FeatureControlTest();
 
     TheTest.Next(_L("@SYMTestCaseID:PDS-EFM-CT-4107 FeatureManager performance test"));
-    FeatureManagerTest();
+    FeatureManagerTestL();
     }
 
 TInt E32Main()

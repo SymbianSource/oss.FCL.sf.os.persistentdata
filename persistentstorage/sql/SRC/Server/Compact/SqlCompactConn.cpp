@@ -106,11 +106,11 @@ Note: The free page threshold data member of the callback is in Kb.
 
 @param aFullName The full database name, including the path.
 @param aFreePageCallback Input/Output parameter. A reference to an object containing the free pages threshold and 
-						 the callback that needs to be called when the free page count reaches ot is above the threshold.
+						 the callback that needs to be called when the free page count reaches or is above the threshold.
 						 aFreePageCallback.iThreshold must be set to be in Kb. 	
 						 If the function call completes successfully and the free pages space is above the threshold,
 						 the aFreePageCallback.iThreshold will be set to contain the free pages count.
-						 Otherwise aFreePageCallback.iThreshold will be initizized with zero.
+						 Otherwise aFreePageCallback.iThreshold will be initialized with zero.
 
 @leave KErrNoMemory, an out of memory condition has occurred,
 	   KErrArgument, invalid data in the aFreePageCallback object;
@@ -199,11 +199,11 @@ A factory function for CSqlCompactConn.
 
 @param aFullName The full name of the database to be compacted (including the path).
 @param aFreePageCallback A reference to an object containing the free pages threshold and the callback
-					     that needs to be called when the free page count reaches ot is above the threshold.
+					     that needs to be called when the free page count reaches or is above the threshold.
 						 aFreePageCallback.iThreshold must be set to be in Kb. 	
 						 If the function call completes successfully and the free pages space is above the threshold,
 						 the aFreePageCallback.iThreshold will be set to contain the free pages count.
-						 Otherwise aFreePageCallback.iThreshold will be initizized with zero.
+						 Otherwise aFreePageCallback.iThreshold will be initialized with zero.
 					  
 @return A pointer to the created MSqlCompactConn interface.
 

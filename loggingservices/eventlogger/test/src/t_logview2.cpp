@@ -6785,6 +6785,102 @@ LOCAL_C void TestOtherFieldsINC108225L(CLogClient& aClient)
 	CleanupStack::PopAndDestroy(4);	
 }
 
+/**
+@SYMTestCaseID          PDS-LOGENG-CT-4050
+@SYMTestCaseDesc        Tests for the changes made in defect DEF144552 
+@SYMTestPriority        High
+@SYMTestActions         Tests for the sucessful completion of the following operation - 
+                        1)Applying a filter where the event's start time matches the end time.
+                        2)Clearing the log where the clear log time is 1 microsecs after the 
+                        timestamp of the event.
+@SYMTestExpectedResults Test must not fail
+@SYMREQ                 DEF144552
+*/
+LOCAL_C void DEF144552L(CLogClient& aClient)
+    {
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-CT-4050 ")); 
+    TestUtils::DeleteDatabaseL(EFalse);
+    
+    CTestActive* active = new(ELeave)CTestActive();
+    CleanupStack::PushL(active);
+
+    //Setup the database by adding a event and changing the timestamp for the event
+    //Add 1 event
+    CLogEvent* event = CLogEvent::NewL();
+    CleanupStack::PushL(event);
+    event->SetEventType(KLogCallEventTypeUid);
+    event->SetContact(KTestContact1);
+    event->SetNumber(KTestNumber2);
+    event->SetDuration(0);
+    active->StartL();
+    aClient.AddEvent(*event, active->iStatus);
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    
+    //Change the event
+    TTime now;
+    now.UniversalTime();
+    event->SetTime(now);
+    active->StartL();
+    aClient.ChangeEvent(*event, active->iStatus);
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    
+    //Test 1: Setup and apply a filter where the start time matches the end time
+    //If the defect is fixed then the view will contain the event previously added,
+    //Otherwise the time parameters will be truncated and the event will not be found
+    
+    //Setup filter so that the start and the end time matches
+    CLogFilter* filter = CLogFilter::NewL();
+    CleanupStack::PushL(filter);
+    filter->SetStartTime(now);
+    filter->SetEndTime(now);
+    
+    //Apply the filter and check that 1 event is in the view
+    CLogViewEvent* view = CLogViewEvent::NewL(aClient);
+    CleanupStack::PushL(view);
+    active->StartL();
+    TEST(view->SetFilterL(*filter, active->iStatus));
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    TEST2(view->CountL(), 1);
+    
+    //Retrieve and check the event
+    active->StartL();
+    TEST(view->FirstL(active->iStatus));
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    const CLogEvent& currentEvent(view->Event());
+    TEST2(currentEvent.EventType().iUid, KLogCallEventTypeUid.iUid);
+    TEST2(currentEvent.Duration(), 0);
+    TEST2(currentEvent.Time().Int64(), now.Int64());
+    
+    // Test 2: Clearing a log where the time specified in ClearLog() is just
+    // after the timestamp of the event by 1 microsecond. If the defect is fixed
+    // then the event will be deleted. However if the defect is not fixed then the
+    // time specified in ClearLog() will be truncated and the event will not be 
+    // deleted
+    
+    //Clear the log
+    active->StartL();
+    TTimeIntervalMicroSeconds microsecond(1);
+    now += microsecond;
+    aClient.ClearLog(now, active->iStatus);
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    
+    //Check that the event has been deleted in the view
+    CleanupStack::PopAndDestroy(2);
+    view = CLogViewEvent::NewL(aClient);
+    CleanupStack::PushL(view);
+    filter = CLogFilter::NewL();
+    CleanupStack::PushL(filter);
+    active->StartL();
+    TEST(!view->SetFilterL(*filter, active->iStatus));
+
+    CleanupStack::PopAndDestroy(4, active); 
+    }
+
 void doTestsL()
 	{
 	TestUtils::Initialize(_L("t_logview2"));
@@ -6910,5 +7006,9 @@ void doTestsL()
 	TestOtherFieldsINC108225L(*client);
 	theLog.Write(_L8("Test 23 OK\n"));
 
+	TheTest.Next(_L("Test Defect DEF144552: CLogFilter doesn't work when Starttime is the same as EndTime"));
+	DEF144552L(*client);
+	theLog.Write(_L8("Test 24 OK\n"));
+	
 	CleanupStack::PopAndDestroy(2); // client, notifier
 	}

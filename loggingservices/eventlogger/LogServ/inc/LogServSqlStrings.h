@@ -52,8 +52,8 @@ CONST_LIT(KLogSqlInsertConfigString, "INSERT INTO Config VALUES (%d, %d, %d)") ;
 CONST_LIT(KLogSqlUpdateTypeString, "UPDATE Type SET Description = '%S', Enabled = %d WHERE UId = %d") ;
 CONST_LIT(KLogSqlDeleteTypeString, "DELETE FROM Type WHERE UId = %d") ;
 //
-CONST_LIT(KLogSqlSelectOldestString, "SELECT Id FROM Event WHERE ETime <= #%S#") ;
-CONST_LIT(KLogSqlDeleteOldestString, "DELETE FROM Event WHERE ETime <= #%S#") ;
+CONST_LIT(KLogSqlSelectOldestString, "SELECT Id FROM Event WHERE ETime < #%S#") ;
+CONST_LIT(KLogSqlDeleteOldestString, "DELETE FROM Event WHERE ETime < #%S#") ;
 CONST_LIT(KLogSqlSelectAllRecent,    "SELECT Id, Recent, Duplicate FROM Event") ;
 CONST_LIT(KLogSqlSelectDuplicateString, "SELECT Id, Duplicate FROM EVENT WHERE Recent = %d %S AND NOT Id = %d ORDER BY Id DESC") ;
 CONST_LIT(KLogSqlGetRecent, "SELECT Id FROM Event WHERE Recent = %d AND Duplicate IS NULL ORDER BY Id DESC") ;

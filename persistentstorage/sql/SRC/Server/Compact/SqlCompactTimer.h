@@ -36,7 +36,7 @@ The class offers methods for adding/removing CSqlCompactEntry objects to/from th
 method that can be used to delay the next compaction step, improving this way the SQL server responsiveness to 
 client requests.
 
-The CSqlCompactEntry objects needed compaction will be added at the front of the queue.
+The CSqlCompactEntry objects needing compaction will be added at the front of the queue.
 Every time when timer's RunL() method gets executed, the last element from the queue will be picked-up and one
 compaction step will be performed. When the CSqlCompactEntry object completes the compaction, it will remove
 itself from the queue.

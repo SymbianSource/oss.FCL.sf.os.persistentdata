@@ -31,6 +31,18 @@
 #include "featmgrfeatureregistry.h"
 #include "burstate.h"
 
+#ifdef FEATURE_MANAGER_STARTUP_TEST
+    inline void FmgrFatalErrorL(TInt err, const TDesC&, TInt)
+        {
+        User::Leave(err);
+        }
+#else
+    inline void FmgrFatalErrorL(TInt, const TDesC& aPanicCategory, TInt aPanicCode)
+        {
+        User::Panic(aPanicCategory, aPanicCode);
+        }
+#endif
+
 // FORWARD DECLARATIONS
 class CFeatMgrPluginHandler;
 class CFeatMgrFeatureRegistry;

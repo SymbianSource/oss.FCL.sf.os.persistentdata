@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -24,7 +24,7 @@
 #include "featmgrserver.h"
 
 // LOCAL CONSTANTS
-_LIT( KPanicCategory, "FeatMgrPluginHandler" );
+_LIT(KPanicCategory, "FeatMgrPluginHandler");
 
 // ============================= LOCAL FUNCTIONS ===============================
 
@@ -192,7 +192,7 @@ void CFeatMgrPluginHandler::ProcessFeatureInfoL(
         ERROR_LOG2( "CFeatMgrPluginHandler::ProcessFeatureInfoL - pluginhandler %x, error %d - going to panic",
                                      this, aResponse().iErrorCode );
         // This is considered fatal enough reason to panic
-        User::Panic( KPanicCategory, EPanicInvalidFeatureInfo );                       
+        ::FmgrFatalErrorL(aResponse().iErrorCode, KPanicCategory, EPanicInvalidFeatureInfo);                       
         }
     }
 
@@ -243,7 +243,7 @@ void CFeatMgrPluginHandler::ProcessFeatureInfoL(
         ERROR_LOG2( "CFeatMgrPluginHandler::ProcessFeatureInfoL - pluginhandler %x, error %d - going to panic",
                                      this, aResponse().iErrorCode );
         // This is considered fatal enough reason to panic
-        User::Panic( KPanicCategory, EPanicInvalidFeatureInfo );                       
+        ::FmgrFatalErrorL(aResponse().iErrorCode, KPanicCategory, EPanicInvalidFeatureInfo);                       
         }
     }
 

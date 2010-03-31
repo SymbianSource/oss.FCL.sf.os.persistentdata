@@ -18,7 +18,7 @@
 * Only one instance of that class should be created by the server.
 * The CSqlCompactor single instance manages a set of reference counted per-database entries and a CTimer compaction object.
 * The MSqlCompactConn interface acts as an abstraction layer between the compaction entries and the 
-* real object which functions are used to perform the compaction.
+* real object with member functions that are used to perform the compaction.
 * 
 *
 */

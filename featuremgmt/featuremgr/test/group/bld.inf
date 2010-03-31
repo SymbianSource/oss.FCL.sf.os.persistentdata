@@ -31,7 +31,7 @@ PRJ_TESTMMPFILES
 ../rtest/group/t_fmgroom.mmp
 ../rtest/group/t_fmgrstartup.mmp
 ../rtest/group/t_fmgrpanic.mmp
-../rtest/group/t_fmgrbadclient.mmp manual
+../rtest/group/t_fmgrbadclient.mmp
 ../rtest/group/t_fmgrsecurity1.mmp
 ../rtest/group/t_fmgrnotify.mmp
 ../rtest/group/t_fmgrperformance.mmp

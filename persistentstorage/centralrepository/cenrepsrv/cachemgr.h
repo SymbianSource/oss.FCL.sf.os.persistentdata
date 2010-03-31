@@ -30,7 +30,7 @@ _LIT(KCacheMgrIniFile, "centrep.ini");
 	The default value is approximately the size needed to cache everything during device boot-up
 	@internalComponent
 	*/
-	#define DEFAULT_CENTREP_CACHE_SIZE 100000
+	#define DEFAULT_CENTREP_CACHE_SIZE 200000
 #else
 	#if DEFAULT_CENTREP_CACHE_SIZE <= 0
 		#error "DEFAULT_CENTREP_CACHE_SIZE macro value must be greater than 0"

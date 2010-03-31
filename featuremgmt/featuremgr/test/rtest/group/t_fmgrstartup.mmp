@@ -17,6 +17,7 @@ TARGET			t_fmgrstartup.exe
 TARGETTYPE		exe
 
 MACRO       EXTENDED_FEATURE_MANAGER_TEST
+MACRO       FEATURE_MANAGER_STARTUP_TEST
 
 CAPABILITY      ProtServ ReadDeviceData AllFiles
 

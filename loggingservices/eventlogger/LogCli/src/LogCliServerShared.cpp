@@ -250,8 +250,8 @@ EXPORT_C void TLogTransferWindow::Reset()
 @return    Format string for this locale. */
 EXPORT_C const TDesC& LogUtils::DateFormatForLocale()
 	{
-	_LIT(KSQLDateFormatColon,"%D%*M%Y%1 %2 %3 %H:%T:%S"); 
-	_LIT(KSQLDateFormatDot,"%D%*M%Y%1 %2 %3 %H.%T.%S"); 
+    _LIT(KSQLDateFormatColon,"%D%*M%Y%1 %2 %3 %H:%T:%S%.%C"); 
+    _LIT(KSQLDateFormatDot,"%D%*M%Y%1 %2 %3 %H.%T.%S%.%C");
 
 	TLocale current; 
 	TBool dateSeparatorIsColon=EFalse;
