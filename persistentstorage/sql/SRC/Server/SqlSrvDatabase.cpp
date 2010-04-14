@@ -925,10 +925,7 @@ void CSqlSrvDatabase::AttachCleanup(void* aCleanup)
 	{
 	TAttachCleanup* cleanup = reinterpret_cast <TAttachCleanup*> (aCleanup);
 	__SQLASSERT(cleanup != NULL, ESqlPanicBadArgument);
-	if(cleanup)
-		{
-		(void)cleanup->iSelf.FinalizeAttachedDb(cleanup->iDbName);
-		}
+	(void)cleanup->iSelf.FinalizeAttachedDb(cleanup->iDbName);
 	}
 
 /**
@@ -1410,10 +1407,7 @@ void CSqlSrvDatabase::CompactCleanup(void* aCleanup)
 	{
 	CSqlSrvDatabase* self = reinterpret_cast <CSqlSrvDatabase*> (aCleanup);
 	__SQLASSERT(self != NULL, ESqlPanicBadArgument);
-	if(self)
-		{
-		self->ReleaseCompactEntry(KMainDb16);
-		}
+    self->ReleaseCompactEntry(KMainDb16);
 	}
 
 /**

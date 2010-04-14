@@ -72,7 +72,11 @@ NONSHARABLE_CLASS(TSqlSrvFileData)
 public:
 	inline void InitL(RFs& aFs, const TDriveName& aSysDriveName, const TDesC& aServerPrivatePath, 
 					  const TDesC& aConfigFileName, const CDbConfigFiles* aDbConfigFiles);
-	void SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aFileNameArgNum, const TDesC8* aConfigStr = NULL);
+	void SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aFileNameArgNum,
+#ifdef SQLSRV_STARTUP_TEST
+	          const TDesC& aDbFileName,
+#endif	        
+	          const TDesC8* aConfigStr = NULL);
   	void SetFromHandleL(const RMessage2& aMessage, const TDesC& aDbFileName, TBool aCreated, TBool aReadOnly, const TDesC8* aConfigStr = NULL);
 
 	inline RFs& Fs() const;

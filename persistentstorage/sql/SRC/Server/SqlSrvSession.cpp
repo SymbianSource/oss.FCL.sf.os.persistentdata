@@ -9,6 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -26,6 +27,8 @@
 #include "UTraceSql.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma BullseyeCoverage off
 
 #ifdef _DEBUG
 
@@ -80,9 +83,16 @@ inline void CSqlSrvSession::DbResourceEnd(const RMessage2& aMessage)
 //Executes the heap simulation failure.
 inline void CSqlSrvSession::DbSetAllocFail(TInt aHeapFailureMode, TInt aFailedAllocNumber)
 	{
-	User::__DbgSetAllocFail(RHeap::EUser, 
-							static_cast <RHeap::TAllocFail> (aHeapFailureMode & (KDelayedDbHeapFailureMask - 1)), 
-							aFailedAllocNumber);
+	TInt mode = aHeapFailureMode & (KDelayedDbHeapFailureMask - 1);
+	if(mode >= RAllocator::EBurstRandom && mode <= RAllocator::EBurstFailNext)
+	    {
+	    const TUint KBurst = 50; 
+	    User::__DbgSetBurstAllocFail(RHeap::EUser, static_cast <RHeap::TAllocFail> (mode), aFailedAllocNumber, KBurst);
+	    }
+	else
+	    {
+        User::__DbgSetAllocFail(RHeap::EUser, static_cast <RHeap::TAllocFail> (mode), aFailedAllocNumber);
+	    }
 	}
 	
 //Executes the delayed heap simulation failure, if the connection is in test mode
@@ -90,9 +100,16 @@ inline void CSqlSrvSession::DbSetDelayedAllocFail()
 	{
 	if(iDbResourceTestMode & KDelayedDbHeapFailureMask)
 		{
-		User::__DbgSetAllocFail(RHeap::EUser, 
-								static_cast <RHeap::TAllocFail> (iDbResourceTestMode & (KDelayedDbHeapFailureMask - 1)), 
-								iFailedAllocNumber);
+	    TInt mode = iDbResourceTestMode & (KDelayedDbHeapFailureMask - 1);
+	    if(mode >= RAllocator::EBurstRandom && mode <= RAllocator::EBurstFailNext)
+	        {
+	        const TUint KBurst = 50; 
+	        User::__DbgSetBurstAllocFail(RHeap::EUser, static_cast <RHeap::TAllocFail> (mode), iFailedAllocNumber, KBurst);
+	        }
+	    else
+	        {
+	        User::__DbgSetAllocFail(RHeap::EUser, static_cast <RHeap::TAllocFail> (mode), iFailedAllocNumber);
+	        }
 		}
 	}
 	
@@ -124,6 +141,8 @@ inline void CSqlSrvSession::DbSetDelayedAllocFail()
 	}
 
 #endif//_DEBUG
+
+#pragma BullseyeCoverage on
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -399,7 +418,7 @@ void CSqlSrvSession::ServiceL(const RMessage2& aMessage)
 			StmtColumnValueL(aMessage, handle);
 			break;
 		case ESqlSrvStmtDeclColumnTypes:
-			StmtDeclColumnTypesL(aMessage, handle);
+			retCode = StmtDeclColumnTypesL(aMessage, handle);
 			break;
 		//////////////////////   stream operations //////////////////////////////////
 		case ESqlSrvStreamRead:
@@ -460,6 +479,8 @@ void CSqlSrvSession::ServiceError(const RMessage2& aMessage, TInt aError)
 ////////////////////////////          Profiler  operations           ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#pragma BullseyeCoverage off
+
 /**
 Retrieves the counter values for the specified profiling counter.
 
@@ -495,6 +516,8 @@ void CSqlSrvSession::ProfilerQueryL(const RMessage2& aMessage)
 		TSqlSrvResourceProfiler::QueryL(aMessage);
 		}				
 	}
+
+#pragma BullseyeCoverage on
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////          Database operations           ///////////////////////////////////
@@ -1063,6 +1086,7 @@ Arg 2: [in]  file session handle
 Arg 3: [in]  database file handle
 
 @panic SqlDb 2 Client panic. iDatabase is NULL (the database object is not created yet).
+@panic SqlDb 4 Client panic. Invalid IPC data, an indication of a problme in client side sql library.
 */
 void CSqlSrvSession::DbAttachFromHandleL(const RMessage2& aMessage)
 	{
@@ -1070,10 +1094,7 @@ void CSqlSrvSession::DbAttachFromHandleL(const RMessage2& aMessage)
 	//Read-only flag, buffer length, buffer allocation
 	TBool readOnly = (aMessage.Int0() & 0x80000000) != 0;
 	const TInt KBufLen = aMessage.Int0() & 0x7FFFFFFF;
-	if(KBufLen <= 0)
-		{
-		__SQLLEAVE(KErrArgument);
-		}
+    __SQLPANIC_CLIENT(KBufLen > 0, aMessage, ESqlPanicBadArgument);
 	HBufC8* buf = HBufC8::NewLC(KBufLen);
 	TPtr8 bufPtr = buf->Des();
 	aMessage.ReadL(1, bufPtr);
@@ -1486,22 +1507,26 @@ void CSqlSrvSession::DoStmtBindL(const RMessage2& aMessage, CSqlSrvStatement& aS
 	}
 
 /**
+Processes the request for retrieving the statement declared column type names.
+
+If the client side buffer size is not big enough, the function returns the size + KSqlClientBufOverflowCode.
+In this case the client must increase the buffer and try again to get the buffer only
+
 Usage of the IPC call arguments:
 Arg 0: [in]    	input buffer max length in 16-bit characters
-Arg 1: [in/out]	buffer
+Arg 1: [out]	ipc buffer, declared column type names
 */
-void CSqlSrvSession::StmtDeclColumnTypesL(const RMessage2& aMessage, TInt aStmtHandle)
-	{
+TInt CSqlSrvSession::StmtDeclColumnTypesL(const RMessage2& aMessage, TInt aStmtHandle)
+	{	
 	CSqlSrvStatement& stmt = ::SqlSessObjFind(iStatements, aStmtHandle, aMessage);
-	HBufC* colTypesBuf = stmt.GetDeclColumnTypesL();
-	CleanupStack::PushL(colTypesBuf);
-	if(colTypesBuf->Des().Length() > aMessage.Int0())
+	const RSqlBufFlat& declColumnTypesBuf = stmt.GetDeclColumnTypesL();
+	TInt size = declColumnTypesBuf.Size();
+	if(size <= aMessage.Int0())
 		{
-		__SQLLEAVE(KErrOverflow);
+		aMessage.WriteL(1, declColumnTypesBuf.BufDes());
+		return 0;
 		}
-	aMessage.WriteL(1, colTypesBuf->Des());
-	SQLPROFILER_REPORT_IPC(ESqlIpcWrite, (colTypesBuf->Des().Length() * sizeof(TText)));
-	CleanupStack::PopAndDestroy(colTypesBuf);
+	return size + KSqlClientBufOverflowCode;
 	}
 
 
@@ -1555,8 +1580,8 @@ Reads a 8-bit string with "aByteLen" bytes length, which is in "aArgNum" argumen
 The string will be zero terminated after the "read" operation.
 Returns TDes8 reference pointing to the zero-terminated string.
 
-@leave KErrBadDescriptor The transferred data length is bigger than the aByteLen value 
-
+@panic SqlDb 3 Client panic. The string length is not equal to aByteLen. If happens then it is an indication of a 
+                             problem inside client side sql library.
 @panic SqlDb 4 Client panic. Negative aByteLen value.
 */
 TDes8& CSqlSrvSession::ReadString8ZL(const RMessage2& aMessage, TInt aArgNum, TInt aByteLen)
@@ -1565,10 +1590,7 @@ TDes8& CSqlSrvSession::ReadString8ZL(const RMessage2& aMessage, TInt aArgNum, TI
 	TDes8& buf = Server().GetBuf8L(aByteLen + 1);
 	aMessage.ReadL(aArgNum, buf);
 	SQLPROFILER_REPORT_IPC(ESqlIpcRead, aByteLen);
-	if(buf.Length() > aByteLen)
-		{
-		__SQLLEAVE(KErrBadDescriptor);
-		}
+    __SQLPANIC_CLIENT(buf.Length() == aByteLen, aMessage, ESqlPanicBadHandle);
 	buf.Append(TChar(0));
 	return buf;
 	}
@@ -1578,8 +1600,8 @@ Reads a 16-bit string with "aCharLen" character length, which is in "aArgNum" ar
 The string will be zero terminated after the "read" operation.
 Returns TDes16 reference pointing to the zero-terminated string.
 
-@leave KErrBadDescriptor The transferred data length is bigger than the aCharLen value
-
+@panic SqlDb 3 Client panic. The string length is not equal to aCharLen. If happens then it is an indication of a 
+                             problem inside client side sql library.
 @panic SqlDb 4 Client panic. Negative aCharLen value.
 */
 TDes16& CSqlSrvSession::ReadString16ZL(const RMessage2& aMessage, TInt aArgNum, TInt aCharLen)
@@ -1588,10 +1610,7 @@ TDes16& CSqlSrvSession::ReadString16ZL(const RMessage2& aMessage, TInt aArgNum, 
 	TDes16& buf = Server().GetBuf16L(aCharLen + 1);
 	aMessage.ReadL(aArgNum, buf);
 	SQLPROFILER_REPORT_IPC(ESqlIpcRead, (aCharLen * sizeof(TText)));
-	if(buf.Length() > aCharLen)
-		{
-		__SQLLEAVE(KErrBadDescriptor);
-		}
+    __SQLPANIC_CLIENT(buf.Length() == aCharLen, aMessage, ESqlPanicBadHandle);
 	buf.Append(TChar(0));
 	return buf;
 	}
@@ -1600,8 +1619,8 @@ TDes16& CSqlSrvSession::ReadString16ZL(const RMessage2& aMessage, TInt aArgNum, 
 Reads a 16-bit string with "aCharLen" character length, which is in "aArgNum" argument of aMessage.
 Returns TDes16 reference pointing to the string.
 
-@leave KErrBadDescriptor The transferred data length is bigger than the aCharLen value
-
+@panic SqlDb 3 Client panic. The string length is not equal to aCharLen. If happens then it is an indication of a 
+                             problem inside client side sql library.
 @panic SqlDb 4 Client panic. Negative aCharLen value.
 */
 TDes16& CSqlSrvSession::ReadString16L(const RMessage2& aMessage, TInt aArgNum, TInt aCharLen)
@@ -1610,10 +1629,7 @@ TDes16& CSqlSrvSession::ReadString16L(const RMessage2& aMessage, TInt aArgNum, T
 	TDes16& buf = Server().GetBuf16L(aCharLen);
 	aMessage.ReadL(aArgNum, buf);
 	SQLPROFILER_REPORT_IPC(ESqlIpcRead, (aCharLen * sizeof(TText)));
-	if(buf.Length() > aCharLen)
-		{
-		__SQLLEAVE(KErrBadDescriptor);
-		}
+    __SQLPANIC_CLIENT(buf.Length() == aCharLen, aMessage, ESqlPanicBadHandle);
 	return buf;
 	}
 
@@ -1726,7 +1742,7 @@ TInt CSqlSrvSession::GetColumnValueL(const RMessage2& aMessage, CSqlSrvStatement
 			TPtrC8 val;
 			if(aColType == ESqlText)
 				{
-				TPtrC textVal = aStmt.ColumnText(0);
+				TPtrC textVal = aStmt.ColumnTextL(0);
 				val.Set(reinterpret_cast <const TUint8*> (textVal.Ptr()), textVal.Length() * sizeof(TUint16));
 				}
 			else

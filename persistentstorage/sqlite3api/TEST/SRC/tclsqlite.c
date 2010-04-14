@@ -2665,7 +2665,7 @@ int TCLSH_MAIN(int argc, char **argv){
 #endif		
     PrintS("###TclSqlite3: Tests begin");
     if( TCLSH==1 && Tcl_EvalFile(interp, argv[1])!=TCL_OK ){
-      char errMsg[300];
+      char errMsg[1024];
       const char *zInfo = Tcl_GetVar(interp, "errorInfo", TCL_GLOBAL_ONLY);
       if( zInfo==0 ) 
     	  zInfo = interp->result;

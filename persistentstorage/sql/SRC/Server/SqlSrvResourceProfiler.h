@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -63,10 +63,6 @@ extern TInt64 TheSqlSrvProfilerIpcBytes[];
 		while(0)
 
 ////////////////////////// IPC & SQL tracing related /////////////////////////////////
-
-//Every time, when the SQL server starts, the time is stored in TheSqlSrvStartTime variable.
-//It is used later to calculate and trace the time offset of particular trace. 
-extern TTime TheSqlSrvStartTime;
 
 //Level 1 IPC calls count. IPC calls types included:
 // ESqlSrvDbExec8, ESqlSrvDbExec16, ESqlSrvDbScalarFullSelect16, ESqlSrvStmtExec,

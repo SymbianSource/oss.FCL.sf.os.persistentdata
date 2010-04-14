@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -290,6 +290,12 @@ void Test1()
     err = TheDb.Detach(dbName3);
     TEST2(err, KSqlErrGeneral);  
     
+    //Attach a non-existing database
+    _LIT(KAttachDbFile5, "c:\\test\\zxcvbnm987654321.db");
+    _LIT(KAttachDb5, "zxcvbnm987654321");
+    err = TheDb.Attach(KAttachDbFile5, KAttachDb5);
+    TEST2(err, KErrNotFound);
+        
 	TheDb.Close();
 	}
 

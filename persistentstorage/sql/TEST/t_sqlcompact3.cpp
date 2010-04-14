@@ -121,7 +121,7 @@ void CreateTestEnv()
 void CompactConfigTest1L()
 	{
 	//Create a test database with "manual" compaction mode
-	_LIT8(KConfigStr1, "encoding=utf8;compaction=manual");
+	_LIT8(KConfigStr1, "encoding=utf-8;compaction=manual");
 	TInt err = TheDb.Create(KTestDbName1, &KConfigStr1);
 	TEST2(err, KErrNone);
 	//Check the vacuum mode. The SQLite vacuum mode should be "incremental"
@@ -166,7 +166,7 @@ void CompactConfigTest1L()
 void CompactConfigTest2L()
 	{
 	//Create a test database with "auto" compaction mode
-	_LIT8(KConfigStr1, "encoding=utf8;compaction=auto");
+	_LIT8(KConfigStr1, "encoding=utf-8;compaction=auto");
 	TInt err = TheDb.Create(KTestDbName1, &KConfigStr1);
 	TEST2(err, KErrNone);
 	//Check the vacuum mode. The SQLite vacuum mode should be "auto"
@@ -177,7 +177,7 @@ void CompactConfigTest2L()
 	//Create a test database with "synchronous" compaction mode
 	err = RSqlDatabase::Delete(KTestDbName1);
 	TEST2(err, KErrNone);
-	_LIT8(KConfigStr3, "encoding=utf8;compaction=synchronous");
+	_LIT8(KConfigStr3, "encoding=utf-8;compaction=synchronous");
 	err = TheDb.Create(KTestDbName1, &KConfigStr3);
 	TEST2(err, KErrNone);
 	//Check the vacuum mode. The SQLite vacuum mode should be "auto"
@@ -221,7 +221,7 @@ void CompactConfigTest2L()
 void CompactConfigTest3L()
 	{
 	//Create a test database with "background" compaction mode
-	_LIT8(KConfigStr1, "encoding=utf8;compaction=background");
+	_LIT8(KConfigStr1, "encoding=utf-8;compaction=background");
 	TInt err = TheDb.Create(KTestDbName1, &KConfigStr1);
 	TEST2(err, KErrNone);
 	//Check the vacuum mode. The SQLite vacuum mode should be "incremental"
@@ -278,7 +278,7 @@ void CompactConfigTest4L()
 	err = RSqlDatabase::Delete(KTestDbName1);
 	TEST2(err, KErrNone);
 	//Create a test database with invalid configuration string
-	_LIT8(KConfigStr1, "encoding=utf8;compaction=backgrund");
+	_LIT8(KConfigStr1, "encoding=utf-8;compaction=backgrund");
 	err = TheDb.Create(KTestDbName1, &KConfigStr1);
 	TEST2(err, KErrNone);
 	//Check the vacuum mode. The SQLite vacuum mode should be KSqlDefaultVacuum
@@ -324,7 +324,7 @@ void CompactConfigTest4L()
 void CompactConfigTest5L()
 	{
 	//Create a private test database with "auto" compaction mode
-	_LIT8(KConfigStr1, "encoding=utf8;compaction=auto");
+	_LIT8(KConfigStr1, "encoding=utf-8;compaction=auto");
 	TInt err = TheDb.Create(KTestPrivDbName, &KConfigStr1);
 	TEST2(err, KErrNone);
 	//Check the vacuum mode. The SQLite vacuum mode should be "auto"
@@ -456,7 +456,7 @@ void CompactConfigTest6L()
 	{
 	//Create a secure test database with "auto" compaction mode.
 	RSqlSecurityPolicy securityPolicy = CreateTestSecurityPolicy();
-	_LIT8(KConfigStr1, "encoding=utf8;compaction=auto");
+	_LIT8(KConfigStr1, "encoding=utf-8;compaction=auto");
 	TInt err = TheDb.Create(KTestSecureDbName, securityPolicy, &KConfigStr1);
 	TEST2(err, KErrNone);
 	securityPolicy.Close();
@@ -521,7 +521,7 @@ void CompactConfigTest6L()
 void CompactConfigTest7L()
 	{
 	//Create a test database with "auto" compaction mode.
-	_LIT8(KConfigStr1, "encoding=utf8;compaction  =   auto");
+	_LIT8(KConfigStr1, "encoding=utf-8;compaction  =   auto");
 	TInt err = TheDb.Create(KTestDbName1, &KConfigStr1);
 	TEST2(err, KErrNone);
 	//Check the vacuum mode. The SQLite vacuum mode should be "auto"
@@ -539,7 +539,7 @@ void CompactConfigTest7L()
 	compact = scalarQuery2.SelectIntL(_L("PRAGMA auto_vacuum"));
 	TEST2(compact, KAutoVacuum);
 	//Open a third connection to the same database - "background" compaction mode config string
-	_LIT8(KConfigStr2, "  encoding =    utf8 ; ; ; compaction  =   background   ");
+	_LIT8(KConfigStr2, "  encoding =    utf-8 ; ; ; compaction  =   background   ");
 	RSqlDatabase db3;
 	err = db3.Open(KTestDbName1, &KConfigStr2);
 	TEST2(err, KErrNone);
@@ -577,7 +577,7 @@ void CompactConfigTest7L()
 	compact = scalarQuery2.SelectIntL(_L("PRAGMA auto_vacuum"));
 	TEST2(compact, KIncrementalVacuum);
 	//Open a third connection to the same database - "auto" compaction mode config string
-	_LIT8(KConfigStr4, "  encoding =    utf16 ; compaction  =   auto   ; ; ; ");
+	_LIT8(KConfigStr4, "  encoding =    utf-16 ; compaction  =   auto   ; ; ; ");
 	err = db3.Open(KTestDbName1, &KConfigStr4);
 	TEST2(err, KErrNone);
 	//Check the vacuum mode. The SQLite vacuum mode should be "incremental"

@@ -1355,6 +1355,115 @@ void ColumnBinaryStreamTest()
 	}
 
 /**
+@SYMTestCaseID          PDS-SQL-CT-4191
+@SYMTestCaseDesc        The test creates a test database and inserts one record using a stream.
+                        MStreamBuf::SeekL() is used to modify the parameter data at specific positions.
+                        Then the test executes a SELECT statement to read the just written record.
+                        MStreamBuf::SeekL() is used to read the column content at specific positions 
+                        (the same positions used during the record write operation). The read byte values must
+                        match the written byte values.
+@SYMTestPriority        High
+@SYMTestActions         RSqlColumnReadStream::ColumnBinary() and RSqlParamWriteStream::BindBinary() - MStreamBuf::SeekL() test.
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF145125
+*/  
+void StreamSeekTestL()
+    {
+    RSqlDatabase db;
+    CleanupClosePushL(db);
+    TInt rc = db.Create(KTestDbName1);
+    TEST2(rc, KErrNone);
+    rc = db.Exec(_L("CREATE TABLE A(Fld1 INTEGER, Fld2 BLOB)"));
+    TEST(rc >= 0);
+    //Write a record to the database using a stream. MStreamBuf::SeekL() is used to modify the content at a specific position.
+    RSqlStatement stmt;
+    CleanupClosePushL(stmt);
+    rc = stmt.Prepare(db, _L("INSERT INTO A(Fld1, Fld2) VALUES(1, ?)"));
+    TEST2(rc, KErrNone);
+    
+    RSqlParamWriteStream strm1;
+    CleanupClosePushL(strm1);
+    rc = strm1.BindBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+
+    for(TInt i=0;i<256;++i)
+        {
+        strm1 << (TUint8)i;
+        }
+    
+    const TInt KStreamOffset = 10;
+    const TUint8 KByte = 'z';
+    _LIT8(KData, "QWERTYUIOPASDFG");
+    
+    MStreamBuf* strm1buf = strm1.Sink();
+    TEST(strm1buf != NULL);
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamBeginning, 0);
+    strm1buf->WriteL(&KByte, 1);
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamMark, KStreamOffset);
+    strm1buf->WriteL(&KByte, 1);
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamEnd, 0);
+    strm1buf->WriteL(KData().Ptr(), KData().Length());
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamEnd, -4 * KStreamOffset);
+    strm1buf->WriteL(&KByte, 1);
+    
+    strm1.CommitL();
+    CleanupStack::PopAndDestroy(&strm1);
+    
+    rc = stmt.Exec();
+    TEST2(rc, 1);
+    CleanupStack::PopAndDestroy(&stmt);
+    
+    //Read the record using a stream. MStreamBuf::SeekL() is used to read the content at a specific position.
+    CleanupClosePushL(stmt);
+    rc = stmt.Prepare(db, _L("SELECT Fld2 FROM A WHERE Fld1 = 1"));
+    TEST2(rc, KErrNone);
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    
+    RSqlColumnReadStream strm2;
+    CleanupClosePushL(strm2);
+    rc = strm2.ColumnBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+
+    TUint8 byte = 0;
+    MStreamBuf* strm2buf = strm2.Source();
+    TEST(strm1buf != NULL);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamBeginning, 0);
+    rc = strm2buf->ReadL(&byte, 1);
+    TEST2(rc, 1);
+    TEST2(byte, KByte);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamMark, KStreamOffset);
+    rc = strm2buf->ReadL(&byte, 1);
+    TEST2(rc, 1);
+    TEST2(byte, KByte);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamEnd, -KData().Length());
+    TUint8 buf[20];
+    rc = strm2buf->ReadL(buf, KData().Length());
+    TEST2(rc, KData().Length());
+    TPtrC8 bufptr(buf, rc);
+    TEST(bufptr == KData);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamEnd, -4 * KStreamOffset);
+    rc = strm2buf->ReadL(&byte, 1);
+    TEST2(rc, 1);
+    TEST2(byte, KByte);
+    
+    CleanupStack::PopAndDestroy(&strm2);
+    CleanupStack::PopAndDestroy(&stmt);
+    
+    CleanupStack::PopAndDestroy(&db);
+    rc = RSqlDatabase::Delete(KTestDbName1);
+    TEST2(rc, KErrNone);
+    }
+
+/**
 @SYMTestCaseID          PDS-SQL-CT-4174
 @SYMTestCaseDesc        Test for DEF144937: SQL, SQL server, the code coverage can be improved in some areas.
 @SYMTestPriority        High
@@ -2239,7 +2348,7 @@ void DiffCompactModeSize2Test()
 
 void DoTestsL()
 	{
-	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1601 Create/Open/Close database tests "));	
+	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1601 Create/Open/Close database tests "));
 	OpenCloseDatabaseTest();
 
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1602 SetIsolationLevel() database tests "));	
@@ -2283,6 +2392,9 @@ void DoTestsL()
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1622 RSqlParamWriteStream test. Long binary parameter "));
 	BinaryParameterStreamTest();
 
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4191 MStreamBuf::SeekL() test"));
+    StreamSeekTestL();
+	
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1634 RSqlStatement test. Nameless parameter "));
 	NamelessParameterTest();
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -9,6 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -17,8 +18,6 @@
 #include "SqlDatabaseImpl.h"	//CSqlDatabaseImpl::Session()
 
 //Constants
-
-_LIT(KSemiColon,";");
 
 _LIT(KTextKWD, 	"TEXT");
 _LIT(KCharKWD, 	"CHAR");
@@ -449,42 +448,50 @@ Implements RSqlStatement::DeclaredColumnType().
 TInt CSqlStatementImpl::DeclaredColumnType(TInt aColumnIndex, TSqlColumnType& aColumnType)
 	{
 	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
-	if(iDeclaredColumnTypes.Count() == 0 && iColumnCnt > 0) //initialise iDeclaredColumnTypes array if necessary
+	if(iDeclaredColumnTypes.Count() == 0) //initialise iDeclaredColumnTypes array if necessary
 		{
-		TInt err = iDeclaredColumnTypes.Reserve(iColumnCnt);//We know what the array size should be - iColumnCnt
+		RSqlBufFlat declaredColumnTypeBuf;
+		TInt err = declaredColumnTypeBuf.SetCount(iColumnCnt);
 		if(err != KErrNone)
 			{
+			declaredColumnTypeBuf.Close();
 			return err;
 			}
-		HBufC* colTypeNamesBuf = NULL;//Buffer for declared column type names, delimited by ';'.
-		TRAP(err, colTypeNamesBuf = GetDeclColumnTypesL());
+		
+		//Resize buffer to minimise the chance that two IPC calls are required to get all the column type name data.
+		//Allocates enough space to contain the header cells (already created by calling SetCount()) and a data buffer
+		//which assumes an average column type name length of 20 characters plus 8-byte alignment padding
+		const TInt KBufSizePerColumn = 48;
+		TInt newSize = declaredColumnTypeBuf.Size() + iColumnCnt*KBufSizePerColumn;
+
+		err = declaredColumnTypeBuf.ReAlloc(newSize);
 		if(err != KErrNone)
 			{
-			__SQLASSERT(!colTypeNamesBuf, ESqlPanicInternalError);
-			iDeclaredColumnTypes.Reset();
+			declaredColumnTypeBuf.Close();
 			return err;	
 			}
-		//Iterate over the column type names and map each column type name to one of the TSqlColumnType enum item values.
-		//No error can occur from here till the end of the function code.
-		__SQLASSERT(colTypeNamesBuf != NULL, ESqlPanicInternalError);
-		TPtrC colTypeNames(*colTypeNamesBuf);
-		TInt colIdx = 0;
-		while(colTypeNames.Length() > 0)
+		
+		err = iSqlStmtSession.GetDeclColumnTypes(declaredColumnTypeBuf);
+		if(err != KErrNone)
 			{
-			TInt pos = colTypeNames.Find(KSemiColon);
-			if(pos < 0)
-				{
-				break;
-				}
-			TPtrC colTypeName(colTypeNames.Ptr(), pos);
-			if(pos == colTypeNames.Length() - 1)
-				{
-				colTypeNames.Set(NULL, 0);	
-				}
-			else
-				{
-				colTypeNames.Set(colTypeNames.Ptr() + pos + 1, colTypeNames.Length() - (pos + 1));
-				}
+			declaredColumnTypeBuf.Close();
+			return err;	
+			}
+
+		err = iDeclaredColumnTypes.Reserve(iColumnCnt);//We know what the array size should be - iColumnCnt
+		if(err != KErrNone)
+			{
+			declaredColumnTypeBuf.Close();
+			return err;
+			}	
+
+		//Iterate over the column type names buffer and map each column type name to one of the TSqlColumnType enum item values.
+		TSqlBufRIterator declColumnTypeBufIt;
+		declColumnTypeBufIt.Set(declaredColumnTypeBuf);
+		TInt colIdx = 0;
+		while(declColumnTypeBufIt.Next())
+			{
+			TPtrC colTypeName(declColumnTypeBufIt.Text());
 			TSqlColumnType colType = ESqlInt;
 			if(colTypeName.FindF(KCharKWD) >= 0 || colTypeName.FindF(KTextKWD) >= 0 || colTypeName.FindF(KClobKWD) >= 0)
 				{
@@ -501,10 +508,10 @@ TInt CSqlStatementImpl::DeclaredColumnType(TInt aColumnIndex, TSqlColumnType& aC
 			err = iDeclaredColumnTypes.Append(colType);
 			__SQLASSERT(err == KErrNone, ESqlPanicInternalError);//memory for the array elements has been reserved already
 			++colIdx;
-			}//end of - while(colTypeNames.Length() > 0)
+			} //end of - while(declColumnTypeBufIt.Next())
 		__SQLASSERT(colIdx == iColumnCnt, ESqlPanicInternalError);
-		delete colTypeNamesBuf;
-		}//end of - if(iDeclaredColumnTypes.Count() == 0 && iColumnCnt > 0)
+		declaredColumnTypeBuf.Close();
+		} //end of - if(iDeclaredColumnTypes.Count() == 0 && iColumnCnt > 0)
 	aColumnType = iDeclaredColumnTypes[aColumnIndex];
 	return KErrNone;
 	}
@@ -861,17 +868,5 @@ TInt CSqlStatementImpl::CheckNameBufPresent(TBool& aPresent, RSqlBufFlat& aNameB
 			}
 		}
 	return KErrNone;
-	}
-
-
-/**
-Returns a buffer containing a ";" separated list with declared types of statement's columns.
-The caller is responsible for deleting the result buffer.
-
-@return HBufC buffer - column types list.
-*/
-HBufC* CSqlStatementImpl::GetDeclColumnTypesL()
-	{
-	return iSqlStmtSession.GetDeclColumnTypesL(iColumnCnt);
 	}
 

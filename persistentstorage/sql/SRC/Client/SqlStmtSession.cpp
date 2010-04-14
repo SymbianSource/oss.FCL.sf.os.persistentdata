@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -9,6 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -131,25 +132,20 @@ TInt RSqlStatementSession::Retry(RSqlBufFlat& aBufFlat, TInt aSize, TSqlBufFlatT
 	}
 
 /**
-Sends a command to the server for retrieving a string with ";" separated declared types of columns
-The caller is responsible for deleting the result buffer.
-
-@param aColumnCount The number of the columns which the statement has.
-@return A pointer to a heap based HBufC object, containing the column names, separated with ";".
+Sends a command to the server for retrieving the declared types of columns
 
 Usage of the IPC call arguments:
-Arg 0: [out]		Input buffer max length
-Arg 1: [in/out]		Data buffer, will be filled with the declared types of columns, separated with ";"
-*/	
-HBufC* RSqlStatementSession::GetDeclColumnTypesL(TInt aColumnCount)
+Arg 0: [out]		buffer length in bytes
+Arg 1: [in/out]		buffer
+*/	 
+TInt RSqlStatementSession::GetDeclColumnTypes(RSqlBufFlat& aDeclColumnTypeBuf)
 	{
-	//The longest DBMS data type, represented as text, is "LONG VARBINARY" - 14 characters.
-	//So we can safely assume that 20 characters buffer space per DBMS column type is enough.
-	const TInt KLongestDbmsTypeLength = 20;
-	HBufC* colTypeBuf = HBufC::NewLC(aColumnCount * KLongestDbmsTypeLength);
-	TPtr ptr = colTypeBuf->Des();
-	TInt err = DbSession().SendReceive(::MakeMsgCode(ESqlSrvStmtDeclColumnTypes, ESqlSrvStatementHandle, iHandle), TIpcArgs(ptr.MaxLength(), &ptr));
-	__SQLLEAVE_IF_ERROR(err);
-	CleanupStack::Pop(colTypeBuf);
-	return colTypeBuf;
+	aDeclColumnTypeBuf.Reset();
+	TPtr8& ptr = aDeclColumnTypeBuf.BufPtr();
+	TInt err = DbSession().SendReceive(::MakeMsgCode(ESqlSrvStmtDeclColumnTypes, ESqlSrvStatementHandle, iHandle), TIpcArgs(ptr.MaxLength(), &ptr));	
+	if(err > KSqlClientBufOverflowCode)
+		{
+		err = Retry(aDeclColumnTypeBuf, err - KSqlClientBufOverflowCode, ESqlDeclColumnTypesBuf);
+		}
+	return err;	
 	}

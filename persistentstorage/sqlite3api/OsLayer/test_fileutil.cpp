@@ -334,11 +334,31 @@ extern "C" int PrintText(void*, Tcl_Interp*, int objc, Tcl_Obj* const* objv)
 
 extern "C" void PrintS(const char* aTxt)
 	{
-	TBuf<128> buf;
-	buf.Copy(TPtrC8((const TUint8*)aTxt));
-	
-	RProcess process;
-	TProcessId processId = process.Id();
-	
-	RDebug::Print(_L("%S. Process Id=%ld.\n"), &buf, processId.Id());
+	if(!aTxt)
+	    {
+	    return;
+	    }
+	TPtrC8 msg((const TUint8*)aTxt);
+    TInt msglen = msg.Length();
+    TInt pos = 0;
+    const TInt KMaxLineLength = 220;
+    TBuf<KMaxLineLength> line;
+    do
+        {
+        if(pos == 0)
+            {
+            RProcess process;
+            TProcessId processId = process.Id();
+            line.Format(_L("Process Id=%ld: "), processId.Id());
+            }
+        TInt len = Min(msglen, (line.MaxLength() - line.Length()));
+        TPtrC8 ptr(msg.Ptr() + pos, len);
+        pos += len;
+        msglen -= len;
+        TPtr p2((TUint16*)line.Ptr() + line.Length(), 0, len);  
+        p2.Copy(ptr);
+        line.SetLength(line.Length() + p2.Length());
+        RDebug::Print(_L("%S\n"), &line);
+        line.Zero();
+        } while(msglen > 0);
 	}

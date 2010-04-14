@@ -9,6 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -382,13 +383,22 @@ const RSqlBufFlat& CSqlSrvStatement::ColumnValuesL()
 			case SQLITE_TEXT:
 				{
 				TInt charLength = (TUint)sqlite3_column_bytes16(iStmtHandle, colIdx) / sizeof(TUint16);
+                //"charLength == 0" - this might be an indication of an "out of memory" problem, if the column text is in UTF8 format. 
+                //(sqlite3_column_bytes16() may allocate memory for UTF8->UTF16 conversion)
+				if(charLength == 0 && sqlite3_errcode(sqlite3_db_handle(iStmtHandle)) == SQLITE_NOMEM)
+                    {
+                    __SQLLEAVE(KErrNoMemory);
+                    }
 				if(charLength >= KSqlMaxDesLen)
 					{
 					it.SetAsNotPresent(ESqlText, charLength);
 					}
 				else
-					{
-					__SQLLEAVE_IF_ERROR(it.SetText(TPtrC16(reinterpret_cast <const TUint16*> (sqlite3_column_text16(iStmtHandle, colIdx)), charLength)));
+					{//sqlite3_column_bytes16() already allocated the needed memory if a UTF8->UTF16 conversion
+                     //had to be performed. The sqlite3_column_text16() on the next line is guaranteed to succeed.
+					const TUint16* text = reinterpret_cast <const TUint16*> (sqlite3_column_text16(iStmtHandle, colIdx));
+					__SQLASSERT(text != NULL, ESqlPanicInternalError);
+					__SQLLEAVE_IF_ERROR(it.SetText(TPtrC16(text, charLength)));
 					}
 				}
 				break;
@@ -434,8 +444,11 @@ TInt CSqlSrvStatement::ColumnSource(TInt aColumnIndex, TPtrC8& aColumnSource) co
 	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	TInt colType = sqlite3_column_type(iStmtHandle, aColumnIndex);
 	if(colType == SQLITE_TEXT)
-		{
+        {//Since the first called function after the Next() operation is always CSqlSrvStatement::ColumnValuesL(), then
+         //sqlite3_column_bytes16() (called from  ColumnValuesL()) already allocated the needed memory if a UTF8->UTF16 
+         //conversion had to be performed. The sqlite3_column_text16() on the next line is guaranteed to succeed.
 		const void* text = sqlite3_column_text16(iStmtHandle, aColumnIndex);
+        __SQLASSERT(text != NULL, ESqlPanicInternalError);
 		TInt length  = sqlite3_column_bytes16(iStmtHandle, aColumnIndex);
 		aColumnSource.Set(reinterpret_cast <const TUint8*> (text), length);
 		}
@@ -645,10 +658,12 @@ in SqlDb.h file.
 		
 @see RSqlStatement
 
+@leave KErrNoMemory, an out of memory condition has occurred.
+
 @panic SqlDb 2 In _DEBUG mode. Invalid (not created) CSqlSrvStatement object.
 @panic SqlDb 4 In _DEBUG mode. Invalid aColIdx value.
 */
-TPtrC CSqlSrvStatement::ColumnText(TInt aColIdx) const
+TPtrC CSqlSrvStatement::ColumnTextL(TInt aColIdx) const
 	{
 	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	__SQLASSERT((TUint)aColIdx < iColumnCount, ESqlPanicBadArgument);
@@ -657,7 +672,17 @@ TPtrC CSqlSrvStatement::ColumnText(TInt aColIdx) const
 	if(colType == SQLITE_TEXT)
 		{
 		TInt charLength = (TUint)sqlite3_column_bytes16(iStmtHandle, aColIdx) / sizeof(TUint16);
-		res.Set(reinterpret_cast <const TUint16*> (sqlite3_column_text16(iStmtHandle, aColIdx)), charLength);
+        //"charLength == 0" - this might be an indication of an "out of memory" problem, if the column text is in UTF8 format. 
+        //(sqlite3_column_bytes16() may allocate memory for UTF8->UTF16 conversion)
+        if(charLength == 0 && sqlite3_errcode(sqlite3_db_handle(iStmtHandle)) == SQLITE_NOMEM)
+            {
+            __SQLLEAVE(KErrNoMemory);
+            }
+        //sqlite3_column_bytes16() already allocated the needed memory if a UTF8->UTF16 conversion
+        //had to be performed. The sqlite3_column_text16() on the next line is guaranteed to succeed.
+        const TUint16* text = reinterpret_cast <const TUint16*> (sqlite3_column_text16(iStmtHandle, aColIdx));
+        __SQLASSERT(text != NULL, ESqlPanicInternalError);
+		res.Set(text, charLength);
 		}
 	return res;
 	}
@@ -688,29 +713,46 @@ TPtrC8 CSqlSrvStatement::ColumnBinary(TInt aColIdx) const
 	}
 
 /**
-This function is used by the DBMS emulation library only.
-The function retrieves the declared column types from the SQLITE library, compiles them in a single string
-and then returns the string to the caller.
+Retrieves the declared column types using the SQLITE library storing in a 
+flat buffer and returns a reference to the buffer. 
 
-@return A pointer to a heap allocated HBufC object with the delcared column types. The caller is responsible
-		for the HBufC object destruction.
+@return A const reference to a flat buffer containing the declared column type names.
+
+@leave KErrNoMemory, an out of memory condition has occurred;
+
+@panic SqlDb 2 In _DEBUG mode. Invalid (not created) CSqlSrvStatement object.
 */
-HBufC* CSqlSrvStatement::GetDeclColumnTypesL()
+const RSqlBufFlat& CSqlSrvStatement::GetDeclColumnTypesL()
 	{
-	HBufC* buf = HBufC::NewL(iColumnCount * 20);//20 as length is enough for a single column type text
-	TPtr ptr = buf->Des();
-	for(TInt i=0;i<iColumnCount;++i)
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	iBufFlatType = static_cast <TSqlBufFlatType> (-1);
+	__SQLLEAVE_IF_ERROR(iBufFlat.SetCount(iColumnCount));
+	TSqlBufWIterator it;
+	it.Set(iBufFlat);
+	TInt colIdx = -1;
+	while(it.Next())
 		{
-		const TUint16* declTypeTxt = reinterpret_cast <const TUint16*> (sqlite3_column_decltype16(iStmtHandle, i));
-		if(declTypeTxt)
-			{
-			TPtrC type(declTypeTxt, User::StringLength(declTypeTxt));
-			ptr.Append(type);
-			}
-		ptr.Append(TChar(';'));
+		++colIdx;//the first SQLITE column index is 0
+		const TUint16* declTypeTxt = reinterpret_cast <const TUint16*> (sqlite3_column_decltype16(iStmtHandle, colIdx));
+		TPtrC ptr(KNullDesC);
+        if(declTypeTxt)
+            {
+            ptr.Set(declTypeTxt, User::StringLength(declTypeTxt));
+            }
+        else
+            {
+            //If sqlite3_column_decltype16() returns NULL but sqlite3_column_decltype() doesn't, then it is an "out of memory" condition 
+            if(sqlite3_column_decltype(iStmtHandle, colIdx))
+                {
+                __SQLLEAVE(KErrNoMemory);
+                }
+            }
+		__SQLLEAVE_IF_ERROR(it.SetText(ptr));
 		}
-	return buf;
+	iBufFlatType = ESqlDeclColumnTypesBuf;
+	return iBufFlat;	
 	}
+
 
 /**
 Creates a new HSqlSrvStmtParamBuf object for the parameter with index "aParamIndex" or

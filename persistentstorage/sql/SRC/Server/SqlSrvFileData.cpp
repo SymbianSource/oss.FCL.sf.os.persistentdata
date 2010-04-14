@@ -192,7 +192,11 @@ static void ExtractConfigParamsL(const TDesC8* aConfigStr, TSqlSrvConfigParams& 
 @panic SqlDb 4 In _DEBUG mode. Invalid aFileNameArgNum value.
 @panic SqlDb 7 In _DEBUG mode. Invalid TSqlSrvFileData object. Not initialized system drive and path.
 */
-void TSqlSrvFileData::SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aFileNameArgNum, const TDesC8* aConfigStr)
+void TSqlSrvFileData::SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aFileNameArgNum, 
+#ifdef SQLSRV_STARTUP_TEST
+                           const TDesC& aDbFileName,
+#endif          
+                           const TDesC8* aConfigStr)
 	{
 	__SQLASSERT((TUint)aFileNameArgNum < KMaxMessageArguments, ESqlPanicBadArgument);
 	__SQLASSERT(iSysDrivePrivatePath.DriveAndPath().Length() > 0, ESqlPanicInternalError);
@@ -202,9 +206,11 @@ void TSqlSrvFileData::SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aF
 		__SQLLEAVE(KErrBadName);
 		}
 #ifdef SQLSRV_STARTUP_TEST
-	aMessage.Int0();//prevents compiler warning
-	aFileNameArgNum = aFileNameArgNum;//prevents compiler warning
-	iFileName.Copy(*(const TDesC*)aConfigStr);
+	//To prevent compiler warning
+	aMessage.Int0();
+	aFileNameArgNum = aFileNameArgNum;
+	//
+	iFileName.Copy(aDbFileName);
 #else
 	aMessage.ReadL(aFileNameArgNum, iFileName);
 #endif	
@@ -223,9 +229,7 @@ void TSqlSrvFileData::SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aF
 		::CreatePrivateDataPathL(iFs, iDrive);
 		}
 	iReadOnly = ::IsReadOnlyFileL(iFs, FileName());
-#ifndef SQLSRV_STARTUP_TEST
 	::ExtractConfigParamsL(aConfigStr, iConfigParams, iConfig);
-#endif	
 	}
 
 /**

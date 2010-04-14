@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -57,7 +57,7 @@ void DoCreateDatabaseOomTest(const TDesC& aDbFileName, TDbType aDbType, TInt aEx
 				(void)RSqlDatabase::Delete(aDbFileName);
 				}
 			TInt err = KErrNone;
-			TInt failingAllocationNo = 0;
+			TInt failingAllocationNo = 0;//the real exit point of the OOM test. allocationNo is set maxAllocationNo times.
 			TInt allocationNo = 0;
 			TInt maxAllocationNo = TheOomTestType[i] == EServerSideTest ? KDoCreateDatabaseOomTestAllocLimitServer : KDoCreateDatabaseOomTestAllocLimitClient;
 			while(allocationNo < maxAllocationNo)

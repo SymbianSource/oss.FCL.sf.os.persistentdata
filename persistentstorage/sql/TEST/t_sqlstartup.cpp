@@ -306,6 +306,17 @@ void UtfConversionTest()
     name2[1] = TChar(0xFC00); 
     rc = UTF16ToUTF8(name2, bufout);
     TEST(!rc);
+#ifndef _DEBUG    
+    //Test where the input buffer is too big
+    TBuf<KMaxFileName + 1> bufin;
+    bufin.SetLength(bufin.MaxLength());
+    rc = UTF16ToUTF8(bufin, bufout);
+    TEST(!rc);
+    //Test where the output buffer max length is less than KMaxFileName
+    TBuf8<KMaxFileName / 2> bufout2;
+    rc = UTF16ToUTF8(name2, bufout2);
+    TEST(!rc);
+#endif    
     /////////       UTF16ToUTF8Z()       ///////////////////////
     _LIT8(KStr8Z, "abcd\x0");
     rc = UTF16ToUTF8Z(KStr16, bufout);

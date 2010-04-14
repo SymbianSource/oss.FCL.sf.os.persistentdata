@@ -299,10 +299,7 @@ void CSqlServer::ConstructL()
 	//the SQL server startup code.
 	StartL(KSqlSrvName);
 #endif	
-#ifdef _SQLPROFILER 
-    TheSqlSrvStartTime.UniversalTime();
     SQLPROFILER_SERVER_START();
-#endif  
 	//Configure the SQLite library
 	__SQLLEAVE_IF_ERROR(sqlite3_config(SQLITE_CONFIG_LOOKASIDE, KSqliteLookAsideCellSize, KSqliteLookAsideCellCount));
 	//Open SQLITE library - this must be the first call after StartL() (os_symbian.cpp, "TheAllocator" initialization rellated).

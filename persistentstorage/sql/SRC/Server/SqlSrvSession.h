@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -9,6 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -107,7 +108,7 @@ private:
 	void StmtGetBufFlatL(const RMessage2& aMessage, TInt aStmtHandle);
 	void StmtColumnValueL(const RMessage2& aMessage, TInt aStmtHandle);
 	void DoStmtBindL(const RMessage2& aMessage, CSqlSrvStatement& aStmt);
-	void StmtDeclColumnTypesL(const RMessage2& aMessage, TInt aStmtHandle);
+	TInt StmtDeclColumnTypesL(const RMessage2& aMessage, TInt aStmtHandle);
 	//Helper methods
 	TInt NewOutputStreamL(const RMessage2& aMessage, MStreamBuf* aStreamBuf);
 	TDes8& ReadString8ZL(const RMessage2& aMessage, TInt aArgNum, TInt aByteLen);

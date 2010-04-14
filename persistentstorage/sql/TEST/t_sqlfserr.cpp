@@ -284,6 +284,35 @@ void CreateTestSecurityPolicy(RSqlSecurityPolicy& aSecurityPolicy)
     TEST2(err, KErrNone);
     }
 
+//Creates public shared, private secure and public secure databases.
+void DoCreateTestDatabases(const TPtrC aDbName[], TInt aCount)
+    {
+    TEST(aCount > 0);
+    for(TInt i=0;i<aCount;++i)
+        {
+        TheTest.Printf(_L("Database: \"%S\"\r\n"), &aDbName[i]);       
+        (void)RSqlDatabase::Delete(aDbName[i]);
+        TInt err = KErrGeneral;
+        if(i == (aCount - 1))
+            {
+            RSqlSecurityPolicy policy;
+            CreateTestSecurityPolicy(policy);
+            err = TheDb.Create(aDbName[i], policy);
+            policy.Close();
+            }
+        else
+            {
+            err = TheDb.Create(aDbName[i]);
+            }
+        TEST2(err, KErrNone);
+        err = TheDb.Exec(_L("CREATE TABLE A(Id INTEGER,Name TEXT)"));
+        TEST(err >= 0);
+        err = TheDb.Exec(_L("INSERT INTO A(Id,Name) VALUES(1,'Name')"));
+        TEST2(err, 1);
+        TheDb.Close();
+        }
+    }
+
 /**
 @SYMTestCaseID			SYSLIB-SQL-UT-3421
 @SYMTestCaseDesc		Test for DEF103859 "SQLITE panic, _DEBUG mode, persistent file I/O error simulation".
@@ -300,30 +329,11 @@ void OpenDatabaseTest()
 	{
     TPtrC dbName[] = {KTestDbName(), KPrivateTestDbName(), KSecureTestDbName()};
     const TInt KDbNameCnt = sizeof(dbName) / sizeof(dbName[0]);
+    DoCreateTestDatabases(dbName, KDbNameCnt);
     for(TInt k=0;k<KDbNameCnt;++k)
         {	
         TheTest.Printf(_L("Database: \"%S\"\r\n"), &dbName[k]);       
-        (void)RSqlDatabase::Delete(dbName[k]);
-        TInt err = KErrGeneral;
-        if(k == (KDbNameCnt - 1))
-            {
-            RSqlSecurityPolicy policy;
-            CreateTestSecurityPolicy(policy);
-            err = TheDb.Create(dbName[k], policy);
-            policy.Close();
-            }
-        else
-            {
-            err = TheDb.Create(dbName[k]);
-            }
-        TEST2(err, KErrNone);
-        err = TheDb.Exec(_L("CREATE TABLE A(Id INTEGER,Name TEXT)"));
-        TEST(err >= 0);
-        err = TheDb.Exec(_L("INSERT INTO A(Id,Name) VALUES(1,'Name')"));
-        TEST2(err, 1);
-        TheDb.Close();
-    
-        err = KErrNotFound;
+        TInt err = KErrNotFound;
         for(TInt cnt=1;err<KErrNone;++cnt)
             {		
             TheTest.Printf(_L("%d \r"), cnt);		
@@ -354,7 +364,7 @@ void OpenDatabaseTest()
         err = RSqlDatabase::Delete(dbName[k]);
         TEST2(err, KErrNone);
         TheTest.Printf(_L("\r\n"));
-        }
+        }//end of: for(TInt k=0;k<KDbNameCnt;++k)
 	}
 
 /**
@@ -411,6 +421,78 @@ void CreateDatabaseTest()
 	    }
 	policy.Close();
 	}
+
+/**
+@SYMTestCaseID          PDS-SQL-UT-4189
+@SYMTestCaseDesc        Test for DEF145125 "SQL, low code coverage".
+                        The test creates public shared, private secure and public secure test databases.
+                        Then the test opens the publich shared database and attempts to attach one of the other two
+                        in a file I/O error simulation loop.
+@SYMTestPriority        High
+@SYMTestActions         Test for DEF145125 - "SQL, low code coverage".
+@SYMTestExpectedResults The test must not fail
+@SYMDEF                 DEF145125 
+*/
+void AttachDatabaseTest()
+    {
+    TPtrC dbName[] = {KTestDbName(), KPrivateTestDbName(), KSecureTestDbName()};
+    const TInt KDbNameCnt = sizeof(dbName) / sizeof(dbName[0]);
+    DoCreateTestDatabases(dbName, KDbNameCnt);
+    for(TInt k=1;k<KDbNameCnt;++k)
+        {
+        TheTest.Printf(_L("Database: \"%S\"\r\n"), &dbName[k]);       
+        TInt err = KErrGeneral;
+        for(TInt cnt=1;err<KErrNone;++cnt)
+            {
+            TheTest.Printf(_L("%d \r"), cnt);       
+            for(TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
+                {
+                err = TheDb.Open(KTestDbName);
+                TEST2(err, KErrNone);
+                (void)TheFs.SetErrorCondition(fsError, cnt);
+                err = TheDb.Attach(dbName[k], _L("DB2"));
+                (void)TheFs.SetErrorCondition(KErrNone);
+                (void)TheDb.Detach(_L("DB2"));
+                TheDb.Close();//close the database to recover from the last error
+                }
+            }
+        TEST2(err, KErrNone);
+        err = RSqlDatabase::Delete(dbName[k]);
+        TEST2(err, KErrNone);
+        TheTest.Printf(_L("\r\n"));
+        }
+    }
+
+/**
+@SYMTestCaseID          PDS-SQL-UT-4190
+@SYMTestCaseDesc        Test for DEF145125 "SQL, low code coverage".
+                        The tests attempts to delete a database in a file I/O error simulation loop.
+@SYMTestPriority        High
+@SYMTestActions         Test for DEF145125 - "SQL, low code coverage".
+@SYMTestExpectedResults The test must not fail
+@SYMDEF                 DEF145125 
+*/
+void DeleteDatabaseTest()
+    {
+    TPtrC dbName[] = {KTestDbName(), KPrivateTestDbName(), KSecureTestDbName()};
+    const TInt KDbNameCnt = sizeof(dbName) / sizeof(dbName[0]);
+    DoCreateTestDatabases(dbName, KDbNameCnt);
+    for(TInt k=0;k<KDbNameCnt;++k)
+        {   
+        TheTest.Printf(_L("Database: \"%S\"\r\n"), &dbName[k]);       
+        TInt err = KErrGeneral;
+        for(TInt cnt=1;err<KErrNone;++cnt)
+            {
+            TheTest.Printf(_L("%d \r"), cnt);
+            (void)TheFs.SetErrorCondition(KErrGeneral, cnt);
+            err = RSqlDatabase::Delete(dbName[k]);
+            (void)TheFs.SetErrorCondition(KErrNone);
+            }
+        TEST2(err, KErrNone);
+        err = RSqlDatabase::Delete(KTestDbName);
+        TEST2(err, KErrNotFound);
+        }    
+    }
 
 /**
 @SYMTestCaseID			SYSLIB-SQL-UT-3462
@@ -1133,6 +1215,10 @@ void DoTests()
 	OpenDatabaseTest();
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-3434 Create database during file I/O error "));
 	CreateDatabaseTest();
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4189 Attach database during file I/O error "));
+    AttachDatabaseTest();
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4190 Delete database during file I/O error "));
+    DeleteDatabaseTest();
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-3462 Select record test during file I/O error "));
 	SelectRecordTest();
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-3463 Insert record test during file I/O error "));

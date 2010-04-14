@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -9,6 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -65,7 +66,8 @@ enum TSqlBufFlatType
 	{
 	ESqlColumnNamesBuf, 
 	ESqlParamNamesBuf, 
-	ESqlColumnValuesBuf
+	ESqlColumnValuesBuf,
+	ESqlDeclColumnTypesBuf
 	};
 
 /**
