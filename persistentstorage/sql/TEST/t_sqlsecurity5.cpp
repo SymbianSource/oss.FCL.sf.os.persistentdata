@@ -115,6 +115,23 @@ void SchemaSecurityTest()
 	//Attempt to modify the database schema
 	err = TheDb.Exec(_L("CREATE TABLE IF NOT EXISTS C(FFF TEXT)"));
 	TEST(err >= 0);	
+	//Index operations
+    err = TheDb.Exec(_L("CREATE INDEX Cidx ON C(FFF)"));
+    TEST(err >= 0);     
+    err = TheDb.Exec(_L("ANALYZE C"));
+    TEST(err >= 0);     
+    err = TheDb.Exec(_L("DROP INDEX Cidx"));
+    TEST(err >= 0);     
+    //Trigger operations
+    err = TheDb.Exec(_L("CREATE TRIGGER T1 AFTER INSERT ON C BEGIN INSERT INTO B VALUES(1, 2); END;"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("DROP TRIGGER T1"));
+    TEST(err >= 0);
+    //View operations
+    err = TheDb.Exec(_L("CREATE VIEW V1 AS SELECT * FROM C"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("DROP VIEW V1"));
+    TEST(err >= 0);
 	//Attempt to update the user data (but it includes a READ operation)
 	err = TheDb.Exec(_L("UPDATE A SET F1 = 11 WHERE F1 = 1"));
 	TEST(err >= 0);	

@@ -191,7 +191,7 @@ TInt CFeatMgrFeatureRegistry::AddFeature( TFeatureServerEntry& aFeature, TUint a
 	        flags.Set( EFeatureRuntime );
 	
 	        //Check the feature falg is valid
-	        TRAP(err, err = ValidateRuntimeFeatureFlagL(flags));
+	        TRAP(err,ValidateRuntimeFeatureFlagL(flags));
 	        if (err != KErrNone)
 	            return err;
 	
@@ -607,7 +607,7 @@ void CFeatMgrFeatureRegistry::ReadRuntimeFeaturesL( TBool &aFeaturesReady )
 
     if ((err == KErrCorrupt) || (err == KErrArgument))
     	{
-    	iFs.Delete(path);
+    	User::LeaveIfError(iFs.Delete(path));
     	aFeaturesReady = ETrue;
     	}
     else if ( err != KErrNone && err != KErrNotFound && err != KErrPathNotFound )
@@ -866,7 +866,7 @@ void CFeatMgrFeatureRegistry::UpdateRuntimeFeaturesFileL( TFeatureServerEntry& a
         // Write header and entry
         RFeatureServerArray temp(1);
         CleanupClosePushL( temp );
-        temp.Append( aFeature );
+        temp.AppendL( aFeature );
         WriteHeaderAndEntriesL( writeStream, temp );
         CleanupStack::PopAndDestroy( &temp );
         CleanupStack::PopAndDestroy( &writeStream );
@@ -961,13 +961,14 @@ void CFeatMgrFeatureRegistry::WriteHeaderAndEntriesL( RFileWriteStream &aStream,
         {
         aArray[i].ExternalizeL( aStream );
         }
+    aStream.CommitL();
     }
 
 // -----------------------------------------------------------------------------
 // CFeatMgrFeatureRegistry::MergePluginFeatures
 // -----------------------------------------------------------------------------
 //  
-void CFeatMgrFeatureRegistry::MergePluginFeatures( 
+void CFeatMgrFeatureRegistry::MergePluginFeaturesL( 
         RArray<FeatureInfoCommand::TFeature>& aList )
     {
     FUNC_LOG
@@ -1006,6 +1007,7 @@ void CFeatMgrFeatureRegistry::MergePluginFeatures(
             TInt err = iFeatureList.InsertInOrder( newFeature, FindByUid );
             INFO_LOG2( "CFeatMgrFeatureRegistry::MergePluginFeatures - 0x%08x insert result %d",
                 newFeature.FeatureUid().iUid, err );
+            User::LeaveIfError(err);
             }
         }
     }
@@ -1014,7 +1016,7 @@ void CFeatMgrFeatureRegistry::MergePluginFeatures(
 // CFeatMgrFeatureRegistry::MergePluginFeatures
 // -----------------------------------------------------------------------------
 //  
-void CFeatMgrFeatureRegistry::MergePluginFeatures( RFeatureArray& aList )
+void CFeatMgrFeatureRegistry::MergePluginFeaturesL( RFeatureArray& aList )
     {
     FUNC_LOG
     
@@ -1048,6 +1050,7 @@ void CFeatMgrFeatureRegistry::MergePluginFeatures( RFeatureArray& aList )
             TInt err = iFeatureList.InsertInOrder( newFeature, FindByUid );
             INFO_LOG2( "CFeatMgrFeatureRegistry::MergePluginFeatures - 0x%08x insert result %d",
                 newFeature.FeatureUid().iUid, err );
+            User::LeaveIfError(err);
             }
         }
     }
@@ -1107,9 +1110,8 @@ TInt CFeatMgrFeatureRegistry::ValidateFeatureFlag(TBitFlags32 aFlags)
  * The following are the rules to check for errors in the run time defined feature flags
  * Rule 1)Blacklisting of a run-time defined feature flag is an error 
  * Rule 2)Un-initialised feature flag should be modifiable.   
- * Funtion returns KErrArgument if a rule is broken otherwise KErrNone
  */
-TInt CFeatMgrFeatureRegistry::ValidateRuntimeFeatureFlagL(TBitFlags32 aFlags)
+void CFeatMgrFeatureRegistry::ValidateRuntimeFeatureFlagL(TBitFlags32 aFlags)
 	{
 	
 	//Rule 1 (Blacklisting of run-time defined feature aFlags is not allowed)
@@ -1125,8 +1127,6 @@ TInt CFeatMgrFeatureRegistry::ValidateRuntimeFeatureFlagL(TBitFlags32 aFlags)
 	 	//error 
 	 	User::Leave( KErrArgument );
 	 	}
-	
-	return KErrNone;	
 	}
 
 
@@ -1136,7 +1136,7 @@ TInt CFeatMgrFeatureRegistry::ValidateRuntimeFeatureFlagL(TBitFlags32 aFlags)
  * to discover if any changes have taken place: then it will handle the required
  * notifications for new, deleted and changed featuers.
  */
-TInt CFeatMgrFeatureRegistry::HandleRestoredFeatureNotificationsL( void )
+void CFeatMgrFeatureRegistry::HandleRestoredFeatureNotificationsL()
 	{
 	// All comparisons are between the new list iFeatureList and the old list iFeatureListBackup
 	TInt new_count = iFeatureList.Count();
@@ -1161,7 +1161,7 @@ TInt CFeatMgrFeatureRegistry::HandleRestoredFeatureNotificationsL( void )
 			if( KErrNotFound == index )
 				{
 				// Recently added feature
-				added.Append( iFeatureList[i] );
+				added.AppendL( iFeatureList[i] );
 				}
 			else
 				{
@@ -1177,7 +1177,7 @@ TInt CFeatMgrFeatureRegistry::HandleRestoredFeatureNotificationsL( void )
 				if( !( old_flags == new_flags) || !( old_data == new_data) )
 					{
 					// changed in the "new" iFeatureList array
-					changed.Append( iFeatureList[i] );
+					changed.AppendL( iFeatureList[i] );
 					}
 				}
 		
@@ -1199,7 +1199,7 @@ TInt CFeatMgrFeatureRegistry::HandleRestoredFeatureNotificationsL( void )
 			if( KErrNotFound == index )
 				{
 				// Recently removed feature
-				removed.Append( iFeatureListBackup[i] );
+				removed.AppendL( iFeatureListBackup[i] );
 				}
 			// the else has already been completed in previous loop
 		
@@ -1233,8 +1233,6 @@ TInt CFeatMgrFeatureRegistry::HandleRestoredFeatureNotificationsL( void )
         TFeatureChangeType changeType( EFeatureFeatureDeleted );
         iObserver.HandleFeatureChange( entry, changeType );
         }
-	
-	return( 0 );
 	}
 
 // -----------------------------------------------------------------------------

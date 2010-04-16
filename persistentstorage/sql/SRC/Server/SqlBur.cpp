@@ -17,26 +17,6 @@
 #include "SqlAssert.h"
 #include "SqlPanic.h"
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////                     Backup database file header format                           ///////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-////// No version (Version 0)
-//  8 chars          8 chars          8 chars             up to 256 characters (512 bytes)
-// <32-bit checksum><32-bit filesize><32-bit filenamelen><filename - UTF16 encoded>
-
-//////             Version 2
-//  8 chars          8 chars   4 chars     16 chars         8 chars             up to 256 characters (512 bytes)
-// <32-bit checksum><FFFFAA55><Version N#><64-bit filesize><32-bit filenamelen><filename - UTF16 encoded>
-
-const TInt KBackupHeaderVersion = 2;			//Current backup database file header version
-
-const TUint32 KMagicNum = 0xFFFFAA55;			//Magic number. If the "old database file size" field in the header
-												//has this value, then the header version is 2+
-const TInt KMaxHeaderSize = 256 + KMaxFileName;	//The size of the buffer used for the operations on the header
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 //Extracts and returns 32-bit integer from aNumBuf buffer.
 static TUint32 GetNumUint32L(const TDesC& aNumBuf)
 	{
@@ -115,9 +95,6 @@ CSqlBackupClient::~CSqlBackupClient()
 	// make sure the file list is released
 	iFileList.Reset();
 	
-	// the header buffer
-	delete iBuffer;
-	
 	// the file list array
 	iFileList.Close();
 	
@@ -125,10 +102,7 @@ CSqlBackupClient::~CSqlBackupClient()
 	iFile.Close();
 	
 	// nuke the active backup client
-	if(iActiveBackupClient)
-		{
-		delete iActiveBackupClient;
-		}
+    delete iActiveBackupClient;
 	}
 
 /** Standard two phase construction
@@ -141,9 +115,6 @@ void CSqlBackupClient::ConstructL()
 	
 	// add us to the scheduler
 	CActiveScheduler::Add(this);
-
-	// a place for the header info
-	iBuffer=HBufC::NewL(KMaxHeaderSize);
 
 	// set active and request notification of changes to backup
 	// and restore publish/subscribe property
@@ -173,11 +144,8 @@ TInt CSqlBackupClient::RunError(TInt /* aError */)
 */
 void CSqlBackupClient::StartL()
 	{
-	if(!IsActive())
-		{
-		TestBurStatusL();
-		NotifyChange();
-		}
+    TestBurStatusL();
+    NotifyChange();
 	}
 
 /** Resubscribe and wait for events
@@ -202,27 +170,16 @@ void CSqlBackupClient::TestBurStatusL()
 		status&=KBURPartTypeMask;
 		switch(status)
 			{
-			case EBURUnset:
-				// same as EBURNormal
+			case EBURUnset: // same as EBURNormal
 			case EBURNormal:
-				if(iActiveBackupClient)
-					{
-					delete iActiveBackupClient;
-					iActiveBackupClient=NULL;
-					}
+				delete iActiveBackupClient;
+				iActiveBackupClient=NULL;
 				break;
 			case EBURBackupFull:
 			case EBURBackupPartial:
-				// we only do full backups
-				if(!iActiveBackupClient)
-					{
-					iActiveBackupClient=CActiveBackupClient::NewL(this);
-					}
-				iActiveBackupClient->ConfirmReadyForBURL(KErrNone);
-				break;
-			case EBURRestoreFull:
-			case EBURRestorePartial:
-				// we only do full restores
+            case EBURRestoreFull:
+            case EBURRestorePartial:
+				// we only do full backups and full restores
 				if(!iActiveBackupClient)
 					{
 					iActiveBackupClient=CActiveBackupClient::NewL(this);
@@ -322,17 +279,14 @@ void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFla
 					break;
 					}
 				
-				// build the header - this is an instance member because it
-				// has to persist over multiple calls to this method
-				TPtr hdrPtr=iBuffer->Des();
-				
 				// get the checksum - only grab last 4 bytes - enough to be satisfied that
 				// the backup and restore worked ok
-				TUint32 checksum = CheckSumL(iFile) & 0xFFFFFFFF;
+				TUint32 checksum = CheckSumL(iFile) & KMaxTUint32;
 
-				// build the header
+                // build the header - this is an instance member because it
+                // has to persist over multiple calls to this method
 				const TDesC& fileName = iFileList[iFileIndex].FullName();
-				hdrPtr.Format(_L("%8x%8x%4x%16lx%8x%S"),
+				iBuffer.Format(_L("%8x%8x%4x%16lx%8x%S"),
 					checksum,					// %8x
 					KMagicNum,					// %8x
 					KBackupHeaderVersion,		// %4x
@@ -341,7 +295,7 @@ void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFla
 					&fileName);					// %S
 				
 				// we need it to look like an 8bit buffer
-				TPtr8 hdrPtr8((TUint8*)hdrPtr.Ptr(),hdrPtr.Size(),hdrPtr.Size());
+				TPtr8 hdrPtr8((TUint8*)iBuffer.Ptr(), iBuffer.Size(), iBuffer.Size());
 							
 				TInt len = Min(hdrPtr8.Size(), bufFreeSpace);
 				
@@ -368,14 +322,13 @@ void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFla
 			case EBackupOpenPartHeaderSent: // need to send the rest of the header
 				{
 				// get back the header - this is already loaded with the necessary info
-				// from the previous state we were in
-				TPtr hdrPtr = iBuffer->Des();
+				// from the previous state we were in - EBackupOpenNothingSent
 				
 				// we need it to look like an 8bit buffer
-				TPtr8 hdrPtr8((TUint8*)hdrPtr.Ptr(),hdrPtr.Size(),hdrPtr.Size());
+				TPtr8 hdrPtr8((TUint8*)iBuffer.Ptr(), iBuffer.Size(), iBuffer.Size());
 				
 				// how many bytes have we yet to send?
-				TInt bytesRemaining = hdrPtr.Size() - iHeaderSent;
+				TInt bytesRemaining = hdrPtr8.Size() - iHeaderSent;
 				TInt len = Min(bytesRemaining, bufFreeSpace);
 				aBuffer.Append(hdrPtr8.Ptr() + iHeaderSent, len);
 				
@@ -456,7 +409,7 @@ void CSqlBackupClient::InitialiseGetProxyBackupDataL(TSecureId aSid, TDriveNumbe
 */
 void CSqlBackupClient::InitialiseRestoreProxyBaseDataL(TSecureId aSid, TDriveNumber /* aDrive */)
 	{
-	iBuffer->Des().Zero();
+	iBuffer.Zero();
 	// this is the first state of the restore state machine
 	iState=ERestoreExpectChecksum;
 	iAnyData=EFalse; // to keep track in the state machine whether any data was actually sent
@@ -481,9 +434,6 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 	// fresh chunk of data
 	TInt inBufferPos = 0;
 
-	// convert the buffer - this is KMaxHeaderSize=256+KMaxFileName
-	TPtr outBufPtr = iBuffer->Des();	
-	
 	// to mark when the state machine is through
 	TBool done = EFalse;
 	
@@ -527,22 +477,22 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 			case ERestoreExpectChecksum: // 16 bytes (the header is UTF16 encoded, 8 unicode characters for the checksum)
 				{
 				const TInt KCheckSumStrLen = 8;
-				CopyBufData(aInBuffer, inBufferPos, outBufPtr, KCheckSumStrLen);
-				if(outBufPtr.Length() == KCheckSumStrLen)
+				CopyBufData(aInBuffer, inBufferPos, iBuffer, KCheckSumStrLen);
+				if(iBuffer.Length() == KCheckSumStrLen)
 					{
-					iChecksum = ::GetNumUint32L(outBufPtr);
+					iChecksum = ::GetNumUint32L(iBuffer);
 					iState = ERestoreExpectOldFileSize;
-					outBufPtr.Zero();
+					iBuffer.Zero();
 					}
 				break;
 				}
 			case ERestoreExpectOldFileSize: // 16 bytes (the header is UTF16 encoded, 8 unicode characters for 32-bit old file size)
 				{
 				const TInt KOldFileSizeStrLen = 8;
-				CopyBufData(aInBuffer, inBufferPos, outBufPtr, KOldFileSizeStrLen);
-				if(outBufPtr.Length() == KOldFileSizeStrLen)
+				CopyBufData(aInBuffer, inBufferPos, iBuffer, KOldFileSizeStrLen);
+				if(iBuffer.Length() == KOldFileSizeStrLen)
 					{
-					TUint32 oldFileSize = ::GetNumUint32L(outBufPtr);
+					TUint32 oldFileSize = ::GetNumUint32L(iBuffer);
 					if(oldFileSize == KMagicNum)
 						{
 						iState = ERestoreExpectVersion;
@@ -552,60 +502,60 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 						iFileSize = oldFileSize;	
 						iState = ERestoreExpectFileNameSize;
 						}
-					outBufPtr.Zero();
+					iBuffer.Zero();
 					}
 				break;
 				}	
 			case ERestoreExpectVersion:
 				{
 				const TInt KVersionStrLen = 4;
-				CopyBufData(aInBuffer, inBufferPos, outBufPtr, KVersionStrLen);
-				if(outBufPtr.Length() == KVersionStrLen)
+				CopyBufData(aInBuffer, inBufferPos, iBuffer, KVersionStrLen);
+				if(iBuffer.Length() == KVersionStrLen)
 					{
-					//Ignore the version: ::GetNumUint32L(outBufPtr);	
+					//Ignore the version: ::GetNumUint32L(iBuffer);	
 					//At this stage we know that the version is 2+
 					iState = ERestoreExpectFileSize;
-					outBufPtr.Zero();
+					iBuffer.Zero();
 					}
 				break;
 				}
 			case ERestoreExpectFileSize:
 				{
 				const TInt KFileSizeStrLen = 16;
-				CopyBufData(aInBuffer, inBufferPos, outBufPtr, KFileSizeStrLen);
-				if(outBufPtr.Length() == KFileSizeStrLen)
+				CopyBufData(aInBuffer, inBufferPos, iBuffer, KFileSizeStrLen);
+				if(iBuffer.Length() == KFileSizeStrLen)
 					{
-					iFileSize = GetNumInt64L(outBufPtr);	
+					iFileSize = GetNumInt64L(iBuffer);	
 					iState = ERestoreExpectFileNameSize;
-					outBufPtr.Zero();
+					iBuffer.Zero();
 					}
 				break;
 				}
 			case ERestoreExpectFileNameSize: // the size of the file name to restore
 				{
 				const TInt KFileNameLenStrLen = 8;
-				CopyBufData(aInBuffer, inBufferPos, outBufPtr, KFileNameLenStrLen);
-				if(outBufPtr.Length() == KFileNameLenStrLen)
+				CopyBufData(aInBuffer, inBufferPos, iBuffer, KFileNameLenStrLen);
+				if(iBuffer.Length() == KFileNameLenStrLen)
 					{
-					iFileNameSize = GetNumUint32L(outBufPtr);		
+					iFileNameSize = GetNumUint32L(iBuffer);		
 					iState = ERestoreExpectFileName;
-					outBufPtr.Zero();
+					iBuffer.Zero();
 					}
 				break;
 				}
 			case ERestoreExpectFileName:  // the name of the file to restore
 				{
-				CopyBufData(aInBuffer, inBufferPos, outBufPtr, iFileNameSize);
-				if(outBufPtr.Length() == iFileNameSize)
+				CopyBufData(aInBuffer, inBufferPos, iBuffer, iFileNameSize);
+				if(iBuffer.Length() == iFileNameSize)
 					{
 					iState = ERestoreExpectData;
-					outBufPtr.Append(KRestoreSuffix);
+					iBuffer.Append(KRestoreSuffix);
 					// now we start writing the data to the target file
 					// write to a temp - double disk space potentially
 					// once all the temp files are created, then they are renamed to the
 					// real file names in one fell swoop
-					__SQLLEAVE_IF_ERROR(iFile.Replace(iInterface->Fs(), outBufPtr, EFileWrite | EFileShareExclusive));
-					outBufPtr.Zero();
+					__SQLLEAVE_IF_ERROR(iFile.Replace(iInterface->Fs(), iBuffer, EFileWrite | EFileShareExclusive));
+					iBuffer.Zero();
 					}
 				break;
 				}
@@ -624,18 +574,19 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 			case ERestoreComplete: // file completely restored
 				{
 				// calculate the checksum
-				TUint32 cksum = CheckSumL(iFile) & 0xFFFFFFFF;
+				TUint32 cksum = CheckSumL(iFile) & KMaxTUint32;
 				
-				// validate that the checksum matches
-				if(cksum!=iChecksum)
-					{
-					__SQLLEAVE(KErrCorrupt);
-					}
-
 				// done with the file now - has to follow checksum cos it
-				// expects ann open file
+				// expects an open file
+                __SQLLEAVE_IF_ERROR(iFile.Flush());
 				iFile.Close();
 
+                // validate that the checksum matches
+                if(cksum!=iChecksum)
+                    {
+                    __SQLLEAVE(KErrCorrupt);
+                    }
+				
 				// end of data - or another file to be restored?
 				if(aFinishedFlag)
 					{
@@ -647,12 +598,12 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 					for(TInt a=0;a<dir->Count();++a)
 						{
 						TEntry entry=(*dir)[a];
-						TPtr rst=entry.iName.Des();
+						TPtrC rst=entry.iName.Des();
 						TInt len=rst.Length();
 						// format <filename>.db.bak.rst
 						// just a convenience!
-						TBufC<KMaxFileName> bak(rst.LeftTPtr(len-4));
-						TBufC<KMaxFileName> db(rst.LeftTPtr(len-8));
+						TPtrC bak(rst.Left(len - 4));//".rst" part excluded
+						TPtrC db(rst.Left(len - 8));//".bak.rst" part excluded
 						
 						// first, rename the orig .db as .bak just in case
 						// ok if not found - might have been deleted.
@@ -685,7 +636,7 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 					for(TInt a1=0;a1<dir->Count();++a1)
 						{
 						TEntry entry=(*dir)[a1];
-						TPtr bak=entry.iName.Des();
+						TPtrC bak=entry.iName.Des();
 						__SQLLEAVE_IF_ERROR(iInterface->Fs().Delete(bak));
 						}
 					
@@ -728,23 +679,20 @@ void CSqlBackupClient::TerminateMultiStageOperation()
 	for(TInt a=0;a<dir->Count();++a)
 		{
 		TEntry entry=(*dir)[a];
-		TPtr bak=entry.iName.Des();
+		TPtrC bak=entry.iName.Des();
 		TInt len=bak.Length();
-		TBufC<KMaxFileName> db(bak.LeftTPtr(len-4));
+		TPtrC db(bak.Left(len-4));//".bak" part excluded
 		rc=iInterface->Fs().Delete(db); // rename does not overwrite
-		if(KErrNone!=rc)
+		if(KErrNone == rc)
 			{
-			// nothing happened, still have bak file (and new db)
-			delete dir;
-			return;
+	        rc = iInterface->Fs().Rename(bak,db);
 			}
-		rc=iInterface->Fs().Rename(bak,db);
-		if(KErrNone!=rc)
-			{
-			// still have bak file, but db is gone!
-			delete dir;
-			return;
-			}
+        //The function cannot leave or return an error. The only thing which could be done here is to print out something
+		//and continue with the next file.
+		if(KErrNone != rc)
+		    {
+		    RDebug::Print(_L(" *** CSqlBackupClient::TerminateMultiStageOperation(), file \"%S\", err=%d\r\n"), &db, rc);
+		    }
 		// backup restored ok
 		}
 	// cleanup dir

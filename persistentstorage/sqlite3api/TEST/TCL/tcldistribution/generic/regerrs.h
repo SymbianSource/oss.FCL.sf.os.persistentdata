@@ -1,3 +1,20 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: 
+*
+*/
+
 { REG_OKAY,	"REG_OKAY",	"no errors detected" },
 { REG_NOMATCH,	"REG_NOMATCH",	"failed to match" },
 { REG_BADPAT,	"REG_BADPAT",	"invalid regexp (reg version 0.8)" },

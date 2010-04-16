@@ -192,44 +192,6 @@ Works in only in debug mode. In release mode evaluates to nothing.
 #endif//_DEBUG
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////        MFileInitializer64    /////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
-MFileInitializer64 interface provides only one abstract method - Init() that is used during the initialization of
-the RFileBuf64 objects.
-Here is what is the problem MFileInitializer64 tries to solve.
-RFileBuf64 has 4 different "resource acquisition" methods - Create(), Open(), Temp() and AdoptFromClient().
-They perform different actions and have different input arguments.
-This is the variable part of the RFileBuf64 initialization.
-Apart from that, RFileBuf64 has a "fixed" initialization part that does not change whatever the variable part is.
-If MFileInitializer64 interface is not used then the following chunk of code has to be duplicated 4 times:
-@code
-	TInt err = do_fixed_init();
-	if(err == KErrNone)
-		{
-		err = do_variable_init();
-		if(err != KErrNone)
-			{
-			revert_fixed_init();
-			}
-		}
-	return err;
-@endcode
-In order to avoid the code duplication, the fixed part of the initialization is moved to RFileBuf64::DoInit(), which
-is given a reference to a MFileInitializer64 derived class that performas the variable part of the initialization.
-4 different MFileInitializer64 derived classes are provided for the 4 different "resource acquisition" methods.
-All they store the variable part of the RFileBuf64 initialization parameters and implement MFileInitializer64::Init().
-
-@see RFileBuf64::DoInit()
-@internalComponent
-*/
-struct MFileInitializer64
-	{
-	virtual TInt Init(RFile64& aFile) = 0;
-	};
-	
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////        RFileBuf64    /////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -262,7 +224,6 @@ If the resulting path does not exist, then the operation cannot proceed and the 
 
 @see TFileMode
 @see RFile64::Create()
-@see MFileInitializer64
 
 @panic FBuf64  7 In _DEBUG mode - Invalid aFs object (null file session handle).
 @panic FBuf64 10 In _DEBUG mode - Invalid file name length (zero file name length).
@@ -272,24 +233,12 @@ TInt RFileBuf64::Create(RFs& aFs, const TDesC& aFileName, TUint aFileMode)
 	__FBUF64_ASSERT(aFs.Handle() != 0, EFBufPanicFsHandle);
 	__FBUF64_ASSERT(aFileName.Length() > 0, EFBufPanicFileNameLen);
 	
-	struct TFileCreateInitializer64 : public MFileInitializer64
-		{
-		inline TFileCreateInitializer64(RFs& aFs, const TDesC& aFileName, TUint aFileMode) :
-			iFs(aFs),
-			iFileName(aFileName),
-			iFileMode(aFileMode)
-			{
-			}
-		virtual TInt Init(RFile64& aFile)
-			{
-			return aFile.Create(iFs, iFileName, iFileMode);
-			}
-		RFs& 			iFs;
-		const TDesC& 	iFileName;
-		TUint 			iFileMode;
-		} initializer(aFs, aFileName, aFileMode);
-		
-	return DoInit(initializer);
+	TInt err = DoPreInit();
+	if(err == KErrNone)
+	    {
+	    err = iFile.Create(aFs, aFileName, aFileMode);
+	    }
+	return DoPostInit(err);
 	}
 
 /**
@@ -306,7 +255,6 @@ If the file does not already exist, an error is returned.
 
 @see TFileMode
 @see RFile64::Open()
-@see MFileInitializer64
 
 @panic FBuf64  7 In _DEBUG mode - Invalid aFs object (null file session handle).
 @panic FBuf64 10 In _DEBUG mode - Invalid file name length (zero file name length).
@@ -316,24 +264,12 @@ TInt RFileBuf64::Open(RFs& aFs, const TDesC& aFileName, TUint aFileMode)
 	__FBUF64_ASSERT(aFs.Handle() != 0, EFBufPanicFsHandle);
 	__FBUF64_ASSERT(aFileName.Length() > 0, EFBufPanicFileNameLen);
 	
-	struct TFileOpenInitializer64 : public MFileInitializer64
-		{
-		inline TFileOpenInitializer64(RFs& aFs, const TDesC& aFileName, TUint aFileMode) :
-			iFs(aFs),
-			iFileName(aFileName),
-			iFileMode(aFileMode)
-			{
-			}
-		virtual TInt Init(RFile64& aFile)
-			{
-			return aFile.Open(iFs, iFileName, iFileMode);
-			}
-		RFs& 			iFs;
-		const TDesC& 	iFileName;
-		TUint 			iFileMode;
-		} initializer(aFs, aFileName, aFileMode);
-
-	return DoInit(initializer);
+    TInt err = DoPreInit();
+    if(err == KErrNone)
+        {
+        err = iFile.Open(aFs, aFileName, aFileMode);
+        }
+    return DoPostInit(err);
 	}
 
 /**
@@ -352,7 +288,6 @@ RFileBuf64 public interface.
 
 @see TFileMode
 @see RFile64::Temp()
-@see MFileInitializer64
 
 @panic FBuf64  7 In _DEBUG mode - Invalid aFs object (null file session handle).
 */
@@ -360,26 +295,12 @@ TInt RFileBuf64::Temp(RFs& aFs, const TDesC& aPath, TFileName& aFileName, TUint 
 	{
 	__FBUF64_ASSERT(aFs.Handle() != 0, EFBufPanicFsHandle);
 	
-	struct TFileTempInitializer64 : public MFileInitializer64
-		{
-		inline TFileTempInitializer64(RFs& aFs, const TDesC& aPath, TFileName& aFileName, TUint aFileMode) :
-			iFs(aFs),
-			iPath(aPath),
-			iFileName(aFileName),
-			iFileMode(aFileMode)
-			{
-			}
-		virtual TInt Init(RFile64& aFile)
-			{
-			return aFile.Temp(iFs, iPath, iFileName, iFileMode);
-			}
-		RFs& 			iFs;
-		const TDesC& 	iPath;
-		TFileName& 		iFileName;
-		TUint 			iFileMode;
-		} initializer(aFs, aPath, aFileName, aFileMode);
-	
-	return DoInit(initializer);
+    TInt err = DoPreInit();
+    if(err == KErrNone)
+        {
+        err = iFile.Temp(aFs, aPath, aFileName, aFileMode);
+        }
+    return DoPostInit(err);
 	}
 
 /**
@@ -398,7 +319,6 @@ Assumes that the client's RFs and RFile or RFile64 handles have been sent to the
 
 @see TFileMode
 @see RFile64::AdoptFromClient()
-@see MFileInitializer64
 @see KMaxMessageArguments
 
 @panic FBuf64  8 In _DEBUG mode - Invalid aMsg object (null message handle).
@@ -411,24 +331,12 @@ TInt RFileBuf64::AdoptFromClient(const RMessage2& aMsg, TInt aFsIndex, TInt aFil
 	__FBUF64_ASSERT(aFsIndex >= 0 && aFsIndex < KMaxMessageArguments, EFBufPanicMsgIndex);
 	__FBUF64_ASSERT(aFileIndex >= 0 && aFileIndex < KMaxMessageArguments, EFBufPanicMsgIndex);
 	
-	struct TFileAdoptInitializer64 : public MFileInitializer64
-		{
-		inline TFileAdoptInitializer64(const RMessage2& aMsg, TInt aFsIndex, TInt aFileIndex) :
-			iMsg(aMsg),
-			iFsIndex(aFsIndex),
-			iFileIndex(aFileIndex)
-			{
-			}
-		virtual TInt Init(RFile64& aFile)
-			{
-			return aFile.AdoptFromClient(iMsg, iFsIndex, iFileIndex);
-			}
-		const RMessage2&	iMsg;
-		TInt 				iFsIndex;
-		TInt				iFileIndex;
-		} initializer(aMsg, aFsIndex, aFileIndex);
-	
-	return DoInit(initializer);
+    TInt err = DoPreInit();
+    if(err == KErrNone)
+        {
+        err = iFile.AdoptFromClient(aMsg, aFsIndex, aFileIndex);
+        }
+    return DoPostInit(err);
 	}
 
 /**
@@ -452,6 +360,16 @@ void RFileBuf64::Close()
 
 /**
 Calculates and sets optimal read-ahead buffer size.
+aBlockSize and aReadRecBufSize values are retrieved by the caller from the file system.
+
+Initialization rules:
+Rule 1: If aReadRecBufSize is positive, bigger than the default read-ahead and 
+        a power of two then the read-ahead value will be
+        initialized with aReadRecBufSize (if aReadRecBufSize is less than the buffer capacity otherwise
+        the buffer capacity will be used as a read-ahead value). 
+Rule 2: If rule#1 is not applicable then the same checks, as in rule#1, are performed this time for aBlockSize.
+        If aBlockSize passes the checks then it will be used as a read-ahead value. 
+
 
 @param aBlockSize The size of a file block in bytes
 @param aReadRecBufSize The recommended buffer size for optimised reading performance
@@ -516,7 +434,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 	TInt len = aDes.MaxLength();
 	if(len > iCapacity)
 		{
-		if((aFilePos + len) > iFilePos && !(aFilePos >= (iFilePos + iLength)))
+		if((aFilePos + len) > iFilePos && aFilePos < (iFilePos + iLength))
 			{//Write the pending data if the iDirty flag is set, otherwise preserve the buffer content.
 			err = DoFileWrite1(aFilePos);
 			}
@@ -532,13 +450,13 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 	TUint8* outptr = const_cast <TUint8*> (aDes.Ptr());
 	while(len > 0 && err == KErrNone && aFilePos < iFileSize)
 		{
-		//1. If part of all of the data is in the buffer - copy the data to the target location
+		//1. If part or all of the data is in the buffer - copy the data to the target location
 		if(aFilePos >= iFilePos && aFilePos < (iFilePos + iLength))
 			{
-			TInt l = Min(len, (iFilePos + iLength - aFilePos));
-			outptr = Mem::Copy(outptr, iBase + (aFilePos - iFilePos), l);
-			len -= l;
-			aFilePos += l;
+			TInt blocklen = Min(len, (iFilePos + iLength - aFilePos));
+			outptr = Mem::Copy(outptr, iBase + (aFilePos - iFilePos), blocklen);
+			len -= blocklen;
+			aFilePos += blocklen;
 			}
 		//2. Perform a read-ahead operation
 		else
@@ -550,7 +468,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 				break;	
 				}
 			if(iNextReadFilePos != aFilePos)
-				{//Direct "file read" operation
+				{//Guessed read ahead was wrong. Direct "file read" operation
 				iNextReadFilePosHits = 0;
 				TPtr8 ptr2(outptr, len);
 				err = iFile.Read(aFilePos, ptr2);
@@ -804,31 +722,38 @@ TInt RFileBuf64::Drive(TInt& aDriveNumber, TDriveInfo& aDriveInfo) const
 	}
 
 /**
-Performs the fixed part of the RFileBuf64 initialization and then calls MFileInitializer64::Init() to perform
-the variable part of the initialization.
+Initializes RFileBuf64 data members with their initial values.   
+Allocates memory for the file buffer. 
+ 
+@return KErrNone if successful, 
+        KErrNoMemory out of memory;
+*/
+TInt RFileBuf64::DoPreInit()
+    {
+    DoDiscard();
+    iReadAheadSize = RFileBuf64::KDefaultReadAheadSize;
+    iBase = static_cast <TUint8*> (User::Alloc(iCapacity));
+    return iBase ? KErrNone : KErrNoMemory; 
+    }
 
-@param aFileInitializer A reference to an initializer object that implements MFileInitializer64::Init()
+/**
+Performs post-initialization of the RFileBuf64 object.   
+If aInitErr is not KErrNone, then the buffer memory will be released.
+The function returns the aInitErr value to the caller. 
 
+@param aInitErr The result of the performed before the call RFileBuf64 initialization.
+ 
 @return KErrNone if successful, otherwise one of the other system-wide error codes.
 */
-TInt RFileBuf64::DoInit(MFileInitializer64& aFileInitializer)
-	{
-	DoDiscard();
-	iReadAheadSize = RFileBuf64::KDefaultReadAheadSize;
-	TInt err = KErrNoMemory;
-	iBase = static_cast <TUint8*> (User::Alloc(iCapacity));
-	if(!iBase)
-		{
-		return KErrNoMemory;	
-		}
-	err = aFileInitializer.Init(iFile);
-	if(err != KErrNone)
-		{
-		User::Free(iBase);
-		iBase = 0;
-		}
-	return err;
-	}
+TInt RFileBuf64::DoPostInit(TInt aInitErr)
+    {
+    if(aInitErr != KErrNone)
+        {
+        User::Free(iBase);
+        iBase = 0;
+        }
+    return aInitErr;
+    }
 
 /**
 Discards the content of the RFileBuf64 object returning it to the state as if it has just been created. 

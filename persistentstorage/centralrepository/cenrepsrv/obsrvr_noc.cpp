@@ -312,9 +312,8 @@ void CObservable::ProcessMultiRofsListL(const CDir& aList)
 		if (err==KErrNotFound)
 			{
 			//new entry
-			TMultiRofsList newEntry(TUid::Uid(uidNum));
-			newEntry.iMountFlagList.AppendL(newFlag);
-			iMultiRofsUidList.InsertInOrderL(newEntry,reposSortOrder);
+			find.iMountFlagList.AppendL(newFlag);
+			iMultiRofsUidList.InsertInOrderL(find,reposSortOrder);
 			}
 		else
 			{
@@ -453,7 +452,6 @@ void CObservable::MergeRepositoryL(CSharedRepository* aCoreRepository,CHeapRepos
 	and not corrupted
 	*/
 	TSettingsAccessPolicy defaultTs=aOverrideRepository->GetDefaultAccessPolicy();
-	//lets panic first on debug mode only
 	//here we panic immediately if there is any defined in the range meta/policy(we can check individually if
 	//they do override later on,we will assume any definiton of global policy is invalid here
 	if (   aOverrideRepository->Owner() != aCoreRepository->iSimRep->Owner()
@@ -505,7 +503,10 @@ void CObservable::MergeRepositoryL(CSharedRepository* aCoreRepository,CHeapRepos
 	
 	}	
 
-//Function on initialising a repository of multi ROFS files
+/**Function on initialising a repository of multi ROFS files
+aCoreInitialized indicate whether there is already existing keyspace file in the core layer
+otherwise the first one in the rofs layer will be the core repository
+*/ 
 void CObservable::MergeMultiRofsL(TBool aCoreInitialized,CSharedRepository* aCoreRepository,const RArray<TRofsFlag>& aOverridingFileList)
 	{
 	//load all the files and construct an array of CHeapRepository to merge content into it
@@ -530,7 +531,8 @@ void CObservable::MergeMultiRofsL(TBool aCoreInitialized,CSharedRepository* aCor
 				CIniFileIn* iniFile;
 				TInt err=CIniFileIn::NewLC(TServerResources::iFs,iniFile,repFileName);
 				User::LeaveIfError(err);
-				aCoreRepository->ReloadContentL(*iniFile,ETrue);
+				err=aCoreRepository->ReloadContentL(*iniFile,ETrue);
+				User::LeaveIfError(err);
 				CleanupStack::PopAndDestroy(iniFile);//iniFile
 				}
 			else

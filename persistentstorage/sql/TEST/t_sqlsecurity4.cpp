@@ -41,6 +41,7 @@ RSqlDatabase TheDb;
 RTest TheTest(_L("t_sqlsecurity4 test"));
 
 _LIT(KTestDbName, "c:[21212125]t_ab.db");
+_LIT(KTestDbName2, "c:\\test\\t_sqlsecurity4_2.db");
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //Restore original test database function
@@ -85,6 +86,65 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+//This functnion is called while there is an open secure connection.
+//The function will create a new, non-secure connection and check that the non-secure database schema can be modified,
+//while there is another alive, secure database connection.
+void NonSecureDbTest()
+    {
+    (void)RSqlDatabase::Delete(KTestDbName2);
+    RSqlDatabase db;
+    TInt err = db.Create(KTestDbName2);
+    TEST2(err, KErrNone);
+    
+    err = db.Exec(_L("CREATE TABLE A(I1 INTEGER, I2 INTEGER)"));
+    TEST(err >= 0);
+    err = db.Exec(_L("CREATE TEMP TABLE B(I1 INTEGER, I2 INTEGER)"));
+    TEST(err >= 0);
+
+    //"CREATE VIRTUAL TABLE" statement not supported
+    err = db.Exec(_L("CREATE VIRTUAL TABLE V1 USING FTS3(ColOne TEXT, ColTwo DATETIME)"));
+    TPtrC msg = db.LastErrorMessage();
+    TheTest.Printf(_L("*** \"CREATE VIRTUAL TABLE\" expected failure, msg=\"%S\", err=%d\r\n"), &msg, err);
+    TEST(err != KErrNone);
+    
+    err = db.Exec(_L("CREATE TRIGGER T1 AFTER INSERT ON A BEGIN INSERT INTO B VALUES(new.I1, new.I2); END;"));
+    TEST(err >= 0);
+    err = db.Exec(_L("DROP TRIGGER T1"));
+    TEST(err >= 0);
+    err = db.Exec(_L("CREATE TEMP TRIGGER T2 AFTER UPDATE OF I1 ON A BEGIN UPDATE B SET I1 = new.I1; END;"));
+    TEST(err >= 0);
+    err = db.Exec(_L("DROP TRIGGER T2"));
+    TEST(err >= 0);
+
+    err = db.Exec(_L("CREATE VIEW V1 AS SELECT * FROM A"));
+    TEST(err >= 0);
+    err = db.Exec(_L("DROP VIEW V1"));
+    TEST(err >= 0);
+    err = db.Exec(_L("CREATE TEMP VIEW V2 AS SELECT * FROM A"));
+    TEST(err >= 0);
+    err = db.Exec(_L("DROP VIEW V2"));
+    TEST(err >= 0);
+
+    err = db.Exec(_L("CREATE INDEX Idx1 ON A(I1)"));
+    TEST(err >= 0);
+    err = db.Exec(_L("ANALYZE A"));
+    TEST(err >= 0);
+    err = db.Exec(_L("DROP INDEX Idx1"));
+    TEST(err >= 0);
+    err = db.Exec(_L("CREATE INDEX Idx2 ON B(I1)"));
+    TEST(err >= 0);
+    err = db.Exec(_L("DROP INDEX Idx2"));
+    TEST(err >= 0);
+        
+    err = db.Exec(_L("DROP TABLE B"));
+    TEST(err >= 0);
+    err = db.Exec(_L("DROP TABLE A"));
+    TEST(err >= 0);
+    
+    db.Close();
+    (void)RSqlDatabase::Delete(KTestDbName2);
+    }
+
 /**
 @SYMTestCaseID			SYSLIB-SQL-CT-1646
 @SYMTestCaseDesc		Testing database operations on a secure database.
@@ -105,6 +165,26 @@ void ReadWriteDatabaseTest()
 	//Attempt to modify the database schema
 	err = TheDb.Exec(_L("CREATE TABLE C(FFF TEXT)"));
 	TEST2(err, KErrPermissionDenied);
+    err = TheDb.Exec(_L("CREATE TEMP TABLE TBL1(COL1 INTEGER, COL2 INTEGER)"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("CREATE TEMP TRIGGER del1 AFTER DELETE ON TBL1 BEGIN DELETE FROM A; END;"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("DROP TRIGGER del1"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("CREATE TEMP VIEW V1 AS SELECT * FROM TBL1"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("DROP VIEW V1"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("CREATE INDEX I1 ON TBL1(COL2)"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("DROP INDEX I1"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("DROP TABLE TBL1"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("ANALYZE A"));
+    TEST2(err, KErrPermissionDenied);
+    err = TheDb.Exec(_L("CREATE VIEW V2 AS SELECT * FROM A"));
+    TEST2(err, KErrPermissionDenied);
 	//Attempt to update the user data (but it includes a READ operation)
 	err = TheDb.Exec(_L("UPDATE A SET F1 = 11 WHERE F1 = 1"));
 	TEST(err >= 0);	
@@ -155,6 +235,8 @@ void ReadWriteDatabaseTest()
 	TEST2(err, KErrNone);
 	RDebug::Print(_L("Value=%S\r\n"), &p);
 	stmt.Close();
+	
+	NonSecureDbTest();
 	
 	TheDb.Close();
 	}

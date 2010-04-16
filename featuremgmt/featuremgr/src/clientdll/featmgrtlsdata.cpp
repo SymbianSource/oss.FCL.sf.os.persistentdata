@@ -225,9 +225,9 @@ void CFeatMgrTlsData::ListSupportedFeaturesL( RFeatureUidArray& aSupportedFeatur
 // CFeatMgrTlsData::ReRequestNotification(TUid&, TRequestStatus&)
 // -----------------------------------------------------------------------------
 //
-TInt CFeatMgrTlsData::ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus )
+void CFeatMgrTlsData::ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus )
     {
-    return iFeatMgrClient.ReRequestNotification( aFeatUid, aStatus );
+    iFeatMgrClient.ReRequestNotification( aFeatUid, aStatus );
     }
         
 

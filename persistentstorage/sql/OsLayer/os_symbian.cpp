@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -700,17 +700,24 @@ public:
 	TFileName	iSysPrivDir;//"<system drive>:\" + process's private data path. Initialized in sqlite3SymbianFsOpen().
 							//Used for storing sqlite temporary files.
 	TInt64		iSeed;
-	RAllocator*	iAllocator;
 
-	enum {KZeroBufSize = SQLITE_DEFAULT_SECTOR_SIZE};
-    TBuf8<KZeroBufSize> iZeroBuf;
-	
 private:	
 	static COsLayerData* 	iOsLayerData;
 	TInt					iStoredOsErrorCode;	//Contains the last OS error code.
 	const RMessage2* 		iMessage;			//Fh data
 	TBool					iReadOnly;			//Fh data
 	};
+
+/**
+This functon returns a reference to the current thread allocator object.
+The static RAllocator& variable will be initialized once at the moment when the function is called for 
+first time. 
+*/
+static RAllocator& Allocator()
+    {
+    static RAllocator& allocator = User::Allocator();
+    return allocator;
+    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////       TDbFile struct declaration      /////////////////////////////////////////////////////
@@ -819,7 +826,7 @@ private:
 	static TInt DoGetDeviceCharacteristics(const TDriveInfo& aDriveInfo, const TVolumeIOParamInfo& aVolumeInfo);
 	static TInt DoGetSectorSize(const TDriveInfo& aDriveInfo, const TVolumeIOParamInfo& aVolumeInfo);
 	static TInt DoGetDeviceCharacteristicsAndSectorSize(TDbFile& aDbFile, TInt& aRecReadBufSize);
-	
+	static TInt DoFileSizeCorruptionCheck(TDbFile& aDbFile, const TDesC& aFname, TInt aFmode);
 	};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1042,7 +1049,6 @@ inline void COsLayerData::RetrieveAndResetFhData(const RMessage2*& aMsg, TBool& 
 Initializes the COsLayerData data members with their default values.
 */
 inline COsLayerData::COsLayerData() :
-	iAllocator(0),
 	iStoredOsErrorCode(KErrNone),
 	iMessage(0),
 	iReadOnly(EFalse)
@@ -1050,7 +1056,6 @@ inline COsLayerData::COsLayerData() :
 	TTime now;
 	now.UniversalTime();
 	iSeed = now.Int64();
-   	iZeroBuf.FillZ(COsLayerData::KZeroBufSize);
 	}
 
 /**
@@ -1084,7 +1089,6 @@ Note: No SQLite functions should be called inside the DoCreate() implementation,
 */
 TInt COsLayerData::DoCreate()
 	{
-	iAllocator = &User::Allocator();
 	__FS_CALL(EFsOpFsConnect, 0);
 	TInt err = iFs.Connect();
 	if(err != KErrNone)
@@ -1447,8 +1451,7 @@ static inline TDbFile& DbFile(sqlite3_file* aDbFile)
 SQLite OS porting layer API.
 
 Closes the file referred by aDbFile parameter.
-If aDbFile, which is actually a pointer to a TDbFile instance, the iFullName data member is not NULL, 
-then the file will be deleted.
+If aDbFile.iFullName data member is not NULL, then the file will be deleted.
 
 @param aDbFile A pointer to a TDbFile instance, than contains the file handle to be closed.
 
@@ -1465,7 +1468,8 @@ then the file will be deleted.
 	__FS_CALL(EFsOpFileClose, 0);
 	dbFile.iFileBuf.Close();
 	if(dbFile.iFullName)
-		{
+		{//"iFullName" will not be NULL only when TVfs::Open() is called with SQLITE_OPEN_DELETEONCLOSE flag.
+		 //That means - SQlite expects the file to be deleted after the file close operation. 
 		__FS_CALL(EFsOpFileDelete, 0);
 		(void)COsLayerData::Instance().iFs.Delete(*dbFile.iFullName);
 		delete dbFile.iFullName;
@@ -2107,6 +2111,64 @@ The stored values will be used later by TFileIo::DeviceCharacteristics() and TFi
 /**
 SQLite OS porting layer API.
 
+The behaviour of the RFile/RFile64::SetSize operation is not atomic for non-rugged drives. 
+When RFile/RFile64::SetSize() is called 2 operations occurs:-
+
+1)The cluster chain of the file is updated.
+2)The new file size is added to the file cache.
+
+If a power loss occurs after a SetSize there is a chance that the cluster chain was updated 
+but the new file size is not yet flushed to the file. This puts the file into an inconsistent state.
+This is most likely to occur in the journal file where the time between a SetSize and Flush can 
+be long. 
+
+For this reason this check is added when the file is opened to see if the end of the file can 
+be read straight away, if an error is returned then it is assumed that the SetSize has not be 
+completed previously. In this case the file is deleted and re-created.
+ 
+@param aDbFile A pointer to a TDbFile instance, that contains the file handle.
+@param aFname A string of 16-bit wide characters containing name of the file to be checked.
+@param aFmode The mode in which the file is opened. These mode are documented in TFileMode.
+
+@return KErrNone,          The operation has completed succesfully;
+                           Note that other system-wide error codes may also be returned.
+@see TFileMode
+@see TVfs::Open()
+@see TDbFile
+*/
+/* static */ TInt TVfs::DoFileSizeCorruptionCheck(TDbFile& aDbFile, const TDesC& aFname, TInt aFmode)
+    {
+    const TInt KMinSize = 16;
+    TInt64 size;
+    TInt err = KErrNone ;
+    TBuf8<KMinSize> buf;
+
+    err = aDbFile.iFileBuf.Size(size);
+    if (err != KErrNone)
+        {
+        return err;
+        }
+    TBool IsMinFileSize = (size >= KMinSize);
+    
+    if (IsMinFileSize)
+        {
+        err = aDbFile.iFileBuf.Read(size - KMinSize, buf);
+        }
+    
+    if (err == KErrCorrupt || err == KErrEof || !IsMinFileSize)
+        {
+        COsLayerData& osLayerData = COsLayerData::Instance();
+    
+        aDbFile.iFileBuf.Close();
+        (void) osLayerData.iFs.Delete(aFname);
+        err = aDbFile.iFileBuf.Create(osLayerData.iFs, aFname, aFmode);
+        }
+    return err;
+    }
+
+/**
+SQLite OS porting layer API.
+
 Opens or creates a file which name is in the aFileName parameter.
 If the function succeeds, the file handle and other related information will be stored in the place pointed by the 
 aDbFile parameter, a memory block of sizeof(TDbFile) size for which is allocated by the caller.
@@ -2211,6 +2273,12 @@ with the reported by the OS API error. The stored error code will be used later 
 				{
 				__FS_CALL(EFsOpFileOpen, 0);
 				err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
+				
+				if(err == KErrNone && ((aFlags & SQLITE_OPEN_MAIN_JOURNAL) || (aFlags & SQLITE_OPEN_TEMP_JOURNAL) || 
+                        (aFlags & SQLITE_OPEN_SUBJOURNAL) || (aFlags & SQLITE_OPEN_MASTER_JOURNAL)))
+				    {
+                    err = TVfs::DoFileSizeCorruptionCheck(dbFile, fname, fmode);
+				    }
 				}
 			if((err != KErrNone && err != KErrNoMemory && err != KErrDiskFull) && (aFlags & SQLITE_OPEN_READWRITE))
 				{
@@ -2219,7 +2287,7 @@ with the reported by the OS API error. The stored error code will be used later 
 				fmode &= ~EFileWrite;
 				__FS_CALL(EFsOpFileOpen, 0);
    				err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
-   				}
+				}
 			if(err != KErrNone && prevErr == KErrAccessDenied)
 				{
 				err = KErrAccessDenied;
@@ -2237,6 +2305,11 @@ with the reported by the OS API error. The stored error code will be used later 
 		dbFile.iFileBuf.Close();	
 		delete dbFile.iFullName;
 		dbFile.iFullName = NULL;
+        if(!aFileName && fname.Length() > 0)
+            {//temporary file, the error is not KErrNone. Then delete the file (after a successfull 
+             //temporary file creation there could be a failed memory allocation)
+            (void)osLayerData.iFs.Delete(fname);
+            }
 		}
 	else
 		{
@@ -2550,7 +2623,7 @@ Memory allocation routine.
 extern "C" void* sqlite3SymbianMalloc(size_t aSize)
 	{
 	__MEM_CALL(EMemOpAlloc, aSize, 0);
-	return COsLayerData::Instance().iAllocator->Alloc(aSize);
+	return Allocator().Alloc(aSize);
 	}
 
 /**
@@ -2563,10 +2636,10 @@ Memory reallocation routine.
 extern "C" void* sqlite3SymbianRealloc(void* aPtr, size_t aSize)
 	{
 #ifdef _SQLPROFILER
-	TInt size = COsLayerData::Instance().iAllocator->AllocLen(aPtr);
+	TInt size = Allocator().AllocLen(aPtr);
 	__MEM_CALL(EMemOpRealloc, aSize, size);
 #endif
-	return COsLayerData::Instance().iAllocator->ReAlloc(aPtr, aSize);
+	return Allocator().ReAlloc(aPtr, aSize);
 	}
 
 /**
@@ -2579,10 +2652,10 @@ Memory free routine.
 extern "C" void sqlite3SymbianFree(void* aPtr)
 	{
 #ifdef _SQLPROFILER
-	TInt size = COsLayerData::Instance().iAllocator->AllocLen(aPtr);
+	TInt size = Allocator().AllocLen(aPtr);
 	__MEM_CALL(EMemOpFree, size, 0);
 #endif
-	COsLayerData::Instance().iAllocator->Free(aPtr);
+	Allocator().Free(aPtr);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

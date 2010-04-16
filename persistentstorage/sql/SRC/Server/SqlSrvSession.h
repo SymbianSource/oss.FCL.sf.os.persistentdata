@@ -113,7 +113,7 @@ private:
 	TDes8& ReadString8ZL(const RMessage2& aMessage, TInt aArgNum, TInt aByteLen);
 	TDes16& ReadString16ZL(const RMessage2& aMessage, TInt aArgNum, TInt aCharLen);
 	TDes16& ReadString16L(const RMessage2& aMessage, TInt aArgNum, TInt aCharLen);
-	CSqlSecurityPolicy* InternalizeSecurityPolicyL(const RMessage2& aMessage);
+	CSqlSecurityPolicy* CreateSecurityPolicyL(const TDesC8& aSecurotyPolicyData);
 	virtual TInt CountResources();
 	void Extract(const RMessage2& aMessage, TSqlSrvFunction& aFunction, TInt& aHandle);
 	TInt GetColumnValueL(const RMessage2& aMessage, CSqlSrvStatement& aStmt, TSqlColumnType aColType);

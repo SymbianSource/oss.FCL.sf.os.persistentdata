@@ -384,16 +384,12 @@ void RFeatMgrClient::ListSupportedFeaturesL( RFeatureUidArray& aSupportedFeature
 // RFeatMgrClient::ReRequestNotification(TUid&, TRequestStatus&)
 // -----------------------------------------------------------------------------
 //
-TInt RFeatMgrClient::ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus )
+void RFeatMgrClient::ReRequestNotification( TUid& aFeatUid, TRequestStatus& aStatus )
     {
     TPckgBuf<TInt> pckg;
-    TInt retval( KErrNone );
-    
-	iFeaturePckg.Set( (TUint8*) &aFeatUid.iUid, sizeof(TUid), sizeof(TUid) );
-	TIpcArgs args( &iFeaturePckg );
-	SendReceive( EFeatMgrReqNotify, args, aStatus );
-
-    return retval;
+    iFeaturePckg.Set( (TUint8*) &aFeatUid.iUid, sizeof(TUid), sizeof(TUid) );
+	  TIpcArgs args( &iFeaturePckg );
+  	SendReceive( EFeatMgrReqNotify, args, aStatus );
     }
 
 // -----------------------------------------------------------------------------

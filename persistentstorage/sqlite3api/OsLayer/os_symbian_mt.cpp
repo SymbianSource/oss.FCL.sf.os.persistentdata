@@ -547,8 +547,7 @@ static inline TDbFile& DbFile(sqlite3_file* aDbFile)
 SQLite OS porting layer API.
 
 Closes the file referred by aDbFile parameter.
-If aDbFile, which is actually a pointer to a TDbFile instance, the iFullName data member is not NULL, 
-then the file will be deleted.
+If aDbFile.iFullName data member is not NULL, then the file will be deleted.
 
 @param aDbFile A pointer to a TDbFile instance, than contains the file handle to be closed.
 
@@ -562,7 +561,8 @@ then the file will be deleted.
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	dbFile.iFileBuf.Close();	
 	if(dbFile.iFullName)
-		{
+        {//"iFullName" will not be NULL only when TVfs::Open() is called with SQLITE_OPEN_DELETEONCLOSE flag.
+         //That means - SQlite expects the file to be deleted after the file close operation. 
 		(void)TStaticFs::Fs().Delete(*dbFile.iFullName);
 		delete dbFile.iFullName;
 		dbFile.iFullName = NULL;

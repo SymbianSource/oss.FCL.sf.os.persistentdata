@@ -39,8 +39,7 @@ const TUid KInvalidFeatureUid   = {KInvalidFeatureId};
 static TInt TheProcessHandleCount = 0;
 static TInt TheThreadHandleCount = 0;
 static TInt TheAllocatedCellsCount = 0;
-
-#ifdef EXTENDED_FEATURE_MANAGER_TEST
+#ifdef _DEBUG
 static const TInt KBurstRate = 20;
 #endif
 

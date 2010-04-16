@@ -25,6 +25,27 @@
 
 using namespace conn;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////                     Backup database file header format                           ///////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////// No version (Version 0)
+//  8 chars          8 chars          8 chars             up to 256 characters (512 bytes)
+// <32-bit checksum><32-bit filesize><32-bit filenamelen><filename - UTF16 encoded>
+
+//////             Version 2
+//  8 chars          8 chars   4 chars     16 chars         8 chars             up to 256 characters (512 bytes)
+// <32-bit checksum><FFFFAA55><Version N#><64-bit filesize><32-bit filenamelen><filename - UTF16 encoded>
+
+const TInt KBackupHeaderVersion = 2;            //Current backup database file header version
+
+const TUint32 KMagicNum = 0xFFFFAA55;           //Magic number. If the "old database file size" field in the header
+                                                //has this value, then the header version is 2+
+const TInt KMaxHeaderSize = 256 + KMaxFileName; //The size of the buffer used for the operations on the header
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 //-----------------------------------------
 // CSqlBackupClient
 //-----------------------------------------
@@ -127,7 +148,7 @@ class CSqlBackupClient : public CActive, public MActiveBackupDataClient
 		RFile64 iFile;
 		TInt iFileIndex;
 		TUint iState;
-		HBufC* iBuffer; // used for the header data
+		TBuf<KMaxHeaderSize> iBuffer; // used for the header data
 		TInt iHeaderSent; // how many header bytes sent so far
 		TUint32 iChecksum; // used by restore
 		TInt64 iFileSize; // used by restore

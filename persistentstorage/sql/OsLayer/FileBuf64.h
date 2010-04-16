@@ -18,9 +18,6 @@
 #include <f32file.h>
 #include <f32file64.h>
 
-//Forward declaration
-struct MFileInitializer64;
-
 /**
 The RFileBuf64 class provides buffered file read/write operations on a single RFile64 object.
 RFileBuf64::Read() and RFileBuf64::Write() methods may boost the performance of the read/write file operations up to 30% 
@@ -47,37 +44,41 @@ Usage notes:
 	  In details, to create a file and access it through a RFileBuf64 object:
 	  
 	  	RFs fs;
-	  	//initialize the file session
+        TInt err = fs.Connect();
+        //check the error
 	  	...
 	  	RFileBuf64 fbuf(<N>);									//<N> is the buffer capacity in bytes
-	  	TInt err = fbuf.Create(fs, <file name>, <file mode>);
+	  	err = fbuf.Create(fs, <file name>, <file mode>);
 	  	//check the error
 	  	
 	  To open an existing file and access it through a RFileBuf64 object:
 
 	  	RFs fs;
-	  	//initialize the file session
+        TInt err = fs.Connect();
+        //check the error
 	  	...
 	  	RFileBuf64 fbuf(<N>);									//<N> is the buffer capacity in bytes
-	  	TInt err = fbuf.Open(fs, <file name>, <file mode>);
+	  	err = fbuf.Open(fs, <file name>, <file mode>);
 	  	//check the error
 	  
 	  To create a temporary file and access it through a RFileBuf64 object:
 
 	  	RFs fs;
-	  	//initialize the file session
+        TInt err = fs.Connect();
+        //check the error
 	  	...
 	  	RFileBuf64 fbuf(<N>);									//<N> is the buffer capacity in bytes
-	  	TInt err = fbuf.Temp(fs, <path>, <file name>, <file mode>);
+	  	err = fbuf.Temp(fs, <path>, <file name>, <file mode>);
 	  	//check the error
 	  
 	  To open a file from handle and access it through a RFileBuf64 object:
 
 	  	RFs fs;
-	  	//initialize the file session
+        TInt err = fs.Connect();
+        //check the error
 	  	...
 	  	RFileBuf64 fbuf(<N>);									//<N> is the buffer capacity in bytes
-	  	TInt err = fbuf.AdoptFromClient(<msg>, <fs handle index>, <file handle index>);
+	  	err = fbuf.AdoptFromClient(<msg>, <fs handle index>, <file handle index>);
 	  	//check the error
 
 	- if the RFileBuf64 object is initialised successfully, now the public RFileBuf64 methods can be called to perform
@@ -99,7 +100,7 @@ Usage notes:
 @endcode
 
 Implementation notes: the current RFileBuf64 implementation is optimised for use by the SQLite OS porting layer.
-	After a detailed investigation of the performed by SQLite file read/write operations it was found that buffering of
+	After investigation of SQLite file read/write operations it was found that buffering of
 	two or more logical file writes into a single physical file write has a positive impact (as expected) on the performance 
 	of the database write operations. But the picture is quite different for the file read operations. The database data is
 	organised in pages with fixed size. After a database is created and set of insert/update/delete operations is performed 
@@ -160,7 +161,8 @@ public:
 
 private:
 	void Invariant() const;
-	TInt DoInit(MFileInitializer64& aFileInitializer);
+	TInt DoPreInit();
+	TInt DoPostInit(TInt aInitErr);
 	void DoDiscard();
 	TInt DoFileSize();
 	TInt DoSetFileSize(TInt64 aFileSize);

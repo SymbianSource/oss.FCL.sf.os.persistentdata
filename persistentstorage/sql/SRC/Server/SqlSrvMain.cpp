@@ -233,6 +233,9 @@ TInt CSqlServer::ReAllocBuf(TInt aNewBufSize)
 
 /**
 Creates new CSqlSrvSession instance.
+If SQLSRV_STARTUP_TEST macro is defined, then the function returns NULL.
+The "real" implementation of the function is not used in this case because the used unit test will require 
+a lot of cpp files to be included into the test build (t_sqlstartup).
 
 @return A pointer to the created CSqlSrvSession instance.
 
@@ -241,15 +244,20 @@ Creates new CSqlSrvSession instance.
        
 @see CSqlSrvSession
 */
-CSession2* CSqlServer::NewSessionL(const TVersion &aVersion, const RMessage2&) const
-	{
-	if(!User::QueryVersionSupported(::SqlSrvVersion(), aVersion))
-		{
-		User::Leave(KErrNotSupported);
-		}
-	CSqlSrvSession* sess = CSqlSrvSession::NewL();
-	return sess;
-	}
+CSession2* CSqlServer::NewSessionL(const TVersion& aVersion, const RMessage2&) const
+    {
+#ifdef SQLSRV_STARTUP_TEST
+    aVersion.Name();//to prevent the compiler warning ("unused parameter").
+    return NULL;
+#else
+    if(!User::QueryVersionSupported(::SqlSrvVersion(), aVersion))
+        {
+        User::Leave(KErrNotSupported);
+        }
+    CSqlSrvSession* sess = CSqlSrvSession::NewL();
+    return sess;
+#endif //SQLSRV_STARTUP_TEST
+    }
 
 /**
 CSqlServer's active object priority.
@@ -283,7 +291,11 @@ Initializes CSqlServer instance:
 */
 void CSqlServer::ConstructL()
 	{
+#ifndef SQLSRV_STARTUP_TEST
+	//Start the server only in "normal" builds, not in the case where t_sqlstartup unit test tests directly
+	//the SQL server startup code.
 	StartL(KSqlSrvName);
+#endif	
 #ifdef _SQLPROFILER 
     TheSqlSrvStartTime.UniversalTime();
     SQLPROFILER_SERVER_START();
@@ -329,18 +341,24 @@ void CSqlServer::ConstructL()
 	//Compactor
 	iCompactor = CSqlCompactor::NewL(&SqlCreateCompactConnL, KSqlCompactStepIntervalMs);
 #ifdef _DEBUG
-	/*
-	 The following statements exist to prevent the failure of the resource allocation 
-	 checking for debug mode. 
-	 They allocate some memory when the server object is constructed so avoid these memory 
-	 allocations during debug mode. 
-	 */
-const TInt KAnyNumber	= 0xAA55; 
-const TInt KGreatSize = 1024; 
+    //The following statements exist to prevent the failure of the OOM testing in debug mode.
+	//The standard C library allocates some memory at the startup and stores a pointer to the allocated memory
+	//in the TLS. During normal API OOM testing the SQL server is not restarted, it never goes down.
+	//Then the TLS and the allocated memory are not released. In which case the OOM testing will fail
+	//(because the standard C library performs a lazy initialization and the allocation and TLS usage will be made
+	//at the point of first use of some C function. This is out of the control of the test code).
+	//In order to avoid that, during the SQL server startup here, before the OOM test goes and checks what 
+	//is the allocated memory at the beginning, a fake sprintf() call is made in order to force the mentioned above  
+	//allocation in the standard C library.
+	//All explanations above are true, except one case when the SQl server startup code is tested directly.
+    #ifndef SQLSRV_STARTUP_TEST
+	const TInt KAnyNumber	= 0xAA55; 
  	char tmp[32]; 
  	sprintf(tmp, "%04X", KAnyNumber);
+    const TInt KGreatSize = 1024; 
  	__SQLLEAVE_IF_ERROR(ReAllocBuf(KGreatSize));
-#endif 	
+    #endif //SQLSRV_STARTUP_TEST 	
+#endif //_DEBUG 	
 	}
 
 /**
@@ -436,6 +454,7 @@ Database files on ROM drive(s) won't be put in aFileList.
 */
 void CSqlServer::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
 	{
+	aFileList.Reset();
 	TFindFile findFile(iFileData.Fs());
 	CDir* fileNameCol = NULL;
 	TUidName uidName = (static_cast <TUid> (aUid)).Name();
@@ -490,6 +509,8 @@ void CSqlServer::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
 ////////////////////////////////////////   SQL server startup   //////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef SQLSRV_STARTUP_TEST
+
 //Run the SQL server
 static void RunServerL()
 	{
@@ -526,3 +547,4 @@ TInt E32Main()
 	return err;
 	}
 
+#endif //SQLSRV_STARTUP_TEST

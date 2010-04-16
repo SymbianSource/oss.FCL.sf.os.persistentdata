@@ -191,6 +191,10 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 static void SetupTestDirectory()
     {
 	TInt err = TheFs.MkDir(KTestDatabase);
+	if(err != KErrNone)
+	    {
+	    RDebug::Print(_L("*** SetupTestDirectory(), RFs::MkDir(), err=%d\r\n"), err);
+	    }
 	TEST(err == KErrNone || err == KErrAlreadyExists);
 	}
 

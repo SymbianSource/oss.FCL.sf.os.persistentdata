@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -37,6 +37,8 @@ const TUid KUidResetTestRepository = { 0x00000004 };
 const TUid KUidDriveCRepository = { 0x00000010 };
 
 const TUid KUidDriveCOnlyRepository = { 0x00000013 };
+
+const TUid KUidTestRepository3 = { 0x00000103 };
 
 //
 // Test repository 1
@@ -2239,6 +2241,64 @@ LOCAL_C void NotifyOnlyL()
 
 	CleanupStack::PopAndDestroy();
 	}
+
+/**
+@SYMTestCaseID          PDS-CENTRALREPOSITORY-CT-4113
+@SYMTestCaseDesc        Validates meta data is not lost before a transaction is committed
+                        when deleting a range of settings.
+@SYMTestPriority        High
+@SYMTestActions         1) Start a transaction.
+                        2) Delete a setting using the delete range function.
+                        3) Create a new setting (using the deleted key)
+                        4) Commit the transaction.
+                        5) Check the metadata of the setting.                     
+@SYMTestExpectedResults When deleting a range of settings in a keyspace, and then 
+                        creating a new setting (with a key of a previously deleted setting)
+                        the meta data should not be reset to 0, it should take on the default
+                        metadata, if it exists.
+@SYMDEF                 DEF144530
+*/
+LOCAL_C void RangeDeleteMetaL()
+    {
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4113 "));
+
+    TUint32 partialKey   = 0x0000004;
+    TUint32 mask         = 0xFFFFFFF;
+    TUint32 meta = 0;
+    TUint32 expectedMeta = 0x10; // 16 
+    TUint32 keyCount = 0;
+    TUint32 expectedKeyCount = 1;
+    TUint32 error;
+
+    CRepository* repository;
+    User::LeaveIfNull(repository = CRepository::NewL(KUidTestRepository3)); // 00000103.txt
+    
+    repository->StartTransaction(CRepository::EReadWriteTransaction);
+
+    // Only want to delete 1 specific key, using the range delete function.
+    TInt ret = repository->Delete(partialKey, mask, error);
+    // We don't care about 'error' if 'ret==KErrNone'.
+    TEST2(ret, KErrNone);  
+    
+    // Create a new setting that is the same key and type as the deleted one.
+    ret = repository->Create(partialKey, 200); 
+    TEST2(ret, KErrNone);
+    
+    ret = repository->CommitTransaction(keyCount);
+    TEST2(ret, KErrNone);
+    // Confirm only 1 setting was updated.
+    TEST2(keyCount, expectedKeyCount);
+    
+    // Check the meta data of the newly created setting. It should be the 
+    // the same as the defaultmeta value in the keyspace.
+    ret = repository->GetMeta(partialKey, meta);
+    TEST2(ret, KErrNone);
+    TEST2(meta, expectedMeta);
+    
+    delete repository;
+    }
+
+
 /**
 @SYMTestCaseID			SYSLIB-CENTRALREPOSITORY-CT-0494
 @SYMTestCaseDesc		Tests the various functions on CentralRepository
@@ -2292,7 +2352,10 @@ LOCAL_C void FuncTestsL()
 
 	TheTest.Next(_L("Notify-only client optimizations"));
 	NotifyOnlyL();
-
+	
+	TheTest.Next(_L("Meta data after a Range Delete in transaction"));
+    RangeDeleteMetaL();
+    
 	TheTest.End();
 	}
 

@@ -76,6 +76,11 @@ void CFeatureNotifier::ConstructL()
     iFeatMgrClient = new (ELeave) RFeatMgrClient;
     // Connect to Feature Manager server
     TInt err( iFeatMgrClient->Connect() );
+    if (err!=KErrNone)
+      {
+      delete iFeatMgrClient;
+      iFeatMgrClient=NULL;
+      }
     User::LeaveIfError(err);
 
     CActiveScheduler::Add( this );
@@ -112,12 +117,20 @@ EXPORT_C TInt CFeatureNotifier::NotifyRequest( TUid aFeature )
         }
 
     iFeatures.Reset();
-    iFeatures.Append( aFeature );
-    TInt err = iFeatMgrClient->RequestNotification( iFeatures, iFeatureChanged, iStatus );
+    TInt err=iFeatures.Append( aFeature );
+    if (err!=KErrNone)
+      {
+      return err;
+      }
+    err = iFeatMgrClient->RequestNotification( iFeatures, iFeatureChanged, iStatus );
     if ( err == KErrNone )
     	{
         SetActive();
      	}
+    else
+      {
+      iFeatures.Reset();
+      }
      	    
     return err;
     }
@@ -135,7 +148,7 @@ EXPORT_C TInt CFeatureNotifier::NotifyRequest( RFeatureUidArray& aFeatures )
 
     iFeatures.Reset();
     TInt count = aFeatures.Count();
-    
+    TInt err=KErrNone;
     for(TInt i = 0; i < count; i++ )
         {
         // Do not append duplicate entries
@@ -143,16 +156,24 @@ EXPORT_C TInt CFeatureNotifier::NotifyRequest( RFeatureUidArray& aFeatures )
         TInt index = iFeatures.Find( uid, FindByUid );
         if( index == KErrNotFound )
             {
-            iFeatures.Append( uid );
+            err=iFeatures.Append( uid );
+            if (err!=KErrNone)
+              {
+              iFeatures.Reset();
+              return err;
+              }
             }
         }
 
-    TInt err = iFeatMgrClient->RequestNotification( iFeatures, iFeatureChanged, iStatus );
+    err = iFeatMgrClient->RequestNotification( iFeatures, iFeatureChanged, iStatus );
     if ( err == KErrNone )
     	{
         SetActive();
      	}
-    
+    else
+      {
+      iFeatures.Reset();
+      }
     return err;
     }
     

@@ -104,6 +104,16 @@ void WriteOnlyDatabaseTest()
 	//Attempt to modify the database schema
 	err = TheDb.Exec(_L("CREATE TABLE C(FFF TEXT)"));
 	TEST2(err, KErrPermissionDenied);
+    err = TheDb.Exec(_L("CREATE TRIGGER upd_a_b1 UPDATE OF B1 ON A BEGIN UPDATE B SET F3 = 'AAAA' WHERE F2 = A.F1; END;"));
+    TEST2(err, KErrPermissionDenied);
+    err = TheDb.Exec(_L("CREATE TEMP TRIGGER upd_a_b1 UPDATE OF B1 ON A BEGIN UPDATE B SET F3 = 'AAAA' WHERE F2 = A.F1; END;"));
+    TEST2(err, KErrPermissionDenied);//Temp trigger which attempts to update one of the tables.
+    err = TheDb.Exec(_L("CREATE VIEW V1 AS SELECT * FROM A"));
+    TEST2(err, KErrPermissionDenied);
+    err = TheDb.Exec(_L("CREATE TEMP VIEW V1 AS SELECT * FROM A"));
+    TEST(err >= 0);
+    err = TheDb.Exec(_L("DROP VIEW V1"));
+    TEST(err >= 0);
 	//Attempt to update the user data (but it includes a READ operation)
 	err = TheDb.Exec(_L("UPDATE A SET F1 = 11 WHERE F1 = 1"));
 	TEST2(err, KErrPermissionDenied);

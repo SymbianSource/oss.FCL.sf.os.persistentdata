@@ -46,6 +46,7 @@ EXPORT_C TInt TFeatureSet::Append( TUid aFeature )
     TInt err;
     TFeatureStat feature;
     feature.iFeatureID = aFeature;
+    feature.iSupported=EFalse;
     
     err = iStatus.Append( feature );
     if( err == KErrNone )
