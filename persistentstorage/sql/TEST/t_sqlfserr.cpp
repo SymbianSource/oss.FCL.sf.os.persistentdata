@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -165,7 +165,7 @@ void AlterDatabaseTest()
 	TEST(err >= 0);
 	TheDb.Close();
 	err = KErrNotFound;
-	for(TInt cnt=1;err<KErrNone;++cnt)
+	for(TInt cnt=0;err<KErrNone;++cnt)
 		{
 		TheTest.Printf(_L("%d \r"), cnt);		
 		for (TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
@@ -225,7 +225,7 @@ void AlterDatabaseTest2()
 	TEST(err >= 0);
 	TheDb.Close();
 	err = KErrNotFound;
-	for(TInt cnt=1;err<KErrNone;++cnt)
+	for(TInt cnt=0;err<KErrNone;++cnt)
 		{
 		TheTest.Printf(_L("%d \r"), cnt);		
 		for (TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
@@ -334,7 +334,7 @@ void OpenDatabaseTest()
         {	
         TheTest.Printf(_L("Database: \"%S\"\r\n"), &dbName[k]);       
         TInt err = KErrNotFound;
-        for(TInt cnt=1;err<KErrNone;++cnt)
+        for(TInt cnt=0;err<KErrNone;++cnt)
             {		
             TheTest.Printf(_L("%d \r"), cnt);		
             for (TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
@@ -390,7 +390,7 @@ void CreateDatabaseTest()
 	    {
         TheTest.Printf(_L("Database: \"%S\"\r\n"), &dbName[k]);       
         TInt err = -1;
-        for(TInt cnt=1;err<KErrNone;++cnt)
+        for(TInt cnt=0;err<KErrNone;++cnt)
             {		
             TheTest.Printf(_L("%d \r"), cnt);		
             for (TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
@@ -442,7 +442,7 @@ void AttachDatabaseTest()
         {
         TheTest.Printf(_L("Database: \"%S\"\r\n"), &dbName[k]);       
         TInt err = KErrGeneral;
-        for(TInt cnt=1;err<KErrNone;++cnt)
+        for(TInt cnt=0;err<KErrNone;++cnt)
             {
             TheTest.Printf(_L("%d \r"), cnt);       
             for(TInt fsError=KErrNotFound;fsError>=KErrDied;--fsError)
@@ -516,7 +516,7 @@ void SelectRecordTest()
 	TEST2(err, 1);
 	TheDb.Close();
 	err = -1;
-	for(TInt cnt=1;err<KErrNone;++cnt)
+	for(TInt cnt=0;err<KErrNone;++cnt)
 		{		
 		TheTest.Printf(_L("%d \r"), cnt);		
 		err = TheDb.Open(KTestDbName);
@@ -581,7 +581,7 @@ void InsertRecordTest()
 	TEST2(err, 1);
 	TheDb.Close();
 	err = -1;
-	for(TInt cnt=1;err<KErrNone;++cnt)
+	for(TInt cnt=0;err<KErrNone;++cnt)
 		{		
 		TheTest.Printf(_L("%d \r"), cnt);		
 		err = TheDb.Open(KTestDbName);
@@ -799,7 +799,7 @@ void TRemovableMediaTest::DoTest()
 	TInt rc = -1;
 	TBuf8<KMaxFileName + 1> dbFileName8;
 	dbFileName8.Copy(TheRmvMediaDbFileName);
-	for(TInt cnt=1;rc!=SQLITE_OK;++cnt)
+	for(TInt cnt=0;rc!=SQLITE_OK;++cnt)
 		{		
 		TheTest.Printf(_L("%d \r"), cnt);		
 		sqlite3* dbHandle = NULL;
@@ -900,7 +900,7 @@ void SizeTest()
 	TheDb.Close();
 	//"File I/O" error simulation loop
 	err = KErrCorrupt;
-	for(TInt cnt=1;err<KErrNone;++cnt)
+	for(TInt cnt=0;err<KErrNone;++cnt)
 		{
 		TheTest.Printf(_L("%d \r"), cnt);		
 		TEST2(TheDb.Open(KTestDbName), KErrNone);
@@ -983,7 +983,7 @@ void CompactTest()
 	TEST(size.iFree > 0);
 	//"File I/O" error simulation loop
 	err = KErrCorrupt;
-	for(TInt cnt=1;err<KErrNone;++cnt)
+	for(TInt cnt=0;err<KErrNone;++cnt)
 		{
 		TheTest.Printf(_L("%d \r"), cnt);		
 		TEST2(TheDb.Open(KTestDbName), KErrNone);
@@ -1073,7 +1073,7 @@ void BlobWriteStreamTest(TBool aAttachDb)
 	TheDb.Close();
 	
 	err = KErrCorrupt;
-	for(TInt cnt=1;err<KErrNone;++cnt)
+	for(TInt cnt=0;err<KErrNone;++cnt)
 		{
 		TheTest.Printf(_L("%d \r"), cnt);		
 		TEST2(TheDb.Open(KTestDbName), KErrNone);
@@ -1172,7 +1172,7 @@ void BlobReadStreamTest(TBool aAttachDb)
 	TPtr8 bufptr = buf->Des();
 	
 	err = KErrCorrupt;
-	for(TInt cnt=1;err<KErrNone;++cnt)
+	for(TInt cnt=0;err<KErrNone;++cnt)
 		{
 		TheTest.Printf(_L("%d \r"), cnt);		
 		TEST2(TheDb.Open(KTestDbName), KErrNone);

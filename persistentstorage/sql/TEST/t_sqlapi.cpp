@@ -780,6 +780,7 @@ _LIT8(KStmt18, "CREATE TABLE BBB(Fld1 INTEGER, Fld2 BIGINT, Fld3 DOUBLE, \
 _LIT8(KStmt19, "INSERT INTO BBB(Fld1, Fld2, Fld3, Fld4, Fld5, Fld6)\
 	                                       VALUES(:V1, :V2, :V3, :V4, :V5, :V6)");
 _LIT8(KStmt20, "SELECT * FROM BBB");
+_LIT8(KStmt21, "SELECT fld1, fld2 FROM AAA;SELECT fld1, fld2 FROM AAA");
 
 /**
 @SYMTestCaseID			SYSLIB-SQL-CT-1606
@@ -812,6 +813,10 @@ template <class DES, class BUF> void StatementTest()
 	ExecSqlStmt(db, stmt, KErrNone);
 	stmt.Close();
 
+	//String containg more than one SQL statement.
+	stmt = PrepareSqlStmt<DES, BUF>(db, KStmt21, KErrArgument); 
+	stmt.Close();
+	
 	//SQL statement without parameters. Insert a record into the table.
 	stmt = PrepareSqlStmt<DES, BUF>(db, KStmt13, KErrNone);
 	ExecSqlStmt(db, stmt, KErrNone);

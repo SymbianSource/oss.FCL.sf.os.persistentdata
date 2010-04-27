@@ -76,6 +76,7 @@ t_sqlsecurity2.mmp
 t_sqlsecurity3.mmp
 t_sqlsecurity4.mmp
 t_sqlsecurity5.mmp
+t_sqlsecurity6.mmp
 t_sqlattach.mmp
 #ifndef WINS //hardware only
 t_sqlattach2.mmp manual

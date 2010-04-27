@@ -1001,7 +1001,7 @@ void DoDbCfgFileIOFailuresTests()
 	err = KErrNotFound;
 	TInt iter = 0;
 	TheTest.Printf(_L("Iteration\r\n"));
-	for(TInt cnt = 1; !isFinished; ++cnt)
+	for(TInt cnt = 0; !isFinished; ++cnt)
 		{	
 		for(TInt fsError = KErrNotFound; fsError >= KErrUnderflow; --fsError) // errors -1 to -10 will be generated
 			{

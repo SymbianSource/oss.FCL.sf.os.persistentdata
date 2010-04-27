@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -532,10 +532,76 @@ void SqlLoadTest()
 	CloseTestThreads(threads, statuses, KTestThreadCnt);
 	}
 
+/**
+@SYMTestCaseID          PDS-SQL-CT-4201
+@SYMTestCaseDesc        Max number of SQL statements test.
+@SYMTestPriority        High
+@SYMTestActions         The test creates a table with couple of records and then
+						creates as many as possible SQL statements. The expected result is
+						that either the statement creation process will fail with KErrNoMemory or
+						the max number of statements to be created is reached (100000).
+						Then the test deletes 1/2 of the created statements object and
+						after that attempts to execute Next() on the rest of them.
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF145236
+*/  
+void StatementMaxNumberTest()
+	{
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	RSqlDatabase db;
+	TInt err = db.Create(KTestDbName1);
+	TEST2(err, KErrNone);
+	err = db.Exec(_L("CREATE TABLE A(I INTEGER); INSERT INTO A(I) VALUES(1); INSERT INTO A(I) VALUES(2);"));
+	TEST(err >= 0);
+	
+	//Reserve memory for the statement objects
+	const TInt KMaxStmtCount = 100000;
+	RSqlStatement* stmt = new RSqlStatement[KMaxStmtCount];
+	TEST(stmt != NULL);
+	TInt stmtCnt = 0;
+	
+	//Create as many statement objects as possible
+	err = KErrNone;
+	for(TInt i=0;(i<KMaxStmtCount) && (err == KErrNone);++i,++stmtCnt)
+		{
+		err = stmt[i].Prepare(db, _L("SELECT * FROM A WHERE I>=0 AND I<10"));
+		}
+	TheTest.Printf(_L("%d created statement objects. Last error: %d.\r\n"), stmtCnt, err);
+	TEST(err == KErrNone || err == KErrNoMemory);
+
+	//Close 1/2 of the statements to free some memory
+	for(TInt i=stmtCnt-1;i>=0;i-=2)
+		{
+		stmt[i].Close();
+		}
+	
+	//Now, there should be enough memory to be able to execute Next() on the rest of the statements
+	for(TInt i=stmtCnt-2;i>=0;i-=2)
+		{
+		err = stmt[i].Next();
+		TEST2(err, KSqlAtRow);
+		err = stmt[i].Next();
+		TEST2(err, KSqlAtRow);
+		err = stmt[i].Next();
+		TEST2(err, KSqlAtEnd);
+		}
+	
+	//Cleanup
+	for(TInt i=stmtCnt-1;i>=0;--i)
+		{
+		stmt[i].Close();
+		}
+	delete [] stmt;
+	db.Close();
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	}
+
 void DoTests()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1627-0001 SQL server load test "));
 	SqlLoadTest();
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4201 Statement max number test"));
+	StatementMaxNumberTest();
 	}
 
 TInt E32Main()

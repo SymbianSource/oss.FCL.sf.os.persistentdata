@@ -423,15 +423,21 @@ static TInt DoPrepareStmt8(sqlite3* aDbHandle, const TUint8* aStmt, sqlite3_stmt
 // - aHasTail is true (possibly more than one SQL statement, separated with ";");
 // - aStmtHandle is NULL;
 //
-static TInt ProcessPrepareError(TInt aSqliteError, TBool aHasTail, sqlite3_stmt* aStmtHandle)
+static TInt ProcessPrepareError(TInt aSqliteError, TBool aHasTail, sqlite3_stmt*& aStmtHandle)
 	{
 	if(aSqliteError != SQLITE_OK)
 		{
 		return ::Sql2OsErrCode(aSqliteError, sqlite3SymbianLastOsError());
 		}
 	else if(aHasTail || !aStmtHandle)
-		{//More than one SQL statement or the SQL string is "" or ";;;" or ";   ;; ;". 
-		 //Report it as an error, because there is no statement handle.
+		{//Case 1:
+		 // More than one SQL statement or the SQL string is "" or ";;;" or ";   ;; ;". 
+		 // Report it as an error, because there is no statement handle.
+		 //Case 2:
+		 // Non-null aHasTail. In this case the SQL string contains more than one SQL statement.
+		 // The statement handle is not null. The statement has to be finialized before reporting the error.
+		(void)FinalizeStmtHandle(aStmtHandle);
+		aStmtHandle = NULL;
 		return KErrArgument;
 		}
 	return KErrNone;

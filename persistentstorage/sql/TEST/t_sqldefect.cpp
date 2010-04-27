@@ -1394,7 +1394,7 @@ void DEF125881L()
 	
 	// Begin test
 	TInt fsError = KErrGeneral;
-	TInt count = 1;
+	TInt count = 0;
 	
 	const TInt KMaxOps = 300;
 

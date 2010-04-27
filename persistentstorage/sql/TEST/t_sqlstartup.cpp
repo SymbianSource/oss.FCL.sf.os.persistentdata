@@ -22,6 +22,9 @@
 _LIT(KCfgDb1ConfigFilePath, "c:\\private\\10281e17\\cfg[10281E17]t_sqlstartup1.db.02"); // config file version 2 for t_sqlstartup1.db
 _LIT(KCfgDb2ConfigFilePath, "c:\\private\\10281e17\\cfg[10281E17]t_sqlstartup2.db.05"); // config file version 5 for t_sqlstartup2.db
 
+//This subdir is created by t_sqlenvcreate app. It should not be returned in the list of files for backup.
+_LIT(KPrivateSubDir, "c:\\private\\10281e17\\TestDir.db");
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 RTest TheTest(_L("t_sqlstartup test"));
@@ -189,7 +192,18 @@ void GetBackupListOomTest()
         const TUid KDbUd = {0x98765432};
         RArray<TParse> files;
         TRAP(err, server->GetBackUpListL(KDbUd, files));
-        fileCnt = files.Count(); 
+        fileCnt = files.Count();
+        if(err == KErrNone)
+        	{
+			//No directories should be returned in the list of files for backup
+			for(TInt i=0;i<fileCnt;++i)
+				{
+				const TParse& parse = files[i];
+				TPtrC fname = parse.FullName();
+				TInt rc = KPrivateSubDir().CompareF(parse.FullName());
+				TEST(rc != 0);
+				}
+        	}
         files.Close();
         OomPostStep();
         }
@@ -221,7 +235,7 @@ void SqlServerStartupFileIoErrorTest()
         {
         TheTest.Printf(_L("===Simulated error: %d\r\nIteration: "), fsError);
         err = KErrNotFound;
-        TInt cnt=1;
+        TInt cnt=0;
         while(err<KErrNone)
             {
             TheTest.Printf(_L("%d "), cnt);
@@ -259,7 +273,7 @@ void GetBackupListFileIoErrorTest()
         TheTest.Printf(_L("===Simulated error: %d\r\nIteration: "), fsError);
         err = KErrNotFound;
         TInt fileCnt = 0;
-        TInt cnt=1;
+        TInt cnt=0;
         while(err<KErrNone)
             {
             TheTest.Printf(_L("%d "), cnt);
@@ -268,6 +282,17 @@ void GetBackupListFileIoErrorTest()
             RArray<TParse> files;
             TRAP(err, server->GetBackUpListL(KDbUd, files));
             fileCnt = files.Count(); 
+            if(err == KErrNone)
+            	{
+    			//No directories should be returned in the list of files for backup
+    			for(TInt i=0;i<fileCnt;++i)
+    				{
+    				const TParse& parse = files[i];
+    				TPtrC fname = parse.FullName();
+    				TInt rc = KPrivateSubDir().CompareF(parse.FullName());
+    				TEST(rc != 0);
+    				}
+            	}
             files.Close();
             (void)server->Fs().SetErrorCondition(KErrNone);
             if(err != KErrNone)
@@ -306,17 +331,6 @@ void UtfConversionTest()
     name2[1] = TChar(0xFC00); 
     rc = UTF16ToUTF8(name2, bufout);
     TEST(!rc);
-#ifndef _DEBUG    
-    //Test where the input buffer is too big
-    TBuf<KMaxFileName + 1> bufin;
-    bufin.SetLength(bufin.MaxLength());
-    rc = UTF16ToUTF8(bufin, bufout);
-    TEST(!rc);
-    //Test where the output buffer max length is less than KMaxFileName
-    TBuf8<KMaxFileName / 2> bufout2;
-    rc = UTF16ToUTF8(name2, bufout2);
-    TEST(!rc);
-#endif    
     /////////       UTF16ToUTF8Z()       ///////////////////////
     _LIT8(KStr8Z, "abcd\x0");
     rc = UTF16ToUTF8Z(KStr16, bufout);

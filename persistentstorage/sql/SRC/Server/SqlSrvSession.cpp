@@ -1200,16 +1200,16 @@ Processes the request for creating an IPC stream for accessing the content of a 
 @return The blob stream handle
 
 @leave KErrNoMemory, 		 An out of memory condition has occurred;
-	   KErrArgument, 		 The IPC data buffer length is invalid, or the ROWID is invalid,
-	   				 		 or UTF-16 to UTF-8 string conversion failed;	
+	   KErrArgument, 		 The ROWID is invalid or UTF-16 to UTF-8 string conversion failed;	
 	   KErrBadDescriptor 	 The transferred data is bigger than the specified length;
 	   KErrBadName,	 		 The table name, column name or database name has an invalid length;
        KErrPermissionDenied, The client does not have the required security capabilites for this operation; 						 
        						 Note that the function may also leave with some other system wide errors or 
                      		 database specific errors categorised as ESqlDbError.
 
-@panic SqlDb 2 Client panic. The database object is not yet created (iDatabase is NULL)
-@panic SqlDb 3 Client panic. Failed to create a blob stream handle
+@panic SqlDb 2 Client panic. The database object is not yet created (iDatabase is NULL).
+@panic SqlDb 3 Client panic. Failed to create a blob stream handle.
+@panic SqlDb 4 Client panic. IPC buffer length is 0.
 
 Usage of the IPC call arguments:
 Arg 0: [in]	    The length of the IPC data buffer
@@ -1220,13 +1220,11 @@ TInt CSqlSrvSession::DbBlobSourceL(const RMessage2& aMessage)
 	{	
 	__SQLPANIC_CLIENT(iDatabase != NULL, aMessage, ESqlPanicInvalidObj);
 	
+	TInt ipcPrmLen = aMessage.Int0();
+	__SQLPANIC_CLIENT(ipcPrmLen > 0, aMessage, ESqlPanicBadArgument);
+	
 	iIpcStreams.AllocL();
 	
-	TInt ipcPrmLen = aMessage.Int0();
-	if(ipcPrmLen < 1)
-		{
-		__SQLLEAVE(KErrArgument);
-		}
 	TDes8& ipcPrmDes = ReadString8ZL(aMessage, 1, ipcPrmLen);
 	RDesReadStream strm(ipcPrmDes);
 	

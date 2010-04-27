@@ -333,11 +333,8 @@ void Test2()
 	TEST2(err, KErrPermissionDenied);
 
 	//Attempt to detach database using DETACH sql statement directly.
-	//Executed only in release mode because the server will panic in _DEBUG mode
-#ifndef _DEBUG	
 	err = TheDb.Exec(_L("DETACH DATABASE DB2"));
 	TEST2(err, KErrPermissionDenied);
-#endif	
 		
 	err = TheDb.Detach(KAttachDb2);
 	TEST2(err, KErrNone);	

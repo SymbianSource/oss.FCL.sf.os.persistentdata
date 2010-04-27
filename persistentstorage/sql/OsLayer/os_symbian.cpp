@@ -84,6 +84,10 @@ enum TPanicCodes
 	EPanicFastCounterFreq		=21
 	};
 
+//Bit-mask constant. If xOpen()'s "aFlag" parameter contains one of these bits set, then the the file top be
+//opened or created is a journal file.
+const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEMP_JOURNAL | SQLITE_OPEN_SUBJOURNAL | SQLITE_OPEN_MASTER_JOURNAL; 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1218,8 +1222,9 @@ static TBool ConvertToUnicode(const char *aFileName, TDes& aFileNameDestBuf)
 		{
 		wchar_t* dest = reinterpret_cast <wchar_t*> (const_cast <TUint16*> (aFileNameDestBuf.Ptr()));
 		TInt len = mbstowcs(dest, aFileName, aFileNameDestBuf.MaxLength());
+		__ASSERT_DEBUG(len >= 0, User::Panic(KPanicCategory, EPanicInternalError));
 		//If len == aFileNameDestBuf.MaxLength(), then the output buffer is too small.
-		if(len > 0 && len < aFileNameDestBuf.MaxLength())
+		if(len < aFileNameDestBuf.MaxLength())
 			{
 			aFileNameDestBuf.SetLength(len);
 			return ETrue;
@@ -1246,8 +1251,9 @@ static TBool ConvertFromUnicode(const TDesC& aFileName, TDes8& aFileNameDestBuf)
 	char* dest = reinterpret_cast <char*> (const_cast <TUint8*> (aFileNameDestBuf.Ptr()));
 	const wchar_t* src = reinterpret_cast <const wchar_t*> (aFileName.Ptr());
 	TInt len = wcstombs(dest, src, aFileNameDestBuf.MaxLength());
+	__ASSERT_DEBUG(len >= 0, User::Panic(KPanicCategory, EPanicInternalError));
 	//If len == aFileNameDestBuf.MaxLength(), then the output buffer is too small.
-	if(len > 0 && len < aFileNameDestBuf.MaxLength())
+	if(len < aFileNameDestBuf.MaxLength())
 		{
 		aFileNameDestBuf.SetLength(len);
 		return ETrue;
@@ -2005,38 +2011,35 @@ Retrieves and returns in a bit set the device characteristics.
 		{
 		deviceCharacteristics |= SQLITE_IOCAP_ATOMIC;	
 		}
-	if(aVolumeInfo.iBlockSize >= SQLITE_DEFAULT_SECTOR_SIZE && (aVolumeInfo.iBlockSize & (aVolumeInfo.iBlockSize - 1)) == 0)	
+	switch(aVolumeInfo.iBlockSize)
 		{
-		switch(aVolumeInfo.iBlockSize)
-			{
-			case 512:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC512;
-				break;
-			case 1024:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC1K;
-				break;
-			case 2048:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC2K;
-				break;
-			case 4096:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC4K;
-				break;
-			case 8192:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC8K;
-				break;
-			case 16384:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC16K;
-				break;
-			case 32768:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC32K;
-				break;
-			case 65536:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC64K;
-				break;
-			default:
-				//Do nothing. deviceCharacteristics was initialized with 0 at the beginning of the function body.
-				break;
-			}
+		case 512:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC512;
+			break;
+		case 1024:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC1K;
+			break;
+		case 2048:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC2K;
+			break;
+		case 4096:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC4K;
+			break;
+		case 8192:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC8K;
+			break;
+		case 16384:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC16K;
+			break;
+		case 32768:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC32K;
+			break;
+		case 65536:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC64K;
+			break;
+		default:
+			//Do nothing. deviceCharacteristics was initialized with 0 at the beginning of the function body.
+			break;
 		}
 	return deviceCharacteristics;
 	}
@@ -2287,8 +2290,7 @@ with the reported by the OS API error. The stored error code will be used later 
 				__FS_CALL(EFsOpFileOpen, 0);
 				err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
 				
-				if(err == KErrNone && ((aFlags & SQLITE_OPEN_MAIN_JOURNAL) || (aFlags & SQLITE_OPEN_TEMP_JOURNAL) || 
-                        (aFlags & SQLITE_OPEN_SUBJOURNAL) || (aFlags & SQLITE_OPEN_MASTER_JOURNAL)))
+				if(err == KErrNone && (aFlags & KJournalFileTypeBitMask))
 				    {
                     err = TVfs::DoFileSizeCorruptionCheck(dbFile, fname, fmode);
 				    }
@@ -2338,8 +2340,7 @@ with the reported by the OS API error. The stored error code will be used later 
 		(void)dbFile.iFileBuf.SetReadAheadSize(dbFile.iSectorSize, recReadBufSize);
 		}
 #ifdef _SQLPROFILER
-	dbFile.iIsJournal = (aFlags & SQLITE_OPEN_MAIN_JOURNAL) || (aFlags & SQLITE_OPEN_TEMP_JOURNAL) || 
-						(aFlags & SQLITE_OPEN_SUBJOURNAL) || (aFlags & SQLITE_OPEN_MASTER_JOURNAL);
+	dbFile.iIsJournal = aFlags & KJournalFileTypeBitMask; 
 #endif
 	return err == KErrNone ? SQLITE_OK : (err == KErrNoMemory ? SQLITE_IOERR_NOMEM : SQLITE_CANTOPEN);
 	}
