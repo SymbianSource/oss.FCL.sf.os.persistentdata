@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,12 +14,9 @@
 //
 
 #include <logview.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
-
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Contact Test Harness"));
+RTest TheTest(_L("t_logcontact"));
 
 /**
 @SYMTestCaseID          SYSLIB-LOGENG-CT-1018
@@ -32,7 +29,7 @@ RTest test(_L("Contact Test Harness"));
 */
 static void TestBackupL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1018 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1018 "));
 	CTestActive* active = new (ELeave) CTestActive;
 	CleanupStack::PushL(active);
 
@@ -155,9 +152,9 @@ static void TestBackupL(CLogClient& aClient)
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGCONTACT"));
+	TestUtils::Initialize(_L("t_logcontact"));
 
-	test.Start(_L("Prepare the test environment"));
+	TheTest.Start(_L("Prepare the test environment"));
 	
 	// Create log client
 	CLogClient* client = CLogClient::NewL(theFs);
@@ -166,9 +163,9 @@ void doTestsL()
 	// Send a message to the hicap helper to delete logeng DB 
 	TestUtils::DeleteDatabaseL();
 			
-	test.Next(_L("Backup"));
+	TheTest.Next(_L("Backup"));
 	TestBackupL(*client);
-	test.Next(_L("Backup completed ok"));
+	TheTest.Next(_L("Backup completed ok"));
 	theLog.Write(_L8("Test 2 OK\n"));
 	
 	CleanupStack::PopAndDestroy(client);

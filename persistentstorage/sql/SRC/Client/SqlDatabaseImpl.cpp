@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -39,7 +39,7 @@ The amount of free database space to be removed by the first compaction step.
 static const TInt KCompactStartStepSize = 32 * 1024;
 
 /**
-Calculates the amount of space that has to be removed from the database.
+The aim of the function is to determine the maximum size of space to be freed, which fits within the time constraint.
 The decision is based on the time spent on the pervious compaction step.
 If the time is bigger than KCompactMaxStepTimeUs then the space will be reduced by factor of 2 (slow media),
 bet will never be less than KCompactMinStepSize.
@@ -72,7 +72,8 @@ static TInt CalcCompactionStep(TInt aRemaining, TInt aStep, TInt aTime)
 		aStep *= 2;
 		}
 	if(aRemaining < aStep)
-		{
+		{//If, for example, aStep is 4000 bytes, aRemaining is 2000 bytes, then the step should be 2000,  
+		 //because that is what is left in the database as a free space.
 		aStep = aRemaining;
 		}
 	return aStep;

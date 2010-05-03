@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -18,15 +18,13 @@
 #include <s32file.h>
 #include <e32math.h>
 #include <logview.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
-RTest test( _L( "Test sequence order of returned events" ) );
+RTest TheTest(_L("t_logorderbyid"));
 
 _LIT( KTestNumber1, "11111" );
 _LIT( KTestNumber2, "22222" );
 _LIT( KTestNumber3, "33333" );
-
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
 
 /**
 Add an event to the log engine database.
@@ -110,7 +108,7 @@ LOCAL_C void TestGetEventL( CLogClient& aClient, TInt aTheId, TInt aIndex )
 	_LIT( KDateString5, "%-B%:0%J%:1%T%:2%S%:3%+B" );
 	event->Time().FormatL( dateString, KDateString5 );
 	TPtrC eventDate = dateString.Ptr();
-	test.Printf( _L( "Id:%d No:%S Time:%S \n" ), event->Id(), &eventNumber, &eventDate );
+	TheTest.Printf( _L( "Id:%d No:%S Time:%S \n" ), event->Id(), &eventNumber, &eventDate );
 	
 	CleanupStack::PopAndDestroy( 2 ); // event, active
 	}
@@ -131,7 +129,7 @@ LOCAL_C void TestRecentViewOrderingL( CLogClient& aClient )
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1020 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1020 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -151,11 +149,11 @@ LOCAL_C void TestRecentViewOrderingL( CLogClient& aClient )
 	TEST( view->CountL() == 0 );
 
 	TTime time;
-	test.Next( _L( "add new event 1" ) );
+	TheTest.Next( _L( "add new event 1" ) );
 	TInt eventId1 = AddEventL( aClient, *event, *active, 1 );
 	TestGetEventL( aClient, eventId1, 1 );
 
-	test.Next( _L( "time plus 10 mins - add new event 2" ) );
+	TheTest.Next( _L( "time plus 10 mins - add new event 2" ) );
 	time.HomeTime();
 	TTimeIntervalMinutes timeTravelForward( 10 );
 	time += timeTravelForward;
@@ -163,7 +161,7 @@ LOCAL_C void TestRecentViewOrderingL( CLogClient& aClient )
 	TInt eventId2 = AddEventL( aClient, *event, *active, 2 );
 	TestGetEventL( aClient, eventId2, 2 );
 
-	test.Next( _L( "time minus 5 mins - add new event 3" ) );
+	TheTest.Next( _L( "time minus 5 mins - add new event 3" ) );
 	time.HomeTime();
 	TTimeIntervalMinutes timeTravelBackward( 5 );
 	time -= timeTravelBackward;
@@ -206,7 +204,7 @@ LOCAL_C void TestRecentViewOrderingL( CLogClient& aClient )
 	
 void doTestsL()
 	{
-	TestUtils::Initialize( _L( "T_OrderById" ) );
+	TestUtils::Initialize(_L("t_logorderbyid"));
 	TestUtils::DeleteDatabaseL();
 
 	CLogClient* client = CLogClient::NewL( theFs );
@@ -215,7 +213,7 @@ void doTestsL()
 	CLogChangeNotifier* notifier = CLogChangeNotifier::NewL();
 	CleanupStack::PushL( notifier );
 
-	test.Start( _L( "Recent view sorts by Id not ETime" ) );
+	TheTest.Start( _L( "Recent view sorts by Id not ETime" ) );
 	TestRecentViewOrderingL( *client );
 	theLog.Write( _L8( "Test 1 OK\n" ) );
 

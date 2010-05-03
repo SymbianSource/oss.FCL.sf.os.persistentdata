@@ -234,7 +234,7 @@ EXPORT_C void RFileFlogger::Log(const TText8* aFile, TInt aLine, TLogSeverity aS
 	TBuf16<KMaxFilename> fileName;
 	GetCPPModuleName(fileName, aFile);  
 	// Create a buffer for formatting
-	HBufC* buffer = HBufC::NewLC(KMaxLoggerLineLength*2);
+	HBufC* buffer = HBufC::New(KMaxLoggerLineLength*2);
 	if(!buffer)
 		return;  // no memory
 	TPtr ptr(buffer->Des());
@@ -289,7 +289,7 @@ EXPORT_C void RFileFlogger::Log(const TText8* aFile, TInt aLine, TLogSeverity aS
 	}
 /*----------------- End of Maintaince warning section --------------------------*/
 	TRAPD(err,WriteL(ptr));
-	CleanupStack::PopAndDestroy(buffer);
+	delete buffer;
 
 	}
 

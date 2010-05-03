@@ -19,8 +19,8 @@
 
 #include <e32std.h>
 #include <e32base.h>
-#include <testblockcontroller.h>
-#include <datawrapper.h>
+#include <test/testblockcontroller.h>
+#include <test/datawrapper.h>
 
 class CTe_MCLSuiteController : public CTestBlockController
 	{

@@ -20,56 +20,39 @@
 
 #ifdef _SQLPROFILER
 
-extern TBool TheOsCallTimeDetailedProfileEnabled;//If true, the OS porting layer call details are enabled and for each call an entry will be added to the log file (epocwind.out).
-
 #define PROFILE_READ(pos,amount) \
 	do \
 		{ \
-		if(TheOsCallTimeDetailedProfileEnabled) \
-			{ \
-			++iFileReadCount; iFileReadAmount += (amount); \
-			RDebug::Print(_L(" -- FRead    this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileReadCount,  pos, amount, iFileReadAmount); \
-			} \
+		++iFileReadCount; iFileReadAmount += (amount); \
+        RDebug::Print(_L(" -- FRead    this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileReadCount,  pos, amount, iFileReadAmount); \
 		} while(0)
 	
 #define PROFILE_WRITE(pos,amount) \
 	do \
 		{ \
-		if(TheOsCallTimeDetailedProfileEnabled) \
-			{ \
-			++iFileWriteCount, iFileWriteAmount += (amount); \
-			RDebug::Print(_L(" -- FWrite   this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileWriteCount, pos, amount, iFileWriteAmount); \
-			} \
+		++iFileWriteCount; iFileWriteAmount += (amount); \
+		RDebug::Print(_L(" -- FWrite   this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileWriteCount, pos, amount, iFileWriteAmount); \
 		} while(0)
 
 #define PROFILE_SIZE() \
 	do \
 		{ \
-		if(TheOsCallTimeDetailedProfileEnabled) \
-			{ \
-			++iFileSizeCount; \
-			RDebug::Print(_L(" -- FSize    this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSizeCount); \
-			} \
+		++iFileSizeCount; \
+		RDebug::Print(_L(" -- FSize    this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSizeCount); \
 		} while(0)
 
 #define PROFILE_SETSIZE() \
 	do \
 		{ \
-		if(TheOsCallTimeDetailedProfileEnabled) \
-			{ \
-			++iFileSetSizeCount; \
-			RDebug::Print(_L(" -- FSetSize this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSetSizeCount); \
-			} \
+		++iFileSetSizeCount; \
+		RDebug::Print(_L(" -- FSetSize this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSetSizeCount); \
 		} while(0)
 
 #define PROFILE_FLUSH()	\
 	do \
 		{ \
-		if(TheOsCallTimeDetailedProfileEnabled) \
-			{ \
-			++iFileFlushCount; \
-			RDebug::Print(_L(" -- FFlush   this=%X, Cnt=%d\r\n"), (TUint32)this, iFileFlushCount); \
-			} \
+		++iFileFlushCount; \
+		RDebug::Print(_L(" -- FFlush   this=%X, Cnt=%d\r\n"), (TUint32)this, iFileFlushCount); \
 		} while(0)
 
 #else

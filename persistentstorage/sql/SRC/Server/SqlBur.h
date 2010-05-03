@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -142,7 +142,7 @@ class CSqlBackupClient : public CActive, public MActiveBackupDataClient
 			};
 			
 		CActiveBackupClient *iActiveBackupClient;
-		RProperty iProperty;
+		RProperty iBurProperty;//B&R property published by the B&R server. SQL server subscribes for notifications.
 		MSqlSrvBurInterface *iInterface; // the SQL server
 		RArray<TParse> iFileList; // which is populated by the SQL server
 		RFile64 iFile;

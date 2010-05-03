@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -18,24 +18,12 @@
 
 #include <e32test.h>
 #include <bautils.h>
+#include "t_logutil.h"
 
 RTest TheTest(_L("t_logenvdestroy - deleting EventLogger test files from C:"));
 
 _LIT(KCFileName1, "c:\\private\\10003a73\\CntModel.ini");
 _LIT(KCFileName2, "c:\\private\\10003a73\\SQLite__Contacts.cdb");
-
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-//Test macros and functions
-static void Check(TInt aValue, TInt aExpected, TInt aLine)
-	{
-	if(aValue != aExpected)
-		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
-		TheTest(EFalse, aLine);
-		}
-	}
-#define TEST2(aValue, aExpected) ::Check(aValue, aExpected, __LINE__)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 

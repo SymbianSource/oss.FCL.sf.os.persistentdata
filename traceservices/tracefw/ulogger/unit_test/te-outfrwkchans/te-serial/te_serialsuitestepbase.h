@@ -24,7 +24,7 @@
 
 #if (!defined __TE_SERIAL_STEP_BASE__)
 #define __TE_SERIAL_STEP_BASE__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include <uloggerclient.h>
 using namespace Ulogger;
 

@@ -1,5 +1,5 @@
 @rem
-@rem Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+@rem Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 @rem All rights reserved.
 @rem This component and the accompanying materials are made available
 @rem under the terms of "Eclipse Public License v1.0"
@@ -35,8 +35,8 @@ t_logevent.exe
 t_logwrap.exe
 t_logcontact.exe
 t_logcntmatch.exe
-t_maxnumberlength.exe
-t_OrderById.exe
+t_logmaxnumlen.exe
+t_logorderbyid.exe
 t_logservercrash.exe
 t_loglowcapability.exe
 t_loghicapability.exe

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,17 +14,10 @@
 //
 
 #include <s32file.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <s32mem.h>
 
-/* this fixes a MSVC link warning */
-#ifdef __VC32__
-#pragma comment (linker, "/opt:noref") 
-#endif
-
-#undef test  //there is a "TEST" macro which hides "RTest TEST" declaration.
-
-RTest test(_L("Log Event Test Harness"));
+RTest TheTest(_L("t_logevent"));
 
 TBool CompareEvents(const CLogEvent& aLeft, const CLogEvent& aRight)
 	{
@@ -77,11 +70,8 @@ void TestStoreL(const CLogEvent& aEvent)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestEventL()
-//
-//
-//
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1008 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1008 "));
 	CLogEvent* event1 = CLogEvent::NewL();
 	CleanupStack::PushL(event1);
 
@@ -567,12 +557,8 @@ LOCAL_C void TestEventL()
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestEventWithHeapFailL()
-//
-//
-//
-
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1009 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1009 "));
 #ifdef _DEBUG
 	TInt failCount = 0;
 #endif
@@ -826,11 +812,8 @@ LOCAL_C void TestEventWithHeapFailL()
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestEventWithFileFailL()
-//
-//
-//
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1010 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1010 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -900,24 +883,21 @@ LOCAL_C void TestEventWithFileFailL()
 	}
 
 void doTestsL()
-//
-//
-//
 	{
-	TestUtils::Initialize(_L("T_LOGEVENT"));
+	TestUtils::Initialize(_L("t_logevent"));
 
-	test.Start(_L("Event"));
+	TheTest.Start(_L("Event"));
 //	TestServerL();
 	
 
 	TestEventL();
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("Event with heap failure"));
+	TheTest.Next(_L("Event with heap failure"));
 	TestEventWithHeapFailL();
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("Event with file failure"));
+	TheTest.Next(_L("Event with file failure"));
 	TestEventWithFileFailL();
 	theLog.Write(_L8("Test 3 OK\n"));
 	}

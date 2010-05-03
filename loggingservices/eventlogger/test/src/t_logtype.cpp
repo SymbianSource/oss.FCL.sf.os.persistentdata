@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,10 +15,9 @@
 
 #include <s32file.h>
 #include <logview.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-RTest test(_L("Event Type Test Harness"));
+RTest TheTest(_L("t_logtype"));
 
 /**
 @SYMTestCaseID          SYSLIB-LOGENG-CT-0830
@@ -31,7 +30,7 @@ RTest test(_L("Event Type Test Harness"));
 */
 LOCAL_C void TestTypeL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0830 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0830 "));
 	CLogEventType* type1 = CLogEventType::NewL();
 	CleanupStack::PushL(type1);
 
@@ -116,7 +115,7 @@ LOCAL_C void TestTypeWithHeapFailL()
 //
 //
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0831 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0831 "));
 #ifdef _DEBUG
 	TInt failCount = 0;
 #endif
@@ -153,7 +152,7 @@ LOCAL_C void TestTypeWithHeapFailL()
 */
 LOCAL_C void TestInitialEventsL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0832 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0832 "));
 	// Make sure the database is deleted
 	TestUtils::DeleteDatabaseL();
 
@@ -267,16 +266,16 @@ LOCAL_C void TestInitialEventsL()
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGTYPE"));
-	test.Start(_L("Event Type"));
+	TestUtils::Initialize(_L("t_logtype"));
+	TheTest.Start(_L("Event Type"));
 	TestTypeL();
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("Event Type with heap failure"));
+	TheTest.Next(_L("Event Type with heap failure"));
 	TestTypeWithHeapFailL();
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("Initial events"));
+	TheTest.Next(_L("Initial events"));
 	TestInitialEventsL();
 	theLog.Write(_L8("Test 3 OK\n"));
 	 

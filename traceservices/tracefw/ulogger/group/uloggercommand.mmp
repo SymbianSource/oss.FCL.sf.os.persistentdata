@@ -15,10 +15,6 @@
 // 
 //
 
-/**
- @file 
-*/
-
 TARGET			uloggercommand.dll
 TARGETTYPE		DLL
 UID				0x1000008d 0x102857F5
@@ -27,10 +23,13 @@ CAPABILITY 		ALL -TCB
 
 DEFFILE			ULOGGERCOMMAND.DEF
 
+OS_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE     ../inc
+
 SOURCEPATH		../src/command
 SOURCE			uloggercommands.cpp
 
-USERINCLUDE		../inc
-OS_LAYER_SYSTEMINCLUDE_SYMBIAN
-
-LIBRARY	 euser.lib etext.lib ecom.lib 
+LIBRARY	 euser.lib 
+LIBRARY  etext.lib 
+LIBRARY  ecom.lib 

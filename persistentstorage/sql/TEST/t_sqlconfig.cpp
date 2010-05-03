@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -430,8 +430,8 @@ void CfgCrossConnectionTest()
 	(void)RSqlDatabase::Delete(KTestDbName2);
 	(void)RSqlDatabase::Delete(KTestDbName);
 	//Create 2 databases with different configuration parameters
-	_LIT8(KCfgStr2_1, "cache_size = 50; page_size = 512; encoding = UTF-16");
-	_LIT8(KCfgStr2_2, "cache_size = 80; page_size = 4096; encoding = UTF-8");
+	_LIT8(KCfgStr2_1, "cache_size = 50; page_size = 512; encoding = \"UTF-16\"");
+	_LIT8(KCfgStr2_2, "cache_size = 80; page_size = 4096; encoding = \"UTF-8\"");
 	err = TheDb.Create(KTestDbName, &KCfgStr2_1);
 	TEST2(err, KErrNone);
 	err = TheDb2.Create(KTestDbName2, &KCfgStr2_2);

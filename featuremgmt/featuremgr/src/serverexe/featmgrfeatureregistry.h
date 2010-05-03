@@ -242,7 +242,7 @@ NONSHARABLE_CLASS(CFeatMgrFeatureRegistry) : public CBase, MSWICallBack
         const TFeatureServerEntry& aItem );
         void ValidateHeaderL( RFileReadStream& stream, TUint32& count, TUint32& countDSRs );
         void WriteHeaderAndEntriesL( RFileWriteStream &aStream, RFeatureServerArray& aArray );
-        TInt ValidateFeatureFlag(TBitFlags32 aFlags);
+        void ValidateFeatureFlagL(TBitFlags32 aFlags);
         void ValidateRuntimeFeatureFlagL(TBitFlags32 aFlags);
         
      private:

@@ -28,7 +28,5 @@
 
 #include <te_createconfig.iby>
 
-file=ABI_DIR\DEBUG_DIR\RUNTESTS.EXE System\Programs\RUNTESTS.EXE
-
 data=EPOCROOT##epoc32\release\winscw\udeb\z\testdata\scripts\te_automatedsuite.script testData\scripts\te_automatedsuite.script
 #endif

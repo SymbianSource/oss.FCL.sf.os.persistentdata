@@ -13,27 +13,25 @@
 // Description:
 //
 
+#include    <kernel/kern_ext.mmh>
 
-#include "..\kernel\kern_ext.mmh"
-TARGET			te_ost_lauterbach_kernel.dll //kernel side 
+TARGET			te_ost_lauterbach_kernel.dll 
 TARGETTYPE		kdll
 UID				0x1000008d 0x10287237
+CAPABILITY      All
 
-SYSTEMINCLUDE   /epoc32/include/platform
-SYSTEMINCLUDE   /epoc32/include/kernel
+OS_LAYER_SYSTEMINCLUDE
+
 USERINCLUDE		../inc/
 
 SOURCEPATH		../src/ 
 SOURCE			te_trace_for_lauterbach.cpp
 
-CAPABILITY		All
-
 #if defined (WINS)
-  DEFFILE ..\bwins\te_lauterbach_kernel.def
+  DEFFILE ../bwins/te_lauterbach_kernel.def
 #else 
-  DEFFILE ..\eabi\te_lauterbach_kernel.def
+  DEFFILE ../eabi/te_lauterbach_kernel.def
 #endif
-
 
 OPTION ARMCC --interleave
 

@@ -988,24 +988,24 @@ void CServerRepository::BackupInstallRepositoryL(TUid aUid, CStreamStore& aStore
 	iRepository = NULL;
 	}
 
-TInt CServerRepository::CheckAccessPolicyBeforeMoving(const TClientRequest& aMessage, const TServerSetting& aSourceSetting, 
-				TUint32 aSourceKey, const TServerSetting& aTargetSetting, TUint32 aTargetKey, TUint32& aErrorKey)
+TInt CServerRepository::CheckAccessPolicyBeforeMoving(const TClientRequest& aMessage, const TServerSetting* aSourceSetting, 
+				TUint32 aSourceKey, const TServerSetting* aTargetSetting, TUint32 aTargetKey, TUint32& aErrorKey)
 	{
 	TInt error = KErrNone;
 	
-	if (&aTargetSetting && !aTargetSetting.IsDeleted())
+	if (aTargetSetting && !aTargetSetting->IsDeleted())
 		{
 		error=KErrAlreadyExists;
 		aErrorKey=aTargetKey;
 		}
 
-	if (!aMessage.CheckPolicy(GetReadAccessPolicy(aSourceSetting),
+	if (!aMessage.CheckPolicy(GetReadAccessPolicy(*aSourceSetting),
 		__PLATSEC_DIAGNOSTIC_STRING("CenRep: CServerRepository::MoveL - Attempt made to read a setting")))
 		{
 		error = KErrPermissionDenied;
 		aErrorKey = aSourceKey;
 		}
-	else if (!aMessage.CheckPolicy(GetWriteAccessPolicy(aSourceSetting),
+	else if (!aMessage.CheckPolicy(GetWriteAccessPolicy(*aSourceSetting),
 		__PLATSEC_DIAGNOSTIC_STRING("CenRep: CServerRepository::MoveL - Attempt made to delete a setting")))
 		{
 		error = KErrPermissionDenied;
@@ -1014,7 +1014,7 @@ TInt CServerRepository::CheckAccessPolicyBeforeMoving(const TClientRequest& aMes
 	else if (error == KErrAlreadyExists)
 		{
 		// set error to KErrPermissionDenied in preference to KErrAlreadyExists
-		if (!aMessage.CheckPolicy(GetWriteAccessPolicy(aTargetSetting),
+		if (!aMessage.CheckPolicy(GetWriteAccessPolicy(*aTargetSetting),
 			__PLATSEC_DIAGNOSTIC_STRING("CenRep: CServerRepository::MoveL - Attempt made to create a setting")))
 			{
 			error = KErrPermissionDenied;

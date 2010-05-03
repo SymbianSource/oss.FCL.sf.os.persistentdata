@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -307,7 +307,7 @@ void FeatureDiscoveryTest1L()
     CleanupStack::PopAndDestroy(fdiscovery);
     }
 
-void DoFeatureDiscoveryTest2(TBool aStaticMethodsUsed)
+void DoFeatureDiscoveryTest2L(TBool aStaticMethodsUsed)
     {
     CFeatureDiscovery* fdiscovery = NULL;
     if(!aStaticMethodsUsed)
@@ -398,8 +398,8 @@ void DoFeatureDiscoveryTest2(TBool aStaticMethodsUsed)
 */
 void FeatureDiscoveryTest2L()
     {
-    DoFeatureDiscoveryTest2(ETrue);
-    DoFeatureDiscoveryTest2(EFalse);
+    DoFeatureDiscoveryTest2L(ETrue);
+    DoFeatureDiscoveryTest2L(EFalse);
     }
 
 void DoTestsL()

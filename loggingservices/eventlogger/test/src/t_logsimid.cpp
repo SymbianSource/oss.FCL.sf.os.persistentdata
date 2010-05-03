@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -20,12 +20,10 @@
 #include <bautils.h>
 #include <logview.h>
 #include <logcli.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 #include "LogServSqlStrings.h"
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("LogEng - SimId tests"));
+RTest TheTest(_L("t_logsimid"));
 
 #ifdef SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM	
 
@@ -263,7 +261,7 @@ void LogAddEventsTestL()
 	TTime st_time;
 	st_time.UniversalTime();
 	
-	test.Printf(_L("Added events:\n"));
+	TheTest.Printf(_L("Added events:\n"));
 	TInt diffEvCount = KDiffEvCount;
 	for(TInt i=0;i<TheAddedEventCount;++i)
 		{
@@ -286,10 +284,10 @@ void LogAddEventsTestL()
 		TEST2(active->iStatus.Int(), KErrNone);
 		if((i % 50) == 0)
 			{
-			test.Printf(_L("%d\r"), i);
+			TheTest.Printf(_L("%d\r"), i);
 			}
 		}
-	test.Printf(_L("%d\n"), TheAddedEventCount);
+	TheTest.Printf(_L("%d\n"), TheAddedEventCount);
 	
 	TTime end_time;
 	end_time.UniversalTime();
@@ -300,7 +298,7 @@ void LogAddEventsTestL()
 	CleanupStack::PopAndDestroy(client);
 	
 	TTimeIntervalMicroSeconds us = end_time.MicroSecondsFrom(st_time);
-	test.Printf(_L("%d events added. Time: %ld milliseconds\n"), TheAddedEventCount, us.Int64() / 1000);
+	TheTest.Printf(_L("%d events added. Time: %ld milliseconds\n"), TheAddedEventCount, us.Int64() / 1000);
 	}
 
 void DoSetFilterL(TLogViewSimId aViewSimId, TInt aExpectedEventCount, 
@@ -329,7 +327,7 @@ void DoSetFilterL(TLogViewSimId aViewSimId, TInt aExpectedEventCount,
 	CActiveScheduler::Start();
 	TEST2(aActive.iStatus.Int(), KErrNone);
 	TInt count = aLogView.CountL();
-	test.Printf(_L("===Events count: %d\n"), count);
+	TheTest.Printf(_L("===Events count: %d\n"), count);
 	TEST2(count, aExpectedEventCount);
 	}
 
@@ -389,7 +387,7 @@ void LogViewEventsTestL(TLogViewSimId aViewSimId, TInt aExpectedEventCount)
 	TTime end_time;
 	end_time.UniversalTime();
 	TTimeIntervalMicroSeconds us = end_time.MicroSecondsFrom(st_time);
-	test.Printf(_L("SetFilter(). Time: %ld milliseconds\n"), us.Int64() / 1000);
+	TheTest.Printf(_L("SetFilter(). Time: %ld milliseconds\n"), us.Int64() / 1000);
 	
 	TInt count = 0; 
 	st_time.UniversalTime();
@@ -407,7 +405,7 @@ void LogViewEventsTestL(TLogViewSimId aViewSimId, TInt aExpectedEventCount)
 		}
 	end_time.UniversalTime();
 	us = end_time.MicroSecondsFrom(st_time);
-	test.Printf(_L("Event view walk completed. Events count: %d. Time: %ld milliseconds\n"), count, us.Int64() / 1000);
+	TheTest.Printf(_L("Event view walk completed. Events count: %d. Time: %ld milliseconds\n"), count, us.Int64() / 1000);
 		
 	CleanupStack::PopAndDestroy(filter);
 	CleanupStack::PopAndDestroy(view);
@@ -435,21 +433,22 @@ void DoAddEventTypeL(CLogClient& aClient, CTestActive& aActive)
 
 void doTestsL()
 	{
+    TestUtils::Initialize(_L("t_logsimid"));
 	TestUtils::DeleteDatabaseL();
 	//
-	test.Start(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4025: CLogEvent API test"));
+	TheTest.Start(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4025: CLogEvent API test"));
 	LogEventApiTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4026: CLogFilter API test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4026: CLogFilter API test"));
 	LogFilterApiTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4027: Add events test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4027: Add events test"));
 	LogAddEventsTestL();
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4028: View events without SimId test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4028: View events without SimId test"));
 	LogViewEventsTestL(ELogWithoutSimId, TheMaxLogSize / 2);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4028: View events with SimId test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4028: View events with SimId test"));
 	LogViewEventsTestL(ELogWithSimId, TheMaxLogSize / 2);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4028: View events with or without SimId test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4028: View events with or without SimId test"));
 	LogViewEventsTestL(ELogIgnoreSimId, TheMaxLogSize);
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4028: More complex event view test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4028: More complex event view test"));
 	LogViewEventsTestL(ELogDiffEvents, KDiffEvCount);
 	//
 	TestUtils::DeleteDatabaseL();
@@ -459,7 +458,8 @@ void doTestsL()
 
 void doTestsL()
 	{
-	test.Start(_L("The t_simid test cases are compiled only when SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM macro is defined!"));
+    TestUtils::Initialize(_L("t_logsimid"));
+	TheTest.Start(_L("The t_simid test cases are compiled only when SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM macro is defined!"));
 	}
 
 #endif//SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM

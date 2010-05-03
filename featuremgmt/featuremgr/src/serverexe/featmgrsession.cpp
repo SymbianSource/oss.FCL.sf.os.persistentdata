@@ -548,6 +548,8 @@ void CFeatMgrSession::DispatchMessageL( const RMessage2& aMessage )
 
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
     	    
+#pragma BullseyeCoverage off
+    	    
         case EFeatMgrResourceMark:
             ResourceCountMarkStart();
             break;
@@ -597,7 +599,10 @@ void CFeatMgrSession::DispatchMessageL( const RMessage2& aMessage )
             aMessage.WriteL( 0, resPckg );
     	    
     	    break;
-    	    }    
+    	    }
+    	    
+#pragma BullseyeCoverage on
+    	    
 #endif
 
         // Cannot identify the message.

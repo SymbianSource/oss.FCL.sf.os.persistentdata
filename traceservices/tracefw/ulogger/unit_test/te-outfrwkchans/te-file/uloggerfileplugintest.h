@@ -20,7 +20,8 @@
 #ifndef __ULOGGERFILEPLUGINTEST_H__
 #define __ULOGGERFILEPLUGINTEST_H__
 
-#include <tefunit.h>
+#include <test/tefunit.h>
+
 #include "uloggerfileplugin.h"
 #include "te_filesuitestepbase.h"
 

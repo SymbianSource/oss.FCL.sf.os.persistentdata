@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -9,6 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
+// NTT DOCOMO, INC - Fix for defect 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -26,6 +27,8 @@
 #include "UTraceSql.h"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma BullseyeCoverage off
 
 #ifdef _DEBUG
 
@@ -80,9 +83,16 @@ inline void CSqlSrvSession::DbResourceEnd(const RMessage2& aMessage)
 //Executes the heap simulation failure.
 inline void CSqlSrvSession::DbSetAllocFail(TInt aHeapFailureMode, TInt aFailedAllocNumber)
 	{
-	User::__DbgSetAllocFail(RHeap::EUser, 
-							static_cast <RHeap::TAllocFail> (aHeapFailureMode & (KDelayedDbHeapFailureMask - 1)), 
-							aFailedAllocNumber);
+	TInt mode = aHeapFailureMode & (KDelayedDbHeapFailureMask - 1);
+	if(mode >= RAllocator::EBurstRandom && mode <= RAllocator::EBurstFailNext)
+	    {
+	    const TUint KBurst = 50; 
+	    User::__DbgSetBurstAllocFail(RHeap::EUser, static_cast <RHeap::TAllocFail> (mode), aFailedAllocNumber, KBurst);
+	    }
+	else
+	    {
+        User::__DbgSetAllocFail(RHeap::EUser, static_cast <RHeap::TAllocFail> (mode), aFailedAllocNumber);
+	    }
 	}
 	
 //Executes the delayed heap simulation failure, if the connection is in test mode
@@ -90,9 +100,16 @@ inline void CSqlSrvSession::DbSetDelayedAllocFail()
 	{
 	if(iDbResourceTestMode & KDelayedDbHeapFailureMask)
 		{
-		User::__DbgSetAllocFail(RHeap::EUser, 
-								static_cast <RHeap::TAllocFail> (iDbResourceTestMode & (KDelayedDbHeapFailureMask - 1)), 
-								iFailedAllocNumber);
+	    TInt mode = iDbResourceTestMode & (KDelayedDbHeapFailureMask - 1);
+	    if(mode >= RAllocator::EBurstRandom && mode <= RAllocator::EBurstFailNext)
+	        {
+	        const TUint KBurst = 50; 
+	        User::__DbgSetBurstAllocFail(RHeap::EUser, static_cast <RHeap::TAllocFail> (mode), iFailedAllocNumber, KBurst);
+	        }
+	    else
+	        {
+	        User::__DbgSetAllocFail(RHeap::EUser, static_cast <RHeap::TAllocFail> (mode), iFailedAllocNumber);
+	        }
 		}
 	}
 	
@@ -124,6 +141,8 @@ inline void CSqlSrvSession::DbSetDelayedAllocFail()
 	}
 
 #endif//_DEBUG
+
+#pragma BullseyeCoverage on
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -399,7 +418,7 @@ void CSqlSrvSession::ServiceL(const RMessage2& aMessage)
 			StmtColumnValueL(aMessage, handle);
 			break;
 		case ESqlSrvStmtDeclColumnTypes:
-			StmtDeclColumnTypesL(aMessage, handle);
+			retCode = StmtDeclColumnTypesL(aMessage, handle);
 			break;
 		//////////////////////   stream operations //////////////////////////////////
 		case ESqlSrvStreamRead:
@@ -511,18 +530,20 @@ Arg 1: [in]  database file name
 Arg 2: [in]  PPPPCCCC, where PPPP is the security policy length, CCCC is the config string length.
 Arg 3: [in]  security policies buffer | config string
 
-@leave KErrArgument If config string length or security policy length is invalid (negative length or too big length)
 @panic SqlDb 1 Client panic. iDatabase is not NULL (it has been created already)
+@panic SqlDb 4 Client panic. Negative or too big config string length
+@panic SqlDb 4 Client panic. Negative security policy length, or zero length if the request is to create a secure database 
 */
 void CSqlSrvSession::DbCreateObjectL(const RMessage2& aMessage, TSqlSrvFunction aFunction)
 	{
 	__SQLPANIC_CLIENT(!iDatabase, aMessage, ESqlPanicObjExists);
 	const TInt KSecurityPolicyLen = (aMessage.Int2() & 0x7fff0000) >> 16;
+    //If the security policy length is negative then this is a programming error.
+    __SQLPANIC_CLIENT(KSecurityPolicyLen >= 0, aMessage, ESqlPanicBadArgument);
 	const TInt KConfigStringLen = aMessage.Int2() & 0xffff;
-	if(KSecurityPolicyLen < 0 || (TUint)KConfigStringLen > KSqlSrvMaxConfigStrLen)
-		{
-		__SQLLEAVE(KErrArgument);	
-		}
+	//If KConfigStringLen is invalid then this is a programming error. 
+	//If the client sends a too big config string - this is handled in the client side session.
+    __SQLPANIC_CLIENT((TUint)KConfigStringLen <= KSqlSrvMaxConfigStrLen, aMessage, ESqlPanicBadArgument);
 	RBuf8 securityAndConfigBuf;
 	CleanupClosePushL(securityAndConfigBuf);
 	if((KSecurityPolicyLen + KConfigStringLen) > 0)
@@ -550,7 +571,8 @@ void CSqlSrvSession::DbCreateObjectL(const RMessage2& aMessage, TSqlSrvFunction 
 			break;
 		case ESqlSrvDbCreateSecure:
 			{
-			if(!fileData.IsSecureFileNameFmt() || KSecurityPolicyLen == 0)
+		    __SQLPANIC_CLIENT(KSecurityPolicyLen > 0, aMessage, ESqlPanicBadArgument);
+			if(!fileData.IsSecureFileNameFmt())
 				{
 				__SQLLEAVE(KErrArgument);	
 				}
@@ -1483,22 +1505,26 @@ void CSqlSrvSession::DoStmtBindL(const RMessage2& aMessage, CSqlSrvStatement& aS
 	}
 
 /**
+Processes the request for retrieving the statement declared column type names.
+
+If the client side buffer size is not big enough, the function returns the size + KSqlClientBufOverflowCode.
+In this case the client must increase the buffer and try again to get the buffer only
+
 Usage of the IPC call arguments:
 Arg 0: [in]    	input buffer max length in 16-bit characters
-Arg 1: [in/out]	buffer
+Arg 1: [out]	ipc buffer, declared column type names
 */
-void CSqlSrvSession::StmtDeclColumnTypesL(const RMessage2& aMessage, TInt aStmtHandle)
-	{
+TInt CSqlSrvSession::StmtDeclColumnTypesL(const RMessage2& aMessage, TInt aStmtHandle)
+	{	
 	CSqlSrvStatement& stmt = ::SqlSessObjFind(iStatements, aStmtHandle, aMessage);
-	HBufC* colTypesBuf = stmt.GetDeclColumnTypesL();
-	CleanupStack::PushL(colTypesBuf);
-	if(colTypesBuf->Des().Length() > aMessage.Int0())
+	const RSqlBufFlat& declColumnTypesBuf = stmt.GetDeclColumnTypesL();
+	TInt size = declColumnTypesBuf.Size();
+	if(size <= aMessage.Int0())
 		{
-		__SQLLEAVE(KErrOverflow);
+		aMessage.WriteL(1, declColumnTypesBuf.BufDes());
+		return 0;
 		}
-	aMessage.WriteL(1, colTypesBuf->Des());
-	SQLPROFILER_REPORT_IPC(ESqlIpcWrite, (colTypesBuf->Des().Length() * sizeof(TText)));
-	CleanupStack::PopAndDestroy(colTypesBuf);
+	return size + KSqlClientBufOverflowCode;
 	}
 
 
@@ -1524,14 +1550,13 @@ TInt CSqlSrvSession::NewOutputStreamL(const RMessage2& aMessage, MStreamBuf* aSt
 	aStreamBuf->PushL();
 	iIpcStreams.AllocL();
 	TInt size = aStreamBuf->SizeL();
+	__SQLASSERT(size >= 0, ESqlPanicInternalError);
 	TPckgBuf<TIpcStreamBuf> ipcBuf;
-	if(size > 0)						// read the first buffer-full
-		{
-		TInt len = Min(size, KIpcBufSize);
-		aStreamBuf->ReadL(ipcBuf().iData, len);
-		}
+    // read the first buffer-full
+    TInt len = Min(size, KIpcBufSize);
+    aStreamBuf->ReadL(ipcBuf().iData, len);
 	TInt handle = 0;
-	if(size < 0 || size > KIpcBufSize)
+	if(size > KIpcBufSize)
 		{								// create the stream object
 		HIpcStream* ipcStream = new (ELeave) HIpcStream(aStreamBuf, KIpcBufSize);
 		handle = iIpcStreams.Add(ipcStream);
@@ -1542,12 +1567,9 @@ TInt CSqlSrvSession::NewOutputStreamL(const RMessage2& aMessage, MStreamBuf* aSt
 		{
 		CleanupStack::PopAndDestroy(aStreamBuf);
 		}
-	if(size >= 0)
-		{
-		ipcBuf().iExt = size;
-		aMessage.WriteL(2, ipcBuf);
-		SQLPROFILER_REPORT_IPC(ESqlIpcWrite, size);
-		}
+    ipcBuf().iExt = size;
+    aMessage.WriteL(2, ipcBuf);
+    SQLPROFILER_REPORT_IPC(ESqlIpcWrite, size);
 	return handle;
 	}
 
@@ -1668,11 +1690,11 @@ void CSqlSrvSession::Extract(const RMessage2& aMessage, TSqlSrvFunction& aFuncti
 		TSqlSrvHandleType handleType = static_cast <TSqlSrvHandleType> (msgCode & KSqlSrvHandleTypeMask);
 		aHandle = (msgCode & KSqlSrvHandleMask) >> KSqlSrvHandleShiftBits;
 		__SQLPANIC_CLIENT(aHandle > 0, aMessage, ESqlPanicBadArgument);
-		if(aFunction >= ESqlSrvStmtClose && aFunction < ESqlSrvStreamBase)
+		if(aFunction < ESqlSrvStreamBase)
 			{
 			__SQLPANIC_CLIENT(handleType == ESqlSrvStatementHandle, aMessage, ESqlPanicBadArgument);
 			}
-		else if(aFunction > ESqlSrvStreamBase)
+		else
 			{
 			__SQLPANIC_CLIENT(handleType == ESqlSrvStreamHandle, aMessage, ESqlPanicBadArgument);
 			}
@@ -1727,7 +1749,7 @@ TInt CSqlSrvSession::GetColumnValueL(const RMessage2& aMessage, CSqlSrvStatement
 			TPtrC8 val;
 			if(aColType == ESqlText)
 				{
-				TPtrC textVal = aStmt.ColumnText(0);
+				TPtrC textVal = aStmt.ColumnTextL(0);
 				val.Set(reinterpret_cast <const TUint8*> (textVal.Ptr()), textVal.Length() * sizeof(TUint16));
 				}
 			else

@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,74 +14,12 @@
 //
 
 #include <bautils.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
+//Define "TheTest" variable used in the test cpp files
+extern RTest TheTest;
 
 _LIT(KHelperExeName, "t_LogHiCapHelper.exe");
-
-//======================================================================================================
-
-TPtrC FileName(const TText* aFile)
-    {
-    TPtrC p(aFile);
-    TInt ix=p.LocateReverse('\\');
-    if (ix<0)
-        ix=p.LocateReverse('/');
-    if (ix>=0)
-        p.Set(p.Mid(1+ix));
-    return p;
-    }
-
-//======================================================================================================
-
-void LogTestBoolExpr(TBool aRes, const TText* aFile, TInt aLine)
-    {
-    if(!aRes)
-        {
-        TPtrC fname(FileName(aFile));
-        RDebug::Print(_L("*** Boolean expression evaluated to false, file: %S-%d\r\n"), &fname, aLine);
-        test(EFalse, aLine);
-        }
-    }
-
-void LogCheck(TInt aValue, TInt aExpected, const TText* aFile, TInt aLine)
-	{
-	if(aValue != aExpected)
-		{
-        TPtrC fname(FileName(aFile));
-		RDebug::Print(_L("*** Expected error: %d, got: %d, file: %S-%d\r\n"), aExpected, aValue, &fname, aLine);
-		test(EFalse, aLine);
-		}
-	}
-
-void LogCheckU(TUint aValue, TUint aExpected, const TText* aFile, TInt aLine)
-	{
-	if(aValue != aExpected)
-		{
-	    TPtrC fname(FileName(aFile));
-		RDebug::Print(_L("*** Expected error: %u, got: %u, file: %S-%d\r\n"), aExpected, aValue, &fname, aLine);
-		test(EFalse, aLine);
-		}
-	}
-
-//======================================================================================================
-
-void LogLeave(TInt aErr, const TText* aFile, const TInt aLine)
-    {
-    TPtrC fname(FileName(aFile));
-    RDebug::Print(_L("*** LogEng test leave, err=%d, file: %S-%d\r\n"), aErr, &fname, aLine);
-    User::Leave(aErr);
-    }
-
-//======================================================================================================
-
-void LogPanic(const TDesC& aCategory, TInt aErr, const TText* aFile, TInt aLine)
-    {
-    TPtrC fname(FileName(aFile));
-    RDebug::Print(_L("*** LogEng test panic'd with err=%d, category=%S, file: %S-%d\r\n"), aErr, &aCategory, &fname, aLine);
-    User::Panic(aCategory, aErr);
-    }
 
 //======================================================================================================
 
@@ -277,8 +215,8 @@ CTestTimer* CTestTimer::NewL()
 
 void TestUtils::Initialize(const TDesC& aName)
 	{
-    test.Title();
-    test.Printf(_L("%S\r\n"), &aName);
+	TheTest.Title();
+	TheTest.Printf(_L("%S\r\n"), &aName);
     User::RenameThread(aName);
 	}
 
@@ -395,17 +333,17 @@ void TestUtils::CopyOldDbL()
 #else //_DEBUG
 void TestUtils::CopyCorruptDbL()
 	{
-	RDebug::Print(_L("TestUtils::CopyCorruptDbL() has a meaningfull implementation in debug builds only.\n"));
+	TheTest.Printf(_L("TestUtils::CopyCorruptDbL() has a meaningfull implementation in debug builds only.\n"));
 	}
 
 void TestUtils::CopyCorruptDamagedDbL()
 	{
-	RDebug::Print(_L("TestUtils::CopyCorruptDamagedDbL() has a meaningfull implementation in debug builds only.\n"));
+	TheTest.Printf(_L("TestUtils::CopyCorruptDamagedDbL() has a meaningfull implementation in debug builds only.\n"));
 	}
 
 void TestUtils::CopyOldDbL()
 	{
-	RDebug::Print(_L("TestUtils::CopyOldDbL() has a meaningfull implementation in debug builds only.\n"));
+	TheTest.Printf(_L("TestUtils::CopyOldDbL() has a meaningfull implementation in debug builds only.\n"));
 	}
 
 #endif//_DEBUG
@@ -502,7 +440,7 @@ TBool TestUtils::TypesEqual(const CLogEventType& aType1, const CLogEventType& aT
 //Waits for a key to be pressed.
 TBool TestUtils::WaitForKeyL(TTimeIntervalMicroSeconds32 aDelay, TKeyCode& aKeyCode)
 	{
-	TEST(test.Console() != NULL);
+	TEST(TheTest.Console() != NULL);
 
 	// Create timer
 	CTestTimer* timer = CTestTimer::NewL();
@@ -514,7 +452,7 @@ TBool TestUtils::WaitForKeyL(TTimeIntervalMicroSeconds32 aDelay, TKeyCode& aKeyC
 	wait->StartL();
 
 	// Wait for key press
-	test.Console()->Read(wait->iStatus);
+	TheTest.Console()->Read(wait->iStatus);
 	CActiveScheduler::Start();
 
 	// If timer still active a key was pressed
@@ -523,7 +461,7 @@ TBool TestUtils::WaitForKeyL(TTimeIntervalMicroSeconds32 aDelay, TKeyCode& aKeyC
 	if (keyPressed)
 		{
 		// Get the key pressed
-		aKeyCode = test.Console()->KeyCode();
+		aKeyCode = TheTest.Console()->KeyCode();
 
 		// Cancel timer
 		timer->Cancel();
@@ -531,7 +469,7 @@ TBool TestUtils::WaitForKeyL(TTimeIntervalMicroSeconds32 aDelay, TKeyCode& aKeyC
 	else
 		{
 		// Cancel wait for character
-		test.Console()->ReadCancel();
+		TheTest.Console()->ReadCancel();
 		User::WaitForRequest(wait->iStatus);
 		}
 
@@ -917,7 +855,7 @@ static void CreateLogL()
 static void CloseLog()
     {
     theLog.Write(_L8("Tests completed\n"));
-    test.Printf(_L("Results saved in %S\n"), &theLogName);
+    TheTest.Printf(_L("Results saved in %S\n"), &theLogName);
     theLog.Close();
     theFs.Close();
     }
@@ -931,23 +869,23 @@ void DeleteDataFile(const TDesC& aFullName)
 		TEntry entry;
 		if(fsSession.Entry(aFullName, entry) == KErrNone)
 			{
-			RDebug::Print(_L("Deleting \"%S\" file.\n"), &aFullName);
+			TheTest.Printf(_L("Deleting \"%S\" file.\n"), &aFullName);
 			err = fsSession.SetAtt(aFullName, 0, KEntryAttReadOnly);
 			if(err != KErrNone) 
 				{
-				RDebug::Print(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
+				TheTest.Printf(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
 				}
 			err = fsSession.Delete(aFullName);
 			if(err != KErrNone) 
 				{
-				RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
+				TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
 				}
 			}
 		fsSession.Close();
 		}
 	else
 		{
-		RDebug::Print(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
+		TheTest.Printf(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
 		}
 	}
 
@@ -989,10 +927,10 @@ TInt E32Main()
 
 	delete theCleanup;	
 
-	test.Console()->SetPos(0, 13);
+	TheTest.Console()->SetPos(0, 13);
 
-	test.End();
-	test.Close();
+	TheTest.End();
+	TheTest.Close();
 
 	__UHEAP_MARKEND;
 

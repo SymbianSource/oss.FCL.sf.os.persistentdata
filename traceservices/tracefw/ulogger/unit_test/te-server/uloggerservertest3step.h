@@ -23,7 +23,7 @@
 */
 #if (!defined __ULOGGERSERVERTEST3_STEP_H__)
 #define __ULOGGERSERVERTEST3_STEP_H__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include "te_uloggerservertestsuitestepbase.h"
 #include "uloggerwatcher.h"
 

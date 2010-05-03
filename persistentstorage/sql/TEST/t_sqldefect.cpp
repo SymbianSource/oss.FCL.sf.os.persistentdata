@@ -9,6 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -1632,6 +1633,49 @@ void DEF144027()
     TheDb.Close();
     }
 
+/**
+Test defect where calling RSQLStatement::DeclaredColumnType() on a table which contains long (> 20 characters) column type names results in a USER 11 panic.
+This test should pass because these are valid SQL column types 
+*/
+void LongColumnTypeTest()
+	{
+	(void)RSqlDatabase::Delete(KTestDatabase3);
+	TInt err = TheDb.Create(KTestDatabase3);
+	TEST2(err, KErrNone);
+	
+	_LIT8(KCreateStmt, "CREATE TABLE t(a CHARACTER VARYING(100000), b NCHAR VARYING(100000), c NATIONAL CHARACTER(100000), d NATIONAL CHARACTER VARYING(100000))");
+	err = TheDb.Exec(KCreateStmt);
+	TEST(err >= 0);
+	
+	//Select all columns (SELECT *)
+	_LIT(KSelectStmt, "SELECT * FROM t");
+	RSqlStatement stmt;
+	err = stmt.Prepare(TheDb, KSelectStmt);
+	TEST2(err, KErrNone);
+	
+	TSqlColumnType colType;
+	err = stmt.DeclaredColumnType(0, colType);
+	TEST2(err,KErrNone);
+	TEST2(colType, ESqlText);
+	
+	err = stmt.DeclaredColumnType(1, colType);
+	TEST2(err,KErrNone);
+	TEST2(colType, ESqlText);
+	
+	err = stmt.DeclaredColumnType(2, colType);
+	TEST2(err,KErrNone);
+	TEST2(colType, ESqlText);
+	
+	err = stmt.DeclaredColumnType(3, colType);
+	TEST2(err,KErrNone);
+	TEST2(colType, ESqlText);
+	
+	stmt.Close();
+
+	TheDb.Close();
+	(void)RSqlDatabase::Delete(KTestDatabase3); 
+	}
+
 void DoTestsL()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1763 \"SQL against a detached db\" test "));
@@ -1642,7 +1686,7 @@ void DoTestsL()
 	
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4035 Attempt to attach a file which name cannot be parsed"));
 	AttachBadDbFileNameTest();	
-	
+
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4036 Attempt to attach a secure database. The client cannot pass the security checks"));
 	AttachSecureDbTest();	
 
@@ -1717,6 +1761,10 @@ void DoTestsL()
     
     TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4166 DEF144027: SQL Open returns error if the reported and actual file size are different"));
     DEF144027();
+    
+    TheTest.Next(_L("RSQLStatement::DeclaredColumnType() causes USER 11 panic when table contains long column type strings"));
+    LongColumnTypeTest();
+ 
 	}
 
 TInt E32Main()

@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -433,13 +433,17 @@ void ManualCompactionNegativeTest()
 		//Nonexisting attached database 
 		err = DoManualCompaction((TCompactionType)i, RSqlDatabase::EMaxCompaction, _L("aaa"));
 		TEST2(err, KSqlErrGeneral);
-		//Very long name of a  nonexisting attached database 
-		TBuf<KMaxFileName + 10> fname;
-		fname.SetLength(fname.MaxLength());
-		fname.Fill(0xDD);
-		err = DoManualCompaction((TCompactionType)i, RSqlDatabase::EMaxCompaction, fname);
-		TEST2(err, KErrBadName);
-		//
+        //Very long name of a  nonexisting attached database 
+        TBuf<KMaxFileName + 10> fname;
+        fname.SetLength(fname.MaxLength());
+        fname.Fill(0xDD);
+        err = DoManualCompaction((TCompactionType)i, RSqlDatabase::EMaxCompaction, fname);
+        TEST2(err, KErrBadName);
+        //Invalid attached database name 
+        fname.Copy(_L("c:\\|aaa|.db"));
+        err = DoManualCompaction((TCompactionType)i, RSqlDatabase::EMaxCompaction, fname);
+        TEST2(err, KSqlErrGeneral);
+        //
 		TheDb.Close();
 		(void)RSqlDatabase::Delete(TheTestDbName);
 		}

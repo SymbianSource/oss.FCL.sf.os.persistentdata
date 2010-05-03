@@ -17,9 +17,9 @@
 TARGET			te_ost_lauterbach.dll //user side enabled
 TARGETTYPE		dll
 UID				0x1000008d 0x10287236 
+CAPABILITY      All
 
-SYSTEMINCLUDE	\epoc32\include
-SYSTEMINCLUDE   \epoc32\include\platform
+OS_LAYER_SYSTEMINCLUDE
 
 USERINCLUDE		../inc/
 
@@ -33,10 +33,6 @@ LIBRARY			euser.lib
 #else 
   DEFFILE ..\eabi\te_lauterbach.def
 #endif
-
-
-CAPABILITY		All
-
 
 OPTION ARMCC --interleave
 

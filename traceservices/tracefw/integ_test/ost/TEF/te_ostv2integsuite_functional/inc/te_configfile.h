@@ -21,7 +21,7 @@
 */
 #if (!defined TE_ULOGGERCONFIGFILESTEP_H)
 #define TE_ULOGGERCONFIGFILESTEP_H
-#include <datawrapper.h>
+#include <test/datawrapper.h>
 #include "te_ostv2integsuite_basewrapper.h"
 #include <e32base.h>
 #include <e32math.h>

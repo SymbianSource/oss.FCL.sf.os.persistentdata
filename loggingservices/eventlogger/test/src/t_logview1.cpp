@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -22,15 +22,12 @@
 #include <s32file.h>
 #include <s32mem.h>
 #include <e32math.h>
-
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
-
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
 
 #define UNUSED_VAR(a) a = a
 
-RTest test(_L("Log View Test Harness Number 1"));
+RTest TheTest(_L("t_logview1"));
 
 const TInt KTestLogNumberCharsToMatch = 9; // should be the same as KLogNumberCharsToMatch defined in LogServ\src\LOGFILTQ.CPP
 const TInt KTestEventNum = 10;
@@ -107,7 +104,7 @@ void DoViewCancelTestL(CTestActive& aActive, CLogViewEvent& aView)
 */
 LOCAL_C void TestEventViewL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0851 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0851 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
@@ -165,7 +162,7 @@ LOCAL_C void TestEventViewL(CLogClient& aClient)
 		TLogId id = ++count;
 		TEST2(view->Event().Id(), id);
 		}
-	TEST(count == KTestEventNum - 1);
+	TEST2(count, KTestEventNum - 1);
 
 	active->StartL();
 	res = view->FirstL(active->iStatus);
@@ -224,7 +221,7 @@ LOCAL_C void TestEventViewL(CLogClient& aClient)
 */
 LOCAL_C void TestViewFilterL(CLogClient& aClient, CLogFilter& aFilter)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0852 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0852 "));
 	CLogViewEvent* view = CLogViewEvent::NewL(aClient);
 	CleanupStack::PushL(view);
 
@@ -262,14 +259,14 @@ LOCAL_C void TestViewFilterL(CLogClient& aClient, CLogFilter& aFilter)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 
-	TEST(view->CountL() == total + 1);
+	TEST2(view->CountL(), total + 1);
 
-	TEST(event->EventType() == KTestEventUid);
+	TEST2(event->EventType().iUid, KTestEventUid.iUid);
 	TEST(event->RemoteParty() == aFilter.RemoteParty());
 	TEST(event->Direction() == aFilter.Direction());
-	TEST(event->DurationType() == aFilter.DurationType());
+	TEST2(event->DurationType(), aFilter.DurationType());
 	TEST(event->Status() == aFilter.Status());
-	TEST(event->Contact() == aFilter.Contact());
+	TEST2(event->Contact(), aFilter.Contact());
 	TEST(event->Number() == aFilter.Number());
 
 	TTime now;
@@ -289,7 +286,7 @@ LOCAL_C void TestViewFilterL(CLogClient& aClient, CLogFilter& aFilter)
 		TEST(now >= event->Time());
 
 		if (aFilter.EventType() != KNullUid)
-			TEST(event->EventType() == aFilter.EventType());
+			TEST2(event->EventType().iUid, aFilter.EventType().iUid);
 
 		if (aFilter.RemoteParty().Length() > 0)
 			TEST(event->RemoteParty() == aFilter.RemoteParty());
@@ -298,19 +295,19 @@ LOCAL_C void TestViewFilterL(CLogClient& aClient, CLogFilter& aFilter)
 			TEST(event->Direction() == aFilter.Direction());
 
 		if (aFilter.DurationType() != KLogNullDurationType)
-			TEST(event->DurationType() == aFilter.DurationType());
+			TEST2(event->DurationType(), aFilter.DurationType());
 
 		if (aFilter.Status().Length() > 0)
 			TEST(event->Status() == aFilter.Status());
 
 		if (aFilter.Contact() > KLogNullContactId)
-			TEST(event->Contact() == aFilter.Contact());
+			TEST2(event->Contact(), aFilter.Contact());
 
 		if (aFilter.Number().Length() > 0)
 			TEST(event->Number() == aFilter.Number());
 		}
 
-	TEST(count == total + 1);
+	TEST2(count, total + 1);
 
 	CleanupStack::PopAndDestroy(3); // active, event, view;
 	}
@@ -325,7 +322,7 @@ LOCAL_C void TestViewFilterL(CLogClient& aClient, CLogFilter& aFilter)
 */
 LOCAL_C void TestEventViewFilter1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0853 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0853 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -533,7 +530,7 @@ LOCAL_C void TestEventViewFilter1L(CLogClient& aClient)
 */
 LOCAL_C void TestEventViewFilter2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0854 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0854 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -680,7 +677,7 @@ LOCAL_C void TestEventViewFilter2L(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check the count is correct
-	TEST(view->CountL() == total + 4);
+	TEST2(view->CountL(), total + 4);
 
 	filter->SetEventType(KLogCallEventTypeUid);
 
@@ -691,7 +688,7 @@ LOCAL_C void TestEventViewFilter2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 
-	TEST(view->CountL() == calls + 2);
+	TEST2(view->CountL(), calls + 2);
 
 	filter->SetEventType(KLogDataEventTypeUid);
 
@@ -702,7 +699,7 @@ LOCAL_C void TestEventViewFilter2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 
-	TEST(view->CountL() == data + 2);
+	TEST2(view->CountL(), data + 2);
 
 	filter->SetEventType(KLogFaxEventTypeUid);
 
@@ -789,7 +786,7 @@ LOCAL_C void TestEventViewFilter2L(CLogClient& aClient)
 */
 LOCAL_C void TestRecentView1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0855 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0855 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -847,7 +844,7 @@ LOCAL_C void TestRecentView1L(CLogClient& aClient)
 		TEST2(view->RecentList(), KLogRecentIncomingCalls);
 		count++;
 		}
-	TEST(count == KTestEventNum - 1);
+	TEST2(count, KTestEventNum - 1);
 
 	active->StartL();
 	res = view->FirstL(active->iStatus);
@@ -925,7 +922,7 @@ LOCAL_C void TestRecentView1L(CLogClient& aClient)
 		TEST2(view->RecentList(), KLogRecentOutgoingCalls);
 		count++;
 		}
-	TEST(count == KTestEventNum - 1);
+	TEST2(count, KTestEventNum - 1);
 
 	active->StartL();
 	res = view->FirstL(active->iStatus);
@@ -990,7 +987,7 @@ LOCAL_C void TestRecentView1L(CLogClient& aClient)
 		TEST2(view->RecentList(), KLogRecentMissedCalls);
 		count++;
 		}
-	TEST(count == KTestEventNum - 1);
+	TEST2(count, KTestEventNum - 1);
 
 	active->StartL();
 	res = view->FirstL(active->iStatus);
@@ -1017,7 +1014,7 @@ LOCAL_C void TestRecentView1L(CLogClient& aClient)
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
 
-		TEST(view->CountL() == KTestEventNum * 3);
+		TEST2(view->CountL(), KTestEventNum * 3);
 		count--;
 		}
 	while(view->NextL(active->iStatus));
@@ -1030,10 +1027,10 @@ LOCAL_C void TestRecentView1L(CLogClient& aClient)
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
 
-		TEST(view->CountL() == KTestEventNum * 3);
+		TEST2(view->CountL(), KTestEventNum * 3);
 		count++;
 		}
-	TEST(count == KTestEventNum * 3 - 1);
+	TEST2(count, KTestEventNum * 3 - 1);
 
 	active->StartL();
 	res = view->FirstL(active->iStatus);
@@ -1061,7 +1058,7 @@ LOCAL_C void TestRecentView1L(CLogClient& aClient)
 */
 LOCAL_C void TestRecentView2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0856 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0856 "));
 	TInt count;
 
 	CLogEvent* event = CLogEvent::NewL();
@@ -1129,7 +1126,7 @@ LOCAL_C void TestRecentView2L(CLogClient& aClient)
 	active->StartL();
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
-	TEST(dView->CountL() == KTestEventNum - 1);
+	TEST2(dView->CountL(), KTestEventNum - 1);
 
 	CleanupStack::PopAndDestroy(4); // view, active, event, dView
 	}
@@ -1144,7 +1141,7 @@ LOCAL_C void TestRecentView2L(CLogClient& aClient)
 */
 LOCAL_C void TestRecentRemove1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0857 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0857 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -1161,7 +1158,7 @@ LOCAL_C void TestRecentRemove1L(CLogClient& aClient)
 
 	while(view->RemoveL(active->iStatus))
 		{
-		TEST(view->CountL() == count - 1);
+		TEST2(view->CountL(), count - 1);
 		count = view->CountL();
 
 		active->StartL();
@@ -1215,7 +1212,7 @@ LOCAL_C void TestRecentRemove1L(CLogClient& aClient)
 */
 LOCAL_C void TestRecentRemove2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0858 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0858 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -1280,7 +1277,7 @@ LOCAL_C void TestRecentRemove2L(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0859 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0859 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -1453,7 +1450,7 @@ LOCAL_C void TestDuplicateViewL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateRemoveL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0860 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0860 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -1507,7 +1504,7 @@ LOCAL_C void TestDuplicateRemoveL(CLogClient& aClient)
 */
 LOCAL_C void TestPurgeOnSetup1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0861 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0861 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -1609,7 +1606,7 @@ LOCAL_C void TestPurgeOnSetup1L(CLogClient& aClient)
 */
 LOCAL_C void TestPurgeOnSetup2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0862 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0862 "));
 	CTestActive* active1 = new(ELeave)CTestActive();
 	CleanupStack::PushL(active1);
 
@@ -1719,7 +1716,7 @@ LOCAL_C void TestPurgeOnSetup2L(CLogClient& aClient)
 */
 LOCAL_C void TestViewPurgeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0863 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0863 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -1729,9 +1726,7 @@ LOCAL_C void TestViewPurgeL(CLogClient& aClient)
 	active->StartL();
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
-
 	TEST2(config.iMaxLogSize, 1000);
-	TEST(config.iMaxRecentLogSize = 10);
 
 	config.iMaxLogSize = 2000;
 	config.iMaxRecentLogSize = 20;
@@ -1784,7 +1779,7 @@ LOCAL_C void TestViewPurgeL(CLogClient& aClient)
 */
 LOCAL_C void TestClearDuplicatesL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0864 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0864 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -2114,7 +2109,7 @@ LOCAL_C void TestClearDuplicatesL(CLogClient& aClient)
 */
 LOCAL_C void TestPhoneNumberMatchingL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0865 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0865 "));
 	TestUtils::DeleteDatabaseL();
 
 	CTestActive* active = new(ELeave)CTestActive();
@@ -2228,7 +2223,7 @@ LOCAL_C void TestPhoneNumberMatchingL(CLogClient& aClient)
 */	
 LOCAL_C void INC105010L(CLogClient& aClient)
 {
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3472 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3472 "));
 	TestUtils::DeleteDatabaseL();
 
 	CTestActive* active = new(ELeave)CTestActive();
@@ -2336,7 +2331,7 @@ LOCAL_C void INC105010L(CLogClient& aClient)
 */
 LOCAL_C void TestRecentFlagsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0866 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0866 "));
 	TestUtils::DeleteDatabaseL();
 
 	CLogEvent* event = CLogEvent::NewL();
@@ -2469,7 +2464,7 @@ LOCAL_C void TestRecentFlagsL(CLogClient& aClient)
 */
 LOCAL_C void TestViewFlagsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0867 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0867 "));
 	TestUtils::DeleteDatabaseL();
 
 	CLogEvent* event = CLogEvent::NewL();
@@ -2658,7 +2653,7 @@ LOCAL_C void TestViewFlagsL(CLogClient& aClient)
 */
 LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0868 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0868 "));
 	TestUtils::DeleteDatabaseL();
 
 	CLogEvent* event = CLogEvent::NewL();
@@ -2741,7 +2736,7 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	for(i=0; i<changeCount; i++)
 		{
 		type = changes->At(i, logId, viewIndex);
-		RDebug::Print(_L("Change Type: %d, logId: %d, viewIndex: %d\n"), type, logId, viewIndex);
+		TheTest.Printf(_L("Change Type: %d, logId: %d, viewIndex: %d\n"), type, logId, viewIndex);
 		}
 	
 	// Check the change was as expected
@@ -2764,10 +2759,10 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 		active->StartL();
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d\n"), i++, view->Event().Id());
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
+	TheTest.Printf(_L("==\n"));
 	TEST2(i, count);
 	res = view->FirstL(active->iStatus);
 	TEST(res);
@@ -2791,9 +2786,9 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	TEST2(changeCount, 5); // 1,3,5,7,9
 	for(i=0; i<changeCount; i++)
 		{
-		TEST(changeObs->Changes().At(i, logId, viewIndex) == ELogChangeTypeEventDeleted);
-		TEST(logId == TLogId(2*i + 1));
-		TEST(viewIndex == 10 - ((2*i) + 1));
+		TEST2(changeObs->Changes().At(i, logId, viewIndex), ELogChangeTypeEventDeleted);
+		TEST2(logId, TLogId(2*i + 1));
+		TEST2(viewIndex, 10 - ((2*i) + 1));
 		}
 	
 	// Add a new event that shouldn't appear in the view
@@ -2804,8 +2799,8 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum + 1 - 5);
-	TEST(event->Id() ==  KTestEventNum + 1);
+	TEST2(count, KTestEventNum + 1 - 5);
+	TEST2(event->Id(), KTestEventNum + 1);
 
 	// Check changes
 	TEST(!changeObs->HaveChanges());
@@ -2819,10 +2814,10 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 		active->StartL();
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d\n"), i++, view->Event().Id());
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
+	TheTest.Printf(_L("==\n"));
 	TEST2(i, count);
 	res = view->FirstL(active->iStatus);
 	TEST(res);
@@ -2837,7 +2832,7 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum + 1 - 5);
+	TEST2(count, KTestEventNum + 1 - 5);
 
 	// Check changes
 	TEST(!changeObs->HaveChanges());
@@ -2851,10 +2846,10 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 		active->StartL();
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d\n"), i++, view->Event().Id());
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
+	TheTest.Printf(_L("==\n"));
 	TEST2(i, count);
 	res = view->FirstL(active->iStatus);
 	TEST(res);
@@ -2870,8 +2865,8 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum + 1 - 5);
-	TEST(event->Id() ==  KTestEventNum + 2);
+	TEST2(count, KTestEventNum + 1 - 5);
+	TEST2(event->Id(),  KTestEventNum + 2);
 
 	// Check changes
 	TEST(!changeObs->HaveChanges());
@@ -2885,10 +2880,10 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 		active->StartL();
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d\n"), i++, view->Event().Id());
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
+	TheTest.Printf(_L("==\n"));
 	TEST2(i, count);
 	res = view->FirstL(active->iStatus);
 	TEST(res);
@@ -2904,15 +2899,15 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum + 2 - 5);
-	TEST(event->Id() ==  KTestEventNum + 2); // Shouldn't change
+	TEST2(count, KTestEventNum + 2 - 5);
+	TEST2(event->Id(),  KTestEventNum + 2); // Shouldn't change
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
 	TEST2(type, ELogChangeTypeEventAdded);
-	TEST(logId == KTestEventNum + 2);
+	TEST2(logId, KTestEventNum + 2);
 	TEST2(viewIndex, 0);
 
 	// Check view navigation
@@ -2924,10 +2919,10 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 		active->StartL();
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d\n"), i++, view->Event().Id());
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
+	TheTest.Printf(_L("==\n"));
 	TEST2(i, count);
 	res = view->FirstL(active->iStatus);
 	TEST(res);
@@ -2943,15 +2938,15 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum + 2 - 5); // Shouldn't change
-	TEST(event->Id() ==  KTestEventNum + 2); // Shouldn't change
+	TEST2(count, KTestEventNum + 2 - 5); // Shouldn't change
+	TEST2(event->Id(),  KTestEventNum + 2); // Shouldn't change
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
 	TEST2(type, ELogChangeTypeEventChanged);
-	TEST(logId == KTestEventNum + 2);
+	TEST2(logId, KTestEventNum + 2);
 	TEST2(viewIndex, 0);
 
 	// Change an event in the view so that it is deleted
@@ -2962,14 +2957,14 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum + 2 - 5 - 1); // one less now
+	TEST2(count, KTestEventNum + 2 - 5 - 1); // one less now
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
 	TEST2(type, ELogChangeTypeEventDeleted);
-	TEST(logId == KTestEventNum + 2);
+	TEST2(logId, KTestEventNum + 2);
 	TEST2(viewIndex, 0);
 
 	// Navigate part way through the view so we have
@@ -2983,12 +2978,12 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 		active->StartL();
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d\n"), i++, view->Event().Id());
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
+	TheTest.Printf(_L("==\n"));
 	TEST2(i, count);
-	TEST(view->Event().Id() == TLogId(0));
+	TEST2(view->Event().Id(), TLogId(0));
 
 	// Save id
 	TLogId savedId = view->Event().Id();
@@ -3008,15 +3003,15 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum + 2 - 5); // one more now
-	TEST(event->Id() ==  KTestEventNum + 3);
+	TEST2(count, KTestEventNum + 2 - 5); // one more now
+	TEST2(event->Id(),  KTestEventNum + 3);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	TEST(type == ELogChangeTypeEventAdded);
-	TEST(logId == KTestEventNum + 3);
+	TEST2(type, ELogChangeTypeEventAdded);
+	TEST2(logId, KTestEventNum + 3);
 	TEST2(viewIndex, 0);
 
 	// Check we can still go forward to the last record
@@ -3042,7 +3037,7 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum + 2 - 5 - 1); // one less
+	TEST2(count, KTestEventNum + 2 - 5 - 1); // one less
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
@@ -3050,7 +3045,7 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	type = changeObs->Changes().At(0, logId, viewIndex);
 	TEST2(type, ELogChangeTypeEventDeleted);
 	TEST2(logId, savedId);
-	TEST(viewIndex == KTestEventNum + 2 - 5 - 2); // last but one event
+	TEST2(viewIndex, KTestEventNum + 2 - 5 - 2); // last but one event
 
 	// Check we're now at the end of the view
 	res = view->NextL(active->iStatus);
@@ -3071,7 +3066,7 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum - 5);
+	TEST2(count, KTestEventNum - 5);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
@@ -3092,7 +3087,7 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 		++count;
 		}
 	while(view->NextL(active->iStatus));
-	TEST(count == KTestEventNum - 5 - 1);
+	TEST2(count, KTestEventNum - 5 - 1);
 
 	// Check last record
 	savedId = view->Event().Id();
@@ -3101,7 +3096,7 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	active->StartL();
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
-	TEST(savedId == view->Event().Id());
+	TEST2(savedId, view->Event().Id());
 	
 	// Delete the last record
 	savedId = view->Event().Id();
@@ -3111,7 +3106,7 @@ LOCAL_C void TestViewChangeEvents1L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KTestEventNum - 6);
+	TEST2(count, KTestEventNum - 6);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
@@ -3137,12 +3132,12 @@ LOCAL_C TBool IsLogOpenL()
 
 LOCAL_C void TestLogOpenL()
 	{
-	test(IsLogOpenL());
+	TEST(IsLogOpenL());
 	}
 
 LOCAL_C void TestLogClosedL()
 	{
-	test(!IsLogOpenL());
+	TEST(!IsLogOpenL());
 	}
 
 LOCAL_C void StartBackupL()
@@ -3189,7 +3184,7 @@ LOCAL_C void DelayL(TInt aDelay)
 */
 LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0869 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0869 "));
 	TestUtils::DeleteDatabaseL();
 
 	CLogEvent* event = CLogEvent::NewL();
@@ -3224,27 +3219,27 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 		active->StartL();
 		aClient.AddEvent(*event, active->iStatus);
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
+		TEST2(active->iStatus.Int(), KErrNone);
 		User::After(1 * 1000000);
 		}
 	//
-	test(view->CountL() == 0);
+	TEST2(view->CountL(), 0);
 	active->StartL();
-	test(view->SetFilterL(*filter, active->iStatus));
+	TEST(view->SetFilterL(*filter, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->CountL() == KTestEventNum);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->CountL(), KTestEventNum);
 	//
 	count = KTestEventNum;
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	do	{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
+		TEST2(active->iStatus.Int(), KErrNone);
 		//
-		test(view->CountL() == KTestEventNum);
+		TEST2(view->CountL(), KTestEventNum);
 		const TLogId eventId = view->Event().Id();
-		test(eventId == (TLogId)--count);
+		TEST2(eventId, (TLogId)--count);
 		}
 	while(view->NextL(active->iStatus));
 
@@ -3261,45 +3256,45 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	changes = changeObs->WaitForChangesLC();
 	if	(active->IsActive())
 		CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum+1);
+	TEST2(count, KTestEventNum+1);
 
 	changeCount = changes->Count();
 	for(i=0; i<changeCount; i++)
 		{
 		type = changes->At(i, logId, viewIndex);
-		RDebug::Print(_L("Change Type: %d, logId: %d, viewIndex: %d"), type, logId, viewIndex);
+		TheTest.Printf(_L("Change Type: %d, logId: %d, viewIndex: %d"), type, logId, viewIndex);
 		}
 	
 	// Check the change was as expected
-	test(changes->Count() == 1);
+	TEST2(changes->Count(), 1);
 	type = changes->At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
-	test(viewIndex == 0); // first (newest) event in the view
+	TEST2(type, ELogChangeTypeEventAdded);
+	TEST2(viewIndex, 0); // first (newest) event in the view
 	{
 	const TLogId expectedLogId = ((TLogId) KTestEventNum);
-	test(logId == expectedLogId);
+	TEST2(logId, expectedLogId);
 	}
 	CleanupStack::PopAndDestroy(changes);
 
 	// Check view navigation
 	i=0;
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	do
 		{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d"), i++, view->Event().Id());
+		TEST2(active->iStatus.Int(), KErrNone);
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
-	test(i == count);
-	test(view->FirstL(active->iStatus));
+	TheTest.Printf(_L("==\n"));
+	TEST2(i, count);
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	DelayL(1000000);
@@ -3310,24 +3305,24 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	TestLogOpenL();
 
 	// Delete some events
-	test(KTestEventNum >= 10);
+	TEST(KTestEventNum >= 10);
 	changeObs->StartCollectingChanges();
 	for(i=1; i<KTestEventNum; i+=2)
 		{
 		active->StartL();
 		aClient.DeleteEvent(TLogId(i), active->iStatus);
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
+		TEST2(active->iStatus.Int(), KErrNone);
 		}
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 5); // 1,3,5,7,9
+	TEST2(changeCount, 5); // 1,3,5,7,9
 	for(i=0; i<changeCount; i++)
 		{
-		test(changeObs->Changes().At(i, logId, viewIndex) == ELogChangeTypeEventDeleted);
-		test(logId == TLogId(2*i + 1));
-		test(viewIndex == 10 - ((2*i) + 1));
+		TEST2(changeObs->Changes().At(i, logId, viewIndex), ELogChangeTypeEventDeleted);
+		TEST2(logId, TLogId(2*i + 1));
+		TEST2(viewIndex, 10 - ((2*i) + 1));
 		}
 	
 	// Check that changes work after a backup
@@ -3343,31 +3338,31 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum + 1 - 5);
-	test(event->Id() ==  KTestEventNum + 1);
+	TEST2(count, KTestEventNum + 1 - 5);
+	TEST2(event->Id(),  KTestEventNum + 1);
 
 	// Check changes
-	test(!changeObs->HaveChanges());
+	TEST(!changeObs->HaveChanges());
 
 	// Check view navigation
 	i=0;
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	do
 		{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d"), i++, view->Event().Id());
+		TEST2(active->iStatus.Int(), KErrNone);
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
-	test(i == count);
-	test(view->FirstL(active->iStatus));
+	TheTest.Printf(_L("==\n"));
+	TEST2(i, count);
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -3381,30 +3376,30 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.DeleteEvent(event->Id(), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum + 1 - 5);
+	TEST2(count, KTestEventNum + 1 - 5);
 
 	// Check changes
-	test(!changeObs->HaveChanges());
+	TEST(!changeObs->HaveChanges());
 
 	// Check view navigation
 	i=0;
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	do
 		{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d"), i++, view->Event().Id());
+		TEST2(active->iStatus.Int(), KErrNone);
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
-	test(i == count);
-	test(view->FirstL(active->iStatus));
+	TheTest.Printf(_L("==\n"));
+	TEST2(i, count);
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -3419,31 +3414,31 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum + 1 - 5);
-	test(event->Id() ==  KTestEventNum + 2);
+	TEST2(count, KTestEventNum + 1 - 5);
+	TEST2(event->Id(), KTestEventNum + 2);
 
 	// Check changes
-	test(!changeObs->HaveChanges());
+	TEST(!changeObs->HaveChanges());
 
 	// Check view navigation
 	i=0;
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	do
 		{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d"), i++, view->Event().Id());
+		TEST2(active->iStatus.Int(), KErrNone);
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
-	test(i == count);
-	test(view->FirstL(active->iStatus));
+	TheTest.Printf(_L("==\n"));
+	TEST2(i, count);
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -3458,36 +3453,36 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ChangeEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum + 2 - 5);
-	test(event->Id() ==  KTestEventNum + 2); // Shouldn't change
+	TEST2(count, KTestEventNum + 2 - 5);
+	TEST2(event->Id(), KTestEventNum + 2); // Shouldn't change
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
-	test(logId == KTestEventNum + 2);
-	test(viewIndex == 0);
+	TEST2(type, ELogChangeTypeEventAdded);
+	TEST2(logId, KTestEventNum + 2);
+	TEST2(viewIndex, 0);
 
 	// Check view navigation
 	i=0;
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	do
 		{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d"), i++, view->Event().Id());
+		TEST2(active->iStatus.Int(), KErrNone);
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
-	test(i == count);
-	test(view->FirstL(active->iStatus));
+	TheTest.Printf(_L("==\n"));
+	TEST2(i, count);
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -3502,18 +3497,18 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ChangeEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum + 2 - 5); // Shouldn't change
-	test(event->Id() ==  KTestEventNum + 2); // Shouldn't change
+	TEST2(count, KTestEventNum + 2 - 5); // Shouldn't change
+	TEST2(event->Id(), KTestEventNum + 2); // Shouldn't change
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventChanged);
-	test(logId == KTestEventNum + 2);
-	test(viewIndex == 0);
+	TEST2(type, ELogChangeTypeEventChanged);
+	TEST2(logId, KTestEventNum + 2);
+	TEST2(viewIndex, 0);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -3528,43 +3523,43 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ChangeEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum + 2 - 5 - 1); // one less now
+	TEST2(count, KTestEventNum + 2 - 5 - 1); // one less now
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
-	test(logId == KTestEventNum + 2);
-	test(viewIndex == 0);
+	TEST2(type, ELogChangeTypeEventDeleted);
+	TEST2(logId, KTestEventNum + 2);
+	TEST2(viewIndex, 0);
 
 	// Navigate part way through the view so we have
 	// a cursor position part way through...
 	i=0;
 	count = view->CountL();
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	do
 		{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d"), i++, view->Event().Id());
+		TEST2(active->iStatus.Int(), KErrNone);
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
-	RDebug::Print(_L("==\n"));
-	test(i == count);
-	test(view->Event().Id() == TLogId(0));
+	TheTest.Printf(_L("==\n"));
+	TEST2(i, count);
+	TEST2(view->Event().Id(), TLogId(0));
 
 	// Save id
 	TLogId savedId = view->Event().Id();
 
 	// Go one back
-	test(view->PreviousL(active->iStatus));
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -3579,31 +3574,31 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum + 2 - 5); // one more now
-	test(event->Id() ==  KTestEventNum + 3);
+	TEST2(count, KTestEventNum + 2 - 5); // one more now
+	TEST2(event->Id(), KTestEventNum + 3);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
-	test(logId == KTestEventNum + 3);
-	test(viewIndex == 0);
+	TEST2(type, ELogChangeTypeEventAdded);
+	TEST2(logId, KTestEventNum + 3);
+	TEST2(viewIndex, 0);
 
 	// Check we can still go forward to the last record
-	test(view->NextL(active->iStatus));
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == savedId);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), savedId);
 
 	// Go one back
-	test(view->PreviousL(active->iStatus));
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -3618,26 +3613,26 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.DeleteEvent(savedId, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum + 2 - 5 - 1); // one less
+	TEST2(count, KTestEventNum + 2 - 5 - 1); // one less
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
-	test(logId == savedId);
-	test(viewIndex == KTestEventNum + 2 - 5 - 2); // last but one event
+	TEST2(type, ELogChangeTypeEventDeleted);
+	TEST2(logId, savedId);
+	TEST2(viewIndex, KTestEventNum + 2 - 5 - 2); // last but one event
 
 	// Check we're now at the end of the view
-	test(!view->NextL(active->iStatus));
+	TEST(!view->NextL(active->iStatus));
 
 	// Go to the first record
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -3652,17 +3647,17 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.DeleteEvent(savedId, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum - 5);
+	TEST2(count, KTestEventNum - 5);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
-	test(logId == savedId);
-	test(viewIndex == 0); // first item
+	TEST2(type, ELogChangeTypeEventDeleted);
+	TEST2(logId, savedId);
+	TEST2(viewIndex, 0); // first item
 
 	// Check 'next' navigation can be performed correctly
 	count = 0;
@@ -3671,19 +3666,19 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 		{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
+		TEST2(active->iStatus.Int(), KErrNone);
 		++count;
 		}
 	while(view->NextL(active->iStatus));
-	test(count == KTestEventNum - 5 - 1);
+	TEST2(count, KTestEventNum - 5 - 1);
 
 	// Check last record
 	savedId = view->Event().Id();
-	test(view->LastL(active->iStatus));
+	TEST(view->LastL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(savedId == view->Event().Id());
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(savedId, view->Event().Id());
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -3698,20 +3693,20 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.DeleteEvent(savedId, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KTestEventNum - 6);
+	TEST2(count, KTestEventNum - 6);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
-	test(logId == savedId);
-	test(viewIndex == count); // There's now one less item, and we deleted the last item of the previous view
+	TEST2(type, ELogChangeTypeEventDeleted);
+	TEST2(logId, savedId);
+	TEST2(viewIndex, count); // There's now one less item, and we deleted the last item of the previous view
 
 	// Check we're still at the end of the view
-	test(!view->NextL(active->iStatus));
+	TEST(!view->NextL(active->iStatus));
 
 	CleanupStack::PopAndDestroy(5, event); // view, changeObs, active, filter, event
 	}
@@ -3728,7 +3723,7 @@ LOCAL_C void TestViewChangeEvents1aL(CLogClient& aClient)
 */
 LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0870 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0870 "));
 	// Transients
 	TInt i=0;
 	TInt count;
@@ -3788,7 +3783,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 		aClient.AddEvent(*event, active->iStatus);
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
-		TEST(event->Id() == runningNewId++);
+		TEST2(event->Id(), runningNewId++);
 	User::After(1 * 1000000);
 		}
 	//
@@ -3808,7 +3803,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 		active->StartL();
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d\n"), i++, view->Event().Id());
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
 	
@@ -3829,14 +3824,14 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
-	TEST(event->Id() == runningNewId++);
+	TEST2(event->Id(), runningNewId++);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
 	TEST2(type, ELogChangeTypeEventAdded);
-	TEST(logId == runningNewId-1);
+	TEST2(logId, runningNewId-1);
 	TEST2(viewIndex, 0); // 8, [7], 6, 5, 4, 2, 1, 0
 
 	// Check we can go forward
@@ -3859,7 +3854,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	active->StartL();
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone); // [8], 7, 6, 5, 4, 2, 1, 0
-	TEST(view->Event().Id() == TLogId(KChangeEventTest2NumberOfEventsInView+1));
+	TEST2(view->Event().Id(), TLogId(KChangeEventTest2NumberOfEventsInView+1));
 
 	// Delete added event
 	changeObs->ResetChanges();
@@ -3875,7 +3870,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
 	TEST2(type, ELogChangeTypeEventDeleted);
-	TEST(logId == runningNewId-1);
+	TEST2(logId, runningNewId-1);
 	TEST2(viewIndex, 0);
 
 	// Go to end of view
@@ -3884,7 +3879,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	active->StartL();
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
-	TEST(view->Event().Id() == TLogId(0)); // 7, 6, 5, 4, 2, 1, [0]
+	TEST2(view->Event().Id(), TLogId(0)); // 7, 6, 5, 4, 2, 1, [0]
 
 	// Add new event
 	description[0] = TUint16('X');
@@ -3895,14 +3890,14 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
-	TEST(event->Id() == runningNewId++);
+	TEST2(event->Id(), runningNewId++);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
 	TEST2(type, ELogChangeTypeEventAdded);
-	TEST(logId == runningNewId-1);
+	TEST2(logId, runningNewId-1);
 	TEST2(viewIndex, 0); // 9, 7, 6, 5, 4, 2, 1, [0]
 
 	// Check we can't go forward
@@ -3915,7 +3910,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	active->StartL();
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
-	TEST(view->Event().Id() == TLogId(runningNewId-1)); // 9, 7, 6, 5, 4, 2, 1, [0]
+	TEST2(view->Event().Id(), TLogId(runningNewId-1)); // 9, 7, 6, 5, 4, 2, 1, [0]
 
 	// Delete added event
 	changeObs->ResetChanges();
@@ -3929,7 +3924,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
 	TEST2(type, ELogChangeTypeEventDeleted);
-	TEST(logId == runningNewId-1);
+	TEST2(logId, runningNewId-1);
 	TEST2(viewIndex, 0);
 
 	// Go part way through view
@@ -3955,7 +3950,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
-	TEST(event->Id() == runningNewId++);
+	TEST2(event->Id(), runningNewId++);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
@@ -4035,7 +4030,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KChangeEventTest2NumberOfEventsInView+1);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView+1);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
@@ -4233,7 +4228,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KChangeEventTest2NumberOfEventsInView - 1);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 1);
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
@@ -4247,7 +4242,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KChangeEventTest2NumberOfEventsInView - 2);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 2);
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
@@ -4261,7 +4256,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KChangeEventTest2NumberOfEventsInView - 3);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 3);
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
@@ -4275,7 +4270,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KChangeEventTest2NumberOfEventsInView - 4);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 4);
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
@@ -4289,7 +4284,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KChangeEventTest2NumberOfEventsInView - 5);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 5);
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
@@ -4303,7 +4298,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KChangeEventTest2NumberOfEventsInView - 6);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 6);
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
@@ -4336,7 +4331,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	TEST(count == KChangeEventTest2NumberOfEventsInView - 7);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 7);
 	changeCount = changeObs->Changes().Count();
 	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
@@ -4370,7 +4365,7 @@ LOCAL_C void TestViewChangeEvents2L(CLogClient& aClient)
 */
 LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0871 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0871 "));
 	// Transients
 	TInt i=0;
 	TInt count;
@@ -4429,36 +4424,36 @@ LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 		active->StartL();
 		aClient.AddEvent(*event, active->iStatus);
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
-		test(event->Id() == runningNewId++);
+		TEST2(active->iStatus.Int(), KErrNone);
+		TEST2(event->Id(), runningNewId++);
 	User::After(1 * 1000000);
 		}
 	//
-	test(view->CountL() == 0);
+	TEST2(view->CountL(), 0);
 	active->StartL();
-	test(view->SetFilterL(*filter, active->iStatus));
+	TEST(view->SetFilterL(*filter, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView);
 
 
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	do
 		{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
-		RDebug::Print(_L("View Entry[%d]: Id: %d"), i++, view->Event().Id());
+		TEST2(active->iStatus.Int(), KErrNone);
+		TheTest.Printf(_L("View Entry[%d]: Id: %d\r\n"), i++, view->Event().Id());
 		}
 	while(view->NextL(active->iStatus));
 	
 	// Check addition change events
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone); // [7], 6, 5, 4, 2, 1, 0
-	test(view->Event().Id() == 7);
+	TEST2(active->iStatus.Int(), KErrNone); // [7], 6, 5, 4, 2, 1, 0
+	TEST2(view->Event().Id(), 7);
 
 	// Add a new entry - should appear as the first item in the view
 	description[0] = TUint16('X');
@@ -4476,59 +4471,59 @@ LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(event->Id() == runningNewId++);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(event->Id(), runningNewId++);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
-	test(logId == runningNewId-1);
-	test(viewIndex == 0); // 8, [7], 6, 5, 4, 2, 1, 0
+	TEST2(type, ELogChangeTypeEventAdded);
+	TEST2(logId, runningNewId-1);
+	TEST2(viewIndex, 0); // 8, [7], 6, 5, 4, 2, 1, 0
 
 	// Check we can go forward
-	test(view->NextL(active->iStatus));
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(6)); // 8, 7, [6], 5, 4, 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(6)); // 8, 7, [6], 5, 4, 2, 1, 0
 
 	// Check we can now go back (new first entry)
-	test(view->PreviousL(active->iStatus));
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone); // 8, [7], 6, 5, 4, 2, 1, 0
-	test(view->Event().Id() == 7);
-	test(view->PreviousL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone); // 8, [7], 6, 5, 4, 2, 1, 0
+	TEST2(view->Event().Id(), 7);
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone); // [8], 7, 6, 5, 4, 2, 1, 0
-	test(view->Event().Id() == TLogId(KChangeEventTest2NumberOfEventsInView+1));
+	TEST2(active->iStatus.Int(), KErrNone); // [8], 7, 6, 5, 4, 2, 1, 0
+	TEST2(view->Event().Id(), TLogId(KChangeEventTest2NumberOfEventsInView+1));
 
 	// Delete added event
 	changeObs->ResetChanges();
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 0);
+	TEST2(changeCount, 0);
 	active->StartL();
 	aClient.DeleteEvent(view->Event().Id(), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone); // [7], 6, 5, 4, 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone); // [7], 6, 5, 4, 2, 1, 0
 
 	// Check deletion changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
-	test(logId == runningNewId-1);
-	test(viewIndex == 0);
+	TEST2(type, ELogChangeTypeEventDeleted);
+	TEST2(logId, runningNewId-1);
+	TEST2(viewIndex, 0);
 
 	// Go to end of view
-	test(view->LastL(active->iStatus));
+	TEST(view->LastL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(0)); // 7, 6, 5, 4, 2, 1, [0]
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(0)); // 7, 6, 5, 4, 2, 1, [0]
 
 	// Add new event
 	description[0] = TUint16('X');
@@ -4546,53 +4541,53 @@ LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(event->Id() == runningNewId++);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(event->Id(), runningNewId++);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
-	test(logId == runningNewId-1);
-	test(viewIndex == 0); // 9, 7, 6, 5, 4, 2, 1, [0]
+	TEST2(type, ELogChangeTypeEventAdded);
+	TEST2(logId, runningNewId-1);
+	TEST2(viewIndex, 0); // 9, 7, 6, 5, 4, 2, 1, [0]
 
 	// Check we can't go forward
-	test(!view->NextL(active->iStatus));
+	TEST(!view->NextL(active->iStatus));
 
 	// Go back to the first record
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(runningNewId-1)); // 9, 7, 6, 5, 4, 2, 1, [0]
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(runningNewId-1)); // 9, 7, 6, 5, 4, 2, 1, [0]
 
 	// Delete added event
 	changeObs->ResetChanges();
 	active->StartL();
 	aClient.DeleteEvent(view->Event().Id(), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone); // [7], 6, 5, 4, 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone); // [7], 6, 5, 4, 2, 1, 0
 
 	// Check deletion changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
-	test(logId == runningNewId-1);
-	test(viewIndex == 0);
+	TEST2(type, ELogChangeTypeEventDeleted);
+	TEST2(logId, runningNewId-1);
+	TEST2(viewIndex, 0);
 
 	// Go part way through view
-	test(view->NextL(active->iStatus));
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(6)); // 7, [6], 5, 4, 2, 1, 0
-	test(view->NextL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(6)); // 7, [6], 5, 4, 2, 1, 0
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(5)); // 7, 6, [5], 4, 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(5)); // 7, 6, [5], 4, 2, 1, 0
 
 	// Add new event
 	description[0] = TUint16('X');
@@ -4610,74 +4605,74 @@ LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(event->Id() == runningNewId++);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(event->Id(), runningNewId++);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
-	test(logId == runningNewId-1);
-	test(viewIndex == 0); // 10, 7, 6, [5], 4, 2, 1, 0
+	TEST2(type, ELogChangeTypeEventAdded);
+	TEST2(logId, runningNewId-1);
+	TEST2(viewIndex, 0); // 10, 7, 6, [5], 4, 2, 1, 0
 	changeObs->ResetChanges();
 
 	// Work back to beginning
-	test(view->PreviousL(active->iStatus));
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(6)); // 10, 7, [6], 5, 4, 2, 1, 0
-	test(view->PreviousL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(6)); // 10, 7, [6], 5, 4, 2, 1, 0
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(7)); // 10, [7], 6, 5, 4, 2, 1, 0
-	test(view->PreviousL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(7)); // 10, [7], 6, 5, 4, 2, 1, 0
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == runningNewId-1); // [10], 7, 6, 5, 4, 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), runningNewId-1); // [10], 7, 6, 5, 4, 2, 1, 0
 
 	// Delete added event
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 0);
+	TEST2(changeCount, 0);
 	active->StartL();
 	aClient.DeleteEvent(view->Event().Id(), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone); // [7], 6, 5, 4, 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone); // [7], 6, 5, 4, 2, 1, 0
 
 	// Check deletion changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
-	test(logId == runningNewId-1);
-	test(viewIndex == 0);
+	TEST2(type, ELogChangeTypeEventDeleted);
+	TEST2(logId, runningNewId-1);
+	TEST2(viewIndex, 0);
 	changeObs->ResetChanges();
 
 	// Go back to the first record
-	test(view->FirstL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(7)); // [7], 6, 5, 4, 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(7)); // [7], 6, 5, 4, 2, 1, 0
 
 	// Move one record forward
-	test(view->NextL(active->iStatus));
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(6)); // 7, [6], 5, 4, 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(6)); // 7, [6], 5, 4, 2, 1, 0
 
 	// Change 'Z' event so that it now appears in the view
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 0);
+	TEST2(changeCount ,0);
 	active->StartL();
 	event->SetId(TLogId(3));
 	aClient.GetEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	//
 	event->SetContact(KTestContact);
 	active->StartL();
@@ -4692,44 +4687,44 @@ LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 	changeObs->StartCollectingChanges();
 	aClient.ChangeEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView+1);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView+1);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded); // Change resulted in an addition to the view
-	test(logId == TLogId(3));
-	test(viewIndex == 4); // 7, [6], 5, 4, 3, 2, 1, 0
+	TEST2(type, ELogChangeTypeEventAdded); // Change resulted in an addition to the view
+	TEST2(logId, TLogId(3));
+	TEST2(viewIndex, 4); // 7, [6], 5, 4, 3, 2, 1, 0
 	changeObs->ResetChanges();
 
 	// Move forwards and check
-	test(view->NextL(active->iStatus));
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(5)); // 7, 6, [5], 4, 3, 2, 1, 0
-	test(view->NextL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(5)); // 7, 6, [5], 4, 3, 2, 1, 0
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(4)); // 7, 6, 5, [4], 3, 2, 1, 0
-	test(view->NextL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(4)); // 7, 6, 5, [4], 3, 2, 1, 0
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(3)); // 7, 6, 5, 4, [3], 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(3)); // 7, 6, 5, 4, [3], 2, 1, 0
 
 	// Change 'Z' event so that its now missing from the view again
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 0);
+	TEST2(changeCount ,0);
 	active->StartL();
 	event->SetId(TLogId(3));
 	aClient.GetEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	//
 	event->SetContact(0);
 	active->StartL();
@@ -4744,46 +4739,46 @@ LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 	changeObs->StartCollectingChanges();
 	aClient.ChangeEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
-	test(logId == TLogId(3));
-	test(viewIndex == 4); // 7, 6, 5, 4, [2], 1, 0
+	TEST2(type, ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
+	TEST2(logId, TLogId(3));
+	TEST2(viewIndex, 4); // 7, 6, 5, 4, [2], 1, 0
 	changeObs->ResetChanges();
 
 	// Move forwards and check
-	test(view->NextL(active->iStatus));
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(1)); // 7, 6, 5, 4, 2, [1], 0
-	test(view->NextL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(1)); // 7, 6, 5, 4, 2, [1], 0
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(0)); // 7, 6, 5, 4, 2, 1, [0]
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(0)); // 7, 6, 5, 4, 2, 1, [0]
 
 	// Move back one
-	test(view->PreviousL(active->iStatus));
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(1)); // 7, 6, 5, 4, 2, [1], 0
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(1)); // 7, 6, 5, 4, 2, [1], 0
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 0);
+	TEST2(changeCount ,0);
 
 	// Change 'Z' event so that it now appears in the view
 	active->StartL();
 	event->SetId(TLogId(3));
 	aClient.GetEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	//
 	event->SetContact(KTestContact);
 	active->StartL();
@@ -4798,56 +4793,56 @@ LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 	changeObs->StartCollectingChanges();
 	aClient.ChangeEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView+1);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView+1);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded); // Change resulted in an addition to the view
-	test(logId == TLogId(3));
-	test(viewIndex == 4); // 7, 6, 5, 4, 3, 2, [1], 0
+	TEST2(type, ELogChangeTypeEventAdded); // Change resulted in an addition to the view
+	TEST2(logId, TLogId(3));
+	TEST2(viewIndex, 4); // 7, 6, 5, 4, 3, 2, [1], 0
 	changeObs->ResetChanges();
 
 	// Check can only move forward one more record
-	test(view->NextL(active->iStatus));
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(0)); // 7, 6, 5, 4, 3, 2, 1, [0]
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(0)); // 7, 6, 5, 4, 3, 2, 1, [0]
 
 	// Move back until we are before the inserted record
-	test(view->PreviousL(active->iStatus));
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(1)); // 7, 6, 5, 4, 3, 2, [1], 0
-	test(view->PreviousL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(1)); // 7, 6, 5, 4, 3, 2, [1], 0
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(2)); // 7, 6, 5, 4, 3, [2], 1, 0
-	test(view->PreviousL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(2)); // 7, 6, 5, 4, 3, [2], 1, 0
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(3)); // 7, 6, 5, 4, [3], 2, 1, 0
-	test(view->PreviousL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(3)); // 7, 6, 5, 4, [3], 2, 1, 0
+	TEST(view->PreviousL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(4)); // 7, 6, 5, [4], 3, 2, 1, 0
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(4)); // 7, 6, 5, [4], 3, 2, 1, 0
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 0);
+	TEST2(changeCount ,0);
 
 	// Change 'Z' event so that its now missing from the view again
 	active->StartL();
 	event->SetId(TLogId(3));
 	aClient.GetEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	//
 	event->SetContact(0);
 	active->StartL();
@@ -4862,158 +4857,158 @@ LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 	changeObs->StartCollectingChanges();
 	aClient.ChangeEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView);
 
 	// Check changes
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
-	test(logId == TLogId(3));
-	test(viewIndex == 4); // 7, 6, 5, [4], 2, 1, 0
+	TEST2(type, ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
+	TEST2(logId, TLogId(3));
+	TEST2(viewIndex, 4); // 7, 6, 5, [4], 2, 1, 0
 	changeObs->ResetChanges();
 
 	// Check navigating to the end of the view
-	test(view->NextL(active->iStatus));
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(2)); // 7, 6, 5, 4, [2], 1, 0
-	test(view->NextL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(2)); // 7, 6, 5, 4, [2], 1, 0
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(1)); // 7, 6, 5, 4, 2, [1], 0
-	test(view->NextL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(1)); // 7, 6, 5, 4, 2, [1], 0
+	TEST(view->NextL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(0)); // 7, 6, 5, 4, 2, 1, [0]
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(0)); // 7, 6, 5, 4, 2, 1, [0]
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 0);
-	test(!view->NextL(active->iStatus));
+	TEST2(changeCount ,0);
+	TEST(!view->NextL(active->iStatus));
 
 	// Delete everything in the view and make sure we can't navigate anymore.
 	active->StartL();
 	aClient.DeleteEvent(TLogId(4), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView - 1);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 1);
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
-	test(logId == TLogId(4));
-	test(viewIndex == 3); // 7, 6, 5, 2, 1, [0]
+	TEST2(type, ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
+	TEST2(logId, TLogId(4));
+	TEST2(viewIndex, 3); // 7, 6, 5, 2, 1, [0]
 	changeObs->ResetChanges();
 	//
 	active->StartL();
 	aClient.DeleteEvent(TLogId(7), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView - 2);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 2);
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
-	test(logId == TLogId(7));
-	test(viewIndex == 0); // 6, 5, 2, 1, [0]
+	TEST2(type, ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
+	TEST2(logId, TLogId(7));
+	TEST2(viewIndex, 0); // 6, 5, 2, 1, [0]
 	changeObs->ResetChanges();
 	//
 	active->StartL();
 	aClient.DeleteEvent(TLogId(0), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView - 3);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 3);
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
-	test(logId == TLogId(0));
-	test(viewIndex == 4); // 6, 5, 2, [1]
+	TEST2(type, ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
+	TEST2(logId, TLogId(0));
+	TEST2(viewIndex, 4); // 6, 5, 2, [1]
 	changeObs->ResetChanges();
 	//
 	active->StartL();
 	aClient.DeleteEvent(TLogId(5), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView - 4);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 4);
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
-	test(logId == TLogId(5));
-	test(viewIndex == 1); // 6, 2, [1]
+	TEST2(type, ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
+	TEST2(logId, TLogId(5));
+	TEST2(viewIndex, 1); // 6, 2, [1]
 	changeObs->ResetChanges();
 	//
 	active->StartL();
 	aClient.DeleteEvent(TLogId(2), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView - 5);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 5);
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
-	test(logId == TLogId(2));
-	test(viewIndex == 1); // 6, [1]
+	TEST2(type, ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
+	TEST2(logId, TLogId(2));
+	TEST2(viewIndex, 1); // 6, [1]
 	changeObs->ResetChanges();
 	//
 	active->StartL();
 	aClient.DeleteEvent(TLogId(6), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView - 6);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 6);
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
-	test(logId == TLogId(6));
-	test(viewIndex == 0); // [1]
+	TEST2(type, ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
+	TEST2(logId, TLogId(6));
+	TEST2(viewIndex, 0); // [1]
 	changeObs->ResetChanges();
 
 	// Check we can't go backwards or forwards
-	test(!view->NextL(active->iStatus));
-	test(!view->PreviousL(active->iStatus));
-	test(view->FirstL(active->iStatus));
+	TEST(!view->NextL(active->iStatus));
+	TEST(!view->PreviousL(active->iStatus));
+	TEST(view->FirstL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(1)); // [1]
-	test(view->LastL(active->iStatus));
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(1)); // [1]
+	TEST(view->LastL(active->iStatus));
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->Event().Id() == TLogId(1)); // [1]
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->Event().Id(), TLogId(1)); // [1]
 
 	// Delete last event in view
 	active->StartL();
 	aClient.DeleteEvent(TLogId(1), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	count = view->CountL();
-	test(count == KChangeEventTest2NumberOfEventsInView - 7);
+	TEST2(count, KChangeEventTest2NumberOfEventsInView - 7);
 	changeCount = changeObs->Changes().Count();
-	test(changeCount == 1);
+	TEST2(changeCount, 1);
 	type = changeObs->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
-	test(logId == TLogId(1));
-	test(viewIndex == 0); // *Empty*
+	TEST2(type, ELogChangeTypeEventDeleted); // Change resulted in a removal from the view
+	TEST2(logId, TLogId(1));
+	TEST2(viewIndex, 0); // *Empty*
 	changeObs->ResetChanges();
 
 	// Check we can't navigate
-	test(!view->NextL(active->iStatus));
-	test(!view->PreviousL(active->iStatus));
-	test(!view->FirstL(active->iStatus));
-	test(!view->LastL(active->iStatus));
+	TEST(!view->NextL(active->iStatus));
+	TEST(!view->PreviousL(active->iStatus));
+	TEST(!view->FirstL(active->iStatus));
+	TEST(!view->LastL(active->iStatus));
 
 	CleanupStack::PopAndDestroy(5, event); // view, changeObs, active, filter, event
 	}
@@ -5029,7 +5024,7 @@ LOCAL_C void TestViewChangeEvents2aL(CLogClient& aClient)
 */
 LOCAL_C void TestViewFilteringDefect1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0872 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0872 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -5226,7 +5221,7 @@ static TInt TestDeletingViewWithinObserverCallbackL_ThreadFunction(TAny* /*aData
 */
 LOCAL_C void TestDeletingViewWithinObserverCallbackL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0873 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0873 "));
 	TestUtils::DeleteDatabaseL();
 
 	TInt error = 0;
@@ -5472,7 +5467,7 @@ static void TestNavigationWhilstBusyL_ThreadFunctionL(TThreadData& aThreadData)
 				__ASSERT_ALWAYS(active->iStatus == KErrNone, User::Panic(_L("ThreadPanic"), 1));
 				++count;
 				LEAVE_IF_ERROR(aThreadData.iArray->Append(event->Id()));
-				// RDebug::Print(_L("EAdd: i:%d count:%d, id:%d\n"), i, aThreadData.iArray->Count(), event->Id());
+				// TheTest.Printf(_L("EAdd: i:%d count:%d, id:%d\n"), i, aThreadData.iArray->Count(), event->Id());
 
 				// Have to wait for a minimum of 1 ms here because otherwise DMBS sorts records (by time)
 				// in an arbitrary manor
@@ -5580,7 +5575,7 @@ running.
 */
 LOCAL_C void TestNavigationWhilstBusyL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0874 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0874 "));
 	TestUtils::DeleteDatabaseL();
 
 	TInt error = 0;
@@ -5598,7 +5593,7 @@ LOCAL_C void TestNavigationWhilstBusyL(CLogClient& aClient)
 	type->SetUid(TEST_LOG_UID);
 	type->SetDescription(KTestEventDesc);
 	type->SetLoggingEnabled(ETrue);
-	RDebug::Print(_L("\nTest event type added %x\n"),TEST_LOG_UID );
+	TheTest.Printf(_L("\nTest event type added %x\n"),TEST_LOG_UID );
 
 	// Register the event type
 	active->StartL();
@@ -5615,7 +5610,7 @@ LOCAL_C void TestNavigationWhilstBusyL(CLogClient& aClient)
 	CleanupStack::PushL(filter);
 	filter->SetEventType(TEST_LOG_UID);  
 	TBool res = view->SetFilterL(*filter, active->iStatus);
-	test(!res);
+	TEST(!res);
 
 	// increase the default log size
 	TLogConfig Config;
@@ -5643,107 +5638,107 @@ LOCAL_C void TestNavigationWhilstBusyL(CLogClient& aClient)
 	thread.Resume();
 
 	// Suspend this thread
-	RDebug::Print(_L("TEST CODE: Suspending thread for 2 seconds\n"));
+	TheTest.Printf(_L("TEST CODE: Suspending thread for 2 seconds\n"));
 	CLogSchedulerTimer* timer = CLogSchedulerTimer::NewLC();
 	timer->Wait(10 * 1000000);
 
 	// Apply the filter now there are some records
-	RDebug::Print(_L("TEST CODE: Setting filter again - should be some records now\n"));
+	TheTest.Printf(_L("TEST CODE: Setting filter again - should be some records now\n"));
 	res = view->SetFilterL(*filter, active->iStatus);
-	test(res);
+	TEST(res);
 	active->StartL();
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone || active->iStatus == KErrCancel); // KErrCancel when the worker thread clears the log at the same time as we are navigating to the first record
+	TEST(active->iStatus == KErrNone || active->iStatus == KErrCancel); // KErrCancel when the worker thread clears the log at the same time as we are navigating to the first record
 	count = view->CountL();
-	test(count > 0);
+	TEST(count > 0);
 
 	// Navigate around (up and down) whilst events are being created
 	count = view->CountL();
 	res = view->FirstL(active->iStatus);
-	test(res);
+	TEST(res);
 	do	{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone || active->iStatus == KErrCancel);
+		TEST(active->iStatus == KErrNone || active->iStatus == KErrCancel);
 		count--;
 		if	(active->iStatus == KErrNone)
-			test(view->Event().Id() != KLogNullId);
+			TEST(view->Event().Id() != KLogNullId);
 		}
 	while(view->NextL(active->iStatus));
 
 	timer->Wait(5 * 1000000);
 	count = view->CountL();
 	res = view->FirstL(active->iStatus);
-	test(res);
+	TEST(res);
 	do	{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone || active->iStatus == KErrCancel);
+		TEST(active->iStatus == KErrNone || active->iStatus == KErrCancel);
 		count--;
 		if	(active->iStatus == KErrNone)
-			test(view->Event().Id() != KLogNullId);
+			TEST(view->Event().Id() != KLogNullId);
 		}
 	while(view->NextL(active->iStatus));
 
 	timer->Wait(5 * 1000000);
 	count = view->CountL();
 	res = view->LastL(active->iStatus);
-	test(res);
+	TEST(res);
 	do	{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone || active->iStatus == KErrCancel);
+		TEST(active->iStatus == KErrNone || active->iStatus == KErrCancel);
 		count--;
 		if	(active->iStatus == KErrNone)
-			test(view->Event().Id() != KLogNullId);
+			TEST(view->Event().Id() != KLogNullId);
 		}
 	while(view->PreviousL(active->iStatus));
 
 	timer->Wait(5 * 1000000);
 	count = view->CountL();
 	res = view->FirstL(active->iStatus);
-	test(res);
+	TEST(res);
 	do	{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone || active->iStatus == KErrCancel);
+		TEST(active->iStatus == KErrNone || active->iStatus == KErrCancel);
 		count--;
 		if	(active->iStatus == KErrNone)
-			test(view->Event().Id() != KLogNullId);
+			TEST(view->Event().Id() != KLogNullId);
 		}
 	while(view->NextL(active->iStatus));
 
 	timer->Wait(5 * 1000000);
 	count = view->CountL();
 	res = view->LastL(active->iStatus);
-	test(res);
+	TEST(res);
 	do	{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone || active->iStatus == KErrCancel);
+		TEST(active->iStatus == KErrNone || active->iStatus == KErrCancel);
 		count--;
 		if	(active->iStatus == KErrNone)
-			test(view->Event().Id() != KLogNullId);
+			TEST(view->Event().Id() != KLogNullId);
 		}
 	while(view->PreviousL(active->iStatus));
 
 	timer->Wait(5 * 1000000);
 	count = view->CountL();
 	res = view->LastL(active->iStatus);
-	test(res);
+	TEST(res);
 	do	{
 		active->StartL();
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone || active->iStatus == KErrCancel);
+		TEST(active->iStatus == KErrNone || active->iStatus == KErrCancel);
 		count--;
 		if	(active->iStatus == KErrNone)
-			test(view->Event().Id() != KLogNullId);
+			TEST(view->Event().Id() != KLogNullId);
 		}
 	while(view->PreviousL(active->iStatus));
 	
 	// STOP THE WORKER THREAD
 	threadData.iStopThread = ETrue;
-	RDebug::Print(_L("Stopping worker thread\n"));
+	TheTest.Printf(_L("Stopping worker thread\n"));
 	timer->Wait(30 * 1000000);
 	
 	// do some checks on the log
@@ -5752,20 +5747,20 @@ LOCAL_C void TestNavigationWhilstBusyL(CLogClient& aClient)
 	active->StartL();
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
-	RDebug::Print(_L("MaxLogSize:%ld MaxRecentLogSize:%d\n"),
+	TheTest.Printf(_L("MaxLogSize:%ld MaxRecentLogSize:%d\n"),
 		logConfig.iMaxLogSize, logConfig.iMaxRecentLogSize );
-	test(logConfig.iMaxLogSize > logConfig.iMaxRecentLogSize);
+	TEST(logConfig.iMaxLogSize > logConfig.iMaxRecentLogSize);
 
 	/*  Check the log has not overflowed.
 	    If this fails either increase the log size or reduce the time the 
 	    worker thread has been running
      */
-	test (arrayOfIds.Count() < kMaxLogSize);
+	TEST(arrayOfIds.Count() < kMaxLogSize);
 	
 	// Loop though the logevents created by the worker thread and compare against the 
 	// data stored in arrayOfIds. 
 	res = view->LastL(active->iStatus);
-	test(res);
+	TEST(res);
 	count = 0;
 	do	{
 		active->StartL();
@@ -5775,10 +5770,10 @@ LOCAL_C void TestNavigationWhilstBusyL(CLogClient& aClient)
 		const TLogId logId = view->Event().Id();
 		const TLogId arrayId = arrayOfIds[count];
 		if	(logId != arrayId)
-			RDebug::Print(_L("Events[%d] - array:%5d, id:%5d ****\n"), count, arrayId, logId);
+			TheTest.Printf(_L("Events[%d] - array:%5d, id:%5d ****\n"), count, arrayId, logId);
 		// Note: If this test fails the fist thing to check is the time delay after EAdd.
 		// If several events get the same time stamp, the order is arbitrary and the test fails here.
-		test(logId == arrayId);
+		TEST2(logId, arrayId);
 		count++;
 		}
 	while(view->PreviousL(active->iStatus));
@@ -5807,7 +5802,7 @@ LOCAL_C void TestNavigationWhilstBusyL(CLogClient& aClient)
 */
 LOCAL_C void INC123066L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-4014 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-4014 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
@@ -5883,7 +5878,7 @@ LOCAL_C void INC123066L(CLogClient& aClient)
 */
 LOCAL_C void INC136334L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-CT-4017 "));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-CT-4017 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -5962,7 +5957,7 @@ void doTestsL()
 	{
 	TheMatchingIsEnabled = TestUtils::MatchingEnabledL();
 	
-	TestUtils::Initialize(_L("T_LOGVIEW1"));
+	TestUtils::Initialize(_L("t_logview1"));
 	TestUtils::DeleteDatabaseL();
 
 	CLogClient* client = CLogClient::NewL(theFs);
@@ -5971,87 +5966,87 @@ void doTestsL()
 	CLogChangeNotifier* notifier = CLogChangeNotifier::NewL();
 	CleanupStack::PushL(notifier);
 
-	test.Start(_L("Event View With No Filter"));
+	TheTest.Start(_L("Event View With No Filter"));
 
 	TestEventViewL(*client);
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("Event View Filter alternative"));
+	TheTest.Next(_L("Event View Filter alternative"));
 	TestViewFilteringDefect1L(*client);
 	theLog.Write(_L8("Test 2 OK\n"));
-	test.Next(_L("Event View With Filter"));
+	TheTest.Next(_L("Event View With Filter"));
 	TestEventViewFilter1L(*client);
 	TestEventViewFilter2L(*client);
-	test.Next(_L("INC123066 - LogView not updated if SetFilterL found no event"));
+	TheTest.Next(_L("INC123066 - LogView not updated if SetFilterL found no event"));
 	INC123066L(*client);
 	theLog.Write(_L8("Test 3 OK\n"));
 	
-	test.Next(_L("Recent View"));
+	TheTest.Next(_L("Recent View"));
 	TestRecentView1L(*client);
 	TestRecentView2L(*client);
 	theLog.Write(_L8("Test 4 OK\n"));
 
-	test.Next(_L("Removing recent events"));
+	TheTest.Next(_L("Removing recent events"));
 	TestRecentRemove1L(*client);
 	TestRecentRemove2L(*client);
 	theLog.Write(_L8("Test 5 OK\n"));
 
-	test.Next(_L("Duplicate View"));
+	TheTest.Next(_L("Duplicate View"));
 	TestDuplicateViewL(*client);
 	theLog.Write(_L8("Test 6 OK\n"));
 
-	test.Next(_L("Removing duplicate events"));
+	TheTest.Next(_L("Removing duplicate events"));
 	TestDuplicateRemoveL(*client);
 	theLog.Write(_L8("Test 7 OK\n"));
 
-	test.Next(_L("Check purge performed on view setup"));
+	TheTest.Next(_L("Check purge performed on view setup"));
 	TestPurgeOnSetup1L(*client); 
 	TestPurgeOnSetup2L(*client);
 	theLog.Write(_L8("Test 8 OK\n"));
 
-	test.Next(_L("View Purging"));
+	TheTest.Next(_L("View Purging"));
 	TestViewPurgeL(*client);
 	theLog.Write(_L8("Test 9 OK\n"));
 
-	test.Next(_L("Clearing duplicate lists"));
+	TheTest.Next(_L("Clearing duplicate lists"));
 	TestClearDuplicatesL(*client);
 	theLog.Write(_L8("Test 10 OK\n"));
 
-	test.Next(_L("Phone number matching"));
+	TheTest.Next(_L("Phone number matching"));
 	TestPhoneNumberMatchingL(*client);
 	theLog.Write(_L8("Test 11 OK\n"));	
 
-	test.Next(_L("view flags setting/clearing"));
+	TheTest.Next(_L("view flags setting/clearing"));
 	TestViewFlagsL(*client);
 	theLog.Write(_L8("Test 12 OK\n"));
 
-	test.Next(_L("Recent view flags setting/clearing"));
+	TheTest.Next(_L("Recent view flags setting/clearing"));
 	TestRecentFlagsL(*client);
 	theLog.Write(_L8("Test 13 OK\n"));
 
-	test.Next(_L("View change tests 1"));
+	TheTest.Next(_L("View change tests 1"));
 	TestViewChangeEvents1L(*client);
 	TestViewChangeEvents1aL(*client);
 	theLog.Write(_L8("Test 14 OK\n"));
 
-	test.Next(_L("View change tests 2"));
+	TheTest.Next(_L("View change tests 2"));
 	TestViewChangeEvents2L(*client);
 	TestViewChangeEvents2aL(*client);
 	theLog.Write(_L8("Test 15 OK\n"));
 
-	test.Next(_L("View deletion from within callback"));
+	TheTest.Next(_L("View deletion from within callback"));
 	TestDeletingViewWithinObserverCallbackL(*client);
 	theLog.Write(_L8("Test 16 OK\n"));
 
-	test.Next(_L("Test navigation whilst events are added"));
+	TheTest.Next(_L("Test navigation whilst events are added"));
 	TestNavigationWhilstBusyL(*client);
 	theLog.Write(_L8("Test 17 OK\n"));
 	
-	test.Next(_L("Defect INC105010 - phone number matching"));
+	TheTest.Next(_L("Defect INC105010 - phone number matching"));
 	INC105010L(*client);
 	theLog.Write(_L8("Test 18 OK\n"));
 
-	test.Next(_L("INC136334 - The miss call log won't show if you have  '  in your contact"));
+	TheTest.Next(_L("INC136334 - The miss call log won't show if you have  '  in your contact"));
 	INC136334L(*client);
 	theLog.Write(_L8("Test 19 OK\n"));
 

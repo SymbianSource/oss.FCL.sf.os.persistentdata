@@ -22,7 +22,7 @@
 
 #ifndef TE_SUITE_STEP_BASE__
 #define TE_SUITE_STEP_BASE__
-#include <TestExecuteStepBase.h>
+#include <test/testexecutestepbase.h>
 #include "te_tracer.h"
 #include "te_logger.h"
 

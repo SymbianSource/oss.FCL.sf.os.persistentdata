@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,8 +20,8 @@
 
 #include <testexecute.iby>
 
-file=ABI_DIR\DEBUG_DIR\Te_RFileLoggerSuite.exe		System\bin\te_RFileLoggerSuite.exe
-data=EPOCROOT##Epoc32\release\winscw\udeb\z\TestData\configs\te_RFileLoggerSuite.ini TestData\configs\te_RFileLoggerSuite.ini
-data=EPOCROOT##Epoc32\release\winscw\udeb\z\TestData\scripts\te_RFileLoggerSuite.script TestData\Scripts\te_RFileLoggerSuite.Script
+file=ABI_DIR\DEBUG_DIR\Te_RFileLoggerSuite.exe          system\bin\te_RFileLoggerSuite.exe
+data=DATAZ_\testdata\configs\te_rfileloggersuite.ini    testdata\configs\te_rfileloggersuite.ini
+data=DATAZ_\testdata\scripts\te_rfileloggersuite.script testdata\Scripts\te_rfileloggersuite.script
 
-#endif
+#endif // __TE_RFILELOGGER_SUITE_IBY__

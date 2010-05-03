@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,16 +14,9 @@
 //
 
 #include <s32file.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
-/* this fixes a MSVC link warning */
-#ifdef __VC32__
-#pragma comment (linker, "/opt:noref") 
-#endif
-
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log Filter Test Harness"));
+RTest TheTest(_L("t_logfilter"));
 
 /**
 @SYMTestCaseID          SYSLIB-LOGENG-CT-0924
@@ -35,11 +28,8 @@ RTest test(_L("Log Filter Test Harness"));
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestFilterL()
-//
-//
-//
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0924 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0924 "));
 	CLogFilter* filter1 = CLogFilter::NewL();
 	CleanupStack::PushL(filter1);
 
@@ -244,11 +234,8 @@ LOCAL_C void TestFilterL()
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestFilterWithHeapFailL()
-//
-//
-//
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0925 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0925 "));
 #ifdef _DEBUG
 	TInt failCount = 0;
 #endif
@@ -278,17 +265,14 @@ LOCAL_C void TestFilterWithHeapFailL()
 	}
 
 void doTestsL()
-//
-//
-//
 	{
-	TestUtils::Initialize(_L("T_LOGFILTER"));
+	TestUtils::Initialize(_L("t_logfilter"));
 
-	test.Start(_L("Filter"));
+	TheTest.Start(_L("Filter"));
 	TestFilterL();
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("Filter with heap failure"));
+	TheTest.Next(_L("Filter with heap failure"));
 	TestFilterWithHeapFailL();
 	theLog.Write(_L8("Test 2 OK\n"));
 	}

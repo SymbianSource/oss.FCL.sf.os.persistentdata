@@ -25,7 +25,7 @@
 #ifndef TE_CREATECONFIGEMPTYSTEP_H
 #define TE_CREATECONFIGEMPTYSTEP_H
 
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 
 //Test Sysconfig of Ulogger
 class CCreateConfigEmptyTestStep : public CTestStep

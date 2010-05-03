@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -30,13 +30,13 @@ class CSqlCompactEntry;
 
 /**
 A CTimer derived class that performs the background compaction.
-The CSqlCompactTimer class maintains a queue of CSqlCompactTimer objects waiting to be compacted
+The CSqlCompactTimer class maintains a queue of CSqlCompactEntry objects waiting to be compacted
 (the databases).
-The class offers methods for adding/removing CSqlCompactTimer objects to/from the queue and a Restart()
+The class offers methods for adding/removing CSqlCompactEntry objects to/from the queue and a Restart()
 method that can be used to delay the next compaction step, improving this way the SQL server responsiveness to 
 client requests.
 
-The CSqlCompactTimer objects needed compaction will be added at the fromt of the queue.
+The CSqlCompactEntry objects needing compaction will be added at the front of the queue.
 Every time when timer's RunL() method gets executed, the last element from the queue will be picked-up and one
 compaction step will be performed. When the CSqlCompactEntry object completes the compaction, it will remove
 itself from the queue.

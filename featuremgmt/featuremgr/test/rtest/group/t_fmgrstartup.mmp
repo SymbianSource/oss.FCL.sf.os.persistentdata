@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -17,8 +17,12 @@ TARGET			t_fmgrstartup.exe
 TARGETTYPE		exe
 
 MACRO       EXTENDED_FEATURE_MANAGER_TEST
+MACRO       FEATURE_MANAGER_STARTUP_TEST
 
 CAPABILITY      ProtServ ReadDeviceData AllFiles
+
+//CodeWarrior compilation options - disable the "illegal pragma" warning
+OPTION CW -w noillpragmas
 
 USERINCLUDE 	.
 USERINCLUDE		../../../inc

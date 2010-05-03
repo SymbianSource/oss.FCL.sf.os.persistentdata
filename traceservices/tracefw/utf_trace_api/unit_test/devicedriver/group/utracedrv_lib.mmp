@@ -18,6 +18,5 @@
 target			utrace.lib
 targettype		implib
 linkas			utrace.ldd
-//deffile			../../~/ldd.def
 
 SMPSAFE

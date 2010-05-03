@@ -1320,12 +1320,25 @@ static TFhStrType FhStringProps(const char* aFileName)
 	}
 
 /**
-Replaces all invalid characters in aFileName.
+Removes all invalid characters in aFileName.
 If the file name contains handles (so that's a private secure database related name), the additional
 information (handles, flags, object addresses) has to be excluded from the name in order to make it usable 
-by the file system.
+by the file system. 
 
-@param aFileName Output parameter. The cleaned file name will be copied there.
+The private file name format is (see FhExtractAndStore() comments):
+
+"|<R/O flag><RMessage2 pointer><drive><app SID><file_name><file_ext>|"
+
+Before opening or creating a file, SQLite will call TVfs::FullPathName() passing to the function the name of
+the file and expecting the full file name (including path) as an output from the function.
+After the TVfs::FullPathName() call, the full file name, returned to SQLite, will have the following format:
+
+"|<drive><path><file_name><file_ext>|"
+
+FhConvertToFileName() is called from TVfs::Open() and will remove the leading and trialing '|' characters from
+the file name.
+
+@param aFileName Input/Output parameter. The cleaned file name will be copied there.
 @param aPrivateDir The SQL server private data cage.
 
 @see TVfs::Open()
@@ -1352,7 +1365,7 @@ static void FhConvertToFileName(TDes& aFileName, const TDesC& aPrivateDir)
 	}
 
 /**
-Extracts the read-only flag and RMessage address from aDbFileName and stores them in single COsLayerData instance.
+Extracts the read-only flag and RMessage address from aDbFileName and stores them in the single COsLayerData instance.
 
 @param aDbFileName Input/output parameter. The file name. 
 				   It will be reformatted and won't contain the already extracted data.
@@ -2235,7 +2248,7 @@ with the reported by the OS API error. The stored error code will be used later 
 	else
 		{
 		if(fhStrType == EFhStr)
-			{//Not the main db file. Replace invalid characters in the file name
+			{//Not the main db file. Remove invalid characters in the file name
 			::FhConvertToFileName(fname, osLayerData.iSysPrivDir);//If fname does not have a path, iSysPrivDir will be used
 			}
 		TInt fmode = EFileRead;
@@ -2618,9 +2631,11 @@ SQLite OS porting layer API.
 
 Memory allocation routine.
 
+EXPORT_C required to match IMPORT_C in stdlib.h and avoid compiler warning
+
 @internalComponent
 */
-extern "C" void* sqlite3SymbianMalloc(size_t aSize)
+extern "C" EXPORT_C void* sqlite3SymbianMalloc(size_t aSize)
 	{
 	__MEM_CALL(EMemOpAlloc, aSize, 0);
 	return Allocator().Alloc(aSize);
@@ -2631,9 +2646,11 @@ SQLite OS porting layer API.
 
 Memory reallocation routine.
 
+EXPORT_C required to match IMPORT_C in stdlib.h and avoid compiler warning
+
 @internalComponent
 */
-extern "C" void* sqlite3SymbianRealloc(void* aPtr, size_t aSize)
+extern "C" EXPORT_C void* sqlite3SymbianRealloc(void* aPtr, size_t aSize)
 	{
 #ifdef _SQLPROFILER
 	TInt size = Allocator().AllocLen(aPtr);
@@ -2647,9 +2664,11 @@ SQLite OS porting layer API.
 
 Memory free routine.
 
+EXPORT_C required to match IMPORT_C in stdlib.h and avoid compiler warning
+
 @internalComponent
 */
-extern "C" void sqlite3SymbianFree(void* aPtr)
+extern "C" EXPORT_C void sqlite3SymbianFree(void* aPtr)
 	{
 #ifdef _SQLPROFILER
 	TInt size = Allocator().AllocLen(aPtr);

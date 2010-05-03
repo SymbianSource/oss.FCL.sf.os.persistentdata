@@ -1,5 +1,5 @@
 
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -17,15 +17,19 @@
 
 #include <s32file.h>
 #include <logcntdef.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log Client Platform Security Test Harness"));
-
-// If LOWCAP is defined in the .mmp file 'TheHiCapability' will be set to false.
-TBool TheHiCapability = ETrue;
+//LOWCAP defined in t_loglowcapability.mmp file.
+#ifdef LOWCAP
+    TBool TheHiCapability = EFalse;
+    RTest TheTest(_L("t_loglowcapability"));
+    _LIT(KTestTitle, "t_loglowcapability");
+#else
+    TBool TheHiCapability = ETrue;
+    RTest TheTest(_L("t_loghicapability"));
+    _LIT(KTestTitle, "t_loghicapability");
+#endif
 
 const TUid KTestEventUid = {0x10005393};
 _LIT(KTestEventDesc1, "Event Type Description");
@@ -60,7 +64,7 @@ is not policed by platform security.
 */
 LOCAL_C void TestStartupL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0118 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0118 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
@@ -105,7 +109,7 @@ DeleteEvent - KErrPermissionDenied
 */
 LOCAL_C void TestBasicL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0119 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0119 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -150,7 +154,7 @@ LOCAL_C void TestBasicL(CLogClient& aClient)
 	active->StartL();
 	aClient.ChangeEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-    test.Printf(_L("TestBasicL(), TheHiCapability=%d, event id=%d\r\n"), TheHiCapability, id);
+    TheTest.Printf(_L("TestBasicL(), TheHiCapability=%d, event id=%d\r\n"), TheHiCapability, id);
 	TEST2(active->iStatus.Int(), TheHiCapability ? KErrNone : KErrPermissionDenied);
 
 	TEST(event->Id() == id );
@@ -248,7 +252,7 @@ LOCAL_C void TestBasicL(CLogClient& aClient)
 */
 LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0120 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0120 "));
 	CLogEventType* type = CLogEventType::NewL();
 	CleanupStack::PushL(type);
 
@@ -295,7 +299,7 @@ LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
 	// GetEventType is not policed.
 	//
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0121 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0121 "));
 	CLogEventType* type = CLogEventType::NewL();
 	CleanupStack::PushL(type);
 
@@ -329,7 +333,7 @@ LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
 */
 LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0122 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0122 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -424,7 +428,7 @@ LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 */
 LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0123 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0123 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -494,7 +498,7 @@ LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 */
 LOCAL_C void TestDeleteBuiltInEventTypeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0124 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0124 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -540,7 +544,7 @@ LOCAL_C void TestDeleteBuiltInEventTypeL(CLogClient& aClient)
 */
 LOCAL_C void TestGetConfigL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0125 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0125 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -592,7 +596,7 @@ LOCAL_C void TestGetConfigL(CLogClient& aClient)
 */
 LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0126 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0126 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -683,7 +687,7 @@ LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 */
 void ClearLogL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0127 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0127 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -709,7 +713,7 @@ void ClearLogL(CLogClient& aClient)
 */
 void ClearRecentListL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0128 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0128 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -807,7 +811,7 @@ LOCAL_C void TestEventViewWithFilterL(CLogClient& aClient)
 	// It deletes the database, then...
 	// adds 8 events - 2 are visible to clients with no capabilities
 	// and 6 are of type KLogCallEventTypeUid, which is protected.
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0129 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0129 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -885,7 +889,7 @@ LOCAL_C void TestEventViewWithFilterL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0130 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0130 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -917,31 +921,25 @@ LOCAL_C void TestRecentViewL(CLogClient& aClient)
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGENGSECURITY"));
-	
-#ifdef LOWCAP	//  defined in mmp file
-	TheHiCapability = EFalse;
-#else
-	TheHiCapability = ETrue;
-#endif
+    TestUtils::Initialize(KTestTitle);
 					
-	test.Start(_L("Starting tests..."));
+	TheTest.Start(_L("Starting tests..."));
 		
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	
 	TestUtils::DeleteDatabaseL();
 	
-	test.Start(_L("Server startup"));
+	TheTest.Next(_L("Server startup"));
 	TestStartupL();
 	User::After(100000);
 
-	test.Next(_L("Test Add, Get, Change & Delete event"));
+	TheTest.Next(_L("Test Add, Get, Change & Delete event"));
 	TestUtils::DeleteDatabaseL();
 	TestBasicL(*client);
 	theLog.Write(_L8("Basic tests OK\n"));
 
-	test.Next(_L("Add Event Type"));
+	TheTest.Next(_L("Add Event Type"));
 	TestAddEventTypeL(*client);
 	theLog.Write(_L8("Add Event Type test OK\n"));
 	
@@ -952,46 +950,46 @@ void doTestsL()
 		TestUtils::AddEventTypeL();
 		}
 	
-	test.Next(_L("Get Event Type"));
+	TheTest.Next(_L("Get Event Type"));
 	TestGetEventTypeL(*client);
 	theLog.Write(_L8("Get Event Type test OK\n"));
 	
-	test.Next(_L("Change Event Type"));
+	TheTest.Next(_L("Change Event Type"));
 	TestChangeEventTypeL(*client);
 	theLog.Write(_L8("Change Event Type test OK\n"));
 	
-	test.Next(_L("Delete Event Type"));
+	TheTest.Next(_L("Delete Event Type"));
 	TestDeleteEventTypeL(*client);
 	theLog.Write(_L8("Delete Event Type test OK\n"));
 	
-	test.Next(_L("Delete Built-in Event Type"));
+	TheTest.Next(_L("Delete Built-in Event Type"));
 	TestDeleteBuiltInEventTypeL(*client);
 	theLog.Write(_L8("Delete Built-in Event Type test OK\n"));
 	
-	test.Next(_L("Get Server Configuration"));
+	TheTest.Next(_L("Get Server Configuration"));
 	TestGetConfigL(*client);
 	theLog.Write(_L8("Get Server Configuration test OK\n"));
 	
-	test.Next(_L("Change Server Configuration"));
+	TheTest.Next(_L("Change Server Configuration"));
 	TestChangeConfigL(*client);
 	theLog.Write(_L8("Change Server Configuration test OK\n"));
 	
-	test.Next(_L("Clear the Log test"));
+	TheTest.Next(_L("Clear the Log test"));
 	ClearLogL(*client);
 	theLog.Write(_L8("Clear the Log test OK\n"));
 		
-	test.Next(_L("Clear Recent List test"));
+	TheTest.Next(_L("Clear Recent List test"));
 	ClearRecentListL(*client);
 	theLog.Write(_L8("Clear Recent List test OK\n"));
 	
 #ifdef SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM	
 	const TSimId KSimId = 4000000000U;
 
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4040 Clear the \"Log + SimId\" test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4040 Clear the \"Log + SimId\" test"));
 	ClearLogL(*client, KSimId);
 	theLog.Write(_L8("Clear the \"Log + SimId\" test OK\n"));
 
-	test.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4041 Clear \"Recent List + SimId\" test"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-UT-4041 Clear \"Recent List + SimId\" test"));
 	ClearRecentListL(*client, KSimId);
 	theLog.Write(_L8("Clear \"Recent List + SimId\" test OK\n"));
 #endif
@@ -1006,16 +1004,15 @@ void doTestsL()
 	// and 6 are of type KLogCallEventTypeUid, which is protected.
 	TestUtils::AddViewTestEventsL();
 	
-	test.Next(_L("Event View with Filter list"));
+	TheTest.Next(_L("Event View with Filter list"));
 	TestEventViewWithFilterL(*client);	
 	theLog.Write(_L8("Event View with Filter list test OK\n"));
 	
-	test.Next(_L("Recent View"));
+	TheTest.Next(_L("Recent View"));
 	TestRecentViewL(*client);
 	theLog.Write(_L8("Recent View test OK\n"));
 
 	TestUtils::DeleteDatabaseL();	// ready for next test
 
-	test.End();
 	CleanupStack::PopAndDestroy(); // client
 	}

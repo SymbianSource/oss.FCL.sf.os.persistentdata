@@ -37,7 +37,7 @@ extern TBool TheOsCallTimeDetailedProfileEnabled;//If true, the OS porting layer
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
-			++iFileWriteCount, iFileWriteAmount += (amount); \
+			++iFileWriteCount; iFileWriteAmount += (amount); \
 			RDebug::Print(_L(" -- FWrite   this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileWriteCount, pos, amount, iFileWriteAmount); \
 			} \
 		} while(0)

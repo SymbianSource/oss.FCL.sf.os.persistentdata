@@ -280,31 +280,41 @@ void OpenCloseDatabaseTest()
 	TEST2(fs.Connect(), KErrNone);
 	TFileName privatePath;
 	TEST2(fs.PrivatePath(privatePath), KErrNone);
-	fs.Close();
 	
 	//Private shared database file on an existing drive (C:). 
 	//Very long database file name.
-	const TInt KMaxFileName2 = KMaxFileName - 40;//"-40" because the SQLITE engine creates a journal file if begins
-	                                             //a transaction. The name of the journal file is 
-	                                             //"<dbFileName>-journal.<ext>". It is obvious that if the 
-	                                             //database file name is too long but still valid and its creation
-	                                             //succeeds, the journal file creation may fail because the journal
-	                                             //file name becomes too long
-	TBuf<KMaxFileName2> dbPath;
+	TBuf<50>filesysname;
+	fs.FileSystemName(filesysname,(TInt) EDriveC);
+    fs.Close();
+
+	RDebug::Print(_L("file system name = %S"), &filesysname);
+	TInt maxFileName = KMaxFileName -40;//"-40" because the SQLITE engine creates a journal file if begins
+	                                                 //a transaction. The name of the journal file is 
+	                                                 //"<dbFileName>-journal.<ext>". It is obvious that if the 
+	                                                 //database file name is too long but still valid and its creation
+	                                                 //succeeds, the journal file creation may fail because the journal
+	                                                 //file name becomes too long
+
+	if(filesysname.CompareF(_L("HVFS")) == 0)
+	    {
+        maxFileName = KMaxFileName -150;//The test will panic in PlatSim when the file name is too long. This line should be removed when platsim team fixes the file system defect.
+	    }
+	HBufC* dbPath = HBufC::NewLC(maxFileName);
 	_LIT(KExt, ".DB");
-	dbPath.Copy(_L("C:"));
-	dbPath.Append(KSecureUid.Name());
-	TInt len = KMaxFileName2 + 1 - (dbPath.Length() + KExt().Length() + privatePath.Length());
+	dbPath->Des().Copy(_L("C:"));
+	dbPath->Des().Append(KSecureUid.Name());
+	TInt len = maxFileName + 1 - (dbPath->Length() + KExt().Length() + privatePath.Length());
+	
 	while(--len)
 		{
-		dbPath.Append(TChar('A'));	
+        dbPath->Des().Append(TChar('A'));	
 		}
-	dbPath.Append(KExt);	
-	TEST(dbPath.Length() == (KMaxFileName2 - privatePath.Length()));
-	rc = db.Create(dbPath, securityPolicy);
-	db.Close();
-	rc2 = RSqlDatabase::Delete(dbPath);
+	dbPath->Des().Append(KExt);	
+	TEST(dbPath->Length() == (maxFileName - privatePath.Length()));	
+	rc = db.Create(dbPath->Des(), securityPolicy);
 	TEST2(rc, KErrNone);
+	db.Close();
+	rc2 = RSqlDatabase::Delete(dbPath->Des());
 	TEST2(rc2, KErrNone);
 	
 	// Private database with config
@@ -320,17 +330,19 @@ void OpenCloseDatabaseTest()
 	
 	//Public shared database file on an existing drive (C:). 
 	//Very long database file name.
-	dbPath.Copy(_L("C:\\TEST\\D"));
-	len = KMaxFileName2 + 1 - (dbPath.Length() + KExt().Length());
+	dbPath->Des().Copy(_L("C:\\TEST\\D"));
+	len = maxFileName + 1 - (dbPath->Length() + KExt().Length());
 	while(--len)
 		{
-		dbPath.Append(TChar('A'));	
+        dbPath->Des().Append(TChar('A'));	
 		}
-	dbPath.Append(KExt);	
-	TEST(dbPath.Length() == KMaxFileName2);
-	rc = db.Create(dbPath);
+	dbPath->Des().Append(KExt);	
+	TEST(dbPath->Length() == maxFileName);
+	rc = db.Create(dbPath->Des());
 	db.Close();
-	rc2 = RSqlDatabase::Delete(dbPath);
+	rc2 = RSqlDatabase::Delete(dbPath->Des());
+	
+	CleanupStack::PopAndDestroy(dbPath);
 	TEST2(rc, KErrNone);
 	TEST2(rc2, KErrNone);
 
@@ -1341,7 +1353,7 @@ void ColumnBinaryStreamTest()
     TBuf8<1> buf2;
     rc = stmt.ColumnBinary(1, buf2); 
     TEST2(rc, KErrOverflow);
-	
+    
 	stmt.Close();
 	
 	//Deallocate buf
@@ -1353,6 +1365,195 @@ void ColumnBinaryStreamTest()
 	rc = RSqlDatabase::Delete(KTestDbName1);
 	TEST2(rc, KErrNone);
 	}
+
+/**
+@SYMTestCaseID          PDS-SQL-CT-4191
+@SYMTestCaseDesc        The test creates a test database and inserts one record using a stream.
+                        MStreamBuf::SeekL() is used to modify the parameter data at specific positions.
+                        Then the test executes a SELECT statement to read the just written record.
+                        MStreamBuf::SeekL() is used to read the column content at specific positions 
+                        (the same positions used during the record write operation). The read byte values must
+                        match the written byte values.
+@SYMTestPriority        High
+@SYMTestActions         RSqlColumnReadStream::ColumnBinary() and RSqlParamWriteStream::BindBinary() - MStreamBuf::SeekL() test.
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF145125
+*/  
+void StreamSeekTestL()
+    {
+    RSqlDatabase db;
+    CleanupClosePushL(db);
+    TInt rc = db.Create(KTestDbName1);
+    TEST2(rc, KErrNone);
+    rc = db.Exec(_L("CREATE TABLE A(Fld1 INTEGER, Fld2 BLOB)"));
+    TEST(rc >= 0);
+    //Write a record to the database using a stream. MStreamBuf::SeekL() is used to modify the content at a specific position.
+    RSqlStatement stmt;
+    CleanupClosePushL(stmt);
+    rc = stmt.Prepare(db, _L("INSERT INTO A(Fld1, Fld2) VALUES(1, ?)"));
+    TEST2(rc, KErrNone);
+    
+    RSqlParamWriteStream strm1;
+    CleanupClosePushL(strm1);
+    rc = strm1.BindBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+
+    for(TInt i=0;i<256;++i)
+        {
+        strm1 << (TUint8)i;
+        }
+    
+    const TInt KStreamOffset = 10;
+    const TUint8 KByte = 'z';
+    _LIT8(KData, "QWERTYUIOPASDFG");
+    
+    MStreamBuf* strm1buf = strm1.Sink();
+    TEST(strm1buf != NULL);
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamBeginning, 0);
+    strm1buf->WriteL(&KByte, 1);
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamMark, KStreamOffset);
+    strm1buf->WriteL(&KByte, 1);
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamEnd, 0);
+    strm1buf->WriteL(KData().Ptr(), KData().Length());
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamEnd, -4 * KStreamOffset);
+    strm1buf->WriteL(&KByte, 1);
+    
+    strm1.CommitL();
+    CleanupStack::PopAndDestroy(&strm1);
+    
+    rc = stmt.Exec();
+    TEST2(rc, 1);
+    CleanupStack::PopAndDestroy(&stmt);
+    
+    //Read the record using a stream. MStreamBuf::SeekL() is used to read the content at a specific position.
+    CleanupClosePushL(stmt);
+    rc = stmt.Prepare(db, _L("SELECT Fld2 FROM A WHERE Fld1 = 1"));
+    TEST2(rc, KErrNone);
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    
+    RSqlColumnReadStream strm2;
+    CleanupClosePushL(strm2);
+    rc = strm2.ColumnBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+
+    TUint8 byte = 0;
+    MStreamBuf* strm2buf = strm2.Source();
+    TEST(strm1buf != NULL);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamBeginning, 0);
+    rc = strm2buf->ReadL(&byte, 1);
+    TEST2(rc, 1);
+    TEST2(byte, KByte);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamMark, KStreamOffset);
+    rc = strm2buf->ReadL(&byte, 1);
+    TEST2(rc, 1);
+    TEST2(byte, KByte);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamEnd, -KData().Length());
+    TUint8 buf[20];
+    rc = strm2buf->ReadL(buf, KData().Length());
+    TEST2(rc, KData().Length());
+    TPtrC8 bufptr(buf, rc);
+    TEST(bufptr == KData);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamEnd, -4 * KStreamOffset);
+    rc = strm2buf->ReadL(&byte, 1);
+    TEST2(rc, 1);
+    TEST2(byte, KByte);
+    
+    CleanupStack::PopAndDestroy(&strm2);
+    CleanupStack::PopAndDestroy(&stmt);
+    
+    CleanupStack::PopAndDestroy(&db);
+    rc = RSqlDatabase::Delete(KTestDbName1);
+    TEST2(rc, KErrNone);
+    }
+
+/**
+@SYMTestCaseID          PDS-SQL-CT-4174
+@SYMTestCaseDesc        Test for DEF144937: SQL, SQL server, the code coverage can be improved in some areas.
+@SYMTestPriority        High
+@SYMTestActions         The test creates a test database with a table with 3 records.
+                        The first record has a BLOB column with 0 length.
+                        The second record has a BLOB column with length less than KSqlMaxDesLen
+                        (in debug mode) in which case no IPC call is needed to be made in order 
+                        to access the column value via stream.
+                        The third record has a BLOB column with length exactly KSqlMaxDesLen 
+                        in which case an IPC call will be made in order to retrieve the column value,
+                        but the column value will be copied directly to the client - no stream object is created. 
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF144937
+*/  
+void ColumnBinaryStreamTest2()
+    {
+    RSqlDatabase db;    
+    TInt rc = db.Create(KTestDbName1);
+    TEST2(rc, KErrNone);
+
+    enum {KSqlBufSize = 128};
+    
+    //Create a table
+    _LIT8(KSqlStmt1, "CREATE TABLE A(Fld1 INTEGER, Fld2 BLOB);");
+    ExecSqlStmtOnDb<TDesC8, TBuf8<KSqlBufSize> >(db, KSqlStmt1(), KErrNone);
+    
+    //Insert one record where the BLOB length is 0. 
+    //Insert second record where the BLOB length is smaller than the max inline column length - KSqlMaxDesLen.
+    //Insert third record where the BLOB length is exactly the max inline column length - KSqlMaxDesLen.
+    _LIT8(KSqlStmt2, "INSERT INTO A VALUES(1, '');INSERT INTO A VALUES(2, x'0102030405');INSERT INTO A VALUES(3, x'0102030405060708');");
+    ExecSqlStmtOnDb<TDesC8, TBuf8<KSqlBufSize> >(db, KSqlStmt2(), KErrNone);
+    
+    RSqlStatement stmt;
+    rc = stmt.Prepare(db, _L("SELECT Fld2 FROM A"));
+    TEST2(rc, KErrNone);
+
+    TBuf8<16> databuf;
+    
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    //ColumnBinary() does not make an IPC call because the BLOB length is 0.
+    RSqlColumnReadStream strm;
+    rc = strm.ColumnBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+    TRAP(rc, strm.ReadL(databuf, stmt.ColumnSize(0)));
+    strm.Close();
+    TEST2(rc, KErrNone);
+    TEST2(databuf.Length(), 0);
+
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    //ColumnBinary() does not make an IPC call because the BLOB length is less than the max inline 
+    //column length - KSqlMaxDesLen.
+    rc = strm.ColumnBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+    TRAP(rc, strm.ReadL(databuf, stmt.ColumnSize(0)));
+    strm.Close();
+    TEST2(rc, KErrNone);
+    TEST(databuf == _L8("\x1\x2\x3\x4\x5"));
+
+    rc = stmt.Next();
+    TEST2(rc, KSqlAtRow);
+    //ColumnBinary() makes an IPC call  (in _DEBUG mode) because:
+    // - the column length is exactly KSqlMaxDesLen.  
+    // - but at the same time the column length is equal to KIpcBufSize (in debug mode).
+    rc = strm.ColumnBinary(stmt, 0);
+    TEST2(rc, KErrNone);
+    TRAP(rc, strm.ReadL(databuf, stmt.ColumnSize(0)));
+    strm.Close();
+    TEST2(rc, KErrNone);
+    TEST(databuf == _L8("\x1\x2\x3\x4\x5\x6\x7\x8"));
+    
+    stmt.Close();
+    db.Close();
+
+    rc = RSqlDatabase::Delete(KTestDbName1);
+    TEST2(rc, KErrNone);
+    }
 
 /**
 @SYMTestCaseID			SYSLIB-SQL-CT-1608
@@ -2159,7 +2360,7 @@ void DiffCompactModeSize2Test()
 
 void DoTestsL()
 	{
-	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1601 Create/Open/Close database tests "));	
+	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1601 Create/Open/Close database tests "));
 	OpenCloseDatabaseTest();
 
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1602 SetIsolationLevel() database tests "));	
@@ -2194,12 +2395,18 @@ void DoTestsL()
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1621 RSqlColumnReadStream test. Long binary column "));
 	ColumnBinaryStreamTest();
 
+    TheTest.Next (_L(" @SYMTestCaseID:PDS-SQL-CT-4174 CSqlSrvSession::NewOutputStreamL() coverage test"));
+	ColumnBinaryStreamTest2();
+	
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1608 RSqlParamWriteStream test. Long text parameter "));
 	TextParameterStreamTest();
 
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1622 RSqlParamWriteStream test. Long binary parameter "));
 	BinaryParameterStreamTest();
 
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4191 MStreamBuf::SeekL() test"));
+    StreamSeekTestL();
+	
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1634 RSqlStatement test. Nameless parameter "));
 	NamelessParameterTest();
 

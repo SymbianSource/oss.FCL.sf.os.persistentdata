@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,8 +13,8 @@
 // Description:
 //
 
-#ifndef __TEST_H__
-#define __TEST_H__
+#ifndef t_logutil2_h
+#define t_logutil2_h
 
 #include <e32test.h>
 #include <s32file.h>
@@ -33,6 +33,7 @@
 #include <babackup.h>
 #include "t_logservsession.h"
 #include "logcntdef.h"
+#include "t_logutil.h"
 
 #ifdef LOGGING_ENABLED
 
@@ -72,38 +73,6 @@ private:
 #define LOGTEXT4(AAA, BBB, CCC, DDD)
 
 #endif//LOGGING_ENABLED
-
-//======================================================================================================
-
-#define TEST_STRING(s) _S(s)
-
-//======================================================================================================
-
-//TheTest object must be defined in the main test cpp file.
-GLREF_D RTest test;
-
-void LogTestBoolExpr(TBool aRes, const TText* aFile, TInt aLine);
-void LogCheck(TInt aValue, TInt aExpected, const TText* aFile, TInt aLine);
-void LogCheckU(TUint aValue, TUint aExpected, const TText* aFile, TInt aLine);
-
-#define TEST(arg)                   LogTestBoolExpr(arg, TEST_STRING(__FILE__), __LINE__)
-#define TEST2(aValue, aExpected)    LogCheck(aValue, aExpected, TEST_STRING(__FILE__), __LINE__)
-#define TEST2U(aValue, aExpected)   LogCheckU(aValue, aExpected, TEST_STRING(__FILE__), __LINE__)
-
-//======================================================================================================
-
-void LogLeave(TInt aErr, const TText* aFile, TInt aLine);
-
-#define LEAVE(err)           LogLeave(err, TEST_STRING(__FILE__), __LINE__)
-#define LEAVE_IF_ERROR(err)  do {if(err < KErrNone) LogLeave(err, TEST_STRING(__FILE__), __LINE__);} while(0)
-
-//======================================================================================================
-
-void LogPanic(const TDesC& aCategory, TInt aErr, const TText* aFile, TInt aLine);
-
-#define PANIC(cat, err)     LogPanic(cat, err, TEST_STRING(__FILE__), __LINE__)
-
-//======================================================================================================
 
 // Globals 
 GLREF_D CTrapCleanup* theCleanup;
@@ -341,7 +310,5 @@ void CloseScheduler();
 void doMainL();
 TInt E32Main();
 void DeleteDataFile(const TDesC& aFullName);
-void LogCheck(TInt aValue, TInt aExpected, TInt aLine);
-void LogCheckU(TUint aValue, TUint aExpected, TInt aLine);
 
-#endif//__TEST_H__
+#endif//t_logutil2_h

@@ -21,7 +21,7 @@
 */
 #ifndef TE_USER_STEP_H_
 #define TE_USER_STEP_H_
-#include <TestExecuteStepBase.h>
+#include <test/testexecutestepbase.h>
 #include "te_suite_step_base.h"
 
 

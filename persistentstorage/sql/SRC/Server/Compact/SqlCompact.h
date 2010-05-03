@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,7 +18,7 @@
 * Only one instance of that class should be created by the server.
 * The CSqlCompactor single instance manages a set of reference counted per-database entries and a CTimer compaction object.
 * The MSqlCompactConn interface acts as an abstraction layer between the compaction entries and the 
-* real object which functions are used to perform the compaction.
+* real object with member functions that are used to perform the compaction.
 * 
 *
 */
@@ -118,7 +118,7 @@ MSqlCompactConn interface - factory function type definition.
 						 aFreePageCallback.iThreshold must be set to be in Kb. 	
 						 If the function call completes successfully and the free pages space is above the threshold,
 						 the aFreePageCallback.iThreshold will be set to contain the free pages count.
-						 Otherwise aFreePageCallback.iThreshold will be initizized with zero.
+						 Otherwise aFreePageCallback.iThreshold will be initialized with zero.
 
 @return A pointer to the created MSqlCompactConn interface.
 

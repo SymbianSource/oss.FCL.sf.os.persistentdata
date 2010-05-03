@@ -24,7 +24,7 @@
 
 #if (!defined __ULOGGERSERVERTEST5_STEP_H__)
 #define __ULOGGERSERVERTEST5_STEP_H__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include "te_uloggerservertestsuitestepbase.h"
 
 

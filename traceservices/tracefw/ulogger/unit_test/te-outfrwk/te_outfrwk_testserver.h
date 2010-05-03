@@ -16,7 +16,7 @@
 #ifndef T_OUTFRWK_SERVER_H
 #define T_OUTFRWK_SERVER_H
 
-#include<testexecuteserverbase.h>
+#include <test/testexecuteserverbase.h>
 
 /*
  * Derived class of the CTestServer

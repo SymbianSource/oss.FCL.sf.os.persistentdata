@@ -24,7 +24,7 @@
 
 #if (!defined __TE_UTRACE_SERVER_H__)
 #define __TE_UTRACE_SERVER_H__
-#include <testexecuteserverbase.h>
+#include <test/testexecuteserverbase.h>
 
 
 class CTe_UTraceSuite : public CTestServer

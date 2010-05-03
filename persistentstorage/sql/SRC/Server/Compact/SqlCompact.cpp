@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
-Initializes the background compaction stettings with their default values.
+Initializes the background compaction settings with their default values.
 */
 TSqlCompactSettings::TSqlCompactSettings() :
 	iStepLength(KSqlCompactStepLengthMs),
@@ -59,7 +59,7 @@ const TInt KEntriesGranularity = 16;
 Creates a new CSqlCompactor instance.
 
 @param aConnFactoryL MSqlCompactConn factory function.
-@param aCompactStepInterval The time intrerval (ms) between the background compaction steps.
+@param aCompactStepInterval The time interval (ms) between the background compaction steps.
 
 @return A pointer to the created CSqlCompactor instance
 
@@ -119,7 +119,7 @@ void CSqlCompactor::RestartTimer()
 /**
 If an entry referring to a database with name aFullName does not exist in the container, a new entry will be created,
 a connection with the database established.
-If an entry with the specidfied name already exists, no new entry wil be created, the reference counter of the existing one 
+If an entry with the specified name already exists, no new entry wil be created, the reference counter of the existing one 
 will be incremented.
 
 @param aFullName The full database name, including the path.
@@ -130,7 +130,7 @@ will be incremented.
                      errors categorised as ESqlDbError, and other system-wide error codes.
 
 @panic SqlDb 4 In _DEBUG mode. Too short or too long database name (aFullName parameter)
-@panic SqlDb 7 In _DEBUG mode. An entry with the specidfied name has been found but the entry is NULL.
+@panic SqlDb 7 In _DEBUG mode. An entry with the specified name has been found but the entry is NULL.
 */
 void CSqlCompactor::AddEntryL(const TDesC& aFullName, const TSqlCompactSettings& aSettings)
 	{
@@ -156,7 +156,8 @@ void CSqlCompactor::AddEntryL(const TDesC& aFullName, const TSqlCompactSettings&
 
 /**
 Decrements the reference counter of the specified entry.
-If the counter reaches zero, the entry will be destroyed and removed form the container, the database connection - closed.
+If the counter reaches zero, the entry will be destroyed and removed from the container, 
+the database connection - closed.
 
 @param aFullName The full database name, including the path.
 */

@@ -1304,29 +1304,27 @@ void PrintDiskUsage(const TDesC& aPath, TInt aOffset = 0)
 			const TDesC& file = findFile.File();//"file" variable contains the drive and the path. the file name in "file" is invalid in this case.
 			(void)TheParse.Set(file, NULL, NULL);
 			TPtrC driveName = TheParse.Drive();
-			if(aPath.FindF(driveName) < 0)
-				{
-				goto cont;
-				}
+			if(aPath.FindF(driveName) >= 0)
+				{		
+                TInt cnt = fileNameCol->Count();
+                for(TInt i=0;i<cnt;++i)
+                    {
+                    const ::TEntry& entry = (*fileNameCol)[i];
+                    if(!entry.IsDir())
+                        {
+                        TheTest.Printf(_L("%*.*S    %S, size=%d\r\n"), aOffset, aOffset, &KSpace, &entry.iName, entry.iSize);
+                        }
+                    else
+                        {
+                        TBuf<100> path;
+                        path.Copy(aPath);
+                        path.Append(entry.iName);
+                        path.Append(_L("\\"));
+                        PrintDiskUsage(path, aOffset + 4);
+                        }
+                    }
+				} // if(aPath.FindF(driveName) >= 0)
 			
-			TInt cnt = fileNameCol->Count();
-			for(TInt i=0;i<cnt;++i)
-				{
-				const ::TEntry& entry = (*fileNameCol)[i];
-				if(!entry.IsDir())
-					{
-					TheTest.Printf(_L("%*.*S    %S, size=%d\r\n"), aOffset, aOffset, &KSpace, &entry.iName, entry.iSize);
-					}
-				else
-					{
-					TBuf<100> path;
-					path.Copy(aPath);
-					path.Append(entry.iName);
-					path.Append(_L("\\"));
-					PrintDiskUsage(path, aOffset + 4);
-					}
-				}
-cont:			
 			delete fileNameCol;
 			fileNameCol = NULL;
 			} while((err = findFile.FindWild(fileNameCol)) == KErrNone);//Get the next set of files

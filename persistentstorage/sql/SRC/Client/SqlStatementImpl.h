@@ -9,6 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -140,8 +141,6 @@ public:
 		
 	inline MStreamBuf* ColumnSourceL(TInt aColumnIndex);
 	inline MStreamBuf* ParamSinkL(TSqlSrvFunction aFunction, TInt aParamIndex);
-
-	HBufC* GetDeclColumnTypesL();
 
 private:
 	inline CSqlStatementImpl();

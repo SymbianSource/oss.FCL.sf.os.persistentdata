@@ -19,9 +19,14 @@
 #include "SqlSrvStartup.h"
 #include "SqlSrvUtil.h"
 
+_LIT(KCfgDb1ConfigFilePath, "c:\\private\\10281e17\\cfg[10281E17]t_sqlstartup1.db.02"); // config file version 2 for t_sqlstartup1.db
+_LIT(KCfgDb2ConfigFilePath, "c:\\private\\10281e17\\cfg[10281E17]t_sqlstartup2.db.05"); // config file version 5 for t_sqlstartup2.db
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 RTest TheTest(_L("t_sqlstartup test"));
+
+RFs TheFs;
 
 static TInt TheProcessHandleCount = 0;
 static TInt TheThreadHandleCount = 0;
@@ -35,6 +40,9 @@ static const TInt KBurstRate = 20;
 
 void DeleteTestFiles()
 	{
+	(void)TheFs.Delete(KCfgDb2ConfigFilePath);
+	(void)TheFs.Delete(KCfgDb1ConfigFilePath);
+	TheFs.Close();
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +124,9 @@ static void OomPostStep()
 static void CreateAndDestroySqlServerL()
     {
     CSqlServer* server = CSqlServer::NewLC();
+    //Drive C: to the RSqlDriveSpaceCol object. This will allow "reserve drive space" construct/destroy code to be tested.  
+    RSqlDriveSpaceCol& drvcol = server->DriveSpaceCol();
+    drvcol.AddL(EDriveC);
     CleanupStack::PopAndDestroy(server);
     }
 
@@ -318,12 +329,69 @@ void UtfConversionTest()
     TEST(!rc);
     }
 
+/**
+@SYMTestCaseID          PDS-SQL-UT-4175
+@SYMTestCaseDesc        Test for DEF144937: SQL, SQL server, the code coverage can be improved in some areas. 
+@SYMTestPriority        High
+@SYMTestActions         The test creates a SQL server instance and performs some basic operations with
+                        RSqlDriveSpaceCol object owned by the server, such as: adding a new drive,
+                        getting an access to the reserved drive space, releasing the access.
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF144937
+*/  
+void ReserveDriveSpaceTest()
+    {
+    CSqlServer* srv = NULL;
+    TRAPD(err, srv = CreateSqlServerL());
+    TEST2(err, KErrNone);
+    
+    RSqlDriveSpaceCol& drvcol = srv->DriveSpaceCol();
+    TRAP(err, drvcol.AddL(EDriveC));
+    TEST2(err, KErrNone);
+
+    CSqlDriveSpace* drvspace = drvcol.Find(EDriveZ);
+    TEST(!drvspace);
+    drvspace = drvcol.Find(EDriveC);
+    TEST(drvspace != NULL);
+    
+    TDriveNumber drvnum = drvspace->Drive();
+    TEST2(drvnum, EDriveC);
+    //It is safe to call GetAccessL() more than once. The access is reference counted.
+    TRAP(err, drvspace->GetAccessL());
+    TEST2(err, KErrNone);
+    TRAP(err, drvspace->GetAccessL());
+    TEST2(err, KErrNone);
+    //It is safe if ReleaseAccess() call count do not match GetAccessL() call count.
+    drvspace->ReleaseAccess();
+    drvspace->ReleaseAccess();
+    drvspace->ReleaseAccess();
+    //
+    drvcol.ResetAndDestroy();
+    delete srv;
+    }
+
+void DoCreateCfgFile(const TDesC& aFileName, const TDesC8& aData)
+    {
+    RFile file;
+    TInt err = file.Create(TheFs, aFileName, EFileRead | EFileWrite);
+    TEST2(err, KErrNone);
+    err = file.Write(aData); 
+    file.Close();   
+    TEST2(err, KErrNone);
+    }
+
 void DoTests()
 	{
     CActiveScheduler* scheduler = new CActiveScheduler;
     TEST(scheduler != NULL);
     CActiveScheduler::Install(scheduler);
-	
+
+    //Adding two db config files will allow CDbConfigFiles construct/destroy code also to be tested in the OOM tests.
+    TInt err = TheFs.Connect();
+    TEST2(err, KErrNone);
+    DoCreateCfgFile(KCfgDb1ConfigFilePath, _L8("CREATE INDEX idx ON table1(i1);"));
+    DoCreateCfgFile(KCfgDb2ConfigFilePath, _L8("CREATE INDEX idx1 ON table1(i1);CREATE INDEX idx2 ON table2(i2)"));
+    
     TheTest.Start(_L(" @SYMTestCaseID:PDS-SQL-UT-4159 SQL server startup OOM test"));
     SqlServerStartupOomTest();
 
@@ -339,6 +407,9 @@ void DoTests()
     TheTest.Next (_L(" @SYMTestCaseID:PDS-SQL-UT-4163 SQL server, UTF conversion test"));
     UtfConversionTest();
 
+    TheTest.Next (_L(" @SYMTestCaseID:PDS-SQL-UT-4175 Reserve drive space tests"));
+    ReserveDriveSpaceTest();
+    
     delete scheduler;
 	}
 
@@ -347,6 +418,7 @@ TInt E32Main()
 	TheTest.Title();
 	
 	CTrapCleanup* tc = CTrapCleanup::New();
+	TheTest(tc != NULL);
 	
 	__UHEAP_MARK;
 	

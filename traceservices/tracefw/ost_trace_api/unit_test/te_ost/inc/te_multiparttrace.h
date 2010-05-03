@@ -24,7 +24,7 @@
 // INCLUDES
 #include <e32std.h>
 #include <e32base.h>
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include <e32math.h>
 #include <uloggerclient.h>
 #include "te_suite_step_base.h"

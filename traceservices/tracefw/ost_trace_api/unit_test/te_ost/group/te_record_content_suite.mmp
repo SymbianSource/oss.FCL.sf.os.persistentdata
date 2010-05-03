@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -19,16 +19,15 @@ UID             	0x1000007A 0x10287239
 
 
 #define 			SYMBIAN_INCLUDE_EXECUTABLE_TRACE
-#include    			<platform/opensystemtrace.mmh>
+#include    		<platform/opensystemtrace.mmh>
+
 MACRO 				TE_RECORD_CONTENT
 MACRO 				TE_MODULE_UID=0x10287239
 
-//to make sure the timers are prioritised
+// to make sure the timers are prioritised
 epocprocesspriority high
 
-SYSTEMINCLUDE 		\epoc32\include
-SYSTEMINCLUDE 		\epoc32\include\test
-SYSTEMINCLUDE 		\epoc32\include\platform
+OS_LAYER_SYSTEMINCLUDE
 
 USERINCLUDE			..\inc
 USERINCLUDE ../../devicedriver/inc/
@@ -52,7 +51,6 @@ SOURCE				te_macrostest.cpp
 SOURCE				te_macrostest_disabled.cpp
 SOURCE				te_usertimer.cpp
 
-
 LIBRARY		euser.lib
 LIBRARY		testexecuteutils.lib 
 LIBRARY		testexecutelogclient.lib 
@@ -61,8 +59,6 @@ LIBRARY		hal.lib
 LIBRARY		btracec.lib
 LIBRARY		uloggerclient.lib
 LIBRARY		te_ost_lauterbach.lib
-
-
 
 always_build_as_arm
 OPTION ARMCC --interleave

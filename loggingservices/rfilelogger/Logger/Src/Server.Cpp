@@ -369,7 +369,7 @@ void CLogFileControl::WriteXml(const TDesC8 &aDes)
 		// Text 		- aText
 		
 		// Start of string retrive/deformating 
-		HBufC8* pBuf1 = HBufC8::NewL(KMaxLoggerLineLength*2); //(aDes.Length()+200);
+		HBufC8* pBuf1 = HBufC8::New(KMaxLoggerLineLength*2); //(aDes.Length()+200);
 		if(!pBuf1)
 			{
 			return; // no memory 
@@ -389,12 +389,20 @@ void CLogFileControl::WriteXml(const TDesC8 &aDes)
 			SearchBuf.Set(aPtr.Mid(posI));
 			aCount[i]=SearchBuf.Find(KSeperation8)+posI;
 			posI=aCount[i]+3;
-			if(aCount[i]<aCount[i-1])	return; // wrong format string from client
+			if(aCount[i]<aCount[i-1])	
+        {
+        delete pBuf1;
+        return; // wrong format string from client
+        }
 			}
 		// seperating common log message and extra log fields will be easy for future maintaince.
 		TLogField8* alogField = new TLogField8[6];  // the common part of log message for both 
 								  					// with and without extra log fields
-		if(!alogField) return; // no memory
+		if(!alogField) 
+      {
+      delete pBuf1;
+      return; // no memory
+      }
 
 		TLogField8* extralogField=NULL; // only applied to extra log fields
 
@@ -431,7 +439,11 @@ void CLogFileControl::WriteXml(const TDesC8 &aDes)
 
 			// Retrive the extra log fields
 			extralogField = new TLogField8[alength];
-			if(!extralogField) return; // no memory
+			if(!extralogField)
+        {
+        delete pBuf1; 
+        return; // no memory
+        }
 			for(TInt i=0; i<alength; i++)
 				{
 				aCount[6]=aCount[7]+2;

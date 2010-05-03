@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -192,16 +192,28 @@ static void ExtractConfigParamsL(const TDesC8* aConfigStr, TSqlSrvConfigParams& 
 @panic SqlDb 4 In _DEBUG mode. Invalid aFileNameArgNum value.
 @panic SqlDb 7 In _DEBUG mode. Invalid TSqlSrvFileData object. Not initialized system drive and path.
 */
-void TSqlSrvFileData::SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aFileNameArgNum, const TDesC8* aConfigStr)
+void TSqlSrvFileData::SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aFileNameArgNum, 
+#ifdef SQLSRV_STARTUP_TEST
+                           const TDesC& aDbFileName,
+#endif          
+                           const TDesC8* aConfigStr)
 	{
 	__SQLASSERT((TUint)aFileNameArgNum < KMaxMessageArguments, ESqlPanicBadArgument);
 	__SQLASSERT(iSysDrivePrivatePath.DriveAndPath().Length() > 0, ESqlPanicInternalError);
-	
+		
 	if(aFileNameLen < 1 || aFileNameLen > KMaxFileName)
 		{
 		__SQLLEAVE(KErrBadName);
 		}
+#ifdef SQLSRV_STARTUP_TEST
+	//To prevent compiler warning
+	aMessage.Int0();
+	aFileNameArgNum = aFileNameArgNum;
+	//
+	iFileName.Copy(aDbFileName);
+#else
 	aMessage.ReadL(aFileNameArgNum, iFileName);
+#endif	
 	SQLPROFILER_REPORT_IPC(ESqlIpcRead, (aFileNameLen * sizeof(TText)));
 	TParse parsedFileName;
 	__SQLLEAVE_IF_ERROR(parsedFileName.Set(iFileName, 0, 0));//prophylactic check, leave if the file name cannot be parsed

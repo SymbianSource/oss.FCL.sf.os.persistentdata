@@ -23,7 +23,7 @@
 #ifndef T_OUTFRWK_TESTSTEP_H
 #define T_OUTFRWK_TESTSTEP_H
 
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include <e32base.h> // CBase
 #include <e32test.h>
 #include <f32file.h> // RFs, RFile

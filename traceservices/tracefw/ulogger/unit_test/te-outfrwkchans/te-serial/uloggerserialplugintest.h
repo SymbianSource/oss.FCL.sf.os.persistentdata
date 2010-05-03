@@ -22,7 +22,8 @@
 #ifndef __ULOGGERSERIALPLUGINTEST_H__
 #define __ULOGGERSERIALPLUGINTEST_H__
 
-#include <tefunit.h>
+#include <test/tefunit.h>
+
 #include "uloggerserialplugin.h"
 #include "te_serialsuitestepbase.h"
 	

@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -18,11 +18,9 @@
 #include <s32file.h>
 #include <e32math.h>
 #include <bautils.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Maximum Phone Number Length Check"));
+RTest TheTest(_L("t_logmaxnumlen"));
 
 _LIT(KTestEventDesc1, "Event Type Description");
 _LIT(KTestRemoteParty1, "Remote Party");
@@ -68,7 +66,7 @@ _LIT(KTestOldDbNumber, "012345678901234567");
 */
 TInt TestAddEventL(CLogClient& aClient, const TDesC &aNumber)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1336 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1336 "));
 	TInt returnId = KLogNullId;
 
 	CTestActive* active = new(ELeave)CTestActive();
@@ -130,7 +128,7 @@ TInt TestAddEventL(CLogClient& aClient, const TDesC &aNumber)
 void TestGetEventL(CLogClient& aClient, TInt aTheId, const TDesC& aNumber)
 
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1337 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1337 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -167,7 +165,7 @@ void TestGetEventL(CLogClient& aClient, TInt aTheId, const TDesC& aNumber)
 
 	TPtrC eventStatus = event->Subject();
 	TPtrC eventNumber = event->Number();
-	test.Printf(_L("Id:%d No:%S Sub:%S Con:0x%x \n"), 
+	TheTest.Printf(_L("Id:%d No:%S Sub:%S Con:0x%x \n"), 
 		event->Id(), &eventNumber, &eventStatus, event->Contact());
 	
 	CleanupStack::PopAndDestroy(2); // event, active
@@ -189,7 +187,7 @@ This is the main part of the test
 */
 void TestStartupL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1019 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1019 "));
 	TestUtils::CopyOldDbL();
 	
 	// add an event to the log engine database.
@@ -198,7 +196,7 @@ void TestStartupL()
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	User::After(1000000);
-	test.Next(_L("check database conversion"));
+	TheTest.Next(_L("check database conversion"));
 	TInt eventId = TestAddEventL(*client, KTestNumber50 );
 
 	// check that the database has been converted to the new format
@@ -207,12 +205,12 @@ void TestStartupL()
 	TestGetEventL(*client, eventId, KTestNumber50);
 	
 	// check using Max
-	test.Next(_L("check a maxium length number"));
+	TheTest.Next(_L("check a maxium length number"));
 	eventId = TestAddEventL(*client, KTestNumberMax );
 	TestGetEventL(*client, eventId, KTestNumberMax);
 
 	// check using Min
-	test.Next(_L("check a mimium length number"));
+	TheTest.Next(_L("check a mimium length number"));
 	eventId = TestAddEventL(*client, KTestNumberMin );
 	TestGetEventL(*client, eventId, KTestNumberMin);
 
@@ -220,7 +218,7 @@ void TestStartupL()
 	// 4 events were stored.  Check that these can still be accessed.
 	// Note: There was a problem here with old events being purged after 30 days
 	// This was fixed by setting TLogConfig::iMaxEventAge = 0 in OldLogdb.dat 
-	test.Next(_L("check all events in the old database"));
+	TheTest.Next(_L("check all events in the old database"));
 	TestGetEventL(*client, 0, KTestEvent0);
 	TestGetEventL(*client, 1, KTestEvent1);
 	TestGetEventL(*client, 2, KTestEvent2);
@@ -232,13 +230,13 @@ void TestStartupL()
 // Test code for INC041118 - Numberfield in logdatabase/engine is too small
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_MAXNUMBERLENGTH"));
+	TestUtils::Initialize(_L("t_logmaxnumlen"));
 #ifdef _DEBUG	
-	test.Start(_L("T_MaxNumberLength Set/Check Phone Number Maximum Length"));
+	TheTest.Start(_L("T_MaxNumberLength Set/Check Phone Number Maximum Length"));
 
 	TestStartupL();
 	theLog.Write(_L8("Test T_MAXNUMBERLENGTH OK\n"));
 #else
-	test.Start(_L("This test works only in debug mode, otherwise the LogEng server cannot be stopped. See TestUtils::CopyOldDbL()"));
+	TheTest.Start(_L("This test works only in debug mode, otherwise the LogEng server cannot be stopped. See TestUtils::CopyOldDbL()"));
 #endif//_DEBUG	
 	}

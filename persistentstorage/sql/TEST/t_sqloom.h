@@ -121,7 +121,7 @@ typedef void (*TStmtFuncPtrL)(RSqlDatabase& aDb, RSqlStatement& aStmt);
 typedef void (*TStmtFuncPtr2L)(RSqlStatement& aStmt);
 typedef void (*TScalarFullSelectFuncPtrL)(RSqlDatabase& aDb);
 typedef void (*TBlobPrepareFuncPtrL)(RSqlDatabase& aDb);
-typedef void (*TBlobTestFuncPtrL)(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC);
+typedef void (*TBlobTestFuncPtrL)(RSqlDatabase& aDb, const TDesC& aAttachDbName);
 
 void CreateTestSecurityPolicy(RSqlSecurityPolicy& aSecurityPolicy);
 void CreateAttachDb();

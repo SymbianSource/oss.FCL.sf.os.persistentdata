@@ -32,7 +32,9 @@
  */
 
 #if !defined(MAC_TCL)
+# if !defined(__SYMBIAN32__)    
 extern int		isatty _ANSI_ARGS_((int fd));
+# endif
 #else
 #include <unistd.h>
 #endif

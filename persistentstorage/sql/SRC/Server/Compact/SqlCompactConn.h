@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -45,7 +45,7 @@ public:
 	static CSqlCompactConn* NewL(const TDesC& aFullName, TSqlFreePageCallback& aFreePageCallback);
 	virtual ~CSqlCompactConn();
 	virtual void Release();
-	virtual TInt Compact(TInt aPageCount, TInt& aProcessedPageCOunt, TInt aLength);
+	virtual TInt Compact(TInt aPageCount, TInt& aProcessedPageCount, TInt aLength);
 	void Invariant() const;
 
 private:

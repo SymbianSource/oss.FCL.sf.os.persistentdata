@@ -1,4 +1,4 @@
-// Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2003-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -16,12 +16,10 @@
 #include <s32file.h>
 #include <logeng.h>
 #include <tz.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log View Test Harness Number 2"));
+RTest TheTest(_L("t_logview2"));
 
 const TInt KTestEventNum = 20;
 const TInt KTestErrorEventNum = 3;
@@ -55,7 +53,7 @@ _LIT8(KTestData, "Test data");
 */
 LOCAL_C void TestEventViewWithFilterListL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0930 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0930 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -534,7 +532,7 @@ LOCAL_C void TestEventViewWithFilterListL(CLogClient& aClient)
 */
 LOCAL_C void TestEventViewWithTimestampsInFilterListL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3432 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3432 "));
 	TTime testStartTime;
 	testStartTime.UniversalTime();
 	TTime tomorrow = testStartTime + (TTimeIntervalDays)1;
@@ -735,7 +733,7 @@ LOCAL_C void TestEventViewWithTimestampsInFilterListL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewWithFilterL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0931 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0931 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -847,7 +845,7 @@ LOCAL_C void TestRecentViewWithFilterL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewWithFilterListL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0932 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0932 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -967,7 +965,7 @@ LOCAL_C void TestRecentViewWithFilterListL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewWithFilterL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0933 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0933 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -1087,7 +1085,7 @@ LOCAL_C void TestDuplicateViewWithFilterL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewWithFilterListL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0934 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0934 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -1203,7 +1201,7 @@ LOCAL_C void TestDuplicateViewWithFilterListL(CLogClient& aClient)
 */
 LOCAL_C void TestEventViewForNullFieldsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0935 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0935 "));
 	CTestActive* active = new(ELeave)CTestActive;
 	CleanupStack::PushL(active);
 
@@ -1386,7 +1384,7 @@ LOCAL_C void TestEventViewForNullFieldsL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewForNullFieldsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0936 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0936 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -1494,7 +1492,7 @@ LOCAL_C void TestRecentViewForNullFieldsL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewForNullFieldsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0937 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0937 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -1630,7 +1628,7 @@ LOCAL_C void TestDuplicateViewForNullFieldsL(CLogClient& aClient)
 */
 LOCAL_C void TestEventViewForFlagsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0938 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0938 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -1741,7 +1739,7 @@ LOCAL_C void TestEventViewForFlagsL(CLogClient& aClient)
 */
 LOCAL_C void TestRecentViewForFlagsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0939 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0939 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -1859,7 +1857,7 @@ LOCAL_C void TestRecentViewForFlagsL(CLogClient& aClient)
 */
 LOCAL_C void TestDuplicateViewForFlagsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0940 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0940 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -1978,7 +1976,7 @@ LOCAL_C void TestDuplicateViewForFlagsL(CLogClient& aClient)
 */
 LOCAL_C void TestRemovingRecentEventsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0941 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0941 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -2051,7 +2049,7 @@ LOCAL_C void TestRemovingRecentEventsL(CLogClient& aClient)
 */
 LOCAL_C void TestRemovingDuplicateEventsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0942 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0942 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -2092,7 +2090,7 @@ LOCAL_C void TestRemovingDuplicateEventsL(CLogClient& aClient)
 		aClient.AddEvent(*event, active->iStatus);
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
-		RDebug::Print(_L("EVENT ID: %d\n"), event->Id());
+		TheTest.Printf(_L("EVENT ID: %d\n"), event->Id());
 		}
 
 	// Create the view
@@ -2142,7 +2140,7 @@ s@SYMTestCaseDesc	    Multiple log event views test
 */
 LOCAL_C void TestMultipleViews1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0943 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0943 "));
 	CTestActive* active1 = new(ELeave)CTestActive;
 	CleanupStack::PushL(active1);
 
@@ -2714,7 +2712,7 @@ LOCAL_C void TestMultipleViews1L(CLogClient& aClient)
 */
 LOCAL_C void TestMultipleViews2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0944 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0944 "));
 	CTestActive* active1 = new(ELeave)CTestActive;
 	CleanupStack::PushL(active1);
 
@@ -3289,7 +3287,7 @@ LOCAL_C void TestMultipleViews2L(CLogClient& aClient)
 */
 LOCAL_C void TestViewChangeEventsL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0945 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0945 "));
 	TestUtils::DeleteDatabaseL();
 
 	CLogEvent* event = CLogEvent::NewL();
@@ -3342,7 +3340,7 @@ LOCAL_C void TestViewChangeEventsL(CLogClient& aClient)
 */
 LOCAL_C void TestAltEventsInRecentListL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0946 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0946 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -3440,7 +3438,7 @@ LOCAL_C void TestAltEventsInRecentListL(CLogClient& aClient)
 */
 LOCAL_C void TestFilterByTimeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0947 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0947 "));
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -3571,7 +3569,7 @@ LOCAL_C void TestFilterByTimeL(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0948 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0948 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -3687,7 +3685,7 @@ LOCAL_C void TestHiddenChangeEvents1L(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0949 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0949 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -3810,7 +3808,7 @@ LOCAL_C void TestHiddenChangeEvents2L(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents3L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0950 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0950 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -3931,7 +3929,7 @@ LOCAL_C void TestHiddenChangeEvents3L(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents4L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0951 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0951 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -4042,7 +4040,7 @@ LOCAL_C void TestHiddenChangeEvents4L(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents5L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0952 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0952 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -4152,7 +4150,7 @@ LOCAL_C void TestHiddenChangeEvents5L(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents6L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0953 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0953 "));
 	CLogViewChangeObserver* changeObs1 = CLogViewChangeObserver::NewLC();
 	changeObs1->StartCollectingChanges();
 
@@ -4261,7 +4259,7 @@ LOCAL_C void TestHiddenChangeEvents6L(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents7L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0954 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0954 "));
 	CLogViewChangeObserver* changeObs1 = CLogViewChangeObserver::NewLC();
 	changeObs1->StartCollectingChanges();
 
@@ -4363,7 +4361,7 @@ LOCAL_C void TestHiddenChangeEvents7L(CLogClient& aClient)
 */
 LOCAL_C void DEF066296L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1363 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1363 "));
 	TBuf<KLogMaxDirectionLength> buf;
 
 	CLogEvent* event = CLogEvent::NewL();
@@ -4388,7 +4386,7 @@ LOCAL_C void DEF066296L(CLogClient& aClient)
 	
 	// Set up the view to display the recent call list
 	active->StartL();
-	test(view->SetRecentListL(-1, active->iStatus));
+	TEST(view->SetRecentListL(-1, active->iStatus));
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 
@@ -4397,14 +4395,14 @@ LOCAL_C void DEF066296L(CLogClient& aClient)
 	now.UniversalTime();
 	TBuf<0x80> testString;
 	now.FormatL(testString,(_L("%H:%T %1\\%2\\%3 %E")));
-	RDebug::Print(_L("Current  UTC  time    - %S\n"), &testString);
+	TheTest.Printf(_L("Current  UTC  time    - %S\n"), &testString);
 
 	// Move the UTC time forward by one day
 	now += TTimeIntervalDays(1);
 	User::SetUTCTime(now);
 
 	now.FormatL(testString,(_L("%H:%T %1\\%2\\%3 %E")));
-	RDebug::Print(_L("Changed  UTC  time to - %S\n"), &testString);
+	TheTest.Printf(_L("Changed  UTC  time to - %S\n"), &testString);
 	
 	// Set up the event and log a call from number 555
 	event->SetNumber(_L("555"));
@@ -4458,7 +4456,7 @@ LOCAL_C void DEF066296L(CLogClient& aClient)
 	User::SetUTCTime(now);
 
 	now.FormatL(testString,(_L("%H:%T %1\\%2\\%3 %E")));
-	RDebug::Print(_L("Restored UTC  time to - %S\n"), &testString);
+	TheTest.Printf(_L("Restored UTC  time to - %S\n"), &testString);
 
 	CleanupStack::PopAndDestroy(3, event); //event, active, view
 	}
@@ -4473,7 +4471,7 @@ LOCAL_C void DEF066296L(CLogClient& aClient)
 */
 LOCAL_C void DEF087459L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1807 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1807 "));
 	RTz tz;				
 	TInt err = tz.Connect();
 	TEST2(err, KErrNone);
@@ -4486,7 +4484,7 @@ LOCAL_C void DEF087459L(CLogClient& aClient)
 	
 	TBuf<0x80> testString;
 	now.FormatL(testString,(_L("%H:%T %1\\%2\\%3 %E")));
-	RDebug::Print(_L("Current  home time    - %S\n"), &testString);
+	TheTest.Printf(_L("Current  home time    - %S\n"), &testString);
 
 	// Problem occurred between midnight and 01:00am hometime, so change home time to
 	// be 00:30am
@@ -4504,8 +4502,8 @@ LOCAL_C void DEF087459L(CLogClient& aClient)
 	// Get and print new home time
 	now.HomeTime();
 	now.FormatL(testString,(_L("%H:%T %1\\%2\\%3 %E")));
-	RDebug::Print(_L("Changed  home time to - %S\n"), &testString);
-	RDebug::Print(_L("Re-running DEF066296 test\n"));
+	TheTest.Printf(_L("Changed  home time to - %S\n"), &testString);
+	TheTest.Printf(_L("Re-running DEF066296 test\n"));
 	
 	DEF066296L(aClient);
 	
@@ -4514,7 +4512,7 @@ LOCAL_C void DEF087459L(CLogClient& aClient)
 	TEST2(err, KErrNone);
 	now.HomeTime();
 	now.FormatL(testString,(_L("%H:%T %1\\%2\\%3 %E")));
-	RDebug::Print(_L("Restored home time to - %S\n"), &testString);
+	TheTest.Printf(_L("Restored home time to - %S\n"), &testString);
 	
 	CleanupStack::PopAndDestroy(); //tz
 	}
@@ -4529,7 +4527,7 @@ LOCAL_C void DEF087459L(CLogClient& aClient)
 */
 LOCAL_C void TestChangeEventRecentView1L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0955 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0955 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -4811,7 +4809,7 @@ The same as TestChangeEventRecentView1L, but the events are transferred in rever
 */
 LOCAL_C void TestChangeEventRecentView2L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0956 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0956 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -5091,7 +5089,7 @@ LOCAL_C void TestChangeEventRecentView2L(CLogClient& aClient)
 */
 LOCAL_C void TestChangeEventRecentViewAndPurgeL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0957 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0957 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -5332,7 +5330,7 @@ LOCAL_C void TestChangeEventRecentViewAndPurgeL(CLogClient& aClient)
 */
 LOCAL_C void TestChangeEventRecentViewRemoveL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0958 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0958 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -5511,12 +5509,12 @@ LOCAL_C TBool IsLogOpenL()
 
 LOCAL_C void TestLogOpenL()
 	{
-	test(IsLogOpenL());
+	TEST(IsLogOpenL());
 	}
 
 LOCAL_C void TestLogClosedL()
 	{
-	test(!IsLogOpenL());
+	TEST(!IsLogOpenL());
 	}
 
 LOCAL_C void StartBackupL()
@@ -5563,7 +5561,7 @@ LOCAL_C void DelayL(TInt aDelay)
 */
 LOCAL_C void TestHiddenChangeEvents1aL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0959 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0959 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -5592,7 +5590,7 @@ LOCAL_C void TestHiddenChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ClearLog(now, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus.Int() == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Incoming call event
 	event->SetEventType(KLogCallEventTypeUid);
@@ -5604,13 +5602,13 @@ LOCAL_C void TestHiddenChangeEvents1aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Setup normal event view
 	active->StartL();
-	test(view->SetFilterL(*filter, active->iStatus));
+	TEST(view->SetFilterL(*filter, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	CLogViewChangeObserver* changeObs2 = CLogViewChangeObserver::NewLC();
 	changeObs2->StartCollectingChanges();
@@ -5620,16 +5618,16 @@ LOCAL_C void TestHiddenChangeEvents1aL(CLogClient& aClient)
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == 1);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), 1);
 
 	// Add a new event
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -5639,28 +5637,28 @@ LOCAL_C void TestHiddenChangeEvents1aL(CLogClient& aClient)
 	DelayL(1000000);
 	TestLogOpenL();
 	
-	test(changeObs2->Changes().Count() == 2);
+	TEST2(changeObs2->Changes().Count(), 2);
 	type = changeObs2->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
+	TEST2(type, ELogChangeTypeEventAdded);
 	type = changeObs2->Changes().At(1, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
+	TEST2(type, ELogChangeTypeEventDeleted);
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == 1);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), 1);
 
 	CLogViewDuplicate* duplicate = CLogViewDuplicate::NewL(aClient);
 	CleanupStack::PushL(duplicate);
 
 	// Check duplicate count
 	active->StartL();
-	test(recent->DuplicatesL(*duplicate, active->iStatus));
+	TEST(recent->DuplicatesL(*duplicate, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus.Int() == KErrNone);
-	test(duplicate->CountL() == 1);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(duplicate->CountL(), 1);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -5671,9 +5669,9 @@ LOCAL_C void TestHiddenChangeEvents1aL(CLogClient& aClient)
 
 	// Check change events
 	User::After(100000);
-	test(changeObs1->Changes().Count() == 1);
+	TEST2(changeObs1->Changes().Count(), 1);
 	type = changeObs1->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
+	TEST2(type, ELogChangeTypeEventAdded);
 
 	CleanupStack::PopAndDestroy(8, changeObs1); // changeObs1, changeObs2, view, filter, event, active, recent, duplicate
 	}
@@ -5690,7 +5688,7 @@ Check that a view doesn't get change events when recent list purged
 */
 LOCAL_C void TestHiddenChangeEvents2aL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0960 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0960 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -5718,14 +5716,14 @@ LOCAL_C void TestHiddenChangeEvents2aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ClearLog(now, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus.Int() == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Get config
 	TLogConfig config;
 	active->StartL();
 	aClient.GetConfig(config, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Incoming call event
 	event->SetEventType(KLogCallEventTypeUid);
@@ -5741,14 +5739,14 @@ LOCAL_C void TestHiddenChangeEvents2aL(CLogClient& aClient)
 		active->StartL();
 		aClient.AddEvent(*event, active->iStatus);
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
+		TEST2(active->iStatus.Int(), KErrNone);
 		}
 
 	// Setup normal event view
 	active->StartL();
-	test(view->SetFilterL(*filter, active->iStatus));
+	TEST(view->SetFilterL(*filter, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	CLogViewChangeObserver* changeObs2 = CLogViewChangeObserver::NewLC();
 	changeObs2->StartCollectingChanges();
@@ -5758,17 +5756,17 @@ LOCAL_C void TestHiddenChangeEvents2aL(CLogClient& aClient)
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == config.iMaxRecentLogSize);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), config.iMaxRecentLogSize);
 
 	// Add a new event, will cause one to be purged from recent view
 	event->SetContact(1234);
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -5778,24 +5776,24 @@ LOCAL_C void TestHiddenChangeEvents2aL(CLogClient& aClient)
 	TestLogOpenL();
 	DelayL(1000000);
 		
-	test(changeObs2->Changes().Count() == 2);
+	TEST2(changeObs2->Changes().Count(), 2);
 	type = changeObs2->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
+	TEST2(type, ELogChangeTypeEventAdded);
 	type = changeObs2->Changes().At(1, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
+	TEST2(type, ELogChangeTypeEventDeleted);
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == config.iMaxRecentLogSize);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), config.iMaxRecentLogSize);
 
 	CLogViewDuplicate* duplicate = CLogViewDuplicate::NewL(aClient);
 	CleanupStack::PushL(duplicate);
 
 	// Check duplicate count
-	test(!recent->DuplicatesL(*duplicate, active->iStatus));
+	TEST(!recent->DuplicatesL(*duplicate, active->iStatus));
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -5806,9 +5804,9 @@ LOCAL_C void TestHiddenChangeEvents2aL(CLogClient& aClient)
 
 	// Check change events
 	User::After(100000);
-	test(changeObs1->Changes().Count() == 1);
+	TEST2(changeObs1->Changes().Count(), 1);
 	type = changeObs1->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
+	TEST2(type, ELogChangeTypeEventAdded);
 
 	CleanupStack::PopAndDestroy(8, changeObs1); // changeObs1, changeObs2, view, filter, event, active, recent, duplicate
 	}
@@ -5825,7 +5823,7 @@ Check that a view doesn't get change events when recent list purged after changi
 */
 LOCAL_C void TestHiddenChangeEvents3aL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0961 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0961 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -5853,19 +5851,19 @@ LOCAL_C void TestHiddenChangeEvents3aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ClearLog(now, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus.Int() == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Get and set config
 	TLogConfig config;
 	active->StartL();
 	aClient.GetConfig(config, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 	config.iMaxRecentLogSize = 2;
 	active->StartL();
 	aClient.ChangeConfig(config, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Incoming call event
 	event->SetEventType(KLogCallEventTypeUid);
@@ -5881,14 +5879,14 @@ LOCAL_C void TestHiddenChangeEvents3aL(CLogClient& aClient)
 		active->StartL();
 		aClient.AddEvent(*event, active->iStatus);
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
+		TEST2(active->iStatus.Int(), KErrNone);
 		}
 
 	// Setup normal event view
 	active->StartL();
-	test(view->SetFilterL(*filter, active->iStatus));
+	TEST(view->SetFilterL(*filter, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	CLogViewChangeObserver* changeObs2 = CLogViewChangeObserver::NewLC();
 	changeObs2->StartCollectingChanges();
@@ -5898,17 +5896,17 @@ LOCAL_C void TestHiddenChangeEvents3aL(CLogClient& aClient)
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == config.iMaxRecentLogSize);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), config.iMaxRecentLogSize);
 
 	// Change config, will cause one event to be purged from recent view
 	config.iMaxRecentLogSize = 1;
 	active->StartL();
 	aClient.ChangeConfig(config, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -5920,22 +5918,22 @@ LOCAL_C void TestHiddenChangeEvents3aL(CLogClient& aClient)
 
 	// Check change events
 	User::After(100000);
-	test(changeObs2->Changes().Count() == 1);
+	TEST2(changeObs2->Changes().Count(), 1);
 	type = changeObs2->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
+	TEST2(type, ELogChangeTypeEventDeleted);
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == config.iMaxRecentLogSize);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), config.iMaxRecentLogSize);
 
 	CLogViewDuplicate* duplicate = CLogViewDuplicate::NewL(aClient);
 	CleanupStack::PushL(duplicate);
 
 	// Check duplicate count
-	test(!recent->DuplicatesL(*duplicate, active->iStatus));
+	TEST(!recent->DuplicatesL(*duplicate, active->iStatus));
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -5946,7 +5944,7 @@ LOCAL_C void TestHiddenChangeEvents3aL(CLogClient& aClient)
 
 	// Check change events
 	User::After(100000);
-	test(!changeObs1->HaveChanges());
+	TEST(!changeObs1->HaveChanges());
 
 	CleanupStack::PopAndDestroy(8, changeObs1); // changeObs1, changeObs2, view, filter, event, active, recent, duplicate
 	}
@@ -5964,7 +5962,7 @@ Check that when deleting an event causing recent lists to be updated, views don'
 */
 LOCAL_C void TestHiddenChangeEvents4aL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0962 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0962 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -5993,7 +5991,7 @@ LOCAL_C void TestHiddenChangeEvents4aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ClearLog(now, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus.Int() == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Incoming call event
 	event->SetEventType(KLogCallEventTypeUid);
@@ -6007,13 +6005,13 @@ LOCAL_C void TestHiddenChangeEvents4aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Add an event
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	event->ClearFlags(0xF);
 
@@ -6021,14 +6019,14 @@ LOCAL_C void TestHiddenChangeEvents4aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Setup normal event view
 	active->StartL();
-	test(view->SetFilterL(*filter, active->iStatus));
+	TEST(view->SetFilterL(*filter, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->CountL() == 2);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->CountL(), 2);
 
 	CLogViewChangeObserver* changeObs2 = CLogViewChangeObserver::NewLC();
 	changeObs2->StartCollectingChanges();
@@ -6038,10 +6036,10 @@ LOCAL_C void TestHiddenChangeEvents4aL(CLogClient& aClient)
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == 1);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), 1);
 
 	changeObs1->StartCollectingChanges();
 	changeObs2->StartCollectingChanges();
@@ -6050,7 +6048,7 @@ LOCAL_C void TestHiddenChangeEvents4aL(CLogClient& aClient)
 	active->StartL();
 	aClient.DeleteEvent(event->Id(), active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -6060,13 +6058,13 @@ LOCAL_C void TestHiddenChangeEvents4aL(CLogClient& aClient)
 	TestLogOpenL();
 
 	// Check change events
-	test(changeObs2->Changes().Count() == 2);
+	TEST2(changeObs2->Changes().Count(), 2);
 	type = changeObs2->Changes().At(0, logId, viewIndex);
-	test(type == ELogChangeTypeEventAdded);
+	TEST2(type, ELogChangeTypeEventAdded);
 	type = changeObs2->Changes().At(1, logId, viewIndex);
-	test(type == ELogChangeTypeEventDeleted);
+	TEST2(type, ELogChangeTypeEventDeleted);
 
-	test(!changeObs1->HaveChanges());
+	TEST(!changeObs1->HaveChanges());
 
 	CleanupStack::PopAndDestroy(7, changeObs1); // changeObs1, changeObs2, view, filter, event, active, recent
 	}
@@ -6082,7 +6080,7 @@ LOCAL_C void TestHiddenChangeEvents4aL(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents5aL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0963 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0963 "));
 	TLogId logId;
 	TInt viewIndex;
 	TLogDatabaseChangeType type;
@@ -6110,14 +6108,14 @@ LOCAL_C void TestHiddenChangeEvents5aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ClearLog(now, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus.Int() == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Get config
 	TLogConfig config;
 	active->StartL();
 	aClient.GetConfig(config, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Incoming call event
 	event->SetEventType(KLogCallEventTypeUid);
@@ -6133,14 +6131,14 @@ LOCAL_C void TestHiddenChangeEvents5aL(CLogClient& aClient)
 		active->StartL();
 		aClient.AddEvent(*event, active->iStatus);
 		CActiveScheduler::Start();
-		test(active->iStatus == KErrNone);
+		TEST2(active->iStatus.Int(), KErrNone);
 		}
 
 	// Setup normal event view
 	active->StartL();
-	test(view->SetFilterL(*filter, active->iStatus));
+	TEST(view->SetFilterL(*filter, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	CLogViewChangeObserver* changeObs2 = CLogViewChangeObserver::NewLC();
 	changeObs2->StartCollectingChanges();
@@ -6150,16 +6148,16 @@ LOCAL_C void TestHiddenChangeEvents5aL(CLogClient& aClient)
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == config.iMaxRecentLogSize);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), config.iMaxRecentLogSize);
 
 	// Clear recent view
 	active->StartL();
 	aClient.ClearLog(KLogRecentIncomingCalls, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -6169,15 +6167,15 @@ LOCAL_C void TestHiddenChangeEvents5aL(CLogClient& aClient)
 	TestLogOpenL();
 
 	count = config.iMaxRecentLogSize;
-	test(changeObs2->Changes().Count() == count);
+	TEST2(changeObs2->Changes().Count(), count);
 	while(count--)
 		{
 		type = changeObs2->Changes().At(count, logId, viewIndex);
-		test(type == ELogChangeTypeEventDeleted);
+		TEST2(type, ELogChangeTypeEventDeleted);
 		}
 
 	// Check recent view
-	test(!recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(!recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 
 	// Check that changes work after a backup
 	StartBackupL();
@@ -6188,7 +6186,7 @@ LOCAL_C void TestHiddenChangeEvents5aL(CLogClient& aClient)
 
 	// Check change events
 	User::After(100000);
-	test(!changeObs1->HaveChanges());
+	TEST(!changeObs1->HaveChanges());
 
 	CleanupStack::PopAndDestroy(7, changeObs1); // changeObs1, changeObs2, view, filter, event, active, recent
 	}
@@ -6204,7 +6202,7 @@ LOCAL_C void TestHiddenChangeEvents5aL(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents6aL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0964 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0964 "));
 	CLogViewChangeObserver* changeObs1 = CLogViewChangeObserver::NewLC();
 	changeObs1->StartCollectingChanges();
 
@@ -6228,7 +6226,7 @@ LOCAL_C void TestHiddenChangeEvents6aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ClearLog(now, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus.Int() == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Incoming call event
 	event->SetEventType(KLogCallEventTypeUid);
@@ -6240,20 +6238,20 @@ LOCAL_C void TestHiddenChangeEvents6aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Add a duplicate
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Setup normal event view
 	active->StartL();
-	test(view->SetFilterL(*filter, active->iStatus));
+	TEST(view->SetFilterL(*filter, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->CountL() == 2);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST(view->CountL() == 2);
 
 	CLogViewChangeObserver* changeObs2 = CLogViewChangeObserver::NewLC();
 	changeObs2->StartCollectingChanges();
@@ -6263,20 +6261,20 @@ LOCAL_C void TestHiddenChangeEvents6aL(CLogClient& aClient)
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == 1);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), 1);
 
 	CLogViewDuplicate* duplicate = CLogViewDuplicate::NewL(aClient);
 	CleanupStack::PushL(duplicate);
 
 	// Check duplicate count
 	active->StartL();
-	test(recent->DuplicatesL(*duplicate, active->iStatus));
+	TEST(recent->DuplicatesL(*duplicate, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == 1);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), 1);
 
 	// Remove duplicate
 	duplicate->RemoveL(duplicate->Event().Id());
@@ -6289,8 +6287,8 @@ LOCAL_C void TestHiddenChangeEvents6aL(CLogClient& aClient)
 	TestLogOpenL();
 
 	// Check change events
-	test(!changeObs1->HaveChanges());
-	test(!changeObs2->HaveChanges());
+	TEST(!changeObs1->HaveChanges());
+	TEST(!changeObs2->HaveChanges());
 
 	// Remove recent
 	recent->RemoveL(recent->Event().Id());
@@ -6302,8 +6300,8 @@ LOCAL_C void TestHiddenChangeEvents6aL(CLogClient& aClient)
 	EndBackupL();
 	TestLogOpenL();
 
-	test(!changeObs1->HaveChanges());
-	test(!changeObs2->HaveChanges()); // No event because we should know we called Remove on ourselves
+	TEST(!changeObs1->HaveChanges());
+	TEST(!changeObs2->HaveChanges()); // No event because we should know we called Remove on ourselves
 
 	CleanupStack::PopAndDestroy(8, changeObs1); // changeObs1, changeObs2, view, filter, event, active, recent, duplicate
 	}
@@ -6319,7 +6317,7 @@ LOCAL_C void TestHiddenChangeEvents6aL(CLogClient& aClient)
 */
 LOCAL_C void TestHiddenChangeEvents7aL(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0965 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0965 "));
 	CLogViewChangeObserver* changeObs1 = CLogViewChangeObserver::NewLC();
 	changeObs1->StartCollectingChanges();
 
@@ -6343,7 +6341,7 @@ LOCAL_C void TestHiddenChangeEvents7aL(CLogClient& aClient)
 	active->StartL();
 	aClient.ClearLog(now, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus.Int() == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Incoming call event
 	event->SetEventType(KLogCallEventTypeUid);
@@ -6355,20 +6353,20 @@ LOCAL_C void TestHiddenChangeEvents7aL(CLogClient& aClient)
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Add a duplicate
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
+	TEST2(active->iStatus.Int(), KErrNone);
 
 	// Setup normal event view
 	active->StartL();
-	test(view->SetFilterL(*filter, active->iStatus));
+	TEST(view->SetFilterL(*filter, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(view->CountL() == 2);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(view->CountL(), 2);
 
 	CLogViewChangeObserver* changeObs2 = CLogViewChangeObserver::NewLC();
 	changeObs2->StartCollectingChanges();
@@ -6378,20 +6376,20 @@ LOCAL_C void TestHiddenChangeEvents7aL(CLogClient& aClient)
 
 	// Check recent view
 	active->StartL();
-	test(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
+	TEST(recent->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == 1);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), 1);
 
 	CLogViewDuplicate* duplicate = CLogViewDuplicate::NewL(aClient);
 	CleanupStack::PushL(duplicate);
 
 	// Check duplicate count
 	active->StartL();
-	test(recent->DuplicatesL(*duplicate, active->iStatus));
+	TEST(recent->DuplicatesL(*duplicate, active->iStatus));
 	CActiveScheduler::Start();
-	test(active->iStatus == KErrNone);
-	test(recent->CountL() == 1);
+	TEST2(active->iStatus.Int(), KErrNone);
+	TEST2(recent->CountL(), 1);
 
 	// Remove duplicate
 	recent->ClearDuplicatesL();
@@ -6404,8 +6402,8 @@ LOCAL_C void TestHiddenChangeEvents7aL(CLogClient& aClient)
 	TestLogOpenL();
 
 	// Check change events
-	test(!changeObs1->HaveChanges());
-	test(!changeObs2->HaveChanges());
+	TEST(!changeObs1->HaveChanges());
+	TEST(!changeObs2->HaveChanges());
 
 	CleanupStack::PopAndDestroy(8, changeObs1); // changeObs1, changeObs2, view, filter, event, active, recent, duplicate
 	}
@@ -6422,7 +6420,7 @@ LOCAL_C void TestHiddenChangeEvents7aL(CLogClient& aClient)
 */
 LOCAL_C void DEF108741L(CLogClient& aClient)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3511 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3511 "));
 	// Perform clean up
  	TestUtils::DeleteDatabaseL();
 
@@ -6490,7 +6488,7 @@ LOCAL_C void DEF108741L(CLogClient& aClient)
 */
 LOCAL_C void TestNumberFieldINC108225L(CLogClient& aClient)
 {
-    test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3716 ")); 
+    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3716 ")); 
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -6642,7 +6640,7 @@ LOCAL_C void TestNumberFieldINC108225L(CLogClient& aClient)
 */
 LOCAL_C void TestOtherFieldsINC108225L(CLogClient& aClient)
 {
-    test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3755 ")); 
+    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-3755 ")); 
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 
@@ -6787,9 +6785,105 @@ LOCAL_C void TestOtherFieldsINC108225L(CLogClient& aClient)
 	CleanupStack::PopAndDestroy(4);	
 }
 
+/**
+@SYMTestCaseID          PDS-LOGENG-CT-4050
+@SYMTestCaseDesc        Tests for the changes made in defect DEF144552 
+@SYMTestPriority        High
+@SYMTestActions         Tests for the sucessful completion of the following operation - 
+                        1)Applying a filter where the event's start time matches the end time.
+                        2)Clearing the log where the clear log time is 1 microsecs after the 
+                        timestamp of the event.
+@SYMTestExpectedResults Test must not fail
+@SYMREQ                 DEF144552
+*/
+LOCAL_C void DEF144552L(CLogClient& aClient)
+    {
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-LOGENG-CT-4050 ")); 
+    TestUtils::DeleteDatabaseL(EFalse);
+    
+    CTestActive* active = new(ELeave)CTestActive();
+    CleanupStack::PushL(active);
+
+    //Setup the database by adding a event and changing the timestamp for the event
+    //Add 1 event
+    CLogEvent* event = CLogEvent::NewL();
+    CleanupStack::PushL(event);
+    event->SetEventType(KLogCallEventTypeUid);
+    event->SetContact(KTestContact1);
+    event->SetNumber(KTestNumber2);
+    event->SetDuration(0);
+    active->StartL();
+    aClient.AddEvent(*event, active->iStatus);
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    
+    //Change the event
+    TTime now;
+    now.UniversalTime();
+    event->SetTime(now);
+    active->StartL();
+    aClient.ChangeEvent(*event, active->iStatus);
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    
+    //Test 1: Setup and apply a filter where the start time matches the end time
+    //If the defect is fixed then the view will contain the event previously added,
+    //Otherwise the time parameters will be truncated and the event will not be found
+    
+    //Setup filter so that the start and the end time matches
+    CLogFilter* filter = CLogFilter::NewL();
+    CleanupStack::PushL(filter);
+    filter->SetStartTime(now);
+    filter->SetEndTime(now);
+    
+    //Apply the filter and check that 1 event is in the view
+    CLogViewEvent* view = CLogViewEvent::NewL(aClient);
+    CleanupStack::PushL(view);
+    active->StartL();
+    TEST(view->SetFilterL(*filter, active->iStatus));
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    TEST2(view->CountL(), 1);
+    
+    //Retrieve and check the event
+    active->StartL();
+    TEST(view->FirstL(active->iStatus));
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    const CLogEvent& currentEvent(view->Event());
+    TEST2(currentEvent.EventType().iUid, KLogCallEventTypeUid.iUid);
+    TEST2(currentEvent.Duration(), 0);
+    TEST2(currentEvent.Time().Int64(), now.Int64());
+    
+    // Test 2: Clearing a log where the time specified in ClearLog() is just
+    // after the timestamp of the event by 1 microsecond. If the defect is fixed
+    // then the event will be deleted. However if the defect is not fixed then the
+    // time specified in ClearLog() will be truncated and the event will not be 
+    // deleted
+    
+    //Clear the log
+    active->StartL();
+    TTimeIntervalMicroSeconds microsecond(1);
+    now += microsecond;
+    aClient.ClearLog(now, active->iStatus);
+    CActiveScheduler::Start();
+    TEST2(active->iStatus.Int(), KErrNone);
+    
+    //Check that the event has been deleted in the view
+    CleanupStack::PopAndDestroy(2);
+    view = CLogViewEvent::NewL(aClient);
+    CleanupStack::PushL(view);
+    filter = CLogFilter::NewL();
+    CleanupStack::PushL(filter);
+    active->StartL();
+    TEST(!view->SetFilterL(*filter, active->iStatus));
+
+    CleanupStack::PopAndDestroy(4, active); 
+    }
+
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGVIEW2"));
+	TestUtils::Initialize(_L("t_logview2"));
 	TestUtils::DeleteDatabaseL();
 
 	CLogClient* client = CLogClient::NewL(theFs);
@@ -6798,77 +6892,77 @@ void doTestsL()
 	CLogChangeNotifier* notifier = CLogChangeNotifier::NewL();
 	CleanupStack::PushL(notifier);	
 
-	test.Start(_L("Event View With Filter List"));
+	TheTest.Start(_L("Event View With Filter List"));
 	TestEventViewWithFilterListL(*client);
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("View change observer"));
+	TheTest.Next(_L("View change observer"));
 	TestViewChangeEventsL(*client);
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("Recent View With Filter"));
+	TheTest.Next(_L("Recent View With Filter"));
 	TestRecentViewWithFilterL(*client);
 	theLog.Write(_L8("Test 3 OK\n"));
 
-	test.Next(_L("Recent View With Filter List"));
+	TheTest.Next(_L("Recent View With Filter List"));
 	TestRecentViewWithFilterListL(*client);
 	theLog.Write(_L8("Test 4 OK\n"));
 
-	test.Next(_L("Duplicate View With Filter"));
+	TheTest.Next(_L("Duplicate View With Filter"));
 	TestDuplicateViewWithFilterL(*client);
 	theLog.Write(_L8("Test 5 OK\n"));
 
-	test.Next(_L("Duplicate View With Filter List"));
+	TheTest.Next(_L("Duplicate View With Filter List"));
 	TestDuplicateViewWithFilterListL(*client);
 	theLog.Write(_L8("Test 6 OK\n"));
 
-	test.Next(_L("Querying Event View For Null Fields"));
+	TheTest.Next(_L("Querying Event View For Null Fields"));
 	TestEventViewForNullFieldsL(*client);
 	theLog.Write(_L8("Test 7 OK\n"));
 
-	test.Next(_L("Querying Recent View For Null Fields"));
+	TheTest.Next(_L("Querying Recent View For Null Fields"));
 	TestRecentViewForNullFieldsL(*client);
 	theLog.Write(_L8("Test 8 OK\n"));
 
-	test.Next(_L("Querying Duplicate View For Null Fields"));
+	TheTest.Next(_L("Querying Duplicate View For Null Fields"));
 	TestDuplicateViewForNullFieldsL(*client);
 	theLog.Write(_L8("Test 9 OK\n"));
 
-	test.Next(_L("Querying Event View For Flags"));
+	TheTest.Next(_L("Querying Event View For Flags"));
 	TestEventViewForFlagsL(*client);
 	theLog.Write(_L8("Test 10 OK\n"));
 
-	test.Next(_L("Querying Recent View For Flags"));
+	TheTest.Next(_L("Querying Recent View For Flags"));
 	TestRecentViewForFlagsL(*client);
 	theLog.Write(_L8("Test 11 OK\n"));
 
-	test.Next(_L("Querying Duplicate View For Flags"));
+	TheTest.Next(_L("Querying Duplicate View For Flags"));
 	TestDuplicateViewForFlagsL(*client);
 	theLog.Write(_L8("Test 12 OK\n"));
 
-	test.Next(_L("Removing Recent Events"));
+	TheTest.Next(_L("Removing Recent Events"));
 	TestRemovingRecentEventsL(*client);
 	theLog.Write(_L8("Test 13 OK\n"));
 
-	test.Next(_L("Removing Duplicate Events"));
+	TheTest.Next(_L("Removing Duplicate Events"));
 	TestRemovingDuplicateEventsL(*client);
 	theLog.Write(_L8("Test 14 OK\n"));
 
-	test.Next(_L("Multiple Views"));
+	TheTest.Next(_L("Multiple Views"));
 	TestMultipleViews1L(*client);
 	TestMultipleViews2L(*client);
 	theLog.Write(_L8("Test 15 OK\n"));
 	
-	test.Next(_L("Test _ALT Events In Recent List")); 
+	TheTest.Next(_L("Test _ALT Events In Recent List")); 
 	TestAltEventsInRecentListL(*client);   
 	theLog.Write(_L8("Test 16 OK\n"));
 
-	test.Next(_L("Test filtering Events by time")); 
+	TheTest.Next(_L("Test filtering Events by time")); 
 	// This TEST sets system's 'Home Time'
 	TestFilterByTimeL(*client);
 	theLog.Write(_L8("Test 17 OK\n"));
 
-	test.Next(_L("Test hidden change events")); 
+	TheTest.Next(_L("Test hidden change events")); 
 	TestUtils::DeleteDatabaseL();
 	TestHiddenChangeEvents1L(*client);
 	TestHiddenChangeEvents1aL(*client);
@@ -6886,31 +6980,35 @@ void doTestsL()
 	TestHiddenChangeEvents7aL(*client);
 	theLog.Write(_L8("Test 18 OK\n"));
 
-	test.Next(_L("Changing events and recent views"));
+	TheTest.Next(_L("Changing events and recent views"));
 	TestChangeEventRecentView1L(*client);
 	TestChangeEventRecentView2L(*client);
 	TestChangeEventRecentViewAndPurgeL(*client);
 	TestChangeEventRecentViewRemoveL(*client);
 	theLog.Write(_L8("Test 19 OK\n"));
 
-	test.Next(_L("Test for DEF066296"));
+	TheTest.Next(_L("Test for DEF066296"));
 	DEF066296L(*client);
-	test.Next(_L("Test for DEF087459"));
+	TheTest.Next(_L("Test for DEF087459"));
 	DEF087459L(*client);
 	theLog.Write(_L8("Test 20 OK\n"));
 
-	test.Next(_L("Event View With Filter List containing StartTime and EndTime"));
+	TheTest.Next(_L("Event View With Filter List containing StartTime and EndTime"));
 	TestEventViewWithTimestampsInFilterListL(*client);
 	theLog.Write(_L8("Test 21 OK\n"));
 		
-	test.Next(_L("Test for DEF108741 - View change observer, error condition"));
+	TheTest.Next(_L("Test for DEF108741 - View change observer, error condition"));
 	DEF108741L(*client);
 	theLog.Write(_L8("Test 22 OK\n"));
 	
-	test.Next(_L("Test Defect INC108225: Call history check for the CS & PS(VOIP) calls "));
+	TheTest.Next(_L("Test Defect INC108225: Call history check for the CS & PS(VOIP) calls "));
 	TestNumberFieldINC108225L(*client);
 	TestOtherFieldsINC108225L(*client);
 	theLog.Write(_L8("Test 23 OK\n"));
 
+	TheTest.Next(_L("Test Defect DEF144552: CLogFilter doesn't work when Starttime is the same as EndTime"));
+	DEF144552L(*client);
+	theLog.Write(_L8("Test 24 OK\n"));
+	
 	CleanupStack::PopAndDestroy(2); // client, notifier
 	}

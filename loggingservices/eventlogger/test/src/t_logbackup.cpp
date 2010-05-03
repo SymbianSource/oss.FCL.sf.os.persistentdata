@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,13 +15,11 @@
 
 #include <s32file.h>
 #include <babackup.h>
-
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
+RTest TheTest(_L("t_logbackup"));
 
-RTest test(_L("Log Backup Test Harness"));
 CBaBackupSessionWrapper* theBackup = NULL;
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -77,7 +75,7 @@ LOCAL_C TBool IsLogOpenL()
 */
 LOCAL_C void TestLogOpenL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0993 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0993 "));
 	TEST(IsLogOpenL());
 	}
 
@@ -91,7 +89,7 @@ LOCAL_C void TestLogOpenL()
 */
 LOCAL_C void TestLogClosedL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0994 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0994 "));
 	TEST(!IsLogOpenL());
 	}
 
@@ -166,7 +164,7 @@ LOCAL_C void ForceClientImplInstL(CLogClient& aClient)
 */
 LOCAL_C void TestLockingL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0995 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0995 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
@@ -196,7 +194,7 @@ LOCAL_C void TestLockingL()
 */
 LOCAL_C void TestDeleteWhileLockedL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0996 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0996 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	ForceClientImplInstL(*client);
@@ -234,7 +232,7 @@ LOCAL_C void TestDeleteWhileLockedL()
 */
 LOCAL_C void TestDeleteViewWhileLockedL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0997 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0997 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	ForceClientImplInstL(*client);
@@ -284,7 +282,7 @@ LOCAL_C void TestDeleteViewWhileLockedL()
 */
 LOCAL_C void TestMultipleClientLockingL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0998 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0998 "));
 	CLogClient* client1 = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client1);
 	ForceClientImplInstL(*client1);
@@ -320,7 +318,7 @@ LOCAL_C void TestMultipleClientLockingL()
 */
 LOCAL_C void TestMultipleViewLockingL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0999 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0999 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	ForceClientImplInstL(*client);
@@ -448,7 +446,7 @@ LOCAL_C void DoTestLogL(CLogBase& aClient, TInt aError)
 	active->StartL();
 	aClient.GetEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
-	RDebug::Print(_L("*** active->iStatus.Int()=%d\n"), active->iStatus.Int());
+	TheTest.Printf(_L("*** active->iStatus.Int()=%d\n"), active->iStatus.Int());
 	TEST(active->iStatus.Int() == aError || active->iStatus.Int() == KErrNotFound);
 
 	CleanupStack::PopAndDestroy(2); // event, active
@@ -466,7 +464,7 @@ LOCAL_C void DoTestLogL(CLogBase& aClient, TInt aError)
 */
 LOCAL_C void TestClientRequestsL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1000 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1000 "));
 	CLogClient* client1 = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client1);
 	ForceClientImplInstL(*client1);
@@ -509,7 +507,7 @@ LOCAL_C void TestClientRequestsL()
 */
 LOCAL_C void TestNotificationsL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1001 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1001 "));
 	CTestActive* notify = new(ELeave)CTestActive;
 	CleanupStack::PushL(notify);
 
@@ -645,7 +643,7 @@ LOCAL_C void TestNotificationsL()
 */
 LOCAL_C void TestRequestInProgressL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1002 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1002 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	ForceClientImplInstL(*client);
@@ -723,7 +721,7 @@ LOCAL_C void TestRequestInProgressL()
 */
 LOCAL_C void TestViewRequestInProgressL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1003 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1003 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	ForceClientImplInstL(*client);
@@ -831,7 +829,7 @@ LOCAL_C void TestViewRequestInProgressL()
 */
 LOCAL_C void TestViewSetup1L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1004 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1004 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	ForceClientImplInstL(*client);
@@ -891,7 +889,7 @@ LOCAL_C void TestViewSetup1L()
 */
 LOCAL_C void TestViewSetup2L()
  	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1005 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1005 "));
  	CLogClient* client = CLogClient::NewL(theFs);
  	CleanupStack::PushL(client);
  	ForceClientImplInstL(*client);
@@ -965,7 +963,7 @@ This was added to test the fix for DEF051602 - Problems with MLogViewChangeObser
 */
 LOCAL_C void TestRefreshViewL()
 {
-    test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1006 "));
+    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1006 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
@@ -1004,62 +1002,61 @@ LOCAL_C void TestRefreshViewL()
 /////////////////////////////////////////////////////////////////////////////////////
 
 void doTestsL()
-//
-//
-//
 	{
-	test.Start(_L("T_LogBackup"));
-	TestUtils::Initialize(_L("T_BACKUP"));
+	TestUtils::Initialize(_L("t_logbackup"));
 	TestUtils::DeleteDatabaseL();
+
+    TheTest.Start(_L("t_logbackup"));
+	
 #ifndef __WINS__
-	test.Printf(_L("This test harness will only work on WINS\n"));
+	TheTest.Printf(_L("This test harness will only work on WINS\n"));
 	User::After(5000000);
 #else//__WINS__
 	CLogChangeNotifier* notifier = CLogChangeNotifier::NewL();
 	CleanupStack::PushL(notifier);
 
-	test.Next(_L("Locking"));
+	TheTest.Next(_L("Locking"));
 	TestLockingL();
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("Delete client while locked"));
+	TheTest.Next(_L("Delete client while locked"));
 	TestDeleteWhileLockedL();
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("Delete view while locked"));
+	TheTest.Next(_L("Delete view while locked"));
 	TestDeleteViewWhileLockedL();
 	theLog.Write(_L8("Test 3 OK\n"));
 
-	test.Next(_L("Multiple clients"));
+	TheTest.Next(_L("Multiple clients"));
 	TestMultipleClientLockingL();
 	theLog.Write(_L8("Test 4 OK\n"));
 
-	test.Next(_L("Multiple views"));
+	TheTest.Next(_L("Multiple views"));
 	TestMultipleViewLockingL();
 	theLog.Write(_L8("Test 5 OK\n"));
 
-	test.Next(_L("Client Requests"));
+	TheTest.Next(_L("Client Requests"));
 	TestClientRequestsL();
 	theLog.Write(_L8("Test 6 OK\n"));
 
-	test.Next(_L("View setup"));
+	TheTest.Next(_L("View setup"));
 	TestViewSetup1L();
 	TestViewSetup2L();
 	theLog.Write(_L8("Test 7 OK\n"));
 
-	test.Next(_L("Notifications"));
+	TheTest.Next(_L("Notifications"));
 	TestNotificationsL();
 	theLog.Write(_L8("Test 8 OK\n"));
 
-	test.Next(_L("Request in progress"));
+	TheTest.Next(_L("Request in progress"));
 	TestRequestInProgressL();
 	theLog.Write(_L8("Test 9 OK\n"));
 
-	test.Next(_L("View request in progress"));
+	TheTest.Next(_L("View request in progress"));
 	TestViewRequestInProgressL();
 	theLog.Write(_L8("Test 10 OK\n"));
 
-	test.Next(_L("Refresh view"));
+	TheTest.Next(_L("Refresh view"));
 	TestRefreshViewL();
 	theLog.Write(_L8("Test 11 OK\n"));
 

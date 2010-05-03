@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -337,6 +337,7 @@ Retrieves the database system settings from the settings table.
 					stored table version or config file version is invalid or the stored compaction mode is invalid.
 	   KErrOverflow, aCollationDllName is not large enough to store the name of the 
 	   				 collation dll that is stored in the settings table.
+       KErrNoMemory, an out of memory condition has occurred.
 	   Note that the function may also leave with other system-wide error codes or SQL
 	   errors of ESqlDbError type
 @panic SqlDb 2 In _DEBUG mode if iDbHandle is NULL (uninitialized TSqlDbSysSettings object).
@@ -356,7 +357,8 @@ void TSqlDbSysSettings::GetSettingsL(const TDesC& aDbName, TDes& aCollationDllNa
 	//Move to the first record
 	TInt err = ::StmtNext(stmtHandle);
 	__SQLLEAVE_IF_ERROR(err);
-	//Check that it is a valid row
+	//Check that it is a valid row. The error is checked on the previous line. 
+	//The "if" bellow will check whether there is a valid record or not.
 	if(err != KSqlAtRow)
 		{
 		__SQLLEAVE(KErrGeneral);
@@ -378,21 +380,22 @@ void TSqlDbSysSettings::GetSettingsL(const TDesC& aDbName, TDes& aCollationDllNa
 			__SQLLEAVE(KErrGeneral);
 			}
 			
-		//The "CollationDllName" column exists and its value can be read
+		//The "CollationDllName" column exists and its value can be read.
+        //The column type might be different than SQLITE_TEXT - malformed database.
+        if(sqlite3_column_type(stmtHandle, KCollationDllNameColIdx) != SQLITE_TEXT)
+            {
+            __SQLLEAVE(KErrGeneral);   
+            }
 		const void* ptr = sqlite3_column_text16(stmtHandle, KCollationDllNameColIdx);
-		if(ptr)
-			{
-			TPtrC16 src(reinterpret_cast <const TUint16*> (ptr));
-			if(src.Length() > aCollationDllName.MaxLength())
-				{
-				__SQLLEAVE(KErrOverflow);	
-				}
-			aCollationDllName.Copy(src);
-			}
-		else
-	   		{
-	   		__SQLLEAVE(KErrGeneral);	
-	   		}
+        //Null column value - this might be an indication of an "out of memory" problem, if the column text  
+        //is in UTF8 format. (sqlite3_column_text16() may allocate memory for UTF8->UTF16 conversion)
+		__SQLLEAVE_IF_NULL(ptr);
+        TPtrC16 src(reinterpret_cast <const TUint16*> (ptr));
+        if(src.Length() > aCollationDllName.MaxLength())
+            {
+            __SQLLEAVE(KErrOverflow);	
+            }
+        aCollationDllName.Copy(src);
 		}
 	if(aSettingsVersion > ESqlSystemVersion3)
 		{
@@ -853,8 +856,16 @@ TSecurityPolicy TSqlDbSysSettings::ReadCurrSecurityPolicyL(sqlite3_stmt* aStmtHa
 	{
 	__SQLASSERT(aStmtHandle != NULL, ESqlPanicBadArgument);
 	aObjType = sqlite3_column_int(aStmtHandle, KObjTypeColIdx);
+    //The "ObjectName" column type might be different than SQLITE_TEXT - malformed database.
+    if(sqlite3_column_type(aStmtHandle, KObjNameColIdx) != SQLITE_TEXT)
+        {
+        __SQLLEAVE(KErrGeneral);   
+        }
+    const void* text = sqlite3_column_text16(aStmtHandle, KObjNameColIdx);
+    //Null column value - this might be an indication of an "out of memory" problem, if the column text  
+    //is in UTF8 format. (sqlite3_column_text16() may allocate memory for UTF8->UTF16 conversion)
+    __SQLLEAVE_IF_NULL(text);
 	TInt len = (TUint)sqlite3_column_bytes16(aStmtHandle, KObjNameColIdx) / sizeof(TUint16);
-	const void* text = sqlite3_column_text16(aStmtHandle, KObjNameColIdx);
 	aObjName.Set(reinterpret_cast <const TUint16*> (text), len);
 	aPolicyType = sqlite3_column_int(aStmtHandle, KObjPolicyTypeColIdx);
 	len = sqlite3_column_bytes(aStmtHandle, KObjPolicyDataColIdx);

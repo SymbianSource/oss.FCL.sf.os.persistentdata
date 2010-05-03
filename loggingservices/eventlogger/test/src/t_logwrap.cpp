@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,11 +15,9 @@
 
 #include <s32file.h>
 #include <bautils.h>
-#include "TEST.H"
+#include "t_logutil2.h"
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log Wrapper Test Harness"));
+RTest TheTest(_L("t_logwrap"));
 
 _LIT(KTestRemoteParty, "Remote Party");
 _LIT(KTestDirection, "Direction");
@@ -43,7 +41,7 @@ _LIT8(KTestData, "ABCDEFGH");
 */
 LOCAL_C void TestBasicL(CLogBase& aClient, TBool aClientAvailable)
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1011 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1011 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -192,7 +190,7 @@ LOCAL_C void TestBasicL(CLogBase& aClient, TBool aClientAvailable)
 */
 LOCAL_C void TestWrapperL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1012 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1012 "));
 	CTestActive* active = new(ELeave)CTestActive();
 	CleanupStack::PushL(active);
 
@@ -229,7 +227,7 @@ LOCAL_C void TestWrapperL()
 */
 LOCAL_C void TestHeapFailL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1013 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1013 "));
 	CLogWrapper* wrapper = NULL;
 	
 #ifdef _DEBUG
@@ -270,7 +268,7 @@ LOCAL_C void TestHeapFailL()
 */
 LOCAL_C void TestFileFailL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1014 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1014 "));
 	CLogWrapper* wrapper = NULL;
 	
 	TInt failCount = 0;
@@ -308,7 +306,7 @@ LOCAL_C void TestFileFailL()
 */
 LOCAL_C void Test4INC047632L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1015 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1015 "));
 #ifdef _DEBUG	
 	TestUtils::CopyCorruptDbL();
 
@@ -341,7 +339,7 @@ LOCAL_C void Test4INC047632L()
 */
 LOCAL_C void Test5INC114909L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-4001 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-4001 "));
 #ifdef _DEBUG	
  	// Copy over the damaged database to be used.
 	TestUtils::CopyCorruptDamagedDbL();
@@ -372,25 +370,25 @@ LOCAL_C void Test5INC114909L()
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGWRAP"));
+	TestUtils::Initialize(_L("t_logwrap"));
 
-	test.Start(_L("Wrapper"));
+	TheTest.Start(_L("Wrapper"));
 	TestWrapperL();
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("Heap Failure"));
+	TheTest.Next(_L("Heap Failure"));
 	TestHeapFailL();
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("File Failure"));
+	TheTest.Next(_L("File Failure"));
 	TestFileFailL();
 	theLog.Write(_L8("Test 3 OK\n"));
 
-	test.Next(_L("Test4 for INC047632 - corrupt Logdbu.dat returns KErrEoF"));
+	TheTest.Next(_L("Test4 for INC047632 - corrupt Logdbu.dat returns KErrEoF"));
 	Test4INC047632L();
 	theLog.Write(_L8("Test 4 for INC047632 OK\n"));
 	
-	test.Next(_L("Test5 for INC114909 - test damaged Logdbu.dat is dealt with correctly "));
+	TheTest.Next(_L("Test5 for INC114909 - test damaged Logdbu.dat is dealt with correctly "));
 	Test5INC114909L();
 	theLog.Write(_L8("Test 5 for INC114909 OK\n"));
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -154,9 +154,12 @@ Gives the calling thread an exclusive access to the SQLite resources (global var
 The calling thread becomes a mutex owner.
 If the mutex is already locked by another thread, the calling thread will block until the other thread releases the mutex.
 The method can be called by the mutex owning thread more than once, even if the mutex is already entered.
+
+@panic SqliteMt 23 Negative mutex lock counter (in debug builds only)
 */
 void sqlite3_mutex::Enter()
 	{
+    __ASSERT_DEBUG(iRefCount >= 0, User::Panic(KPanicCategory, EPanicMutexLockCounter));
 	iMutex.Wait();
 	RThread currThread;
 	iOwnerThreadId = currThread.Id();
@@ -191,7 +194,7 @@ Returns true if the mutex is already locked (entered).
 TBool sqlite3_mutex::IsHeld() const
 	{
 	RThread currThread;
-	return iRefCount != 0 && iOwnerThreadId == currThread.Id();
+	return iRefCount > 0 && iOwnerThreadId == currThread.Id();
 	}
 
 /**
@@ -274,7 +277,8 @@ sqlite3_mutex* TMutexApi::Alloc(int aType)
 			mutex = CRecursiveMutex::New();
 			break;
 		default:
-			mutex = ::StaticMutex(aType - 2);
+			mutex = ::StaticMutex(aType - 2);//"aType - 2" because the first SQLITE_MUTEX_STATIC_<type> mutex definition 
+			//value is 2 (SQLITE_MUTEX_FAST is 0, SQLITE_MUTEX_RECURSIVE is 1). 
 			break;	
 		}
 	return mutex;
@@ -417,6 +421,8 @@ const static sqlite3_io_methods TheFileIoApi =
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
+sqlite3_mutex_methods is a structure declared in sqlite3.h header file. 
+sqlite3_mutex_methods defines the mutex interface used by SQLite and implemented by the OS porting layer.
 */
 static sqlite3_mutex_methods TheMutexMethods =
 	{
@@ -1027,7 +1033,7 @@ SQLite OS porting layer API.
 Checks if the file lock type is SQLITE_LOCK_RESERVED or bigger.
 
 @param aDbFile A pointer to a TDbFile instance, that contains the file handle.
-@param aResOut Output parameter. It should be set to 1 if the stored lock type is bigger or equal 
+@param aResOut Output parameter. It will be set to be non-zero if the stored lock type is bigger or equal 
 							     than SQLITE_LOCK_RESERVED.
 
 @return SQLITE_IOERR_CHECKRESERVEDLOCK, The operation has failed,

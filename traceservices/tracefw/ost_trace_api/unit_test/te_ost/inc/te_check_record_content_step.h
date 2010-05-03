@@ -22,7 +22,7 @@
 
 #ifndef TE_CHECK_RECORD_CONTENT_STEP_H_
 #define TE_CHECK_RECORD_CONTENT_STEP_H_
-#include <TestExecuteStepBase.h>
+#include <test/testexecutestepbase.h>
 #include "te_suite_step_base.h"
 #include "te_parser.h"
 

@@ -28,12 +28,7 @@
 #include <f32file.h>
 #include <s32file.h>
 
-// LOCAL CONSTANTS AND MACROS
-#ifdef EXTENDED_FEATURE_MANAGER_TEST
-_LIT( KPanicCategory, "EnhancedFeatMgrServer" );
-#else
-_LIT( KPanicCategory, "FeatMgrServer" );
-#endif // EXTENDED_FEATURE_MANAGER_TEST
+_LIT(KPanicCategory, "FeatMgrServer");
 
 // ============================ MEMBER FUNCTIONS ===============================
 
@@ -98,11 +93,11 @@ void CFeatMgrServer::ConstructL()
     	{
     	case KErrNotFound:
     		ERROR_LOG( "CFeatMgrServer::ConstructL() - no feature files found in ROM - going to panic");
-    		User::Panic( KPanicCategory, EPanicNoFeatureFiles );
+    		::FmgrFatalErrorL(err, KPanicCategory, EPanicNoFeatureFiles);
     		break;
     	case KErrCorrupt:
     	    ERROR_LOG( "CFeatMgrServer::ConstructL() - feature information in ROM is invalid - going to panic");
-    	    User::Panic( KPanicCategory, EPanicInvalidFeatureInfo );
+    	    ::FmgrFatalErrorL(err, KPanicCategory, EPanicInvalidFeatureInfo);
     	    break;
     	default:
     		User::LeaveIfError(err);
@@ -342,84 +337,45 @@ TBool CFeatMgrServer::LoadPluginsL()
     
     // Check if any plugin was found. 
     TInt count = implInfoArray.Count();
-    
-    if ( count > 0 )
-        {
-        
-        for(TInt i = 0; i < count; i ++)
-            {
-            CFeatMgrPluginHandler* pluginHandler = NULL;
-            TInt err( KErrNone );
-        
-            // Create handler
-            TRAP( err, pluginHandler = CFeatMgrPluginHandler::NewL( 
-                  implInfoArray[i]->ImplementationUid(), *this) );
-                
-            LOG_IF_ERROR1( err, "CFeatMgrServer::LoadPluginsL() - pluginHandler creation err %d", err );
-            
-            // Apply first request for plugin to process
-            if ( err == KErrNone )
-                {
-                TRAP( err, pluginHandler->SendCommandL( 
-                    FeatureInfoCommand::ELoadFeatureInfoCmdId ) );
-                }            
-            
-            // Panic if error sth else than not supported        
-            if ( err != KErrNone && err != KErrNotSupported )
-                {
-                ERROR_LOG2( "CFeatMgrServer::LoadPluginsL() - implementationUid: 0x%x, error: %d - going to panic",
-                                        implInfoArray[i]->ImplementationUid(), err );
-                User::Panic( KPanicCategory, EPanicLoadPluginError );                           
-                }
-            // If simple features are not supported by the plugin search for enhanced ones
-            else if ( err == KErrNotSupported )
-            	{
-            	// Reset error code
-            	err = KErrNone;
-                TRAP( err, pluginHandler->SendCommandL(
-                    FeatureInfoCommand::ELoadEnhancedFeatureInfoCmdId ) );
-
-                // Panic if error since in this case the plugin does not support any feature
-            	if ( err != KErrNone )
-	            	{
-	                ERROR_LOG2( "CFeatMgrServer::LoadPluginsL() - implementationUid: 0x%x, error: %d - going to panic",
-	                        implInfoArray[i]->ImplementationUid(), err );
-	                User::Panic( KPanicCategory, EPanicLoadPluginError );
-	            	}
-	            }
-            // If a simple or enhanced feature is supported by the plugin then append the plugin to the list
-            if ( err == KErrNone )
-            	{
-                INFO_LOG1( "CFeatMgrServer::LoadPluginsL() - Add info of implementationUid: 0x%x",
-                                        implInfoArray[i]->ImplementationUid() );
-            
-                // Add information of the plugin to the plugin list
-                SFeatMgrPluginInfo plugin;
-                plugin.iPluginHandler = pluginHandler;
-                // Set all plugins as not ready initially
-                plugin.iPluginReady = EFalse;
-
-                TInt err = iPluginList.Append(plugin);
-            
-                if ( err != KErrNone )
-                    {
-                    ERROR_LOG2( "CFeatMgrServer::LoadPluginsL() - Saving plugin info of implementationUid: 0x%x, err %d",
-                                                  implInfoArray[i]->ImplementationUid(), err );
-                    User::Leave( err );
-                    }
-                }
-            }
-        INFO_LOG1( "CFeatMgrServer::LoadPluginsL - interfaceUid.iUid == 0x%x, return plugins found",
-                           KFeatureInfoPluginInterfaceUid );
-        ret = ETrue;
-        }
-    
-    else
+    if(count == 0)
         {
         iPluginsReady = ETrue; // Plugins not found.
-        INFO_LOG1( "CFeatMgrServer::LoadPluginsL - interfaceUid.iUid == 0x%x, return plugins not found",
-                           KFeatureInfoPluginInterfaceUid );
+        INFO_LOG1("CFeatMgrServer::LoadPluginsL - interfaceUid.iUid == 0x%x, return plugins not found", KFeatureInfoPluginInterfaceUid);
         ret = EFalse;
+        }
+    else
+        {
+        for(TInt i=0;i<count;++i)
+            {
+            CFeatMgrPluginHandler* pluginHandler = NULL;
+            TRAPD(err, pluginHandler = CFeatMgrPluginHandler::NewL(implInfoArray[i]->ImplementationUid(), *this));
+            if(err == KErrNone)
+                {
+                CleanupStack::PushL(pluginHandler);
+                TRAP(err, pluginHandler->SendCommandL(FeatureInfoCommand::ELoadFeatureInfoCmdId));
+                if(err == KErrNotSupported)
+                    {
+                    TRAP(err, pluginHandler->SendCommandL(FeatureInfoCommand::ELoadEnhancedFeatureInfoCmdId));
+                    }
+                }
+            if(err == KErrNoMemory)
+                {
+                User::Leave(err);
+                }
+            else if(err != KErrNone)
+                {
+                ERROR_LOG2("CFeatMgrServer::LoadPluginsL() - implementationUid: 0x%x, error: %d - going to panic", implInfoArray[i]->ImplementationUid(), err);
+                ::FmgrFatalErrorL(err, KPanicCategory, EPanicLoadPluginError);                           
+                }
+            // Add information of the plugin to the plugin list. Set all plugins as not ready initially.
+            SFeatMgrPluginInfo plugin;
+            plugin.iPluginHandler = pluginHandler;
+            plugin.iPluginReady = EFalse;
+            User::LeaveIfError(iPluginList.Append(plugin));
+            CleanupStack::Pop(pluginHandler);
+            }
+        INFO_LOG1("CFeatMgrServer::LoadPluginsL - interfaceUid.iUid == 0x%x, return plugins found", KFeatureInfoPluginInterfaceUid);
+        ret = ETrue;
         }
     
     CleanupStack::PopAndDestroy(&implInfoArray);
@@ -536,7 +492,7 @@ void CFeatMgrServer::FeatureInfoL( RArray<FeatureInfoCommand::TFeature>& aFeatur
             if ( err != KErrNone && err != KErrNotSupported )
                 {
                 ERROR_LOG1( "CFeatMgrServer::FeatureInfoL() - panicing due error %d", err );
-                User::Panic( KPanicCategory, EPanicLoadPluginError );
+                ::FmgrFatalErrorL(err, KPanicCategory, EPanicLoadPluginError);
                 }
             // At this point we have simple feature supported by the plugin.
             // If no enhanced feature is supported, but a simple one is, then
@@ -781,7 +737,7 @@ void CFeatMgrServer::LoadFeaturesL( void )
 	if( KErrNotFound == err)
 		{
 		ERROR_LOG( "CFeatMgrServer::ConstructL() & CallReadFeatureFilesL() - no feature files found in ROM - going to panic");
-	    User::Panic( KPanicCategory, EPanicNoFeatureFiles );
+		::FmgrFatalErrorL(err, KPanicCategory, EPanicNoFeatureFiles);
 		}
 	else
 		{
@@ -802,7 +758,7 @@ void CFeatMgrServer::LoadFeaturesL( void )
 	    TRAPD( err, iRegistry->ReadRuntimeFeaturesL( iFeaturesReady ) );
 		if( KErrNotFound == err)
 			{
-		    User::Panic( KPanicCategory, EPanicNoFeatureFiles );
+			::FmgrFatalErrorL(err, KPanicCategory, EPanicNoFeatureFiles);
 			}
 		else
 			{

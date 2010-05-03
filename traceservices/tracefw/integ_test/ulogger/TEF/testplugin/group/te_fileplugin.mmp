@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,19 +15,16 @@
 // 
 //
 
-/**
- @file te_fileplugin.mmp
- @internalTechnology
-*/
+TARGET      te_fileplugin.dll
+TARGETTYPE  PLUGIN
+UID         0x10009D8D 0x10273888
+VENDORID    0x70000001 
+CAPABILITY  CommDD NetworkControl LocalServices ProtServ NetworkServices
 
-TARGET te_fileplugin.dll
-TARGETTYPE PLUGIN
-UID  0x10009D8D 0x10273888
-VENDORID 0x70000001 
-
-CAPABILITY CommDD NetworkControl LocalServices ProtServ NetworkServices
+OS_LAYER_SYSTEMINCLUDE
 
 USERINCLUDE	../inc/
+
 SOURCEPATH 	../src/
 SOURCE 		te_fileplugin.cpp
 
@@ -36,9 +33,9 @@ start RESOURCE 10273888.rss
 TARGET te_fileplugin.rsc
 end
 
-SYSTEMINCLUDE /epoc32/include
-SYSTEMINCLUDE /epoc32/include/ecom
-
-LIBRARY	euser.lib efsrv.lib c32.lib ecom.lib
+LIBRARY	euser.lib 
+LIBRARY efsrv.lib 
+LIBRARY c32.lib 
+LIBRARY ecom.lib
 
 SMPSAFE

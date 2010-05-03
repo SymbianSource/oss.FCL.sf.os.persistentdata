@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -32,7 +32,7 @@ Creates a new CSqlCompactEntry instance.
 @param aSettings Background compaction settings/thresholds
 @param aTimer The background compaction timer object
 
-When the free pages threshold reach certain the threshold, the background compaction 
+When the free pages threshold is reached, the background compaction 
 for this entry will be kicked-off.
 
 @return A pointer to the created CSqlCompactEntry instance
@@ -210,14 +210,7 @@ TInt CSqlCompactEntry::Compact()
 	__SQLASSERT(processedPageCount >= 0, ESqlPanicInternalError);
 	if(err == KErrNone)
 		{
-		if(processedPageCount > 0)
-			{
-			iPageCount -= processedPageCount;
-			}
-		else
-			{
-			iPageCount = 0;
-			}
+		iPageCount -= processedPageCount;
 		__SQLASSERT(iPageCount >= 0, ESqlPanicInternalError);
 		}
 	if(iPageCount <= 0)

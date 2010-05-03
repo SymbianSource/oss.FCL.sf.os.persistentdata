@@ -321,7 +321,7 @@ static int writeListSync(CrashFile *pFile, int isCrash){
       }
 
       default:
-        assert(!"Cannot happen");
+        assert(0); /* Cannot happen */
     }
 
     if( pWrite==pFinal ) break;

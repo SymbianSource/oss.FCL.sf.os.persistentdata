@@ -110,3 +110,7 @@
 
 - SQLITE 3.6.1	09,September,2008
 	Fixes.
+
+- SQLITE 3.6.1	24,February,2010
+	DEF144603: SQL, SQLite attempts to dereference a NULL pointer during OOM test.
+

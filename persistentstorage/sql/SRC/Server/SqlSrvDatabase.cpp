@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -391,6 +391,7 @@ CSqlSrvDatabase::~CSqlSrvDatabase()
 	TSqlCompactDbPair compactDbPair;
 	while(compactDbIt.Next(compactDbPair))
 		{
+        __SQLASSERT(compactDbPair.iData, ESqlPanicInvalidObj);
 		::SqlServer().Compactor().ReleaseEntry(*compactDbPair.iData);
 		}
 	iCompactDbMap.Close();
@@ -405,6 +406,37 @@ CSqlSrvDatabase::~CSqlSrvDatabase()
 		//The security policy map owns iSecureDbName and iSecurityPolicy and is responsible for 
 		//iSecureDbName and iSecurityPolicy destruction.
 		}
+    //The next step of the "resource release" process is to walk over iAttachDbMap entries, get the data part of
+    //the found TSqlAttachDbPair objects, which is secure database name used as a key in iSecurityMap, and remove
+    //the related entry from iSecurityMap. If the database is closed in normal circumstances, the iAttachDbMap
+    //has no entries. But if the database client forgets to detach the used attached databases or if the Detach() call
+    //fails (for example, with KErrNoMemory error), then at this point iAttachDbMap has one or more entries.
+    //That means there are still some attached databases to this connection. This is not a problem, SQLite will take
+    //care of them. The problem is that there are related entries in iSecurityMap map, owned by CSqlServer object,
+    //and they won't be removed from the map till CSqlServer object is alive. This causes problems in OOM tests and in 
+    //real life of the device.
+    //For example, one database client opens "c:[11111111]a.db" and attaches "c:[11111111]b.db":
+    // - c:[11111111]a.db database has been opened successfully. iSecurityMap has 1 entry:
+    //            {"c:[11111111]a.db", <database security policy object>}.
+    // - c:[11111111]b.db is attached to c:[11111111]a.db with name "db2". There will be 1 entry in iAttachDbMap:
+    //            {"db2", "c:[11111111]a.db"} 
+    //        and a new entry will be added to iSecurityMap:
+    //            {"c:[11111111]b.db", <database security policy object>}. 2 entries in total in iSecurityMap.
+    // - The database client attempts to detach the attached database but the opertaion fails during the execution
+    //        of the DETACH sql statement. Both maps are intact.
+    // - The database client attempts to close the database. The previous implementation of CSqlSrvDatabase::~CSqlSrvDatabase()
+    //        would only remove "c:[11111111]a.db" entry from iSecurityMap and close the iAttachDbMap map.
+    // The result: no opened or attached databases but there will be one entry in iSecurityMap: "c:[11111111]b.db".
+    // OOM tests will report a memory leak in this case. On a real device, if "c:[11111111]b.db" gets deleted and
+    // recreated again, unexpected memory leak will occur in CSqlSrvDatabase::ConstructCreateSecureL() because
+    // the code there "expects" that is the first time when a "c:[11111111]b.db" entry is added to iSecurityMap.
+    TSqlAttachDbMapIterator it(iAttachDbMap);
+    TSqlAttachDbPair attachDbPair;
+    while(it.Next(attachDbPair))
+        {
+        __SQLASSERT(attachDbPair.iData, ESqlPanicInvalidObj);
+        ::SqlServer().SecurityMap().Remove(attachDbPair.iData);
+        }
 	iAttachDbMap.Close();
 	::CloseDbHandle(iDbHandle);
 	}
@@ -731,7 +763,7 @@ void CSqlSrvDatabase::DetachDbL(const TDesC& aDbName)
 	TInt err = FinalizeAttachedDb(aDbName);
 	if(err == KErrNone)
 		{
-		TRAP(err, RemoveFromMapsL(aDbName));//ignore the error
+		TRAP_IGNORE(RemoveFromMapsL(aDbName));
 		}
 	else
 		{
@@ -893,10 +925,7 @@ void CSqlSrvDatabase::AttachCleanup(void* aCleanup)
 	{
 	TAttachCleanup* cleanup = reinterpret_cast <TAttachCleanup*> (aCleanup);
 	__SQLASSERT(cleanup != NULL, ESqlPanicBadArgument);
-	if(cleanup)
-		{
-		(void)cleanup->iSelf.FinalizeAttachedDb(cleanup->iDbName);
-		}
+	(void)cleanup->iSelf.FinalizeAttachedDb(cleanup->iDbName);
 	}
 
 /**
@@ -1042,6 +1071,7 @@ void CSqlSrvDatabase::UpdateSecurityMapL(TBool aAttachedDb, const TSqlSrvFileDat
 		aMapKey = ::CreateStrCopyLC(aMapKey);
 		CSqlSecurityPolicy* securityPolicy = aAttachedDb ? ::LoadAttachedDbSecurityPolicyLC(aFileData) :
 		                                                   ::LoadDbSecurityPolicyLC(iDbHandle);
+        __SQLASSERT(!::SqlServer().SecurityMap().Entry(aMapKey), ESqlPanicObjExists);
 		__SQLLEAVE_IF_ERROR(::SqlServer().SecurityMap().Insert(aMapKey, securityPolicy));
 		CleanupStack::Pop(2);//iSecurityMap owns aMapKey and securityPolicy objects
 		aSecurityPolicy = securityPolicy;
@@ -1115,6 +1145,7 @@ void CSqlSrvDatabase::InsertInAttachDbMapL(const TDesC& aDbFileName, const TDesC
 	const TUint8* mapKey = ::CreateStrCopyLC(iFileNameBuf);
 	const TUint8* mapData = SecurityMapKeyL(aDbFileName);
 	mapData = ::CreateStrCopyLC(mapData);
+    __SQLASSERT(!iAttachDbMap.Entry(mapKey), ESqlPanicObjExists);
 	__SQLLEAVE_IF_ERROR(iAttachDbMap.Insert(mapKey, mapData));
 	CleanupStack::Pop(2);//iAttachDbMap owns mapKey amd mapData.
 	}
@@ -1326,6 +1357,7 @@ void CSqlSrvDatabase::NewCompactEntryL(TInt aFreePageThresholdKb, const TDesC& a
 	HBufC* data = aDbFileName.Alloc();
 	if(key && data)
 		{
+	    __SQLASSERT(!iCompactDbMap.Entry(key), ESqlPanicObjExists);
 		err = iCompactDbMap.Insert(key, data);//returns the index of the new entry
 		}
 	if(err < 0) //If either "key" or "data" or both is NULL, then "err" is KErrNoMemory and the next "if" will be executed.
@@ -1375,10 +1407,7 @@ void CSqlSrvDatabase::CompactCleanup(void* aCleanup)
 	{
 	CSqlSrvDatabase* self = reinterpret_cast <CSqlSrvDatabase*> (aCleanup);
 	__SQLASSERT(self != NULL, ESqlPanicBadArgument);
-	if(self)
-		{
-		self->ReleaseCompactEntry(KMainDb16);
-		}
+    self->ReleaseCompactEntry(KMainDb16);
 	}
 
 /**
@@ -1438,6 +1467,7 @@ void CSqlSrvDatabase::ConstructCreateSecureL(const TSqlSrvFileData& aFileData, C
 	CleanupStack::PushL(aSecurityPolicy);
 	const TUint8* mapKey = SecurityMapKeyL(aFileData.FileName());
 	mapKey = ::CreateStrCopyLC(mapKey);
+    __SQLASSERT(!::SqlServer().SecurityMap().Entry(mapKey), ESqlPanicObjExists);
 	__SQLLEAVE_IF_ERROR(::SqlServer().SecurityMap().Insert(mapKey, aSecurityPolicy));
 	CleanupStack::Pop(2);//iSecurityMap owns mapKey and aSecurityPolicy.
 	iSecureDbName = mapKey;
@@ -1564,6 +1594,7 @@ void CSqlSrvDatabase::DoCommonConstructOpenL(const TSqlSrvFileData& aFileData, T
 		const TUint8* mapKey = NULL;
 		//Load database security policy, update the security policy map
 		UpdateSecurityMapL(EFalse, aFileData, mapKey, iSecurityPolicy);
+		iSecureDbName = mapKey;//used in CSqlSrvDatabase destructor. 
 		mapKey = NULL;//it is not used
 		//Check that the caller has at least one of {Schema, Read, Write} policies.
 		BasicSecurityPolicyCheckL(*iSecurityPolicy);

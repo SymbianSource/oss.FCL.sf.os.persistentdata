@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -19,33 +19,12 @@
 #include "LogServResourceInterpreter.h"
 #include <logeng.h>
 #include <logengevents.h>
-#include "SecurityPolicy.h"
+#include "t_logsecuritypolicy.h"
+#include "t_logutil.h"
 
-static RTest TheTest(_L("T_LogSecurity"));
+RTest TheTest(_L("t_logsecurity"));
 static RFs TheFileSess;
 
-///////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////
-//Test macross and functions
-
-static void Check(TInt aValue, TInt aLine)
-	{
-	if(!aValue)
-		{
-		TheTest(EFalse, aLine);
-		}
-	}
-static  void Check(TInt aValue, TInt aExpected, TInt aLine)
-	{
-	if(aValue != aExpected)
-		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
-		TheTest(EFalse, aLine);
-		}
-	}
-#define TEST(arg) ::Check((arg), __LINE__)
-#define TEST2(aValue, aExpected) ::Check(aValue, aExpected, __LINE__)
-	
 ///////////////////////////////////////////////////////////////////////////////////////
 //
 
@@ -190,7 +169,7 @@ static void OOMTest()
 		else if(err == KErrNone)
 			{
 			__UHEAP_MARKEND;
-			RDebug::Print(_L("The test succeeded at heap failure rate=%d.\n"), count);
+			TheTest.Printf(_L("The test succeeded at heap failure rate=%d.\n"), count);
 			break;
 			}
 		else 

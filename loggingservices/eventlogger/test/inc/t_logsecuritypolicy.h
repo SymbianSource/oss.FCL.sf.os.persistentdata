@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,8 +13,8 @@
 // Description:
 //
 
-#ifndef __SECURITYPOLICY_H__
-#define __SECURITYPOLICY_H__
+#ifndef t_logsecuritypolicy_h
+#define t_logsecuritypolicy_h
 
 #include <e32std.h>
 
@@ -76,4 +76,4 @@ inline TBool operator==(const TCompiledSecurityPolicy& aLeft, const TCompiledSec
 	       aLeft.Capability(6) == aRight.Capability(6);
 	}
 
-#endif//__SECURITYPOLICY_H__
+#endif//t_logsecuritypolicy_h

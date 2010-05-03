@@ -117,8 +117,9 @@ by the same thread. The OS porting layer makes no difference between fast and re
 Whether the SQLite requests fast or ecursive mutex, a recursive mutex will be created.
 The recursive mutex creation can fail, in which case the error will be reported back to the caller.
 
-Note that even though sqlite3_mutex has vritual methods, it is not declared as a "C" class because sqlite3_mutex
-is an externally defined type by SQLite.
+Note that even though sqlite3_mutex has virtual methods, it is not declared as a standard Symbian OS "C" class 
+because sqlite3_mutex is an abstract type, externally declared and used by SQLite (SQLite is a C library).
+SQLite deals only with pointers to sqlite3_mutex objects. See the declaration in sqlite3.h file. 
 
 @see TPls
 @see CRecursiveMutex
@@ -144,6 +145,9 @@ private:
 /**
 sqlite3_mutex derived class. Describes a recursive mutex.
 The mutex creation can fail, the error will be reported back to the caller.
+
+This is not a standard Symbian OS "C" class, not derived from CBase.
+CRecursiveMutex is a specialization of the sqlite3_mutex class, used for recursive mutexes. 
 
 @see sqlite3_mutex
 

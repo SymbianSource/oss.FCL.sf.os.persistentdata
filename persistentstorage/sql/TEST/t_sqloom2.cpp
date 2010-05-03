@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -261,7 +261,7 @@ void DoStmtPrepareOomTestL(TStmtFuncPtrL aStmtFuncPtrL, const TDesC& aDbFileName
 		err = KErrNoMemory;
 		const TInt KMaxAllocation = TheOomTestType[i] == EServerSideTest ? KStmtOomTestAllocLimitServer : KStmtOomTestAllocLimitClient;
 		TInt allocationNo = 0;
-		TInt failingAllocationNo = 0;
+		TInt failingAllocationNo = 0;//the real exit point of the OOM test. allocationNo is set KMaxAllocation times.
 		while(allocationNo < KMaxAllocation)
 			{
 			MarkHandles();
@@ -726,7 +726,7 @@ void DoStmtOomTestL(TStmtFuncPtrL aStmtPrepareFuncPtrL, TStmtFuncPtr2L aStmtTest
 		err = KErrNoMemory;
 		const TInt KMaxAllocation = TheOomTestType[i] == EServerSideTest ? KStmtOomTestAllocLimitServer : KStmtOomTestAllocLimitClient;
 		TInt allocationNo = 0;
-		TInt failingAllocationNo = 0;
+		TInt failingAllocationNo = 0;//the real exit point of the OOM test. allocationNo is set KMaxAllocation times.
 		while(allocationNo < KMaxAllocation)
 			{
 			MarkHandles();
@@ -795,7 +795,7 @@ void ExecInsertBlobL(RSqlDatabase& aDb)
 	}
 
 //"RSqlBlobReadStream::OpenL()/RSqlBlobReadStream::ReadL()" OOM test
-void BlobReadStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobReadStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	RSqlBlobReadStream strm;
 	CleanupClosePushL(strm);
@@ -822,7 +822,7 @@ void BlobReadStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDe
 	}
 
 //"RSqlBlobReadStream::OpenL()/RSqlBlobReadStream::SizeL()" OOM test
-void BlobReadStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobReadStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	RSqlBlobReadStream strm;
 	CleanupClosePushL(strm);
@@ -840,7 +840,7 @@ void BlobReadStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDe
 	}
 
 //"RSqlBlobWriteStream::OpenL()/RSqlBlobWriteStream::WriteL()" OOM test
-void BlobWriteStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWriteStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	RSqlBlobWriteStream strm;
 	CleanupClosePushL(strm);
@@ -864,7 +864,7 @@ void BlobWriteStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullD
 	}
 
 //"RSqlBlobWriteStream::OpenL()/RSqlBlobWriteStream::SizeL()" OOM test
-void BlobWriteStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWriteStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	RSqlBlobWriteStream strm;
 	CleanupClosePushL(strm);
@@ -882,7 +882,7 @@ void BlobWriteStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullD
 	}
 	
 //"TSqlBlob::GetLC()" OOM test
-void BlobWholeGet1L(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWholeGet1L(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	HBufC8* buf = NULL;
 	if(aAttachDbName.Length() > 0)
@@ -898,7 +898,7 @@ void BlobWholeGet1L(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
 	}
 	
 //"TSqlBlob::Get()" OOM test
-void BlobWholeGet2L(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWholeGet2L(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	if(aAttachDbName.Length() > 0)
 		{
@@ -911,7 +911,7 @@ void BlobWholeGet2L(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
 	}
 
 //"TSqlBlob::SetL()" OOM test
-void BlobWholeSetL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWholeSetL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	if(aAttachDbName.Length() > 0)
 		{
@@ -961,7 +961,7 @@ void DoBlobOomTestL(TBlobPrepareFuncPtrL aBlobPrepareFuncPtrL, TBlobTestFuncPtrL
 		err = KErrNoMemory;
 		const TInt KMaxAllocation = TheOomTestType[i] == EServerSideTest ? KBlobOomTestAllocLimitServer : KBlobOomTestAllocLimitClient;
 		TInt allocationNo = 0;
-		TInt failingAllocationNo = 0;
+		TInt failingAllocationNo = 0;//the real exit point of the OOM test. allocationNo is set KMaxAllocation times.
 		while(allocationNo < KMaxAllocation)
 			{
 			MarkHandles();
@@ -976,7 +976,7 @@ void DoBlobOomTestL(TBlobPrepareFuncPtrL aBlobPrepareFuncPtrL, TBlobTestFuncPtrL
 				}
 			else
 				{
-				TRAP(err, (*aBlobTestFuncPtrL)(db));
+				TRAP(err, (*aBlobTestFuncPtrL)(db, KNullDesC));
 				}
 
 			ResetHeapFailure(TheOomTestType[i]);
@@ -1151,7 +1151,7 @@ void DoFullSelectOomTest(TScalarFullSelectFuncPtrL aTestFunctionPtrL)
 		err = KErrNoMemory;
 		const TInt KMaxAllocation = TheOomTestType[i] == EServerSideTest ? KStmtOomTestAllocLimitServer : KStmtOomTestAllocLimitClient;
 		TInt allocationNo = 0;
-		TInt failingAllocationNo = 0;
+		TInt failingAllocationNo = 0;//the real exit point of the OOM test. allocationNo is set KMaxAllocation times.
 		while(allocationNo < KMaxAllocation)
 			{
 			MarkHandles();

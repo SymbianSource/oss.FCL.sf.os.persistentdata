@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -94,7 +94,7 @@ Server config file parameter | Client config string parameter | What parameter i
 TSqlSrvConfig::InitL() should be used once for loading the config parameter values from the SQL server comfiguration file.
 
 TSqlSrvConfig::GetConfigParamsL() can be used for retrieving correctly initialized TSqlSrvConfigParams object.
-The rules described in the tabble above will be used for producing correct set of config parameter values in
+The rules described in the table above will be used for producing correct set of config parameter values in
 the created TSqlSrvConfigParams object.
 
 There are exceptions from the rules and these are:

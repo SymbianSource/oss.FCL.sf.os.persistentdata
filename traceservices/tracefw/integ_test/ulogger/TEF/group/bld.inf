@@ -12,10 +12,6 @@
 //
 // Description:
 //
-/**
- @file bld.inf
- @internalTechnology
-*/
 
 #include "../device-driver/group/bld.inf"
 #include "../testplugin/group/bld.inf"

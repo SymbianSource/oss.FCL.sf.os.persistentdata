@@ -21,8 +21,8 @@
 
 using namespace NFeature;
 
-const TUid KNewFeatureUid = {0x7888ABCD}; 
-const TUid KNewFeatureUid2 = {0x7888ABCF}; 
+const TUid KNewFeatureUid = {0x7888ABCA}; 
+const TUid KNewFeatureUid2 = {0x7888ABCB}; 
 
 ///////////////////////////////////////////////////////////////////////////////////////
 

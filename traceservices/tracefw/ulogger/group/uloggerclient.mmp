@@ -15,23 +15,22 @@
 // 
 //
 
-/**
- @file
-*/
-
 TARGET              uloggerclient.dll
 TARGETTYPE          dll
 UID                 0x1000008d 0x1028304C
 VENDORID            0x70000001
 CAPABILITY          ALL -TCB
 
+OS_LAYER_SYSTEMINCLUDE
+USERINCLUDE         ../inc
 
 SOURCEPATH          ../src/client
 SOURCE              uloggerclient.cpp
 
+LIBRARY             euser.lib 
+LIBRARY             bafl.lib 
+LIBRARY             estor.lib 
+LIBRARY             efsrv.lib
 
-USERINCLUDE         ../inc
-OS_LAYER_SYSTEMINCLUDE_SYMBIAN
-LIBRARY             euser.lib bafl.lib estor.lib efsrv.lib
 DEFFILE             ULOGGERCLIENT.DEF
 

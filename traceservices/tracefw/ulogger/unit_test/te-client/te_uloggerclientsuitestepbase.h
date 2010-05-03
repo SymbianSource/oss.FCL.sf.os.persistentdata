@@ -24,7 +24,7 @@
 
 #if (!defined __TE_ULOGGERCLIENT_STEP_BASE__)
 #define __TE_ULOGGERCLIENT_STEP_BASE__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 
 #include "uloggerclient.h"
 

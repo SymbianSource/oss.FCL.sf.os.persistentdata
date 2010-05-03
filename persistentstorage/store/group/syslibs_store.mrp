@@ -19,8 +19,6 @@ source	\sf\os\persistentdata\persistentstorage\store
 binary	\sf\os\persistentdata\persistentstorage\store\group	all
 exports	\sf\os\persistentdata\persistentstorage\store\group
 
--export_file	\sf\os\persistentdata\persistentstorage\store\HTOOLS\pfsdump.ipr	\epoc32\engdoc\tools\pfsdump.ipr
-
 #MattD: This doesn't get registered, as it's an 'intermediate' file.
 binary	\epoc32\release\tools\rel\pfsdump.exe
 

@@ -21,7 +21,7 @@
 */
 #if (!defined TE_PERFORMANCESANITYTEST_H)
 #define TE_PERFORMANCESANITYTEST_H
-#include <datawrapper.h>
+#include <test/datawrapper.h>
 #include "te_ostv2integsuite_basewrapper.h"
 #include <e32base.h>
 #include <e32math.h>

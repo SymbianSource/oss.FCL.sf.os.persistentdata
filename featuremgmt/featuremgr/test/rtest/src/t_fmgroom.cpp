@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -24,14 +24,6 @@
 
 using namespace NFeature;
 
-_LIT( KZOrgFeaturesFile, "Z:\\Private\\10205054\\features.dat" );
-#ifdef EXTENDED_FEATURE_MANAGER_TEST
-_LIT( KZFeaturesFile, "C:\\Private\\102836E5\\features.dat" );
-_LIT( KZFeaturesDir, "C:\\Private\\102836E5\\" );
-#else
-_LIT( KZFeaturesFile, "Z:\\Private\\10205054\\features.dat" );
-_LIT( KZFeaturesDir, "Z:\\Private\\10205054\\" );
-#endif // EXTENDED_FEATURE_MANAGER_TEST
 
 const TInt KInvalidFeatureId    = 90901671;
 const TUid KInvalidFeatureUid   = {KInvalidFeatureId};
@@ -39,6 +31,7 @@ const TUid KInvalidFeatureUid   = {KInvalidFeatureId};
 static TInt TheProcessHandleCount = 0;
 static TInt TheThreadHandleCount = 0;
 static TInt TheAllocatedCellsCount = 0;
+
 #ifdef _DEBUG
 static const TInt KBurstRate = 20;
 #endif
@@ -53,12 +46,7 @@ enum TFeatMgrOomTestMode
 
 static RTest TheTest(_L("t_fmgroom"));
 
-///////////////////////////////////////////////////////////////////////////////////////
 
-//Deletes all created test files.
-void DestroyTestEnv()
-    {
-    }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +55,6 @@ void Check1(TInt aValue, TInt aLine)
     {
     if(!aValue)
         {
-        DestroyTestEnv();
         RDebug::Print(_L("*** Expression evaluated to false. Line %d\r\n"), aLine);
         TheTest(EFalse, aLine);
         }
@@ -76,7 +63,6 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
     {
     if(aValue != aExpected)
         {
-        DestroyTestEnv();
         RDebug::Print(_L("*** Expected: %d, got: %d. Line %d\r\n"), aExpected, aValue, aLine);
         TheTest(EFalse, aLine);
         }
@@ -315,7 +301,8 @@ void ControlAddFeatureOomTest(TFeatMgrOomTestMode aMode)
     const TUid KNewFeatureUid = {0x7888ABCE}; 
     TBitFlags32 flags;
     flags.Set(EFeatureSupported);
-    flags.Set(EFeatureModifiable);
+    flags.Set(EFeatureModifiable);    
+    flags.Set(EFeaturePersisted);
     TFeatureEntry fentry(KNewFeatureUid, flags, 0x0);
     
     err = KErrNoMemory;
@@ -530,52 +517,11 @@ void NotifierNotifyRequestsOomTest(TFeatMgrOomTestMode aMode)
     TheTest.Printf(_L("\r\n===OOM test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
     }
 
-void PreTest()
-    {
-    // Connect session
-    RFs fsSession;
-    User::LeaveIfError(fsSession.Connect()); 
-    
-    TEntry entry;
-    TInt err = fsSession.Entry(KZFeaturesDir, entry);
-    if (err == KErrNotFound)
-        {
-        err = fsSession.MkDir(KZFeaturesDir);
-        }
-    TEST2 (err, KErrNone);
-    err = BaflUtils::CopyFile(fsSession, KZOrgFeaturesFile, KZFeaturesDir);
-    TEST2 (err, KErrNone);
-    
-    // close file server session
-    fsSession.Close();
 
-    }
-
-void PostTest()
-    {
-    // Connect session
-    RFs fsSession;
-    User::LeaveIfError(fsSession.Connect()); 
-    
-    TEntry entry;
-    TInt err = fsSession.Entry(KZFeaturesDir, entry);
-    if (err == KErrNone)
-        {
-        err = BaflUtils::DeleteFile(fsSession,KZFeaturesFile);
-        TEST2 (err, KErrNone);
-        
-        }
-    TEST2 (err, KErrNone);
-    
-    // close file server session
-    fsSession.Close();
-    }
 
 void DoTestsL()
     {
-    
     TheTest.Start(_L("@SYMTestCaseID:PDS-EFM-CT-4068 RFeatureControl::Connect() OOM test"));
-    PreTest();
     ControlOpenOomTest(ETrue);
     TheTest.Next(_L("@SYMTestCaseID:PDS-EFM-CT-4069 RFeatureControl::Open() OOM test"));
     ControlOpenOomTest(EFalse);
@@ -639,8 +585,6 @@ void DoTestsL()
     NotifierNotifyRequestsOomTest(EFeatMgrOomClientTestMode);
     TheTest.Next(_L("@SYMTestCaseID:PDS-EFM-CT-4093 CFeatureNotifier::NotifyRequest(<array>), valid feature, server side OOM test"));
     NotifierNotifyRequestsOomTest(EFeatMgrOomServerTestMode);
-    
-    PostTest();
     }
 
 TInt E32Main()
@@ -653,7 +597,6 @@ TInt E32Main()
     __UHEAP_MARK;
     
     TRAPD(err, DoTestsL());
-    DestroyTestEnv();
     TEST2(err, KErrNone);
 
     __UHEAP_MARKEND;

@@ -44,8 +44,7 @@ These traces can be used to assist debugging in client applications and the Symb
 
 @SymTraceMacro
 */
-#undef SYMBIAN_TRACE_SQL_ERR
-
+//#define SYMBIAN_TRACE_SQL_ERR
 /**
 Enable this macro to compile in the SQL trace points that trace exported functions and certain 
 porting layer functions entry and exit. From the timestamps of these trace, the total time spent 
@@ -54,8 +53,7 @@ These traces are particularly useful for performance investigations.
 
 @SymTraceMacro
 */
-#undef SYMBIAN_TRACE_SQL_FUNC
-
+//#define SYMBIAN_TRACE_SQL_FUNC
 /**
 Enable this macro to compile in the SQL trace points that trace the following internal events. 
 	-	IPC calls send to and serviced by the SQL Server
@@ -66,8 +64,7 @@ These traces can be used to assist performance and debug investigations
 
 @SymTraceMacro
 */
-#undef SYMBIAN_TRACE_SQL_EVENTS
-
+//#define SYMBIAN_TRACE_SQL_EVENTS
 #endif //SQL_ENABLE_TRACE	
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,7 +127,7 @@ CONST_LIT8(KSqlSrvError, 		"SqlSrv ServiceError: Error %d");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////              UTrace Related Macro Functions and Class Declarations           ////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#ifdef SYMBIAN_TRACE_SQL_ERR
+#if defined SYMBIAN_TRACE_SQL_ERR && defined SQL_ENABLE_TRACE
 
 //This macro should be used to trace errors occurring within Symbian SQL.
 //To use the macro, insert the full UTF statement as the macro parameter
@@ -143,7 +140,7 @@ CONST_LIT8(KSqlSrvError, 		"SqlSrv ServiceError: Error %d");
 #endif //SYMBIAN_TRACE_SQL_ERR
 
 
-#ifdef SYMBIAN_TRACE_SQL_FUNC
+#if defined SYMBIAN_TRACE_SQL_FUNC && defined SQL_ENABLE_TRACE
 
 /**
 This class is used to help trace function entry and exits within Symbian SQL 
@@ -170,7 +167,7 @@ class TSqlUTraceProfiler
 #define SQLUTRACE_PROFILER(x) do {} while(0)
 #endif //SYMBIAN_TRACE_SQL_FUNC
 
-#ifdef SYMBIAN_TRACE_SQL_EVENTS
+#if defined SYMBIAN_TRACE_SQL_EVENTS && defined SQL_ENABLE_TRACE
 
 //This macro should be used to trace events occurring within Symbian SQL.
 //To use the macro, insert the full UTF statement as the macro parameter

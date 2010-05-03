@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -33,6 +33,8 @@ const TUint32 KTestTInt2 = 0x456;
 _LIT(KTestDuplicates, "TestDuplicates");
 
 _LIT(KTestOstDebugOnlyWrap, "TestOstDebugOnlyWrap");
+
+_LIT(KTestOstCompileTimeMacro, "TestOstCompileTimeMacro");
 
 //macro wrapper that works only in _DEBUG mode
 #ifndef OST_DEBUG_ONLY
@@ -94,6 +96,10 @@ TBool CTOstv2TraceTestWrapper::DoCommandL(const TTEFFunction& aCommand,
     else if (aCommand == KTestOstDebugOnlyWrap())
         {
         TestOstDebugOnlyWrapL();
+        }
+    else if (aCommand == KTestOstCompileTimeMacro())
+        {
+        TestOstCompileTimeMacroL();
         }
     else
         {
@@ -263,7 +269,7 @@ void CTOstv2TraceTestWrapper::TestDuplicatesL()
 
 void CTOstv2TraceTestWrapper::TestOstDebugOnlyWrapL()
     {
-    INFO_PRINTF1(_L("CTOstv2TraceTestWrapper::TestDuplicates"));
+    INFO_PRINTF1(_L("CTOstv2TraceTestWrapper::TestOstDebugOnlyWrap"));
 
     RULogger logger;
 
@@ -360,6 +366,141 @@ void CTOstv2TraceTestWrapper::TestOstDebugOnlyWrapL()
                         (TTraceId) TEST_OSTTRACEWRAPPER8w, KTestTInt2));
                 OST_DEBUG_ONLY(OstTrace1(USER_DEFINED_GID_2, TEST_OSTTRACEWRAPPER8w, "CTOstv2TraceTestWrapper USER_DEFINED_GID_1  test 2 KTestTInt2 (%d)" , KTestTInt2));
 
+                                
+                result = logger.Stop();
+
+                if (result == KErrNone)
+                    {
+                    SetBlockResult(
+                            CheckResults(KLogFilename()) == KErrNone
+                                                                     ? EPass
+                                                                        : EFail);
+                    }
+                }
+            else
+                {
+                INFO_PRINTF2(_L("ulogger start returns error %d"), result);
+                }
+            }
+        else
+            {
+            INFO_PRINTF2(_L("setting output plugin settings failed with err %d"), result);
+            }
+        }
+    else
+        {
+        INFO_PRINTF2(_L("add file as output plugin failed with err %d"), result);
+        }
+    }
+
+
+void CTOstv2TraceTestWrapper::TestOstCompileTimeMacroL()
+    {
+    INFO_PRINTF1(_L("CTOstv2TraceTestWrapper::TestOstCompileTimeMacro"));
+
+    RULogger logger;
+
+    
+    User::LeaveIfError(OpenUlogger(logger));
+    // clear the config file
+    CClearConfig configIni;
+    configIni.Clear(logger);
+
+    // switch on primary filtering mechanism
+    CArrayFixFlat<TUint8> *setprimfilter =
+            new (ELeave) CArrayFixFlat<TUint8> (22);
+    setprimfilter->AppendL(KGroupId);
+    setprimfilter->AppendL(TRACE_NORMAL);
+    TInt result = logger.SetPrimaryFiltersEnabled(*setprimfilter, ETrue);
+
+    if (result != KErrNone)
+        {
+        ERR_PRINTF2(_L("Failed to set Ulogger primary filters result(%d"), result);
+        SetBlockResult(EFail);
+        }
+
+    // switch off secondary filtering
+    result = logger.SetSecondaryFilteringEnabled(EFalse);
+    if (result != KErrNone)
+        {
+        ERR_PRINTF2(_L("Failed to set Ulogger secondary filters result(%d"), result);
+        SetBlockResult(EFail);
+        }
+
+    delete setprimfilter;
+    setprimfilter = NULL;
+    // setup output file
+    _LIT(KLogFilename, "C:\\logs\\macro_trace_test.utf");
+    EmptyFile(KLogFilename);
+    // setup ulogger to write to the file using its output plugin
+    _LIT8(KTextmedia,"uloggerfileplugin");
+    TPtrC8 mediaptr(KTextmedia);
+    result = logger.ActivateOutputPlugin(mediaptr);
+    if (result == KErrNone)
+        {
+        INFO_PRINTF1(_L("file set as active output plugin ok"));
+        TPluginConfiguration pluginConfig;
+        _LIT(KTextsetting, "output_path");
+        pluginConfig.SetKey(KTextsetting);
+        pluginConfig.SetValue(KLogFilename());
+        result = logger.SetPluginConfigurations(mediaptr, pluginConfig);
+        if (result == KErrNone)
+            {
+            INFO_PRINTF1(_L("output plugin settings set ok"));
+
+            result = logger.Start();
+            if (result == KErrNone)
+                {
+                // now try some traces with compile time Macros
+                //OST_TRACE_CATEGORY_DEBUG
+                #if (OST_TRACE_CATEGORY & OST_TRACE_CATEGORY_DEBUG)
+                AddTraceHelper((TGroupId) TRACE_NORMAL, (TTraceId) TEST_OSTTRACEWRAPPER1m, 0); // should be in UDEB only
+                #endif
+                OstTraceDef0(OST_TRACE_CATEGORY_DEBUG, TRACE_NORMAL, TEST_OSTTRACEWRAPPER1m, "Foo");
+                
+                #ifdef _DEBUG
+                AddTraceHelper((TGroupId) TRACE_NORMAL, (TTraceId) TEST_OSTTRACEWRAPPER2m, 0);
+                #endif
+                OstTraceDef0(OST_TRACE_CATEGORY_DEBUG, TRACE_NORMAL, TEST_OSTTRACEWRAPPER2m, "Foo"); // should be in UBED only
+                
+                
+                //OST_TRACE_CATEGORY_PRODUCTION
+                #if (OST_TRACE_CATEGORY & OST_TRACE_CATEGORY_PRODUCTION)
+                AddTraceHelper((TGroupId) TRACE_NORMAL, (TTraceId) TEST_OSTTRACEWRAPPER3m, 0);
+                #endif
+                OstTraceDef0(OST_TRACE_CATEGORY_PRODUCTION, TRACE_NORMAL, TEST_OSTTRACEWRAPPER3m, "Foo"); // should be in UREL and UDEB
+                
+                //OST_TRACE_CATEGORY_RND
+                #if (OST_TRACE_CATEGORY & OST_TRACE_CATEGORY_RND)
+                AddTraceHelper((TGroupId) TRACE_NORMAL, (TTraceId) TEST_OSTTRACEWRAPPER4m, 0);
+                #endif
+                OstTraceDef0(OST_TRACE_CATEGORY_RND, TRACE_NORMAL, TEST_OSTTRACEWRAPPER4m, "Foo"); // should be in UREL and UDEB
+                
+                #if (OST_TRACE_CATEGORY & OST_TRACE_CATEGORY_PERFORMANCE_MEASUREMENT)
+                AddTraceHelper((TGroupId) TRACE_NORMAL, (TTraceId) TEST_OSTTRACEWRAPPER5m, 0);
+                #endif
+                OstTraceDef0(OST_TRACE_CATEGORY_PERFORMANCE_MEASUREMENT, TRACE_NORMAL, TEST_OSTTRACEWRAPPER5m, "Foo"); // should be in neither UREL nor UDEB
+                             
+                #if (OST_TRACE_CATEGORY & OST_TRACE_CATEGORY_NONE)
+                AddTraceHelper((TGroupId) TRACE_NORMAL, (TTraceId) TEST_OSTTRACEWRAPPER6m, 0);
+                #endif            
+                OstTraceDef0(OST_TRACE_CATEGORY_NONE, TRACE_NORMAL, TEST_OSTTRACEWRAPPER6m, "Foo"); // should be in neither UREL nor UDEB
+                
+                #if (OST_TRACE_CATEGORY & OST_TRACE_CATEGORY_ALL)
+                AddTraceHelper((TGroupId) TRACE_NORMAL, (TTraceId) TEST_OSTTRACEWRAPPER7m, 0);
+                #endif
+                OstTraceDef0(OST_TRACE_CATEGORY_ALL, TRACE_NORMAL, TEST_OSTTRACEWRAPPER7m, "Foo"); // should be in UREL and UDEB
+                
+                #if (OST_TRACE_CATEGORY & (OST_TRACE_CATEGORY_PRODUCTION | OST_TRACE_CATEGORY_DEBUG))
+                AddTraceHelper((TGroupId) TRACE_NORMAL, (TTraceId) TEST_OSTTRACEWRAPPER8m, 0);
+                #endif
+                OstTraceDef0(OST_TRACE_CATEGORY_PRODUCTION | OST_TRACE_CATEGORY_DEBUG, TRACE_NORMAL, TEST_OSTTRACEWRAPPER8m, "Foo"); // should be in UREL and UDEB
+
+                #if (OST_TRACE_CATEGORY & (OST_TRACE_CATEGORY_PRODUCTION)) || defined (_DEBUG)
+                AddTraceHelper((TGroupId) TRACE_NORMAL, (TTraceId) TEST_OSTTRACEWRAPPER9m, 0);
+                #endif
+                OstTraceDef0(OST_TRACE_CATEGORY_PRODUCTION | OST_TRACE_CATEGORY_DEBUG, TRACE_NORMAL, TEST_OSTTRACEWRAPPER9m, "Foo"); // should be in UREL and UDEB
+              
                                 
                 result = logger.Stop();
 

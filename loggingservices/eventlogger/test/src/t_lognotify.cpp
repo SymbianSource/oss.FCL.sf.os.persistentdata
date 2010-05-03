@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,12 +13,10 @@
 // Description:
 //
 
-#include "TEST.H"
+#include "t_logutil2.h"
 #include <logview.h>
 
-#undef test  //there is a "test" macro which hides "RTest test" declaration.
-
-RTest test(_L("Log Change Notification Test Harness"));
+RTest TheTest(_L("t_lognotify"));
 
 _LIT(KTestRemoteParty1, "Remote Party");
 _LIT(KTestDirection1, "Direction");
@@ -43,7 +41,7 @@ const TLogFlags KTestFlags1 = 0x5;
 */
 LOCAL_C void TestNotificationL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0926 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0926 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
@@ -200,7 +198,7 @@ LOCAL_C void TestNotificationL()
 */
 LOCAL_C void TestCancelNotificationL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0927 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0927 "));
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 
@@ -321,7 +319,7 @@ LOCAL_C void TestCancelNotificationL()
 */
 LOCAL_C void TestViewPurgeNotifyL()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0928 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0928 "));
 	CTestTimer* timer = CTestTimer::NewL();
 	CleanupStack::PushL(timer);
 
@@ -388,7 +386,7 @@ INC045485 - AV20 Messaging App crashes when attempting to write New SMS
 */
 LOCAL_C void INC045485L()
 	{
-	test.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0929 "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0929 "));
 	const TInt KEventCnt = 5;//test events count
 	const TInt KSizeOfEventData = 400;//should be bigger than KLogSizeOfEventGuess constant
 	//Create client, active, event
@@ -437,7 +435,7 @@ LOCAL_C void INC045485L()
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);//If the defect is not fixed this check fails with "KErrOverflow"
 		const CLogEvent& e = view->Event();
-		RDebug::Print(_L("View Entry[%d]: Id:%d, Type:%x\n"), j, e.Id(), e.EventType().iUid);
+		TheTest.Printf(_L("View Entry[%d]: Id:%d, Type:%x\n"), j, e.Id(), e.EventType().iUid);
 		const TDesC8& data = e.Data();
 		TEST(data.Length() == KSizeOfEventData);
 		//Touch the data.
@@ -520,7 +518,7 @@ static void DEF060381L()
 		CActiveScheduler::Start();
 		TEST2(active->iStatus.Int(), KErrNone);
 		const CLogEvent& e = view->Event();
-		RDebug::Print(_L("View Entry[%d]: Id:%d, Type:%x\n"), j, e.Id(), e.EventType().iUid);
+		TheTest.Printf(_L("View Entry[%d]: Id:%d, Type:%x\n"), j, e.Id(), e.EventType().iUid);
 		const TDesC8& data = e.Data();
 		TEST(data.Length() == KSizeOfEventData);
 		//Touch the data.
@@ -543,24 +541,24 @@ static void DEF060381L()
 
 void doTestsL()
 	{
-	TestUtils::Initialize(_L("T_LOGNOTIFY"));
+	TestUtils::Initialize(_L("t_lognotify"));
 	TestUtils::DeleteDatabaseL();
 
-	test.Start(_L("Notifications"));
+	TheTest.Start(_L("Notifications"));
 	TestNotificationL();
 	theLog.Write(_L8("Test 1 OK\n"));
 
-	test.Next(_L("INC045485"));
+	TheTest.Next(_L("INC045485"));
 	::INC045485L();
 
-	test.Next(_L("Cancelling Notifications"));
+	TheTest.Next(_L("Cancelling Notifications"));
 	TestCancelNotificationL();
 	theLog.Write(_L8("Test 2 OK\n"));
 
-	test.Next(_L("Notify with View Purge"));
+	TheTest.Next(_L("Notify with View Purge"));
 	TestViewPurgeNotifyL();
 	theLog.Write(_L8("Test 3 OK\n"));
 
-	test.Next(_L("DEF060381"));
+	TheTest.Next(_L("DEF060381"));
 	::DEF060381L();
 	}
