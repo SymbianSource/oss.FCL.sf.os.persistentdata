@@ -14,7 +14,6 @@
 @rem Description:
 @rem
 
-t_logenvcreate.exe
 t_logtype.exe
 t_logapi.exe
 t_logapi2.exe
@@ -46,4 +45,3 @@ t_logsecurity.exe
 t_logservipc.exe
 t_logcompat.exe
 t_logsimid.exe
-t_logenvdestroy.exe

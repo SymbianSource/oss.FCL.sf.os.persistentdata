@@ -65,8 +65,11 @@ public:
 
 /** Interface UID to be used by all contacts model plugin's for log engine
 @internalAll */
-const TUid  KUidEComLogCntInterface = {0x20008029};
-
+#ifdef SYSLIBS_TEST 
+    const TUid  KUidEComLogCntInterface = {0x20008030};
+#else
+    const TUid  KUidEComLogCntInterface = {0x20008029};
+#endif
 /** Provides an interface for ECom plugins
 @internalAll */
 class CLogCntModel: public CBase, public MLogCntModel

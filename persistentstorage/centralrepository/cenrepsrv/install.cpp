@@ -73,8 +73,11 @@ CCentRepSWIWatcher::CCentRepSWIWatcher(RFs& aFs) :
 CCentRepSWIWatcher::~CCentRepSWIWatcher()
 	{
 	Cancel();
-	iSWIKey.Cancel();
-	iSWIKey.Close();
+	if(iSWIKey.Handle() != KNullHandle)
+		{
+		iSWIKey.Cancel();
+		iSWIKey.Close();
+		}
 	iInstallEntryArray.ResetAndDestroy();
 	iCurrentInstallDirEntries.ResetAndDestroy();
 	}

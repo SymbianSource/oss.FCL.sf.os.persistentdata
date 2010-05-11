@@ -98,7 +98,7 @@ void InvalidSecureUidsTest()
 
 void DoTestsL()
 	{
-	TheTest.Start(_L("@SYMTestCaseID:PDS-SQL-CT-4199"));
+	TheTest.Start(_L("@SYMTestCaseID:PDS-SQL-CT-4199 Invalid secure UIDs test"));
 	InvalidSecureUidsTest();
 	}
 
