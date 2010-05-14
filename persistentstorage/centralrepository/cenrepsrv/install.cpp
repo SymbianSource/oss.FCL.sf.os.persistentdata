@@ -434,11 +434,7 @@ void CInstallEntry::InternalizeL(RReadStream& aStream)
 void CCentRepSWIWatcher::ReadAndInternalizeInstallDirL(const TDesC& aInstallDirFilePath)
 	{
 	RFile file;
-	TInt e=file.Open(TServerResources::iFs,aInstallDirFilePath, EFileRead|EFileShareReadersOnly);
-	if(e == KErrNotFound || e == KErrPathNotFound)
-		{
-		User::Leave(KErrNotFound);
-		}
+	User::LeaveIfError(file.Open(TServerResources::iFs,aInstallDirFilePath, EFileRead|EFileShareReadersOnly));
 	CleanupClosePushL(file);
 
 	CDirectFileStore* store = CDirectFileStore::FromLC (file);

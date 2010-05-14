@@ -66,7 +66,6 @@ PRJ_TESTEXPORTS
 
 
 PRJ_TESTMMPFILES
-../test/t_logenvcreate.mmp
 ../test/t_logtype.mmp
 ../test/t_logapi.mmp
 ../test/t_logapi2.mmp
@@ -97,10 +96,10 @@ PRJ_TESTMMPFILES
 ../test/t_logsecureview_hicap.mmp
 ../test/T_LogSecurity.mmp
 ../test/t_logservIPC.mmp
-../test/t_logapi_helper.mmp			support
+../test/t_logapi_helper.mmp		support
 ../test/t_logcompat.mmp
 ../test/t_logsimid.mmp
-../test/t_logenvdestroy.mmp
+../test/t_logcntmatchplugin.mmp		support
 
 PRJ_TESTEXTENSIONS
 start extension syslibs/test/logeng_copytestfiles

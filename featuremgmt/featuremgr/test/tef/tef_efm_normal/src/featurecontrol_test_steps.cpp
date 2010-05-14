@@ -174,7 +174,7 @@ TVerdict CFeatureControlDataAndStatusRequestStep::doTestStepL()
           _L("RFeatureControl::Open failed: error = %d"),err);
     
     // Fetch status for "unknown" feature
-    TFeatureEntry emptyEntry;
+    TFeatureEntry emptyEntry(TUid::Uid(0x1000005));
     TInt supported = control.FeatureSupported( emptyEntry );
     TESTDIAGNOSTICERROR(supported == KErrNotFound,
           _L("RFeatureControl::FeatureSupported - KErrNotFound expected for unknown feature; returned value is %d"),supported);

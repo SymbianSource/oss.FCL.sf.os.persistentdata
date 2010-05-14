@@ -892,10 +892,6 @@ void DeleteDataFile(const TDesC& aFullName)
 static void Cleanup(void*)
 	{
 	TRAP_IGNORE(TestUtils::DeleteDatabaseL());
-	_LIT(KCntModelFileName, "c:\\system\\data\\CntModel.ini");
-	::DeleteDataFile(KCntModelFileName);
-	_LIT(KContactsFileName, "c:\\system\\data\\Contacts.cdb");
-	::DeleteDataFile(KContactsFileName);
 	::DeleteDataFile(theLogName);
 	}
 

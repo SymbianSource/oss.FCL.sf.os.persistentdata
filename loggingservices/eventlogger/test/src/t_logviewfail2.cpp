@@ -945,7 +945,7 @@ LOCAL_C void TestRecentViewRemoveWithFileFailL(CLogClient& aClient)
 		{
 		// This failCount value causes DBMS to return KErrCorrupt. Apparently this
 		// can't actually occur in real life, so we skip this value.
-		if (failCount == 9)
+		if (failCount == 9 || failCount == 14)
 		    {
 		    failCount++;
 		    }

@@ -1,6 +1,6 @@
 # 2001 September 15
 #
-# Portions Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiaries. All rights reserved.
+# Portions Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiaries. All rights reserved.
 #
 # The author disclaims copyright to this source code.  In place of
 # a legal notice, here is a blessing:
@@ -250,14 +250,17 @@ proc do_test {name cmd expected} {
     puts "\nError: $result"
     # Symbian OS: Set and increase error count with do_fail procedure (definition in Tester.tcl)
     do_fail $name 
+    print_text $name "FAILED"  
     if {$nErr>$maxErr} {puts "*** Giving up..."; finalize_testing}
   } elseif {[string compare $result $expected]} {
     puts "\nExpected: \[$expected\]\n     Got: \[$result\]"
     # Symbian OS: Set and increase error count with do_fail procedure (definition in Tester.tcl)
     do_fail $name 
+    print_text $name "FAILED"  
     if {$nErr>=$maxErr} {puts "*** Giving up..."; finalize_testing}
   } else {
     puts " Ok"
+    print_text $name "OK"  
   }
   flush stdout
   if {[info exists ::tester_do_binarylog]} {

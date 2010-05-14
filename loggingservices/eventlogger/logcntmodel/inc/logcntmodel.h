@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -65,8 +65,11 @@ public:
 
 /** Interface UID to be used by all contacts model plugin's for log engine
 @internalAll */
-const TUid  KUidEComLogCntInterface = {0x20008029};
-
+#ifdef SYSLIBS_TEST 
+    const TUid  KUidEComLogCntInterface = {0x20008030};
+#else
+    const TUid  KUidEComLogCntInterface = {0x20008029};
+#endif
 /** Provides an interface for ECom plugins
 @internalAll */
 class CLogCntModel: public CBase, public MLogCntModel

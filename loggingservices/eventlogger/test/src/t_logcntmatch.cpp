@@ -23,43 +23,7 @@
 #include <logserv.rsg>
 #include <barsc.h>
 #include "t_logutil2.h"
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//The test uses a test contact database (SQLite__Contacts.cdb), part of LogEng data files.
-//The test contact database contains the follwing contacts:
-//{1, KPhoneNumber, KGivenName,  KFamilyName}
-//{2, KNumber1,     KFirstName1, KLastName1}
-//{3, KNumber2,     KFirstName2, KLastName2}
-//{4, KNumber3,     KFirstName3, KLastName3}
-//{5, KNumber4,     KFirstName4, KLastName4}
-//{6, KNumber4,     KFirstName5, KLastName5}
-//{7, KTestNum,     KFirstName6, KLastName6}
-
-//The records data
-_LIT(KFirstName1, "Barney");
-_LIT(KFirstName2, "Elma");
-_LIT(KFirstName3, "Peter");
-_LIT(KLastName1, "Rubble");
-_LIT(KLastName2, "Fudd");
-_LIT(KLastName3, "Harper");
-_LIT(KNumber1, "447700900000");
-_LIT(KNumber2, "+441632960000");
-_LIT(KNumber3, "07700 900001");
-//_LIT(KFirstName4, "Abc");
-_LIT(KFirstName5, "Rtyu");
-_LIT(KFirstName6, "Zxcvb");
-//_LIT(KLastName4,  "Lkjhgf");
-//_LIT(KLastName5,  "Poiuytqwe");
-_LIT(KLastName6,  "Mnbvcxz");
-_LIT(KNumber4, "447756900111");
-//_LIT(KNumber5, "+441987960222");
-//_LIT(KNumber6, "07700 608101");
-_LIT(KGivenName, "AAA");
-_LIT(KFamilyName, "BBB");
-_LIT(KPhoneNumber, "0123456789");
-_LIT(KTestNum, "1234567890");
+#include "t_logcntmatchplugin.h"
 
 RTest TheTest(_L("t_logcntmatch"));
 
@@ -281,10 +245,10 @@ static void TestContactMatch2L(CLogClient& aClient)
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
 
-	TInt count = KTestNum().Length();
+	TInt count = KNumber6().Length();
 	while(count--)
 		{
-		TPtrC num = KTestNum().Right(KTestNum().Length() - count);
+		TPtrC num = KNumber6().Right(KNumber6().Length() - count);
 		event->SetNumber(num);
 
 		// Add event
@@ -333,7 +297,7 @@ void DEF068087L(CLogClient& aClient)
 	CLogEvent* event = CLogEvent::NewL();
 	CleanupStack::PushL(event);
 	event->SetEventType(KLogCallEventTypeUid);
-	event->SetNumber(KPhoneNumber);
+	event->SetNumber(KNumber7);
 	active->StartL();
 	aClient.AddEvent(*event, active->iStatus);
 	CActiveScheduler::Start();
@@ -343,7 +307,7 @@ void DEF068087L(CLogClient& aClient)
 
 	//Check result
 	TEST(event->Contact() != KLogNullContactId);
-	::CheckContactName(*event, KGivenName, KFamilyName);
+	::CheckContactName(*event, KFirstName7, KLastName7);
 	TEST(event->Flags() & KLogEventContactSearched);
 	
 	//Cleanup
@@ -372,8 +336,9 @@ void doTestsL()
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	
-	//All tests bellow are likely to fail if 101f401d.txt file exists in CentralRepository private data cage
-	//and the contact mach count is set to 0 in that file.
+	//All tests bellow are likely to fail if:
+	// 1. 101f401d.txt file exists in CentralRepository private data cage and the contact mach count is set to 0 in that file.
+	// 2. SYSLIB_TEST macro is not defined.
     TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1392: DEF068087: Chinese names don't display in Chinese name format"));
 	::DEF068087L(*client);
     TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1016: Contacts matching - test1"));

@@ -161,7 +161,8 @@ void CFeatMgrStressTest::DoThreadActionL()
 	{
 	TThreadId id = RThread().Id();
 	TUid uid = {id.Id()};
-	uid.iUid += 500;
+	uid.iUid += 0x1001000;
+
 	// Create the thread info instance that would hold the results for the tests below
 	TThreadTestInfo info;
 	info.iId = uid.iUid;
