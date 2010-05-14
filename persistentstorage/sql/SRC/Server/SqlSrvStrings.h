@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -55,7 +55,7 @@ CONST_LIT16(KSecurityTable16,		"symbian_security");
 CONST_LIT16(KSettingsTable16,		"symbian_settings");
 
 // config consts
-#ifdef SYSLIBS_TEST
+#if defined SYSLIBS_TEST || defined SQL_SOFT_HEAP_LIMIT_TEST
 CONST_LIT16(KSqlSrvDefaultConfigFile, "c:\\test\\t_sqlserver.cfg");
 CONST_LIT16(KSqlSrvDbConfigFileFormat, "c:cfg*");
 #else

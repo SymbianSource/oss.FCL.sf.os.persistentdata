@@ -22,8 +22,6 @@ REM SQLTESTS
 #include <testlocale.iby>
 #include <charconv.iby>
 #include <sql.iby>
-#include <ezlib.iby>
-
 
 //Include the following to enable the ulogger server and the client tool. 
 //This is used to perform tracing using the UTF2
@@ -31,32 +29,32 @@ REM SQLTESTS
 //#include <uloggerclttool.iby>
 //#include <ulogger.iby>
 
-data=ZSYSTEM\test\sqlTests.bat					\TEST\sqlTests.bat
-data=ZSYSTEM\test\contacts_schema_to_vendors.sql	\TEST\contacts_schema_to_vendors.sql
-data=ZSYSTEM\test\add_simple_contacts.sql			\TEST\add_simple_contacts.sql
-data=ZSYSTEM\test\contacts_startup_time.sql			\TEST\contacts_startup_time.sql
-data=ZSYSTEM\test\TestDb1.DB						\TEST\TestDb1.dB
-data=ZSYSTEM\test\CorruptDb.DB						\TEST\CorruptDb.dB
-data=ZSYSTEM\test\t_SqlShortNonDb.db				\TEST\t_SqlShortNonDb.db
-data=ZPRIVATE\10281e17\[21212122]AADb2.db    \PRIVATE\10281e17\[21212122]AADb2.db
-data=ZPRIVATE\10281e17\[21212122]BBDb2.db    \PRIVATE\10281e17\[21212122]BBDb2.db
-data=ZPRIVATE\10281e17\[21212125]T_AB.db    \PRIVATE\10281e17\[21212125]T_AB.db
-data=ZPRIVATE\10281e17\[1111CCCC]T_AB.db    \PRIVATE\10281e17\[1111CCCC]T_AB.db
-data=ZPRIVATE\21212124\t_sqldb1.db    	\PRIVATE\21212124\t_sqldb1.db
-data=ZSYSTEM\test\t_inc095412.db	\TEST\t_inc095412.db
-data=ZPRIVATE\10281e17\[21212125]T_OneDefPolicy.db    \PRIVATE\10281e17\[21212125]T_OneDefPolicy.db
-data=ZSYSTEM\test\default_avacon.dbSQL		\TEST\default_avacon.dbSQL
-data=ZPRIVATE\10281e17\[98765432]t_2defaultpolicies.db    \PRIVATE\10281e17\[98765432]t_2defaultpolicies.db
-data=ZPRIVATE\10281e17\[98765432]t_emptysettings.db    \PRIVATE\10281e17\[98765432]t_emptysettings.db
-data=ZPRIVATE\10281e17\[98765432]t_invobject.db    \PRIVATE\10281e17\[98765432]t_invobject.db
-data=ZPRIVATE\10281e17\[98765432]t_invversion.db    \PRIVATE\10281e17\[98765432]t_invversion.db
-data=ZPRIVATE\10281e17\[98765432]t_longcollation.db    \PRIVATE\10281e17\[98765432]t_longcollation.db
-data=ZPRIVATE\10281e17\[98765432]t_nocollation.db    \PRIVATE\10281e17\[98765432]t_nocollation.db
-data=ZPRIVATE\10281e17\[98765432]t_nodefaultpolicy.db    \PRIVATE\10281e17\[98765432]t_nodefaultpolicy.db
-data=ZPRIVATE\10281e17\[98765432]t_nosettings.db    \PRIVATE\10281e17\[98765432]t_nosettings.db
-data=ZSYSTEM\test\t_sqlbur_backup_ver0.bak				\TEST\t_sqlbur_backup_ver0.bak
-data=ZSYSTEM\test\t_sqlperformance4.sql				\TEST\t_sqlperformance4.sql
+data=DATAZ_\test\sqlTests.bat                            \TEST\sqlTests.bat
 
+data=DATAZ_\test\contacts_schema_to_vendors.sql          \TEST\contacts_schema_to_vendors.sql
+data=DATAZ_\test\add_simple_contacts.sql                 \TEST\add_simple_contacts.sql
+data=DATAZ_\test\contacts_startup_time.sql               \TEST\contacts_startup_time.sql
+data=DATAZ_\test\TestDb1.DB                              \TEST\TestDb1.dB
+data=DATAZ_\test\CorruptDb.DB                            \TEST\CorruptDb.dB
+data=DATAZ_\test\t_SqlShortNonDb.db                      \TEST\t_SqlShortNonDb.db
+data=DATAZ_\test\t_inc095412.db                          \TEST\t_inc095412.db
+data=DATAZ_\test\default_avacon.dbSQL                    \TEST\default_avacon.dbSQL
+data=DATAZ_\test\t_sqlbur_backup_ver0.bak                \TEST\t_sqlbur_backup_ver0.bak
+data=DATAZ_\test\t_sqlperformance4.sql                   \TEST\t_sqlperformance4.sql
+data=ZPRIVATE\10281e17\[21212122]AADb2.db                \PRIVATE\10281e17\[21212122]AADb2.db
+data=ZPRIVATE\10281e17\[21212122]BBDb2.db                \PRIVATE\10281e17\[21212122]BBDb2.db
+data=ZPRIVATE\10281e17\[21212125]T_AB.db                 \PRIVATE\10281e17\[21212125]T_AB.db
+data=ZPRIVATE\10281e17\[1111CCCC]T_AB.db                 \PRIVATE\10281e17\[1111CCCC]T_AB.db
+data=ZPRIVATE\21212124\t_sqldb1.db                       \PRIVATE\21212124\t_sqldb1.db
+data=ZPRIVATE\10281e17\[21212125]T_OneDefPolicy.db       \PRIVATE\10281e17\[21212125]T_OneDefPolicy.db
+data=ZPRIVATE\10281e17\[98765432]t_2defaultpolicies.db   \PRIVATE\10281e17\[98765432]t_2defaultpolicies.db
+data=ZPRIVATE\10281e17\[98765432]t_emptysettings.db      \PRIVATE\10281e17\[98765432]t_emptysettings.db
+data=ZPRIVATE\10281e17\[98765432]t_invobject.db          \PRIVATE\10281e17\[98765432]t_invobject.db
+data=ZPRIVATE\10281e17\[98765432]t_invversion.db         \PRIVATE\10281e17\[98765432]t_invversion.db
+data=ZPRIVATE\10281e17\[98765432]t_longcollation.db      \PRIVATE\10281e17\[98765432]t_longcollation.db
+data=ZPRIVATE\10281e17\[98765432]t_nocollation.db        \PRIVATE\10281e17\[98765432]t_nocollation.db
+data=ZPRIVATE\10281e17\[98765432]t_nodefaultpolicy.db    \PRIVATE\10281e17\[98765432]t_nodefaultpolicy.db
+data=ZPRIVATE\10281e17\[98765432]t_nosettings.db         \PRIVATE\10281e17\[98765432]t_nosettings.db
 
 file=ABI_DIR\BUILD_DIR\T_SQLENVCREATE.EXE	\TEST\T_SQLENVCREATE.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLITE.EXE		\TEST\T_SQLITE.EXE
@@ -80,12 +78,14 @@ file=ABI_DIR\BUILD_DIR\T_SQLSECURITY2.EXE	\TEST\T_SQLSECURITY2.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLSECURITY3.EXE	\TEST\T_SQLSECURITY3.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLSECURITY4.EXE	\TEST\T_SQLSECURITY4.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLSECURITY5.EXE	\TEST\T_SQLSECURITY5.EXE
+file=ABI_DIR\BUILD_DIR\T_SQLSECURITY6.EXE	\TEST\T_SQLSECURITY6.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLATTACH.EXE		\TEST\T_SQLATTACH.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLATTACH2.EXE		\TEST\T_SQLATTACH2.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLPERFORMANCE.EXE	\TEST\T_SQLPERFORMANCE.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLPERFORMANCE2.EXE	\TEST\T_SQLPERFORMANCE2.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLPERFORMANCE3.EXE	\TEST\T_SQLPERFORMANCE3.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLPERFORMANCE4.EXE	\TEST\T_SQLPERFORMANCE4.EXE
+file=ABI_DIR\BUILD_DIR\T_SQLPERFORMANCE5.EXE	\TEST\T_SQLPERFORMANCE5.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLOOD.EXE		\TEST\T_SQLOOD.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLOSLAYER.EXE		\TEST\T_SQLOSLAYER.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLDEFECT.EXE		\TEST\T_SQLDEFECT.EXE
@@ -109,6 +109,7 @@ file=ABI_DIR\BUILD_DIR\T_SQLSTARTUP.EXE 	\TEST\T_SQLSTARTUP.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLDB64.EXE	\TEST\T_SQLDB64.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLFILESRVCRASH1.EXE	\TEST\T_SQLFILESRVCRASH1.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLFILESRVCRASH2.EXE 	\TEST\T_SQLFILESRVCRASH2.EXE
+file=ABI_DIR\BUILD_DIR\T_SQLCORRUPT.EXE 	\TEST\T_SQLCORRUPT.EXE
 file=ABI_DIR\BUILD_DIR\T_SQLENVDESTROY.EXE	\TEST\T_SQLENVDESTROY.EXE
 
 #endif

@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -69,6 +69,14 @@ void DeleteTestFiles()
 	RSqlDatabase::Delete(KTestDbName1);
 	}
 
+void GetHomeTimeAsString(TDes& aStr)
+	{
+	TTime time;
+	time.HomeTime();
+	TDateTime dt = time.DateTime();
+	aStr.Format(_L("%02d:%02d:%02d.%06d"), dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond());
+	}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 //Test macros and functions
@@ -114,6 +122,31 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine, TBool aPrintThreadName = EF
 #define TTEST2(aValue, aExpected) ::Check2(aValue, aExpected, __LINE__, ETrue)
 
 ///////////////////////////////////////////////////////////////////////////////////////
+
+//StatementMaxNumberTest() timeouts in WDP builds.
+//This function is used to check whether the time limit is reaqched or not.
+TBool IsTimeLimitReached()
+	{
+	struct TStartTime
+		{
+		TStartTime()
+			{
+			iTime.HomeTime();
+			}
+		TTime iTime;
+		};
+	
+	static TStartTime startTime; 
+	const TInt KTestTimeLimit = 150;//seconds
+	
+	TTime currTime;
+	currTime.HomeTime();
+	
+	TTimeIntervalSeconds s;
+	TInt err = currTime.SecondsFrom(startTime.iTime, s);
+	TEST2(err, KErrNone);
+	return s.Int() > KTestTimeLimit;
+	}
 
 void CreateTestDir()
     {
@@ -532,10 +565,125 @@ void SqlLoadTest()
 	CloseTestThreads(threads, statuses, KTestThreadCnt);
 	}
 
+/**
+@SYMTestCaseID          PDS-SQL-CT-4201
+@SYMTestCaseDesc        Max number of SQL statements test.
+@SYMTestPriority        High
+@SYMTestActions         The test creates a table with couple of records and then
+						creates as many as possible SQL statements. The expected result is
+						that either the statement creation process will fail with KErrNoMemory or
+						the max number of statements to be created is reached (100000).
+						Then the test deletes 1/2 of the created statements objects and
+						after that attempts to execute Next() on the rest of them.
+						Note that the test has a time limit of 500 seconds. Otherwise on some platforms
+						with WDP feature switched on the test may timeout.
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF145236
+*/  
+void StatementMaxNumberTest()
+	{
+	TBuf<30> time;
+	GetHomeTimeAsString(time);
+	TheTest.Printf(_L("=== %S: Create database\r\n"), &time);
+	
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	RSqlDatabase db;
+	TInt err = db.Create(KTestDbName1);
+	TEST2(err, KErrNone);
+	err = db.Exec(_L("CREATE TABLE A(I INTEGER); INSERT INTO A(I) VALUES(1); INSERT INTO A(I) VALUES(2);"));
+	TEST(err >= 0);
+
+	GetHomeTimeAsString(time);
+	TheTest.Printf(_L("=== %S: Create statements array\r\n"), &time);
+	
+	//Reserve memory for the statement objects
+	const TInt KMaxStmtCount = 100000;
+	RSqlStatement* stmt = new RSqlStatement[KMaxStmtCount];
+	TEST(stmt != NULL);
+
+	//Create as many statement objects as possible
+	TInt idx = 0;
+	err = KErrNone;
+	for(;idx<KMaxStmtCount;++idx)
+		{
+		err = stmt[idx].Prepare(db, _L("SELECT * FROM A WHERE I>=0 AND I<10"));
+		if(err != KErrNone)
+			{
+			break;
+			}
+		if((idx % 100) == 0)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: Create % 5d statements\r\n"), &time, idx + 1);
+			if(IsTimeLimitReached())
+				{
+				TheTest.Printf(_L("=== %S: The time limit reached.\r\n"), &time);
+				++idx;//The idx-th statement is valid, the statement count is idx + 1.
+				break;
+				}
+			}
+		}
+	
+	TInt stmtCnt = idx;
+	TheTest.Printf(_L("%d created statement objects. Last error: %d.\r\n"), stmtCnt, err);
+	TEST(err == KErrNone || err == KErrNoMemory);
+
+	//Close 1/2 of the statements to free some memory
+	idx = 0;
+	for(;idx<(stmtCnt/2);++idx)
+		{
+		stmt[idx].Close();
+		if((idx % 100) == 0)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: % 5d statements closed\r\n"), &time, idx + 1);
+			}
+		}
+	
+	//Now, there should be enough memory to be able to execute Next() on the rest of the statements
+	for(TInt j=0;idx<stmtCnt;++idx,++j)
+		{
+		err = stmt[idx].Next();
+		TEST2(err, KSqlAtRow);
+		err = stmt[idx].Next();
+		TEST2(err, KSqlAtRow);
+		err = stmt[idx].Next();
+		TEST2(err, KSqlAtEnd);
+		if((j % 100) == 0)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: % 5d statements processed\r\n"), &time, j + 1);
+			}
+		if(IsTimeLimitReached())
+			{
+			TheTest.Printf(_L("=== %S: The time limit reached.\r\n"), &time);
+			break;
+			}
+		}
+
+	//Cleanup
+	for(idx=0;idx<stmtCnt;++idx)
+		{
+		stmt[idx].Close();
+		if((idx % 100) == 0)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: % 5d statements closed\r\n"), &time, idx + 1);
+			}
+		}
+	delete [] stmt;
+	db.Close();
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	GetHomeTimeAsString(time);
+	TheTest.Printf(_L("=== %S: Test case end\r\n"), &time);
+	}
+
 void DoTests()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1627-0001 SQL server load test "));
 	SqlLoadTest();
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4201 Statement max number test"));
+	StatementMaxNumberTest();
 	}
 
 TInt E32Main()

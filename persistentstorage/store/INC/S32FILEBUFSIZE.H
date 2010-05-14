@@ -17,7 +17,8 @@
 #define S32FILEBUFSIZE_H
 
 #ifndef DEFAULT_FILE_BUF_SIZE
-	#define DEFAULT_FILE_BUF_SIZE 4096
+    #define DEFAULT_FILE_BUF_SIZE 16384
+
 #else
 	#if DEFAULT_FILE_BUF_SIZE < 1536
 		#error "DEFAULT_FILE_BUF_SIZE macro value can't be less than 1536"
