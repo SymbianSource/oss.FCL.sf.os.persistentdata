@@ -217,10 +217,6 @@ void CSqlSrvStatement::BindL(const RSqlBufFlat& aParamBuf)
 	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	
 	(void)sqlite3SymbianLastOsError();//clear last OS error
-	if(sqlite3_expired(iStmtHandle))
-		{
-		__SQLLEAVE_IF_ERROR(KSqlErrStmtExpired);
-		}
 
 	TSqlBufRIterator it;
 	it.Set(aParamBuf);
@@ -516,10 +512,6 @@ void CSqlSrvStatement::BindParamBufL(TInt aParamIndex)
 	__SQLASSERT(aParamIndex < iParamBufArray.Count(), ESqlPanicBadArgument);
 	__SQLASSERT(iParamBufArray[aParamIndex] != NULL, ESqlPanicBadArgument);
 	(void)sqlite3SymbianLastOsError();//clear last OS error
-	if(sqlite3_expired(iStmtHandle))
-		{
-		__SQLLEAVE_IF_ERROR(KSqlErrStmtExpired);
-		}
 	//Bind the parameter value.
 	//SQLITE_STATIC is used as an argument, because the text/blob data will be kept and can be used by the next bind call
 	HSqlSrvStmtParamBuf& paramBuf = *iParamBufArray[aParamIndex];

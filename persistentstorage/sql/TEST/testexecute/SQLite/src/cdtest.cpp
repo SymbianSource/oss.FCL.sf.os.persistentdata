@@ -18,6 +18,13 @@
 #include "common.h"
 #include<bautils.h>
 
+//Constants taken from SqlSrvConfig.h
+#ifdef __WINSCW__
+		const TInt KDefaultSoftHeapLimitKb = 1024;
+#else
+		const TInt KDefaultSoftHeapLimitKb = 8192;
+#endif	
+
 // Includes any code required for 'Code-Driven' testing, generally tests
 // that cannot be data-driven (or not completely).
 
@@ -476,8 +483,17 @@ void CSQLCDT::ScalarFullSelectL(const TDesC &acfgblk, const TInt acnnum)
                 actual = asfs->SelectIntL(stmt8);
             else
                 actual = asfs->SelectIntL(stmt);
-            TInt expected;
-            conv.Val(expected);
+			
+			TInt expected;	
+			if (res.CompareF(_L("DEFAULT_SOFT_HEAP_LIMIT")) == 0)
+				{
+				expected = KDefaultSoftHeapLimitKb;
+				}
+			else
+				{
+				conv.Val(expected);
+				}
+				
             if( actual != expected )
                 {
                 SetTestStepResult(EFail);

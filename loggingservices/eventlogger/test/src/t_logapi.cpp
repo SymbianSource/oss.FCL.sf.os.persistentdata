@@ -786,7 +786,7 @@ LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	User::After(1000);
 	
 	 //copy the repository file to the folder 10202be9
-	_LIT(KCommandParameters1,		"z:\\system\\data\\101f401d.txt;c:\\private\\10202be9\\101f401d.txt;0");
+	_LIT(KCommandParameters1,		"z:\\test\\101f401d.txt;c:\\private\\10202be9\\101f401d.txt;0");
 	r = process.Create(KExecutableFileName, KCommandParameters1); 
 	process.Resume();
 	process.Close();	 

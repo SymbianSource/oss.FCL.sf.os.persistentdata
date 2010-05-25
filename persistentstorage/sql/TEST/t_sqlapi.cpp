@@ -280,31 +280,41 @@ void OpenCloseDatabaseTest()
 	TEST2(fs.Connect(), KErrNone);
 	TFileName privatePath;
 	TEST2(fs.PrivatePath(privatePath), KErrNone);
-	fs.Close();
 	
 	//Private shared database file on an existing drive (C:). 
 	//Very long database file name.
-	const TInt KMaxFileName2 = KMaxFileName - 40;//"-40" because the SQLITE engine creates a journal file if begins
-	                                             //a transaction. The name of the journal file is 
-	                                             //"<dbFileName>-journal.<ext>". It is obvious that if the 
-	                                             //database file name is too long but still valid and its creation
-	                                             //succeeds, the journal file creation may fail because the journal
-	                                             //file name becomes too long
-	TBuf<KMaxFileName2> dbPath;
+	TBuf<50>filesysname;
+	fs.FileSystemName(filesysname,(TInt) EDriveC);
+    fs.Close();
+
+	RDebug::Print(_L("file system name = %S"), &filesysname);
+	TInt maxFileName = KMaxFileName -40;//"-40" because the SQLITE engine creates a journal file if begins
+	                                                 //a transaction. The name of the journal file is 
+	                                                 //"<dbFileName>-journal.<ext>". It is obvious that if the 
+	                                                 //database file name is too long but still valid and its creation
+	                                                 //succeeds, the journal file creation may fail because the journal
+	                                                 //file name becomes too long
+
+	if(filesysname.CompareF(_L("HVFS")) == 0)
+	    {
+        maxFileName = KMaxFileName -150;//The test will panic in PlatSim when the file name is too long. This line should be removed when platsim team fixes the file system defect.
+	    }
+	HBufC* dbPath = HBufC::NewLC(maxFileName);
 	_LIT(KExt, ".DB");
-	dbPath.Copy(_L("C:"));
-	dbPath.Append(KSecureUid.Name());
-	TInt len = KMaxFileName2 + 1 - (dbPath.Length() + KExt().Length() + privatePath.Length());
+	dbPath->Des().Copy(_L("C:"));
+	dbPath->Des().Append(KSecureUid.Name());
+	TInt len = maxFileName + 1 - (dbPath->Length() + KExt().Length() + privatePath.Length());
+	
 	while(--len)
 		{
-		dbPath.Append(TChar('A'));	
+        dbPath->Des().Append(TChar('A'));	
 		}
-	dbPath.Append(KExt);	
-	TEST(dbPath.Length() == (KMaxFileName2 - privatePath.Length()));
-	rc = db.Create(dbPath, securityPolicy);
-	db.Close();
-	rc2 = RSqlDatabase::Delete(dbPath);
+	dbPath->Des().Append(KExt);	
+	TEST(dbPath->Length() == (maxFileName - privatePath.Length()));	
+	rc = db.Create(dbPath->Des(), securityPolicy);
 	TEST2(rc, KErrNone);
+	db.Close();
+	rc2 = RSqlDatabase::Delete(dbPath->Des());
 	TEST2(rc2, KErrNone);
 	
 	// Private database with config
@@ -320,17 +330,19 @@ void OpenCloseDatabaseTest()
 	
 	//Public shared database file on an existing drive (C:). 
 	//Very long database file name.
-	dbPath.Copy(_L("C:\\TEST\\D"));
-	len = KMaxFileName2 + 1 - (dbPath.Length() + KExt().Length());
+	dbPath->Des().Copy(_L("C:\\TEST\\D"));
+	len = maxFileName + 1 - (dbPath->Length() + KExt().Length());
 	while(--len)
 		{
-		dbPath.Append(TChar('A'));	
+        dbPath->Des().Append(TChar('A'));	
 		}
-	dbPath.Append(KExt);	
-	TEST(dbPath.Length() == KMaxFileName2);
-	rc = db.Create(dbPath);
+	dbPath->Des().Append(KExt);	
+	TEST(dbPath->Length() == maxFileName);
+	rc = db.Create(dbPath->Des());
 	db.Close();
-	rc2 = RSqlDatabase::Delete(dbPath);
+	rc2 = RSqlDatabase::Delete(dbPath->Des());
+	
+	CleanupStack::PopAndDestroy(dbPath);
 	TEST2(rc, KErrNone);
 	TEST2(rc2, KErrNone);
 
@@ -397,6 +409,19 @@ void OpenCloseDatabaseTest()
 	// attempt to set the pragmas and so the corrupt file is undetected
 	TEST(rc==KSqlErrNotDb || rc==KErrNone);
 	db.Close();
+
+	//An attempt to open database with name containing non-convertible characters.
+    TBuf<6> invName;
+    invName.SetLength(6);
+    invName[0] = TChar('c'); 
+    invName[1] = TChar(':'); 
+    invName[2] = TChar('\\'); 
+    invName[3] = TChar(0xD800); 
+    invName[4] = TChar(0xFC00); 
+    invName[5] = TChar(0x0000);
+	rc = db.Open(invName);
+	db.Close();
+	TEST(rc != KErrNone);
 
 	//Copy the corrupted database file on drive C:
 	TEST2(fs.Connect(), KErrNone);
@@ -1081,6 +1106,17 @@ void ColumnTextStreamTest()
 	rc = stmt.Next();
 	TEST2(rc, KSqlAtRow);
 
+	//An attempt to read integer column using binary stream
+	RSqlColumnReadStream strm2;
+	rc = strm2.ColumnBinary(stmt, 0);
+	strm2.Close();
+	TEST2(rc, KErrArgument);
+
+	//An attempt to read integer column using text stream
+	rc = strm2.ColumnText(stmt, 0);
+	strm2.Close();
+	TEST2(rc, KErrArgument);
+	
 	//Read the long text column using a stream
 	RSqlColumnReadStream columnStream;
 	rc = columnStream.ColumnText(stmt, 1);
@@ -2351,6 +2387,48 @@ void DiffCompactModeSize2Test()
 	(void)RSqlDatabase::Delete(KTestDbName1);
 	}
 
+/**
+@SYMTestCaseID			PDS-SQL-CT-4205
+@SYMTestCaseDesc		"PRAGMA count_changes" test.
+						When "count_changes" pragma is ON, sqlite3_step() is called two times by the 
+						SQL server, before getting the SQLITE_DONE return code.
+						Everything else is the same (statement processing, etc.).
+@SYMTestPriority		High
+@SYMTestActions			"PRAGMA count_changes" test.
+@SYMTestExpectedResults Test must not fail
+*/
+void CountChangesTest()
+	{
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	RSqlDatabase db;
+	TInt err = db.Create(KTestDbName1);
+	TEST2(err, KErrNone);
+	err = db.Exec(_L("CREATE TABLE A(I INTEGER)"));
+	TEST(err >= 0);
+	
+	err = db.Exec(_L("PRAGMA count_changes=ON"));
+	TEST(err >= 0);
+	
+	err = db.Exec(_L("INSERT INTO A VALUES(1)"));
+	TEST2(err, 1);
+	
+	err = db.Exec(_L8("INSERT INTO A VALUES(2)"));
+	TEST2(err, 1);
+	
+	RSqlStatement stmt;
+	err = stmt.Prepare(db, _L("DELETE FROM A WHERE I>=1 AND I<=2"));
+	TEST2(err, KErrNone);
+	err = stmt.Exec();
+	TEST2(err, 2);
+	stmt.Close();
+	
+	err = db.Exec(_L("PRAGMA count_changes=OFF"));
+	TEST(err >= 0);
+	
+	db.Close();
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	}
+
 void DoTestsL()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1601 Create/Open/Close database tests "));
@@ -2420,6 +2498,9 @@ void DoTestsL()
 	
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4041 RSqlDatabase::Size(RSqlDatabase::TSize&) - different compaction modes tests"));
 	DiffCompactModeSize2Test();
+
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4205 PRAGMA \"count_changes\" test"));
+	CountChangesTest();
 	}
 
 TInt E32Main()

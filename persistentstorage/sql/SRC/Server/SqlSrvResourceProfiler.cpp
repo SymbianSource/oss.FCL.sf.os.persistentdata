@@ -662,8 +662,8 @@ static void SqlSrvProfileTimePrintf()
         TTime time;
         time.UniversalTime();
         TDateTime dt = time.DateTime();
-        TheSqlSrvProfileTraceBuf8.Format(_L8("[SQL]¬%X¬%ld¬TME¬%02d:%02d:%02d:%06d¬Prep8¬%d¬Prep16¬%d¬Ex8¬%d¬Ex16¬%d"),
-                0, timeDiff, dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond(),
+        TheSqlSrvProfileTraceBuf8.Format(_L8("[SQL]¬\"%X\"¬¬TME¬¬¬¬¬¬¬¬¬¬¬¬%02d:%02d:%02d:%06d¬Prep8¬%d¬Prep16¬%d¬Ex8¬%d¬Ex16¬%d"),
+                timeDiff, dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond(),
                 TheSqlSrvProfilerPreparedCnt8, TheSqlSrvProfilerPreparedCnt16, 
                 TheSqlSrvProfilerExecutedCnt8, TheSqlSrvProfilerExecutedCnt16);
         if(TheSqlSrvProfilerTraceToFile)
@@ -758,19 +758,21 @@ void SqlIpcEnd(TUint aIpcCounter, TUint32 aStartTicks, TSqlSrvFunction aFuncCode
             }
         if(ipcCallIdx >= 0  || (ipcCallIdx == KErrNotFound && TheSqlSrvProfilerTraceLevel == 2))
             {
-            TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬%X¬%ld¬IPC¬%u¬%S¬%ld¬%d¬%d¬%d¬%d¬%d¬%d¬rc¬%d"),  
-                    aDbHandle, 
-                    timeFromStart,
-                    aIpcCounter,
-                    &ipcCallName, 
-                    ttlExecTime, 
-                    executionTime,
-                    count,
-                    TheSqlSrvProfilerFileRead,
-                    TheSqlSrvProfilerFileWrite,
-                    TheSqlSrvProfilerFileSync,
-                    TheSqlSrvProfilerFileSetSize,
-                    aRetCode);
+            TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬\"%X\"¬%ld¬IPC¬%u¬%S¬%ld¬%d¬%d¬%d¬%d¬%d¬%d¬rc¬%d"),  
+														//[SQL]
+                    aDbHandle,							//Database handle
+                    timeFromStart,						//Time from start, microseconds
+														//IPC
+                    aIpcCounter,						//IPC sequence counter for this database (connection)
+                    &ipcCallName,						//IPC call name
+                    ttlExecTime,						//All time spent in this IPC call type for this database (connection)
+                    executionTime,						//This IPC call execution time
+                    count,								//This IPC call sequence counter for this database (connection)
+                    TheSqlSrvProfilerFileRead,			//File read count, performed during this IPC
+                    TheSqlSrvProfilerFileWrite,			//File write count, performed during this IPC
+                    TheSqlSrvProfilerFileSync,			//File flush count, performed during this IPC
+                    TheSqlSrvProfilerFileSetSize,		//File set size count, performed during this IPC
+                    aRetCode);							//IPC call - return code
             SqlSrvProfilePrintf(ESqlSrvProfilerNonSqlTrace);
             }
         }
@@ -788,12 +790,14 @@ void SqlIpcError(TUint aIpcCounter, TSqlSrvFunction aFuncCode, TUint aDbHandle, 
         TPtrC ipcCallName;
         (void)SqlIpcTraceIdxAndName(aFuncCode, ipcCallName); 
         TInt64 timeFromStart = SqlTimeFromStartUs();
-        TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬%X¬%ld¬ERR¬%u¬%S¬err¬%d"), 
-                aDbHandle, 
-                timeFromStart,
-                aIpcCounter,
-                &ipcCallName,
-                aError);
+        TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬\"%X\"¬%ld¬ERR¬%u¬%S¬¬¬¬¬¬¬¬err¬%d"), 
+									//[SQL]
+                aDbHandle,			//Database (connection) handle
+                timeFromStart,		//Time from start, microseconds
+									//ERR
+                aIpcCounter,		//IPC sequence counter for this database (connection)
+                &ipcCallName,		//IPC call name
+                aError);			//IPC call - return code
         SqlSrvProfilePrintf(ESqlSrvProfilerNonSqlTrace);
         }
     }
@@ -823,13 +827,13 @@ void SqlPrintSql16(TUint aDbHandle, const TDesC& aSql, TBool aPrepare)
         _LIT(KEmptyStr,  "");
         if(pos == 0)
             {
-            line.Format(_L("[SQL]¬%X¬%ld¬SQL¬%S¬"), aDbHandle, timeFromStart, aPrepare ? &KPrepare : &KExec);
+            line.Format(_L("[SQL]¬\"%X\"¬%ld¬SQL¬¬%S¬¬¬¬¬¬¬¬¬¬"), aDbHandle, timeFromStart, aPrepare ? &KPrepare : &KExec);
             }
         else
             {
             if(!TheSqlSrvProfilerTraceToFile)
                 {
-                line.Format(_L("[SQL]¬%X¬%ld¬SQL¬%S¬"), aDbHandle, timeFromStart, &KEmptyStr);
+                line.Format(_L("[SQL]¬\"%X\"¬%ld¬SQL¬¬%S¬¬¬¬¬¬¬¬¬¬"), aDbHandle, timeFromStart, &KEmptyStr);
                 }
             }
         TInt l = Min(len, (line.MaxLength() - line.Length()));
@@ -868,13 +872,13 @@ void SqlPrintSql8(TUint aDbHandle, const TDesC8& aSql, TBool aPrepare)
         _LIT(KEmptyStr,  "");
         if(pos == 0)
             {
-            line.Format(_L("[SQL]¬%X¬%ld¬SQL¬%S¬"), aDbHandle, timeFromStart, aPrepare ? &KPrepare : &KExec);
+            line.Format(_L("[SQL]¬\"%X\"¬%ld¬SQL¬¬%S¬¬¬¬¬¬¬¬¬¬"), aDbHandle, timeFromStart, aPrepare ? &KPrepare : &KExec);
             }
         else
             {
             if(!TheSqlSrvProfilerTraceToFile)
                 {
-                line.Format(_L("[SQL]¬%X¬%ld¬SQL¬%S¬"), aDbHandle, timeFromStart, &KEmptyStr);
+                line.Format(_L("[SQL]¬\"%X\"¬%ld¬SQL¬¬%S¬¬¬¬¬¬¬¬¬¬"), aDbHandle, timeFromStart, &KEmptyStr);
                 }
             }
         TInt l = Min(len, (line.MaxLength() - line.Length()));
@@ -904,7 +908,7 @@ void SqlPrintDbCreate(TUint aDbHandle, const TDesC& aDbName)
             return;
             }
         TInt64 timeFromStart = SqlTimeFromStartUs();
-        TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬%X¬%ld¬CRE¬%S"), 
+        TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬\"%X\"¬%ld¬CRE¬¬¬¬¬¬¬¬¬¬¬¬%S"), 
                 aDbHandle, 
                 timeFromStart,
                 &aDbName);
@@ -926,7 +930,7 @@ void SqlPrintDbOpen(TUint aDbHandle, const TDesC& aDbName)
             return;
             }
         TInt64 timeFromStart = SqlTimeFromStartUs();
-        TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬%X¬%ld¬OPN¬%S"), 
+        TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬\"%X\"¬%ld¬OPN¬¬¬¬¬¬¬¬¬¬¬¬%S"), 
                 aDbHandle, 
                 timeFromStart,
                 &aDbName);
@@ -944,7 +948,7 @@ void SqlPrintDbClose(TUint aDbHandle)
             return;
             }
         TInt64 timeFromStart = SqlTimeFromStartUs();
-        TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬%X¬%ld¬CSE"),  
+        TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬\"%X\"¬%ld¬CSE"),  
                 aDbHandle, 
                 timeFromStart);
         SqlSrvProfilePrintf(ESqlSrvProfilerNonSqlTrace);
@@ -986,7 +990,7 @@ void SqlPrintServerStart()
             RDebug::Print(_L("SQL trace file creation failed with err=%d"), err);
             }
         }
-    TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬%X¬%ld¬SRV¬START"), 0, timeFromStart); 
+    TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬¬%ld¬SRV¬¬Start"), timeFromStart); 
     SqlSrvProfilePrintf(ESqlSrvProfilerNonSqlTrace);
     }
 
@@ -994,7 +998,7 @@ void SqlPrintServerStart()
 void SqlPrintServerStop()
     {
     TInt64 timeFromStart = SqlTimeFromStartUs();
-    TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬%X¬%ld¬SRV¬STOP"), 0, timeFromStart); 
+    TheSqlSrvProfileTraceBuf.Format(_L("[SQL]¬¬%ld¬SRV¬¬Stop"), timeFromStart); 
     SqlSrvProfilePrintf(ESqlSrvProfilerNonSqlTrace);
     if(TheSqlSrvProfilerTraceToFile)
         {

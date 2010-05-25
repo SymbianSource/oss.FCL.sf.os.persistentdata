@@ -20,6 +20,7 @@
 */
 
 PRJ_EXPORTS
+
 ../LogWrap/inc/LOGWRAP.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logwrap.h)
 ../LogWrap/inc/LOGWRAPCONST.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logwrapconst.h)
 ../LogWrap/inc/LOGWRAPLIMITS.H SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(logwraplimits.h)
@@ -51,6 +52,7 @@ backup_registration.xml z:/private/101f401d/backup_registration.xml
 ../conf/eventlogger_101f401d.crml	        OS_LAYER_EXPORTS_CRML(eventlogger_101f401d.crml)
 
 PRJ_MMPFILES
+
 LOGWRAP.MMP
 logstub.mmp
 logserv.mmp
@@ -58,14 +60,17 @@ LOGCLI.MMP
 logcntmodel.mmp
 
 PRJ_TESTEXPORTS
-../Rom/logengtest.iby				/epoc32/rom/include/logengtest.iby
-../group/logengtests.bat			/epoc32/data/z/system/test/logengtests.bat
-../test/contacttestmanualpost.bat	/epoc32/data/z/system/test/contacttestmanualpost.bat
-../test/contacttestmanualpre.bat	/epoc32/data/z/system/test/contacttestmanualpre.bat
-../test/logservcntmatch.rsc			/epoc32/data/z/system/test/logservcntmatch.rsc
 
+../Rom/logengtest.iby                   /epoc32/rom/include/logengtest.iby
+../group/logengtests.bat                z:/test/logengtests.bat
+
+../test/src/oldLogdbu.dat               z:/test/oldLogdbu.dat
+../test/src/corruptLogdbu.dat           z:/test/corruptLogdbu.dat
+../test/src/corruptDamagedLogdbu.dat    z:/test/corruptDamagedLogdbu.dat
+../test/101f401d.txt                    z:/test/101f401d.txt
 
 PRJ_TESTMMPFILES
+
 ../test/t_logtype.mmp
 ../test/t_logapi.mmp
 ../test/t_logapi2.mmp
@@ -96,13 +101,9 @@ PRJ_TESTMMPFILES
 ../test/t_logsecureview_hicap.mmp
 ../test/T_LogSecurity.mmp
 ../test/t_logservIPC.mmp
-../test/t_logapi_helper.mmp			support
+../test/t_logapi_helper.mmp		support
 ../test/t_logcompat.mmp
 ../test/t_logsimid.mmp
 ../test/t_logcntmatchplugin.mmp		support
-
-PRJ_TESTEXTENSIONS
-start extension syslibs/test/logeng_copytestfiles
-end
 
 #include "../test/tef/group/bld.inf"

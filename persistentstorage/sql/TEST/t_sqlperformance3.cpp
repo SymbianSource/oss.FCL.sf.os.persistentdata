@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -17,6 +17,7 @@
 #include <bautils.h>
 #include <hal.h>
 #include <sqldb.h>
+#include "t_sqlcmdlineutil.h"
 
 RTest 			TheTest(_L("t_sqlperformance3 test"));
 RSqlDatabase 	TheDb;
@@ -24,9 +25,12 @@ RSqlDatabase 	TheDb;
 _LIT(KDbName, 	"c:\\test\\t_sqlperformance3.db");
 
 TFileName		TheDbFileName;
-TBuf<256>  		TheCmd;
-TDriveName 		TheDriveName;
-TParse     		TheParse;
+TBuf<200> 		TheTestTitle;
+TCmdLineParams 	TheCmdLineParams(TCmdLineParams::EDbUtf16, 4096, 10000);
+TBuf8<200> 		TheSqlConfigString;
+
+_LIT(KUtf8,  "UTF8 ");
+_LIT(KUtf16, "UTF16");
 
 TInt TheFastCounterFreq = 0;
 
@@ -156,14 +160,13 @@ TInt TheHarvestUpdateObjTime = 0;
 
 void DoCreateDbFile()
 	{
-	_LIT8(KConfig, "page_size=4096;cache_size=10000;");
 	TUint32 fc1 = User::FastCounter();
-    TInt err = TheDb.Create(TheDbFileName, &KConfig);
+    TInt err = TheDb.Create(TheDbFileName, &TheSqlConfigString);
     if(err != KErrNone)
     	{
     	if(err == KErrAlreadyExists)
     		{
-    		err = TheDb.Open(TheDbFileName, &KConfig);
+    		err = TheDb.Open(TheDbFileName, &TheSqlConfigString);
     		if(err == KErrNone)
     			{
     			TUint32 fc2 = User::FastCounter();
@@ -1080,18 +1083,18 @@ void DoTestsL()
 	{
 	CalcIterationsCount();
 	
-	TheTest.Start(_L("@SYMTestCaseID:PDS-SQL-UT-4149 Create database"));
+	TheTestTitle.Format(_L("@SYMTestCaseID:PDS-SQL-UT-4149 Create database, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Start(TheTestTitle);
 	CreateDb();
 
-	TBuf<80> buf;
-	buf.Format(_L("@SYMTestCaseID:PDS-SQL-UT-4150 Harvest %d items"), KItemCnt);
-	TheTest.Next(buf);
+	TheTestTitle.Format(_L("@SYMTestCaseID:PDS-SQL-UT-4150 Harvest %d items, encoding: \"%S\", page size: %d\r\n"), 
+			KItemCnt, TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Next(TheTestTitle);
 	Harvest();
 	
 	PrintResults();
 	}
-
-//Usage: "t_sqlperformance3 [<drive letter>:]"
 
 TInt E32Main()
 	{
@@ -1101,17 +1104,11 @@ TInt E32Main()
 	TheTest(tc != NULL);
 	
 	__UHEAP_MARK;
-	
-	User::CommandLine(TheCmd);
-	TheCmd.TrimAll();
-	if(TheCmd.Length() > 0)
-		{
-		TheDriveName.Copy(TheCmd);
-		}
-	TheParse.Set(TheDriveName, &KDbName, 0);
-	const TDesC& dbFilePath = TheParse.FullName();
-	TheDbFileName.Copy(dbFilePath);
-	TheTest.Printf(_L("==Database file name: %S\r\n"), &TheDbFileName);
+
+	GetCmdLineParamsAndSqlConfigString(TheTest, _L("t_sqlperformance3"), TheCmdLineParams, TheSqlConfigString);
+	PrepareDbName(KDbName, TheCmdLineParams.iDriveName, TheDbFileName);
+
+	TheTest.Printf(_L("==Databases: %S\r\n"), &TheDbFileName); 
 	
 	TestEnvDestroy();
 	TestEnvInit();

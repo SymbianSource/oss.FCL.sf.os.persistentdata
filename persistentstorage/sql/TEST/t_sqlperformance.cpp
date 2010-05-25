@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -19,6 +19,7 @@
 #include <hal.h>
 #include <stdlib.h>
 #include <sqldb.h>
+#include "t_sqlcmdlineutil.h"
 #include "SqlSrvStrings.h"
 #include "sqlite3.h"
 #include "SqliteSymbian.h"
@@ -27,29 +28,18 @@
 
 RTest TheTest(_L("t_sqlperformance test"));
 RFs   TheFs;
-
 TBuf<200> TheTestTitle;
-TBuf<256> TheCmd;
-TParse TheParse;
-TBuf<8> TheDriveName;
+TCmdLineParams TheCmdLineParams;
+TBuf8<200> TheSqlConfigString;
 
-_LIT8(KDbEncodingUtf8, "encoding=UTF-8");
-_LIT(KDbEncodingUtf8text,  "UTF8  encoded db");
-_LIT(KDbEncodingUtf16text, "UTF16 encoded db");
+_LIT(KUtf8,  "UTF8 ");
+_LIT(KUtf16, "UTF16");
 
 TFileName TheSecureDbName;
 TFileName TheNonSecureDbName;
 TFileName TheNonSecureDbName2;
 TFileName TheNonSecureTmpDbName;
 TFileName TheSglRecDbFileName;
-
-enum TDbEncoding
-	{
-	EDbUtf8,
-	EDbUtf16
-	};
-	
-TDbEncoding TheDbEncoding;
 
 _LIT(KSqlServerPrivateDir, "\\private\\10281e17\\");
 
@@ -157,9 +147,10 @@ template <class HBUFC> HBUFC* ReadSqlScript(const TDesC& aSqlFileName)
 
 	file.Close();
 	
-	HBUFC* sql2 = HBUFC::New(size);
+	HBUFC* sql2 = HBUFC::New(size + 1);
 	TEST(sql2 != NULL);
 	sql2->Des().Copy(sql->Des());
+	sql2->Des().Append(TChar(0));
 	delete sql;
 	
 	return sql2;
@@ -249,7 +240,7 @@ public:
 		{
 		RSqlDatabase::Delete(aDbName);
 		RSqlDatabase db;
-		TInt err = db.Create(aDbName, TheDbEncoding == EDbUtf16 ? NULL : &KDbEncodingUtf8);
+		TInt err = db.Create(aDbName, &TheSqlConfigString);
 		TEST2(err, KErrNone);
 		CreateDbSchema(db);
 		db.Close();
@@ -277,7 +268,7 @@ public:
 		securityPolicy.SetDbPolicy(RSqlSecurityPolicy::EWritePolicy, TSecurityPolicy(ECapabilityWriteUserData));
 		securityPolicy.SetDbPolicy(RSqlSecurityPolicy::EReadPolicy, TSecurityPolicy(ECapabilityReadUserData));
 		RSqlDatabase db;
-		err = db.Create(aDbName, securityPolicy, TheDbEncoding == EDbUtf16 ? NULL : &KDbEncodingUtf8);
+		err = db.Create(aDbName, securityPolicy, &TheSqlConfigString);
 		TEST2(err, KErrNone);	
 		securityPolicy.Close();
 		CreateDbSchema(db);
@@ -505,7 +496,7 @@ template void PerformanceTest<HBufC16, TPtrC16, TDesC16, ESecureDb>(const TDesC&
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Template class offering Create() and Open() methods for creating/opening a sqlite3 handle.
-template <TDbEncoding TYPE> class TDbHelper2
+template <TCmdLineParams::TDbEncoding TYPE> class TDbHelper2
 	{
 public:	
 	static void Create(const TDesC& aDbName);
@@ -543,7 +534,7 @@ TInt ReportIfError(sqlite3* aDbHandle, TInt aErr)
 	}
 
 //Explicit TDbHelper2 class specialization for creating/opening a database with UTF8 default encoding
-template <> class TDbHelper2<EDbUtf8>
+template <> class TDbHelper2<TCmdLineParams::EDbUtf8>
 	{
 public:	
 	static void Create(const TDesC& aDbFileName)
@@ -581,7 +572,7 @@ public:
 	};
 
 //Explicit TDbHelper2 class specialization for creating/opening a database with UTF16 default encoding
-template <> class TDbHelper2<EDbUtf16>
+template <> class TDbHelper2<TCmdLineParams::EDbUtf16>
 	{
 public:	
 	static void Create(const TDesC& aDbFileName)
@@ -814,7 +805,7 @@ template <> void UpdateWPTest2<TDesC8>(const TDesC& aDbName, const TDesC8& aUpda
 	fmtstr.Copy(aUpdateSql);
 
 	sqlite3SymbianLibInit();
-	sqlite3* dbHandle = TDbHelper2<EDbUtf8>::Open(aDbName);
+	sqlite3* dbHandle = TDbHelper2<TCmdLineParams::EDbUtf8>::Open(aDbName);
 	
 	TUint32 start = User::FastCounter();
 	for(TInt id=1;id<=KTestTecordCount;++id)
@@ -842,7 +833,7 @@ template <> void UpdateWPTest2<TDesC16>(const TDesC& aDbName, const TDesC16& aUp
 	TheTest.Printf(_L("\"Update (without parameters)\" test\r\n"));
 
 	sqlite3SymbianLibInit();
-	sqlite3* dbHandle = TDbHelper2<EDbUtf16>::Open(aDbName);
+	sqlite3* dbHandle = TDbHelper2<TCmdLineParams::EDbUtf16>::Open(aDbName);
 	
 	TUint32 start = User::FastCounter();
 	for(TInt id=1;id<=KTestTecordCount;++id)
@@ -998,7 +989,8 @@ template <> void DeleteTest2<HBufC16, TDesC16>(sqlite3* aDbHandle, const TDesC16
 	delete sql;
 	}
 
-template <TDbEncoding TYPE, class HBUFC, class PTRC, class DESC> void PerformanceTest2(const TDesC& aDbFileName, 
+template <TCmdLineParams::TDbEncoding TYPE, class HBUFC, class PTRC, class DESC> void PerformanceTest2(
+																					   const TDesC& aDbFileName, 
 																					   const DESC& aCommitStr,
 																					   const DESC& aUpdateSql,
 																					   const DESC& aSelectSql,
@@ -1039,10 +1031,10 @@ template <TDbEncoding TYPE, class HBUFC, class PTRC, class DESC> void Performanc
 	delete fm;
 	}
 //Explicit PerformanceTest2() template instantiations.
-template void PerformanceTest2<EDbUtf8, HBufC8, TPtrC8, TDesC8>(const TDesC&, const TDesC8&, const TDesC8&, const TDesC8&, const TDesC8&);
-template void PerformanceTest2<EDbUtf16, HBufC8, TPtrC8, TDesC8>(const TDesC&, const TDesC8&, const TDesC8&, const TDesC8&, const TDesC8&);
-template void PerformanceTest2<EDbUtf8, HBufC16, TPtrC16, TDesC16>(const TDesC&, const TDesC16&, const TDesC16&, const TDesC16&, const TDesC16&);
-template void PerformanceTest2<EDbUtf16, HBufC16, TPtrC16, TDesC16>(const TDesC&, const TDesC16&, const TDesC16&, const TDesC16&, const TDesC16&);
+template void PerformanceTest2<TCmdLineParams::EDbUtf8, HBufC8, TPtrC8, TDesC8>(const TDesC&, const TDesC8&, const TDesC8&, const TDesC8&, const TDesC8&);
+template void PerformanceTest2<TCmdLineParams::EDbUtf16, HBufC8, TPtrC8, TDesC8>(const TDesC&, const TDesC8&, const TDesC8&, const TDesC8&, const TDesC8&);
+template void PerformanceTest2<TCmdLineParams::EDbUtf8, HBufC16, TPtrC16, TDesC16>(const TDesC&, const TDesC16&, const TDesC16&, const TDesC16&, const TDesC16&);
+template void PerformanceTest2<TCmdLineParams::EDbUtf16, HBufC16, TPtrC16, TDesC16>(const TDesC&, const TDesC16&, const TDesC16&, const TDesC16&, const TDesC16&);
 
 void ColumnValueAccessTest()
 	{
@@ -1056,7 +1048,7 @@ void ColumnValueAccessTest()
 	
 	//Create a test database
 	RSqlDatabase db;
-	TInt err = db.Create(TheNonSecureDbName2);		
+	TInt err = db.Create(TheNonSecureDbName2, &TheSqlConfigString);
 	TEST2(err, KErrNone);
 	_LIT(KCreateSql, "CREATE TABLE A(%S INTEGER, %S INTEGER, %S INTEGER, %S INTEGER)");
 	sql.Format(KCreateSql, &colNames[0], &colNames[1], &colNames[2], &colNames[3]);
@@ -1259,57 +1251,50 @@ void DoTests()
 	TheTest.Printf(_L("Single \"delete\" test\r\n"));
 	SingleDeleteTest();
 	
-	TheTestTitle.Copy(_L("SERVER, UTF8 SQL strings, non-secure, "));
-	TheTestTitle.Append(TheDbEncoding == EDbUtf16 ? KDbEncodingUtf16text : KDbEncodingUtf8text);
-	TheTestTitle.Append(_L("\r\n"));
+	TheTestTitle.Format(_L("SERVER, UTF8 SQL strings, non-secure, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
 	TheTest.Printf(TheTestTitle);
 	PerformanceTest<HBufC8, TPtrC8, TDesC8, ENonSecureDb>(TheNonSecureDbName, KCommitStr8(), KUpdateSql8(), KSelectSql8(), KDeleteSql8());
 
-	TheTestTitle.Copy(_L("SERVER, UTF8 SQL strings, non-secure, "));
-	TheTestTitle.Append(TheDbEncoding == EDbUtf16 ? KDbEncodingUtf16text : KDbEncodingUtf8text);
-	TheTestTitle.Append(_L(", update test (without parameters)"));
-	TheTestTitle.Append(_L("\r\n"));
+	TheTestTitle.Format(_L("SERVER, UTF8 SQL strings, non-secure, update test (without parameters), encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
 	TheTest.Printf(TheTestTitle);
 	UpdateWPTest<TBuf8<200>, TDesC8, ENonSecureDb>(TheNonSecureDbName, KUpdateSql2_8());
 
-	TheTestTitle.Copy(_L("SERVER, UTF8 SQL strings, secure, "));
-	TheTestTitle.Append(TheDbEncoding == EDbUtf16 ? KDbEncodingUtf16text : KDbEncodingUtf8text);
-	TheTestTitle.Append(_L("\r\n"));
+	TheTestTitle.Format(_L("SERVER, UTF8 SQL strings, secure, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
 	TheTest.Printf(TheTestTitle);
 	PerformanceTest<HBufC8, TPtrC8, TDesC8, ESecureDb>(TheSecureDbName, KCommitStr8(), KUpdateSql8(), KSelectSql8(), KDeleteSql8());
 
 	TheTest.Printf(_L("SQLITE, UTF8 encoded database, UTF8 SQL strings\r\n"));
-	PerformanceTest2<EDbUtf8, HBufC8, TPtrC8, TDesC8>(TheNonSecureDbName, KCommitStr8(), KUpdateSql8(), KSelectSql8(), KDeleteSql8());
+	PerformanceTest2<TCmdLineParams::EDbUtf8, HBufC8, TPtrC8, TDesC8>(TheNonSecureDbName, KCommitStr8(), KUpdateSql8(), KSelectSql8(), KDeleteSql8());
 
 	TheTest.Printf(_L("SQLITE, UTF8 encoded database, UTF8 SQL strings, update test (without parameters)\r\n"));
 	UpdateWPTest2<TDesC8>(TheNonSecureDbName, KUpdateSql2_8());
 
 	TheTest.Printf(_L("SQLITE, UTF16 encoded database, UTF8 SQL strings\r\n"));
-	PerformanceTest2<EDbUtf16, HBufC8, TPtrC8, TDesC8>(TheNonSecureDbName, KCommitStr8(), KUpdateSql8(), KSelectSql8(), KDeleteSql8());
+	PerformanceTest2<TCmdLineParams::EDbUtf16, HBufC8, TPtrC8, TDesC8>(TheNonSecureDbName, KCommitStr8(), KUpdateSql8(), KSelectSql8(), KDeleteSql8());
 
-	TheTestTitle.Copy(_L("SERVER, UTF16 SQL strings, non-secure, "));
-	TheTestTitle.Append(TheDbEncoding == EDbUtf16 ? KDbEncodingUtf16text : KDbEncodingUtf8text);
-	TheTestTitle.Append(_L("\r\n"));
+	TheTestTitle.Format(_L("SERVER, UTF16 SQL strings, non-secure, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
 	TheTest.Printf(TheTestTitle);
 	PerformanceTest<HBufC16, TPtrC16, TDesC16, ENonSecureDb>(TheNonSecureDbName, KCommitStr16(), KUpdateSql16(), KSelectSql16(), KDeleteSql16());
 	
-	TheTestTitle.Copy(_L("SERVER, UTF16 SQL strings, non-secure, "));
-	TheTestTitle.Append(TheDbEncoding == EDbUtf16 ? KDbEncodingUtf16text : KDbEncodingUtf8text);
-	TheTestTitle.Append(_L(", update test (without parameters)\r\n"));
+	TheTestTitle.Format(_L("SERVER, UTF16 SQL strings, non-secure, update test (without parameters), encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
 	TheTest.Printf(TheTestTitle);
 	UpdateWPTest<TBuf16<200>, TDesC16, ENonSecureDb>(TheNonSecureDbName, KUpdateSql2_16());
 
-	TheTestTitle.Copy(_L("SERVER, UTF16 SQL strings, secure, "));
-	TheTestTitle.Append(TheDbEncoding == EDbUtf16 ? KDbEncodingUtf16text : KDbEncodingUtf8text);
-	TheTestTitle.Append(_L("\r\n"));
+	TheTestTitle.Format(_L("SERVER, UTF16 SQL strings, secure, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
 	TheTest.Printf(TheTestTitle);
 	PerformanceTest<HBufC16, TPtrC16, TDesC16, ESecureDb>(TheSecureDbName, KCommitStr16(), KUpdateSql16(), KSelectSql16(), KDeleteSql16());
 
 	TheTest.Printf(_L("SQLITE, UTF8 encoded database, UTF16 SQL strings\r\n"));
-	PerformanceTest2<EDbUtf8, HBufC16, TPtrC16, TDesC16>(TheNonSecureDbName, KCommitStr16(), KUpdateSql16(), KSelectSql16(), KDeleteSql16());
+	PerformanceTest2<TCmdLineParams::EDbUtf8, HBufC16, TPtrC16, TDesC16>(TheNonSecureDbName, KCommitStr16(), KUpdateSql16(), KSelectSql16(), KDeleteSql16());
 
 	TheTest.Printf(_L("SQLITE, UTF16 encoded database, UTF16 SQL strings\r\n"));
-	PerformanceTest2<EDbUtf16, HBufC16, TPtrC16, TDesC16>(TheNonSecureDbName, KCommitStr16(), KUpdateSql16(), KSelectSql16(), KDeleteSql16());
+	PerformanceTest2<TCmdLineParams::EDbUtf16, HBufC16, TPtrC16, TDesC16>(TheNonSecureDbName, KCommitStr16(), KUpdateSql16(), KSelectSql16(), KDeleteSql16());
 
 	TheTest.Printf(_L("SQLITE, UTF16 encoded database, UTF16 SQL strings, update test (without parameters)\r\n"));
 	UpdateWPTest2<TDesC16>(TheNonSecureDbName, KUpdateSql2_16());
@@ -1322,85 +1307,32 @@ void DoTests()
 
 	}
 
-//Usage: "t_sqlperformance [[-16/-8] [<drive letter>:]]"
-
 TInt E32Main()
 	{
 	TheTest.Title();
 
 	CTrapCleanup* tc = CTrapCleanup::New();
+	TheTest(tc != NULL);
 
-	TheDbEncoding = EDbUtf16;
-
-	User::CommandLine(TheCmd);
-	TheCmd.TrimAll();
-	if(TheCmd.Length() > 0)
-		{
-		TPtrC prm1(KNullDesC);
-		TPtrC prm2(KNullDesC);
-		TInt pos = TheCmd.Locate(TChar(' '));
-		if(pos > 0)
-			{
-			prm1.Set(TheCmd.Left(pos));
-			prm2.Set(TheCmd.Mid(pos + 1));
-			}
-		else
-			{
-			prm1.Set(TheCmd);
-			}
-		if(prm1.Compare(_L("-8")) == 0)
-			{
-			TheDbEncoding = EDbUtf8;
-			TheDriveName.Copy(prm2);
-			}
-		else if(prm2.Compare(_L("-8")) == 0)
-			{
-			TheDbEncoding = EDbUtf8;
-			TheDriveName.Copy(prm1);
-			}
-		else if(prm1.Compare(_L("-16")) == 0)
-			{
-			TheDbEncoding = EDbUtf16;
-			TheDriveName.Copy(prm2);
-			}
-		else if(prm2.Compare(_L("-16")) == 0)
-			{
-			TheDbEncoding = EDbUtf16;
-			TheDriveName.Copy(prm1);
-			}
-		}
-
-	//Construct test database file names	
+	GetCmdLineParamsAndSqlConfigString(TheTest, _L("t_sqlperformance"), TheCmdLineParams, TheSqlConfigString);
 	_LIT(KSecureDbName, "c:[2121212A]t_perfdb.db");
-	TheParse.Set(TheDriveName, &KSecureDbName, 0);
-	const TDesC& dbFilePath1 = TheParse.FullName();
-	TheSecureDbName.Copy(dbFilePath1);
-	
+	PrepareDbName(KSecureDbName, TheCmdLineParams.iDriveName, TheSecureDbName);
 	_LIT(KNonSecureDbName, "c:\\test\\t_perfdb.db");
-	TheParse.Set(TheDriveName, &KNonSecureDbName, 0);
-	const TDesC& dbFilePath2 = TheParse.FullName();
-	TheNonSecureDbName.Copy(dbFilePath2);
-	
+	PrepareDbName(KNonSecureDbName, TheCmdLineParams.iDriveName, TheNonSecureDbName);
 	_LIT(KNonSecureDbName2, "c:\\test\\t_perfdb2.db");
-	TheParse.Set(TheDriveName, &KNonSecureDbName2, 0);
-	const TDesC& dbFilePath3 = TheParse.FullName();
-	TheNonSecureDbName2.Copy(dbFilePath3);
-
+	PrepareDbName(KNonSecureDbName2, TheCmdLineParams.iDriveName, TheNonSecureDbName2);
 	_LIT(KNonSecureTmpDbName, "c:\\test\\tmp.db");
-	TheParse.Set(TheDriveName, &KNonSecureTmpDbName, 0);
-	const TDesC& dbFilePath4 = TheParse.FullName();
-	TheNonSecureTmpDbName.Copy(dbFilePath4);
-	
+	PrepareDbName(KNonSecureTmpDbName, TheCmdLineParams.iDriveName, TheNonSecureTmpDbName);
 	_LIT(KSglRecDbName, "c:\\test\\default_avacon.dbSQL");
-	TheParse.Set(TheDriveName, &KSglRecDbName, 0);
-	const TDesC& dbFilePath5 = TheParse.FullName();
-	TheSglRecDbFileName.Copy(dbFilePath5);
+	PrepareDbName(KSglRecDbName, TheCmdLineParams.iDriveName, TheSglRecDbFileName);
+
+	TheTest.Printf(_L("==Databases: %S, %S, %S, %S, %S\r\n"), &TheSecureDbName, &TheNonSecureDbName, 
+															  &TheNonSecureDbName2, &TheNonSecureTmpDbName, 
+															  &TheSglRecDbFileName);
 	
 	__UHEAP_MARK;
 	
 	TestEnvInit();
-	TheTest.Printf(_L("==Databases: %S, %S, %S, %S, %S\r\n"), &TheSecureDbName, &TheNonSecureDbName, 
-															  &TheNonSecureDbName2, &TheNonSecureTmpDbName, &TheSglRecDbFileName);
 	DoTests();
 	TestEnvDestroy();
 

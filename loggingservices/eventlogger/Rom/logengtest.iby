@@ -61,11 +61,13 @@ file=ABI_DIR\BUILD_DIR\t_logapi_helper.exe		Test\t_logapi_helper.exe
 file=ABI_DIR\BUILD_DIR\t_logcompat.exe	Test\t_logcompat.exe
 file=ABI_DIR\BUILD_DIR\t_logsimid.exe	Test\t_logsimid.exe
 
-data=ZSYSTEM\test\logengtests.bat		Test\logengtests.bat
-data=ZSYSTEM\data\oldLogdbu.dat			system\data\oldLogdbu.dat
-data=ZSYSTEM\data\corruptLogdbu.dat		system\data\corruptLogdbu.dat
-data=ZSYSTEM\data\corruptDamagedLogdbu.dat	system\data\corruptDamagedLogdbu.dat
-data=ZSYSTEM\data\101f401d.txt			system\data\101f401d.txt
+data=DATAZ_\test\logengtests.bat          Test\logengtests.bat
+
+data=DATAZ_\test\oldLogdbu.dat            Test\oldLogdbu.dat
+data=DATAZ_\test\corruptLogdbu.dat        Test\corruptLogdbu.dat
+data=DATAZ_\test\corruptDamagedLogdbu.dat Test\corruptDamagedLogdbu.dat
+data=DATAZ_\test\101f401d.txt             Test\101f401d.txt
+
 //The next line to be uncommented if the testing is performed locally. Otherwise t_logview2 fails - 
 //the following file is missing and needed by the time zone server.
 //data=ZPRIVATE\10202BE9\1020383e.txt     private\10202be9\1020383e.txt

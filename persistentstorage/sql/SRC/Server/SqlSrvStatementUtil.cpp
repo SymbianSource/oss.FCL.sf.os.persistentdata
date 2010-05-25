@@ -203,6 +203,7 @@ TInt CreateDbHandle8(const TDesC8& aFileNameZ, sqlite3*& aDbHandle)
 static TInt DoSingleStmtExec16(sqlite3 *aDbHandle, const TDesC16& aSql)
 	{
 	__SQLASSERT(aDbHandle != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT(aSql.Length() > 0 ? (TInt)aSql[aSql.Length() - 1] == 0 : ETrue, ESqlPanicBadArgument);
 	sqlite3_stmt* stmtHandle = NULL;
 	const void* stmtTail = NULL;
     //sqlite3_prepare16_v2() expects parameter #3 to be one of the following:
@@ -223,11 +224,7 @@ static TInt DoSingleStmtExec16(sqlite3 *aDbHandle, const TDesC16& aSql)
 				__SQLASSERT(err != SQLITE_OK, ESqlPanicInternalError);
 				}
 			}
-		TInt err2 = sqlite3_finalize(stmtHandle);
-		if(err == SQLITE_DONE && err2 != SQLITE_OK)
-			{//return the "sqlite3_finalize" error
-			err = err2;	
-			}
+		(void)sqlite3_finalize(stmtHandle);//sqlite3_finalize() fails only if an invalid statement handle is passed.
 		}
 	return err;
 	}
@@ -550,11 +547,6 @@ TInt StmtExec(sqlite3_stmt* aStmtHandle)
 	__SQLASSERT(aStmtHandle != NULL, ESqlPanicInvalidObj);
 	
 	(void)sqlite3SymbianLastOsError();//clear last OS error
-	
-	if(sqlite3_expired(aStmtHandle))
-		{
-		return KSqlErrStmtExpired;
-		}
 		
 	TInt err;
 	while((err = sqlite3_step(aStmtHandle)) == SQLITE_ROW)
@@ -600,11 +592,6 @@ TInt StmtNext(sqlite3_stmt* aStmtHandle)
 	
 	(void)sqlite3SymbianLastOsError();//clear last OS error
 	
-	if(sqlite3_expired(aStmtHandle))
-		{
-		return KSqlErrStmtExpired;
-		}
-		
 	TInt err = sqlite3_step(aStmtHandle);
 	if(err == SQLITE_ERROR)	//It may be "out of memory" problem
 		{
@@ -634,11 +621,6 @@ TInt StmtReset(sqlite3_stmt* aStmtHandle)
 	
 	(void)sqlite3SymbianLastOsError();//clear last OS error
 	
-	if(sqlite3_expired(aStmtHandle))
-		{
-		return KSqlErrStmtExpired;
-		}
-		
 	TInt err = sqlite3_reset(aStmtHandle);
 	return ::Sql2OsErrCode(err, sqlite3SymbianLastOsError());
 	}
@@ -717,14 +699,9 @@ static TInt RetrievePragmaValue(sqlite3* aDbHandle, const TDesC& aDbName, const 
 	if(err == KSqlAtRow)
 		{
 		aPragmaValue = sqlite3_column_int(stmtHandle, 0);
-		__SQLASSERT(aPragmaValue >= 0, ESqlPanicInternalError);
-		err = KErrNone;
+		err = aPragmaValue >= 0 ? KErrNone : KErrCorrupt;
 		}
-	TInt err2 = FinalizeStmtHandle(stmtHandle);
-	if(err == KErrNone && err2 != KErrNone)
-		{//FinalizeStmtHandle() has failed
-		err = err2;
-		}
+	(void)FinalizeStmtHandle(stmtHandle);//sqlite3_finalize() fails only if an invalid statement handle is passed.
 	return err;
 	}
 
@@ -758,11 +735,7 @@ static TInt RetrievePragmaValue(sqlite3* aDbHandle, const TDesC& aDbName, const 
 		aPragmaValue.Copy(ptr);
 		err = KErrNone;
 		}
-	TInt err2 = FinalizeStmtHandle(stmtHandle);
-	if(err == KErrNone && err2 != KErrNone)
-		{//::FinalizeStmtHandle() has failed
-		err = err2;
-		}
+	(void)FinalizeStmtHandle(stmtHandle);//sqlite3_finalize() fails only if an invalid statement handle is passed.
 	return err;
 	}
 
@@ -993,11 +966,7 @@ TInt DbCompact(sqlite3* aDbHandle, const TDesC& aDbName, TInt aPageCount, TInt& 
 				__SQLASSERT(err != SQLITE_OK, ESqlPanicInternalError);
 				}
 			}
-		TInt err2 = sqlite3_finalize(stmtHandle);
-		if(err == SQLITE_DONE && err2 != SQLITE_OK)
-			{//use the "sqlite3_finalize" error
-			err = err2;				
-			}
+		(void)sqlite3_finalize(stmtHandle);//sqlite3_finalize() fails only if an invalid statement handle is passed.
 		}
 	err = ::Sql2OsErrCode(err, sqlite3SymbianLastOsError());
 	if(err == KSqlAtEnd)
@@ -1010,6 +979,11 @@ TInt DbCompact(sqlite3* aDbHandle, const TDesC& aDbName, TInt aPageCount, TInt& 
 
 /**
 Finalizes the statement handle.
+Although the function can return an error, it is ok not to check the returned error,
+because sqlite3_finalize() fails only if invalid statement handle is passed as an argument.
+
+@return KErrNone,     Operation completed successfully;
+					  Other system-wide error codes or SQL errors of ESqlDbError type.
 
 @internalComponent
 */

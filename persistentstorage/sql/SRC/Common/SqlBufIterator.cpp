@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -214,11 +214,15 @@ private:
 /**
 @return Represents the content of a text or a binary field as a stream of bytes.
 
-@leave KErrNoMemory, out of memory condition has occured;
+@leave KErrNoMemory, out of memory condition has occured,
+	   KErrArgument, the column type is not text, blob or null;
 */	
 MStreamBuf* TSqlBufRIterator::StreamL() const
 	{
 	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
-	__SQLASSERT(::IsSequenceSqlType(Type()), ESqlPanicInternalError);
+	if(!::IsSequenceSqlType(Type()))
+		{
+		__SQLLEAVE(KErrArgument);
+		}
 	return HReadOnlyBuf::NewL(reinterpret_cast <const TUint8*> (iBegin) + iCurrent->iPos, iCurrent->Size());
 	}

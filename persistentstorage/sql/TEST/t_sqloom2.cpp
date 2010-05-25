@@ -797,7 +797,7 @@ void ExecInsertBlobL(RSqlDatabase& aDb)
 	}
 
 //"RSqlBlobReadStream::OpenL()/RSqlBlobReadStream::ReadL()" OOM test
-void BlobReadStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobReadStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	RSqlBlobReadStream strm;
 	CleanupClosePushL(strm);
@@ -824,7 +824,7 @@ void BlobReadStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDe
 	}
 
 //"RSqlBlobReadStream::OpenL()/RSqlBlobReadStream::SizeL()" OOM test
-void BlobReadStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobReadStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	RSqlBlobReadStream strm;
 	CleanupClosePushL(strm);
@@ -842,7 +842,7 @@ void BlobReadStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDe
 	}
 
 //"RSqlBlobWriteStream::OpenL()/RSqlBlobWriteStream::WriteL()" OOM test
-void BlobWriteStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWriteStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	RSqlBlobWriteStream strm;
 	CleanupClosePushL(strm);
@@ -866,7 +866,7 @@ void BlobWriteStreamOpenL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullD
 	}
 
 //"RSqlBlobWriteStream::OpenL()/RSqlBlobWriteStream::SizeL()" OOM test
-void BlobWriteStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWriteStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	RSqlBlobWriteStream strm;
 	CleanupClosePushL(strm);
@@ -884,7 +884,7 @@ void BlobWriteStreamSizeL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullD
 	}
 	
 //"TSqlBlob::GetLC()" OOM test
-void BlobWholeGet1L(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWholeGet1L(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	HBufC8* buf = NULL;
 	if(aAttachDbName.Length() > 0)
@@ -900,7 +900,7 @@ void BlobWholeGet1L(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
 	}
 	
 //"TSqlBlob::Get()" OOM test
-void BlobWholeGet2L(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWholeGet2L(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	if(aAttachDbName.Length() > 0)
 		{
@@ -913,7 +913,7 @@ void BlobWholeGet2L(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
 	}
 
 //"TSqlBlob::SetL()" OOM test
-void BlobWholeSetL(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC)
+void BlobWholeSetL(RSqlDatabase& aDb, const TDesC& aAttachDbName)
 	{
 	if(aAttachDbName.Length() > 0)
 		{
@@ -978,7 +978,7 @@ void DoBlobOomTestL(TBlobPrepareFuncPtrL aBlobPrepareFuncPtrL, TBlobTestFuncPtrL
 				}
 			else
 				{
-				TRAP(err, (*aBlobTestFuncPtrL)(db));
+				TRAP(err, (*aBlobTestFuncPtrL)(db, KNullDesC));
 				}
 
 			ResetHeapFailure(TheOomTestType[i]);

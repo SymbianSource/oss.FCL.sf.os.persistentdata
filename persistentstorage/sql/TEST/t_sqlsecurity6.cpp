@@ -112,6 +112,7 @@ TInt E32Main()
 	__UHEAP_MARK;
 		
 	TRAPD(err, DoTestsL());
+	DestroyTestEnv();
 	TEST2(err, KErrNone);
 
 	__UHEAP_MARKEND;

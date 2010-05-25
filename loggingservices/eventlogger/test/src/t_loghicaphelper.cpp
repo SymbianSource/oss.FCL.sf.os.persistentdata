@@ -69,9 +69,9 @@ enum THelperOp
 	EIsMatchingEnabled
 	} ;
 
-_LIT(KOldCorruptDatabase,"z:\\system\\data\\corruptLogdbu.dat");
-_LIT(KOldCorruptDamagedDatabase,"z:\\system\\data\\corruptDamagedLogdbu.dat");
-_LIT(KOldFormatDatabase,"z:\\system\\data\\oldLogdbu.dat");
+_LIT(KOldCorruptDatabase,"z:\\test\\corruptLogdbu.dat");
+_LIT(KOldCorruptDamagedDatabase,"z:\\test\\corruptDamagedLogdbu.dat");
+_LIT(KOldFormatDatabase,"z:\\test\\oldLogdbu.dat");
 
 
 CTestActive::CTestActive(TInt aPriority)

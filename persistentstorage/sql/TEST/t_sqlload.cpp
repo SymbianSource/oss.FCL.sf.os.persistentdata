@@ -137,7 +137,7 @@ TBool IsTimeLimitReached()
 		};
 	
 	static TStartTime startTime; 
-	const TInt KTestTimeLimit = 500;//seconds
+	const TInt KTestTimeLimit = 150;//seconds
 	
 	TTime currTime;
 	currTime.HomeTime();
@@ -600,46 +600,54 @@ void StatementMaxNumberTest()
 	const TInt KMaxStmtCount = 100000;
 	RSqlStatement* stmt = new RSqlStatement[KMaxStmtCount];
 	TEST(stmt != NULL);
-	TInt stmtCnt = 0;
 
 	//Create as many statement objects as possible
+	TInt idx = 0;
 	err = KErrNone;
-	for(TInt i=0;(i<KMaxStmtCount) && (err == KErrNone);++i,++stmtCnt)
+	for(;idx<KMaxStmtCount;++idx)
 		{
-		err = stmt[i].Prepare(db, _L("SELECT * FROM A WHERE I>=0 AND I<10"));
-		if((i % 100) == 0)
+		err = stmt[idx].Prepare(db, _L("SELECT * FROM A WHERE I>=0 AND I<10"));
+		if(err != KErrNone)
+			{
+			break;
+			}
+		if((idx % 100) == 0)
 			{
 			GetHomeTimeAsString(time);
-			TheTest.Printf(_L("=== %S: Create % 5d statements\r\n"), &time, i + 1);
+			TheTest.Printf(_L("=== %S: Create % 5d statements\r\n"), &time, idx + 1);
 			if(IsTimeLimitReached())
 				{
 				TheTest.Printf(_L("=== %S: The time limit reached.\r\n"), &time);
+				++idx;//The idx-th statement is valid, the statement count is idx + 1.
 				break;
 				}
 			}
 		}
+	
+	TInt stmtCnt = idx;
 	TheTest.Printf(_L("%d created statement objects. Last error: %d.\r\n"), stmtCnt, err);
 	TEST(err == KErrNone || err == KErrNoMemory);
 
 	//Close 1/2 of the statements to free some memory
-	for(TInt i=stmtCnt-1,j=0;i>=0;i-=2,++j)
+	idx = 0;
+	for(;idx<(stmtCnt/2);++idx)
 		{
-		stmt[i].Close();
-		if((j % 100) == 0)
+		stmt[idx].Close();
+		if((idx % 100) == 0)
 			{
 			GetHomeTimeAsString(time);
-			TheTest.Printf(_L("=== %S: % 5d statements closed\r\n"), &time, j + 1);
+			TheTest.Printf(_L("=== %S: % 5d statements closed\r\n"), &time, idx + 1);
 			}
 		}
 	
 	//Now, there should be enough memory to be able to execute Next() on the rest of the statements
-	for(TInt i=stmtCnt-2,j=0;i>=0;i-=2,++j)
+	for(TInt j=0;idx<stmtCnt;++idx,++j)
 		{
-		err = stmt[i].Next();
+		err = stmt[idx].Next();
 		TEST2(err, KSqlAtRow);
-		err = stmt[i].Next();
+		err = stmt[idx].Next();
 		TEST2(err, KSqlAtRow);
-		err = stmt[i].Next();
+		err = stmt[idx].Next();
 		TEST2(err, KSqlAtEnd);
 		if((j % 100) == 0)
 			{
@@ -654,18 +662,20 @@ void StatementMaxNumberTest()
 		}
 
 	//Cleanup
-	for(TInt i=stmtCnt-1,j=0;i>=0;--i,++j)
+	for(idx=0;idx<stmtCnt;++idx)
 		{
-		stmt[i].Close();
-		if((j % 100) == 0)
+		stmt[idx].Close();
+		if((idx % 100) == 0)
 			{
 			GetHomeTimeAsString(time);
-			TheTest.Printf(_L("=== %S: % 5d statements closed\r\n"), &time, j + 1);
+			TheTest.Printf(_L("=== %S: % 5d statements closed\r\n"), &time, idx + 1);
 			}
 		}
 	delete [] stmt;
 	db.Close();
 	(void)RSqlDatabase::Delete(KTestDbName1);
+	GetHomeTimeAsString(time);
+	TheTest.Printf(_L("=== %S: Test case end\r\n"), &time);
 	}
 
 void DoTests()

@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -121,7 +121,7 @@ typedef void (*TStmtFuncPtrL)(RSqlDatabase& aDb, RSqlStatement& aStmt);
 typedef void (*TStmtFuncPtr2L)(RSqlStatement& aStmt);
 typedef void (*TScalarFullSelectFuncPtrL)(RSqlDatabase& aDb);
 typedef void (*TBlobPrepareFuncPtrL)(RSqlDatabase& aDb);
-typedef void (*TBlobTestFuncPtrL)(RSqlDatabase& aDb, const TDesC& aAttachDbName = KNullDesC);
+typedef void (*TBlobTestFuncPtrL)(RSqlDatabase& aDb, const TDesC& aAttachDbName);
 
 void CreateTestSecurityPolicy(RSqlSecurityPolicy& aSecurityPolicy);
 void CreateAttachDb();

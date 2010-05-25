@@ -59,7 +59,7 @@ _LIT(KDb7, "c:\\private\\10281e17\\[98765432]t_invobject.db");
 _LIT(KDb8org, "z:\\private\\10281e17\\[98765432]t_2defaultpolicies.db");
 _LIT(KDb8, "c:\\private\\10281e17\\[98765432]t_2defaultpolicies.db");
 
-_LIT(KPrivateSubDir, "c:\\private\\10281e17\\TestDir.db");
+_LIT(KPrivateSubDir, "c:\\private\\10281e17\\cfg-TestDir.db\\");
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////

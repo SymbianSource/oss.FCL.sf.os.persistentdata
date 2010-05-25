@@ -514,12 +514,10 @@ void ReadTest1()
     fbuf.ProfilerReset();
     
 	//Zero max length request
-	HBufC8* buf1 = HBufC8::New(0);
-	TEST(buf1 != NULL);
-	TPtr8 ptr1 = buf1->Des();
+    TUint8 buf1[1];
+	TPtr8 ptr1(buf1, 0);
 	err = fbuf.Read(0, ptr1);
 	TEST2(err, KErrNone); 
-	delete buf1;
 	TEST2(fbuf.iFileReadCount, 0);
 	TEST2(fbuf.iFileReadAmount, 0);
 	TEST2(fbuf.iFileSizeCount, 0);
@@ -823,15 +821,21 @@ void SetReadAheadSizeTest()
 					parse.Set(KTestFile2, &drvName, NULL);
 					TheDbName.Copy(parse.FullName());
 					TRAP(err, BaflUtils::EnsurePathExistsL(TheFs, TheDbName));
-					TEST(err == KErrNone || err == KErrAlreadyExists);
-					(void)TheFs.Delete(TheDbName);
-					RFileBuf64 fbuf64(8 * 1024);
-					err = fbuf64.Create(TheFs, TheDbName, EFileRead | EFileWrite);
-					TEST2(err, KErrNone);
-					TInt readAhead = fbuf64.SetReadAheadSize(vparam.iBlockSize, vparam.iRecReadBufSize);
-					TheTest.Printf(_L("       Read-ahead size=%d.\r\n"), readAhead);
-					fbuf64.Close();
-					(void)TheFs.Delete(TheDbName);
+					if(err == KErrNone || err == KErrAlreadyExists)
+						{
+						(void)TheFs.Delete(TheDbName);
+						RFileBuf64 fbuf64(8 * 1024);
+						err = fbuf64.Create(TheFs, TheDbName, EFileRead | EFileWrite);
+						TEST2(err, KErrNone);
+						TInt readAhead = fbuf64.SetReadAheadSize(vparam.iBlockSize, vparam.iRecReadBufSize);
+						TheTest.Printf(_L("       Read-ahead size=%d.\r\n"), readAhead);
+						fbuf64.Close();
+						(void)TheFs.Delete(TheDbName);
+						}
+					else
+						{
+						TheTest.Printf(_L("Drive %C. BaflUtils::EnsurePathExistsL() has failed with err=%d.\r\n"), 'A' + drive, err);	
+						}
 					}
 				}
 			else

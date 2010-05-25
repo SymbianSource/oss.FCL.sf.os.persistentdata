@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -16,6 +16,7 @@
 #include <e32test.h>
 #include <bautils.h>
 #include <sqldb.h>
+#include "t_sqlcmdlineutil.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -24,11 +25,14 @@ RSqlDatabase 	TheDb;
 TFileName		TheDbFileName;
 RFs				TheFs;
 
-TInt TheBlobSize = 1024 * 256;
+TBuf<200> 		TheTestTitle;
+TCmdLineParams 	TheCmdLineParams;
+TBuf8<200> 		TheSqlConfigString;
 
-TBuf<256>  TheCmd;
-TDriveName TheDriveName;
-TParse     TheParse;
+_LIT(KUtf8,  "UTF8 ");
+_LIT(KUtf16, "UTF16");
+
+TInt TheBlobSize = 1024 * 256;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -69,20 +73,16 @@ void TestEnvInit()
     {
     TInt err = TheFs.Connect();
     TEST2(err, KErrNone);
-    //Get the drive number from the database file name
-	err = TheParse.Set(TheDbFileName, NULL, NULL);
-	TEST2(err, KErrNone);
-	TPtrC driveName = TheParse.Drive();
-	TEST(driveName.Length() > 0);
-	TInt driveNumber = -1;
-	err = RFs::CharToDrive(driveName[0], driveNumber);
+    //
+    TInt driveNumber = -1;
+	err = RFs::CharToDrive(TheCmdLineParams.iDriveName[0], driveNumber);
 	TEST2(err, KErrNone);
 	TDriveNumber driveNo = static_cast <TDriveNumber> (driveNumber);
 	TDriveInfo driveInfo;
 	err = TheFs.Drive(driveInfo, driveNo);
 	TEST2(err, KErrNone);
     //Create the test directory
-	err = TheFs.MkDir(TheParse.DriveAndPath());
+	err = TheFs.MkDirAll(TheDbFileName);
 	TEST(err == KErrNone || err == KErrAlreadyExists);
     //Print drive info and the database name 
 	_LIT(KType1, "Not present");
@@ -130,7 +130,7 @@ void PrintFileSize(RSqlDatabase& aDb)
 void CreateTestDb()
 	{
 	(void)RSqlDatabase::Delete(TheDbFileName);
-	TInt err = TheDb.Create(TheDbFileName);
+	TInt err = TheDb.Create(TheDbFileName, &TheSqlConfigString);
 	TEST2(err, KErrNone);
 	err = TheDb.Exec(_L8("CREATE TABLE A(B BLOB)"));
 	TEST2(err, 1);
@@ -531,7 +531,7 @@ void BlobWriteTest()
 	(void)RSqlDatabase::Delete(TheDbFileName);	
 	}
 
-void DoReadBlobIncrL(TDes8& aDes)
+void DoReadBlobIncrL(TDes8& aDes, TInt aMaxLength)
 	{
 	TTime t1, t2, t3, t4;
 	
@@ -547,7 +547,7 @@ void DoReadBlobIncrL(TDes8& aDes)
 	openTime = t2.MicroSecondsFrom(t1);
 		
 	t3.HomeTime();
-	strm.ReadL(aDes);
+	strm.ReadL(aDes, aMaxLength);
 	t4.HomeTime();
 
 	readTime = t4.MicroSecondsFrom(t3);
@@ -563,7 +563,7 @@ void ReadBlobIncr()
 	TEST(data != NULL);
 	TPtr8 dataptr = data->Des();
 	
-	TRAPD(err, DoReadBlobIncrL(dataptr));
+	TRAPD(err, DoReadBlobIncrL(dataptr, TheBlobSize));
 	TEST2(err, KErrNone);
 	TEST2(dataptr.Length(), TheBlobSize);
 	
@@ -661,7 +661,7 @@ void ReadBlobStreamCol()
 	t5.HomeTime();
 	err = strm.ColumnBinary(stmt, 0);
 	TEST2(err, KErrNone);
-	TRAP(err, strm.ReadL(dataptr));
+	TRAP(err, strm.ReadL(dataptr, TheBlobSize));
 	t6.HomeTime();
 	TEST2(err, KErrNone);
 	TEST2(dataptr.Length(), TheBlobSize);
@@ -746,6 +746,7 @@ void SequentialWriteTestL()
 	const TInt KBufLen = 32768; // 32Kb
 	HBufC8* buf = HBufC8::NewL(KBufLen);
 	TPtr8 dataPtr =	buf->Des();
+	dataPtr.SetLength(KBufLen);
 	dataPtr.Fill('A', KBufLen);	
 	
 	CreateTestDb();
@@ -812,6 +813,7 @@ void TransSequentialWriteTestL()
 	const TInt KBufLen = 32768; // 32Kb
 	HBufC8* buf = HBufC8::NewL(KBufLen);
 	TPtr8 dataPtr =	buf->Des();
+	dataPtr.SetLength(KBufLen);
 	dataPtr.Fill('A', KBufLen);	
 	
 	CreateTestDb();
@@ -889,6 +891,7 @@ void WholeWriteTestL()
 	TInt bufLen = TheBlobSize; 
 	HBufC8* buf = HBufC8::NewL(bufLen);
 	TPtr8 dataPtr =	buf->Des();
+	dataPtr.SetLength(bufLen);
 	dataPtr.Fill('Z', bufLen);	
 	
 	CreateTestDb();
@@ -953,6 +956,7 @@ void TransWholeWriteTestL()
 	TInt bufLen = TheBlobSize;
 	HBufC8* buf = HBufC8::NewL(bufLen);
 	TPtr8 dataPtr =	buf->Des();
+	dataPtr.SetLength(bufLen);
 	dataPtr.Fill('Z', bufLen);	
 	
 	CreateTestDb();
@@ -1024,6 +1028,7 @@ void WholeReadTestL()
 	TInt bufLen = TheBlobSize; 
 	HBufC8* buf = HBufC8::NewL(bufLen);
 	TPtr8 dataPtr =	buf->Des();
+	dataPtr.SetLength(bufLen);
 	dataPtr.Fill('A', bufLen);	
 	
 	CreateTestDb();
@@ -1104,10 +1109,14 @@ void WholeReadTestL()
 
 void DoTests()
 	{
-	TheTest.Start(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4084 SQL, BLOB write, performance tests\r\n"));
+	TheTestTitle.Format(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4084 SQL, BLOB write, performance tests, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Start(TheTestTitle);
 	BlobWriteTest();
 	
-	TheTest.Next(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4085 SQL, BLOB read, performance tests\r\n"));
+	TheTestTitle.Format(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4085 SQL, BLOB read, performance tests, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Next(TheTestTitle);
 	BlobReadTest();
 
 	TheTest.Printf(_L("==================================================================\r\n"));
@@ -1117,32 +1126,40 @@ void DoTests()
 	
 	TheBlobSize = 1024 * 1024 + 128 * 1024;//1.125Mb 
 
-	TheTest.Next(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4115 SQL, sequential BLOB writes, performance tests\r\n"));
+	TheTestTitle.Format(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4115 SQL, sequential BLOB writes, performance tests, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Next(TheTestTitle);
 	TRAPD(err, SequentialWriteTestL());
 	TEST2(err, KErrNone);
 	
-	TheTest.Next(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4116 SQL, transaction sequential BLOB writes, performance tests\r\n"));
+	TheTestTitle.Format(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4116 SQL, transaction sequential BLOB writes, performance tests, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Next(TheTestTitle);
 	TRAP(err, TransSequentialWriteTestL());
 	TEST2(err, KErrNone);
 		
 	TheBlobSize = 256 * 1024 ; // 256Kb
 		
-	TheTest.Next(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4117 SQL, whole BLOB write, performance tests\r\n"));
+	TheTestTitle.Format(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4117 SQL, whole BLOB write, performance tests, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Next(TheTestTitle);
 	TRAP(err, WholeWriteTestL());
 	TEST2(err, KErrNone);
 	
-	TheTest.Next(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4118 SQL, transaction whole BLOB write, performance tests\r\n"));
+	TheTestTitle.Format(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4118 SQL, transaction whole BLOB write, performance tests, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Next(TheTestTitle);
 	TRAP(err, TransWholeWriteTestL());
 	TEST2(err, KErrNone);
 	
-	TheTest.Next(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4119 SQL, whole BLOB read, performance tests\r\n"));
+	TheTestTitle.Format(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4119 SQL, whole BLOB read, performance tests, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Next(TheTestTitle);
 	TRAP(err, WholeReadTestL());
 	TEST2(err, KErrNone);
 	
 #endif//!defined __WINS__ && !defined __WINSCW__ && !defined _DEBUG
 	}
-
-//Usage: "t_sqlperformance2 [<drive letter>:]"
 
 TInt E32Main()
 	{
@@ -1153,17 +1170,11 @@ TInt E32Main()
 
 	__UHEAP_MARK;
 
-	User::CommandLine(TheCmd);
-	TheCmd.TrimAll();
-	if(TheCmd.Length() > 0)
-		{
-		TheDriveName.Copy(TheCmd);
-		}
-
+	GetCmdLineParamsAndSqlConfigString(TheTest, _L("t_sqlperformance2"), TheCmdLineParams, TheSqlConfigString);
 	_LIT(KDbName, "c:\\test\\t_sqlperformance2.db");
-	TheParse.Set(TheDriveName, &KDbName, 0);
-	const TDesC& dbFilePath = TheParse.FullName();
-	TheDbFileName.Copy(dbFilePath);
+	PrepareDbName(KDbName, TheCmdLineParams.iDriveName, TheDbFileName);
+
+	TheTest.Printf(_L("==Databases: %S\r\n"), &TheDbFileName); 
 	
 	TestEnvInit();
 	DoTests();
