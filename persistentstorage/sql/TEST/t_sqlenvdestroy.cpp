@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -35,6 +35,8 @@ _LIT(KDb5, "c:\\private\\10281e17\\[98765432]t_longcollation.db");
 _LIT(KDb6, "c:\\private\\10281e17\\[98765432]t_nodefaultpolicy.db");
 _LIT(KDb7, "c:\\private\\10281e17\\[98765432]t_invobject.db");
 _LIT(KDb8, "c:\\private\\10281e17\\[98765432]t_2defaultpolicies.db");
+
+_LIT(KPrivateSubDir, "c:\\private\\10281e17\\cfg-TestDir.db\\");
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -83,6 +85,14 @@ void DoRun()
 	DoDeleteFile(fs, KDb7);
 	DoDeleteFile(fs, KDb8);
 
+	//Create a subdir in the private datacage. The SQL production code should properly detects
+	//KPrivateSubDir is a directory not a database file
+	err = fs.RmDir(KPrivateSubDir);
+	if(err != KErrNone && err != KErrNotFound)
+		{
+		TheTest.Printf(_L("Error %d deleting \"%S\" directory.\n"), err, &KPrivateSubDir);
+		}
+	
 	fs.Close();
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -196,16 +196,14 @@ TInt TSqlFhAttachCmdFunctor::operator()(RFile64& aDbFile, TBool /*aCreated*/, TB
 	TPtr8 bufPtr = buf->Des();
 	RDesWriteStream out(bufPtr);
 	TRAPD(err, SerializeToStreamL(out));
-	if(err == KErrNone)
-		{
-		TUint32 arg0 = (TUint32)bufPtr.Length() | (aReadOnly ? 0x80000000 : 0);
-		TIpcArgs ipcArgs(arg0, &bufPtr);
-		err = aDbFile.TransferToServer(ipcArgs, 2, 3);
-		if(err == KErrNone)
-			{
-			err = iDbSession.SendReceive(ESqlSrvDbAttachFromHandle, ipcArgs);
-			}
-		}
+	__SQLASSERT(err == KErrNone, ESqlPanicInternalError);//"Write to descriptor" streaming operatons can't fail
+    TUint32 arg0 = (TUint32)bufPtr.Length() | (aReadOnly ? 0x80000000 : 0);
+    TIpcArgs ipcArgs(arg0, &bufPtr);
+    err = aDbFile.TransferToServer(ipcArgs, 2, 3);
+    if(err == KErrNone)
+        {
+        err = iDbSession.SendReceive(ESqlSrvDbAttachFromHandle, ipcArgs);
+        }
 	delete buf;
 	return err;
 	}

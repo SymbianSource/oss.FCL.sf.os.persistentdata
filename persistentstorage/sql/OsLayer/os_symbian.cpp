@@ -84,6 +84,10 @@ enum TPanicCodes
 	EPanicFastCounterFreq		=21
 	};
 
+//Bit-mask constant. If xOpen()'s "aFlag" parameter contains one of these bits set, then the the file top be
+//opened or created is a journal file.
+const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEMP_JOURNAL | SQLITE_OPEN_SUBJOURNAL | SQLITE_OPEN_MASTER_JOURNAL; 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -356,7 +360,7 @@ enum TPanicCodes
 		{
 		TOsCallProfile('M', "CL"), TOsCallProfile('M', "RD"), TOsCallProfile('M', "WR"), TOsCallProfile('M', "TR"),
 		TOsCallProfile('M', "SY"), TOsCallProfile('M', "FS"), TOsCallProfile('M', "LK"), TOsCallProfile('M', "UL"),
-		TOsCallProfile('M', "CL"), TOsCallProfile('M', "FC"), TOsCallProfile('M', "SS"), TOsCallProfile('M', "DC"),
+		TOsCallProfile('M', "RL"), TOsCallProfile('M', "FC"), TOsCallProfile('M', "SS"), TOsCallProfile('M', "DC"),
 		TOsCallProfile('M', "OP"), TOsCallProfile('M', "DE"), TOsCallProfile('M', "AC"), TOsCallProfile('M', "FN"),
 		TOsCallProfile('M', "RN"), TOsCallProfile('M', "SL"), TOsCallProfile('M', "CT"), TOsCallProfile('M', "LE")
 		};
@@ -367,7 +371,7 @@ enum TPanicCodes
 		{
 		TOsCallProfile('J', "CL"), TOsCallProfile('J', "RD"), TOsCallProfile('J', "WR"), TOsCallProfile('J', "TR"),
 		TOsCallProfile('J', "SY"), TOsCallProfile('J', "FS"), TOsCallProfile('J', "LK"), TOsCallProfile('J', "UL"),
-		TOsCallProfile('J', "CL"), TOsCallProfile('J', "FC"), TOsCallProfile('J', "SS"), TOsCallProfile('J', "DC"),
+		TOsCallProfile('J', "RL"), TOsCallProfile('J', "FC"), TOsCallProfile('J', "SS"), TOsCallProfile('J', "DC"),
 		TOsCallProfile('J', "OP"), TOsCallProfile('J', "DE"), TOsCallProfile('J', "AC"), TOsCallProfile('J', "FN"),
 		TOsCallProfile('J', "RN"), TOsCallProfile('J', "SL"), TOsCallProfile('J', "CT"), TOsCallProfile('J', "LE")
 		};
@@ -380,11 +384,15 @@ enum TPanicCodes
 		//aProfileRef          - a reference to the related TOsCallProfile object - TheOsCallMProfile[] or TheOsCallJProfile[] entry;
 		//aOffset              - file offset in bytes;
 		//aBytes               - amount of bytes to be read/written;
-		TOsCallCounter(TInt64& aOsCallTicksEntryRef, TOsCallProfile& aOsCallProfileRef, TInt64 aOffset, TInt aBytes) :
+		//aOptional			   - might be NULL. Used to print out the name of the file being processed.
+		TOsCallCounter(TInt64& aOsCallTicksEntryRef, TOsCallProfile& aOsCallProfileRef, TInt64 aOffset, TInt aBytes, 
+				       const sqlite3_file* aHandle, const char* aOptional) :
 			iOsCallTicksEntryRef(aOsCallTicksEntryRef),
 			iOsCallProfileRef(aOsCallProfileRef),
 			iOffset(aOffset),
-			iBytes(aBytes)	
+			iBytes(aBytes),
+			iHandle((TUint)aHandle),
+			iOptional((const TUint8*)aOptional)
 			{
 			if(TheOsCallTimeProfileEnabled)
 				{
@@ -407,18 +415,32 @@ enum TPanicCodes
 					++iOsCallProfileRef.iCallCounter;
 					iOsCallProfileRef.iTicksTotal += diffTicks;
 					iOsCallProfileRef.iBytesTotal += iBytes;
-					//                 1    2 3   4  5  6   7   8   9   10
-					RDebug::Print(_L("'%c','%c%c',%d,%d,%ld,%d,%ld,%ld,%ld\n"), 
-						iOsCallProfileRef.iType, 			//1
-						iOsCallProfileRef.iIdentifier[0], 	//2
-						iOsCallProfileRef.iIdentifier[1],	//3
-						TheOpCounter, 						//4
-						iOsCallProfileRef.iCallCounter, 	//5
-						iOffset, 							//6
-						iBytes, 							//7
-						diffTicks, 							//8
-						iOsCallProfileRef.iBytesTotal, 		//9
-						iOsCallProfileRef.iTicksTotal);		//10
+					TFileName fname;
+					if(iOptional)
+						{
+						TPtrC8 fn8(iOptional);
+						fname.Copy(fn8);
+						}
+					//                                           0    1  2 3  4  5  6   7  8   9   10 11
+					RDebug::Print(_L("[SQL-OS]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬%c¬%c%c¬%d¬%d¬%ld¬%d¬%ld¬%ld¬%ld¬%S\n"),
+															//[SQL-OS]
+															//Handle
+															//Time from start, microseconds
+															//Subtype
+															//IPC sequence counter
+															//IPC call name
+					    iHandle,							//sqlite3_file*
+						iOsCallProfileRef.iType, 			//1 - main or journal file
+						iOsCallProfileRef.iIdentifier[0], 	//2 - 1st letter - operation type
+						iOsCallProfileRef.iIdentifier[1],	//3 - 2nd letter - operation type
+						TheOpCounter, 						//4 - Operation counter
+						iOsCallProfileRef.iCallCounter, 	//5 - This call type counter
+						iOffset, 							//6 - File offset
+						iBytes, 							//7 - Data, bytes
+						diffTicks, 							//8 - Ticks
+						iOsCallProfileRef.iBytesTotal, 		//9 - Data total, bytes
+						iOsCallProfileRef.iTicksTotal,		//10- Ticks total
+						&fname);							//11- File name
 					}
 				}
 			}
@@ -428,6 +450,8 @@ enum TPanicCodes
 		TInt64			iOffset;
 		TInt			iBytes;			
 		TUint32 		iStartTicks;
+		TUint			iHandle;
+		const TUint8*	iOptional;
 		};
 		
 	inline TOsCallProfile& OsCallProfile(TBool aType, TInt aIndex)
@@ -435,7 +459,7 @@ enum TPanicCodes
 		return aType ? TheOsCallJProfile[aIndex] : TheOsCallMProfile[aIndex];
 		}
 		
-#	define __OSTIME_COUNTER(aOsCallTicksRef, aOsCallProfileRef, aOffset, aBytes)	TOsCallCounter osCallCounter(aOsCallTicksRef, aOsCallProfileRef, aOffset, aBytes)
+#	define __OSTIME_COUNTER(aOsCallTicksRef, aOsCallProfileRef, aOffset, aBytes, aHandle, aOpt)	TOsCallCounter osCallCounter(aOsCallTicksRef, aOsCallProfileRef, aOffset, aBytes, aHandle, aOpt)
 
 #else //_SQLPROFILER
 
@@ -447,7 +471,7 @@ enum TPanicCodes
 
 #	define __OS_CALL(aOpType, a1, a2) void(0)
 
-#	define __OSTIME_COUNTER(aOsCallTicksRef, aOsCallProfileRef, aOffset, aBytes)	void(0)
+#	define __OSTIME_COUNTER(aOsCallTicksRef, aOsCallProfileRef, aOffset, aBytes, aHandle, aOpt)	void(0)
 
 #endif//_SQLPROFILER
 
@@ -1218,8 +1242,9 @@ static TBool ConvertToUnicode(const char *aFileName, TDes& aFileNameDestBuf)
 		{
 		wchar_t* dest = reinterpret_cast <wchar_t*> (const_cast <TUint16*> (aFileNameDestBuf.Ptr()));
 		TInt len = mbstowcs(dest, aFileName, aFileNameDestBuf.MaxLength());
+		__ASSERT_DEBUG(len >= 0, User::Panic(KPanicCategory, EPanicInternalError));
 		//If len == aFileNameDestBuf.MaxLength(), then the output buffer is too small.
-		if(len > 0 && len < aFileNameDestBuf.MaxLength())
+		if(len < aFileNameDestBuf.MaxLength())
 			{
 			aFileNameDestBuf.SetLength(len);
 			return ETrue;
@@ -1246,8 +1271,9 @@ static TBool ConvertFromUnicode(const TDesC& aFileName, TDes8& aFileNameDestBuf)
 	char* dest = reinterpret_cast <char*> (const_cast <TUint8*> (aFileNameDestBuf.Ptr()));
 	const wchar_t* src = reinterpret_cast <const wchar_t*> (aFileName.Ptr());
 	TInt len = wcstombs(dest, src, aFileNameDestBuf.MaxLength());
+	__ASSERT_DEBUG(len >= 0, User::Panic(KPanicCategory, EPanicInternalError));
 	//If len == aFileNameDestBuf.MaxLength(), then the output buffer is too small.
-	if(len > 0 && len < aFileNameDestBuf.MaxLength())
+	if(len < aFileNameDestBuf.MaxLength())
 		{
 		aFileNameDestBuf.SetLength(len);
 		return ETrue;
@@ -1477,7 +1503,7 @@ If aDbFile.iFullName data member is not NULL, then the file will be deleted.
 	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileClose, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileClose], ::OsCallProfile(dbFile.iIsJournal, EOsFileClose), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileClose], ::OsCallProfile(dbFile.iIsJournal, EOsFileClose), 0, 0, aDbFile, 0);
 	__FS_CALL(EFsOpFileClose, 0);
 	dbFile.iFileBuf.Close();
 	if(dbFile.iFullName)
@@ -1519,7 +1545,7 @@ with the reported by the OS API error. The stored error code will be used later 
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileRead, 0, 0);
 	__COUNTER_INCR(TheSqlSrvProfilerFileRead);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileRead], ::OsCallProfile(dbFile.iIsJournal, EOsFileRead), aOffset, aAmt);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileRead], ::OsCallProfile(dbFile.iIsJournal, EOsFileRead), aOffset, aAmt, aDbFile, 0);
 	TPtr8 ptr((TUint8*)aBuf, 0, aAmt);
 	TInt err = dbFile.iFileBuf.Read(aOffset, ptr);
 	TInt cnt = ptr.Length();
@@ -1582,7 +1608,7 @@ with the reported by the OS API error. The stored error code will be used later 
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileWrite, 0, 0);
     __COUNTER_INCR(TheSqlSrvProfilerFileWrite);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileWrite], ::OsCallProfile(dbFile.iIsJournal, EOsFileWrite), aOffset, aAmt);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileWrite], ::OsCallProfile(dbFile.iIsJournal, EOsFileWrite), aOffset, aAmt, aDbFile, 0);
 	TInt err = KErrAccessDenied;
 	if(!dbFile.iReadOnly)
 		{
@@ -1636,7 +1662,7 @@ with the reported by the OS API error. The stored error code will be used later 
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileTruncate, 0, 0);
     __COUNTER_INCR(TheSqlSrvProfilerFileSetSize);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileTruncate], ::OsCallProfile(dbFile.iIsJournal, EOsFileTruncate), aLength, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileTruncate], ::OsCallProfile(dbFile.iIsJournal, EOsFileTruncate), aLength, 0, aDbFile, 0);
 	if(dbFile.iReadOnly)
 		{
 		COsLayerData::Instance().SetOsErrorCode(KErrAccessDenied);
@@ -1672,7 +1698,7 @@ with the reported by the OS API error. The stored error code will be used later 
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileSync, 0, 0);
     __COUNTER_INCR(TheSqlSrvProfilerFileSync);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileSync], ::OsCallProfile(dbFile.iIsJournal, EOsFileSync), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileSync], ::OsCallProfile(dbFile.iIsJournal, EOsFileSync), 0, 0, aDbFile, 0);
 	if(dbFile.iReadOnly)
 		{
 		COsLayerData::Instance().SetOsErrorCode(KErrAccessDenied);
@@ -1707,7 +1733,7 @@ with the reported by the OS API error. The stored error code will be used later 
 	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileFileSize, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileFileSize], ::OsCallProfile(dbFile.iIsJournal, EOsFileFileSize), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileFileSize], ::OsCallProfile(dbFile.iIsJournal, EOsFileFileSize), 0, 0, aDbFile, 0);
 	__FS_CALL(EFsOpFileSize, 0);
 	TInt err =  dbFile.iFileBuf.Size(*aSize);
 	COsLayerData::Instance().SetOsErrorCode(err);
@@ -1741,7 +1767,7 @@ performance optimisation. The file lock type is stored for later use by the Chec
 	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileLock, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileLock], ::OsCallProfile(dbFile.iIsJournal, EOsFileLock), aLockType, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileLock], ::OsCallProfile(dbFile.iIsJournal, EOsFileLock), aLockType, 0, aDbFile, 0);
 	//If there is already a lock of this type or more restrictive on the database file, do nothing.
 	if(dbFile.iLockType >= aLockType)
 		{
@@ -1774,7 +1800,7 @@ performance optimisation. The Unlock() call only sets the stored file lock type 
 	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileUnlock, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileUnlock], ::OsCallProfile(dbFile.iIsJournal, EOsFileUnlock), aLockType, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileUnlock], ::OsCallProfile(dbFile.iIsJournal, EOsFileUnlock), aLockType, 0, aDbFile, 0);
 	dbFile.iLockType = aLockType;
 	return SQLITE_OK;
 	}
@@ -1803,7 +1829,7 @@ is bigger or equal than SQLITE_LOCK_RESERVED.
 	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileCheckReservedLock, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileCheckReservedLock], ::OsCallProfile(dbFile.iIsJournal, EOsFileCheckReservedLock), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileCheckReservedLock], ::OsCallProfile(dbFile.iIsJournal, EOsFileCheckReservedLock), 0, 0, aDbFile, 0);
 	*aResOut = dbFile.iLockType >= SQLITE_LOCK_RESERVED ? 1 : 0;
   	return SQLITE_OK;
 	}
@@ -1839,7 +1865,7 @@ Note: The range of supported operations includes KSqlFcntlRegisterFreePageCallba
 	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileFileCtr, aOp));
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileFileControl, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileFileControl], ::OsCallProfile(dbFile.iIsJournal, EOsFileFileControl), aOp, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileFileControl], ::OsCallProfile(dbFile.iIsJournal, EOsFileFileControl), aOp, 0, aDbFile, 0);
 	TInt err = KErrNone;
 	switch(aOp)
 		{
@@ -1890,7 +1916,7 @@ call returns the value of TDbFile::iSectorSize.
 	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileSectorSize, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileSectorSize], ::OsCallProfile(dbFile.iIsJournal, EOsFileSectorSize), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileSectorSize], ::OsCallProfile(dbFile.iIsJournal, EOsFileSectorSize), 0, 0, aDbFile, 0);
 	__ASSERT_DEBUG(dbFile.iSectorSize > 0, User::Panic(KPanicCategory, EPanicInternalError));
 	if(dbFile.iSectorSize > 0)
 		{
@@ -1921,7 +1947,7 @@ The DeviceCharacteristics() call returns the value of TDbFile::iDeviceCharacteri
 	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	__OS_CALL(EOsFileDeviceCharacteristics, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileDeviceCharacteristics], ::OsCallProfile(dbFile.iIsJournal, EOsFileDeviceCharacteristics), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsFileDeviceCharacteristics], ::OsCallProfile(dbFile.iIsJournal, EOsFileDeviceCharacteristics), 0, 0, aDbFile, 0);
 	__ASSERT_DEBUG(dbFile.iDeviceCharacteristics >= 0, User::Panic(KPanicCategory, EPanicInternalError));
 	if(dbFile.iDeviceCharacteristics >= 0)
 		{
@@ -2005,38 +2031,35 @@ Retrieves and returns in a bit set the device characteristics.
 		{
 		deviceCharacteristics |= SQLITE_IOCAP_ATOMIC;	
 		}
-	if(aVolumeInfo.iBlockSize >= SQLITE_DEFAULT_SECTOR_SIZE && (aVolumeInfo.iBlockSize & (aVolumeInfo.iBlockSize - 1)) == 0)	
+	switch(aVolumeInfo.iBlockSize)
 		{
-		switch(aVolumeInfo.iBlockSize)
-			{
-			case 512:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC512;
-				break;
-			case 1024:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC1K;
-				break;
-			case 2048:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC2K;
-				break;
-			case 4096:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC4K;
-				break;
-			case 8192:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC8K;
-				break;
-			case 16384:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC16K;
-				break;
-			case 32768:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC32K;
-				break;
-			case 65536:
-				deviceCharacteristics |= SQLITE_IOCAP_ATOMIC64K;
-				break;
-			default:
-				//Do nothing. deviceCharacteristics was initialized with 0 at the beginning of the function body.
-				break;
-			}
+		case 512:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC512;
+			break;
+		case 1024:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC1K;
+			break;
+		case 2048:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC2K;
+			break;
+		case 4096:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC4K;
+			break;
+		case 8192:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC8K;
+			break;
+		case 16384:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC16K;
+			break;
+		case 32768:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC32K;
+			break;
+		case 65536:
+			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC64K;
+			break;
+		default:
+			//Do nothing. deviceCharacteristics was initialized with 0 at the beginning of the function body.
+			break;
 		}
 	return deviceCharacteristics;
 	}
@@ -2215,7 +2238,7 @@ with the reported by the OS API error. The stored error code will be used later 
 	{
 	SQLUTRACE_PROFILER(aVfs);
 	__OS_CALL(EOsVfsOpen, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsOpen], ::OsCallProfile(EFalse, EOsVfsOpen), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsOpen], ::OsCallProfile(EFalse, EOsVfsOpen), 0, 0, aDbFile, aFileName);
 	COsLayerData& osLayerData = COsLayerData::Instance();
 	TFileName fname;
 	if(aFileName && !::ConvertToUnicode(aFileName, fname))
@@ -2287,8 +2310,7 @@ with the reported by the OS API error. The stored error code will be used later 
 				__FS_CALL(EFsOpFileOpen, 0);
 				err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
 				
-				if(err == KErrNone && ((aFlags & SQLITE_OPEN_MAIN_JOURNAL) || (aFlags & SQLITE_OPEN_TEMP_JOURNAL) || 
-                        (aFlags & SQLITE_OPEN_SUBJOURNAL) || (aFlags & SQLITE_OPEN_MASTER_JOURNAL)))
+				if(err == KErrNone && (aFlags & KJournalFileTypeBitMask))
 				    {
                     err = TVfs::DoFileSizeCorruptionCheck(dbFile, fname, fmode);
 				    }
@@ -2338,8 +2360,7 @@ with the reported by the OS API error. The stored error code will be used later 
 		(void)dbFile.iFileBuf.SetReadAheadSize(dbFile.iSectorSize, recReadBufSize);
 		}
 #ifdef _SQLPROFILER
-	dbFile.iIsJournal = (aFlags & SQLITE_OPEN_MAIN_JOURNAL) || (aFlags & SQLITE_OPEN_TEMP_JOURNAL) || 
-						(aFlags & SQLITE_OPEN_SUBJOURNAL) || (aFlags & SQLITE_OPEN_MASTER_JOURNAL);
+	dbFile.iIsJournal = aFlags & KJournalFileTypeBitMask; 
 #endif
 	return err == KErrNone ? SQLITE_OK : (err == KErrNoMemory ? SQLITE_IOERR_NOMEM : SQLITE_CANTOPEN);
 	}
@@ -2366,7 +2387,7 @@ with the reported by the OS API error. The stored error code will be used later 
 	{
 	SQLUTRACE_PROFILER(aVfs);
 	__OS_CALL(EOsVfsDelete, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsDelete], ::OsCallProfile(EFalse, EOsVfsDelete), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsDelete], ::OsCallProfile(EFalse, EOsVfsDelete), 0, 0, 0, aFileName);
 	COsLayerData& osLayerData = COsLayerData::Instance();
 	TBuf<KMaxFileName + 1> fname;
 	if(!::ConvertToUnicode(aFileName, fname))
@@ -2414,7 +2435,7 @@ with the reported by the OS API error. The stored error code will be used later 
 	{
 	SQLUTRACE_PROFILER(aVfs);
 	__OS_CALL(EOsVfsAccess, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsAccess], ::OsCallProfile(EFalse, EOsVfsAccess), aFlags, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsAccess], ::OsCallProfile(EFalse, EOsVfsAccess), aFlags, 0, 0, aFileName);
 	COsLayerData& osLayerData = COsLayerData::Instance();
 	TBuf<KMaxFileName + 1> fname;
 	if(!::ConvertToUnicode(aFileName, fname))
@@ -2491,7 +2512,7 @@ private data cage.
 	{
 	SQLUTRACE_PROFILER(aVfs);
 	__OS_CALL(EOsVfsFullPathName, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsFullPathName], ::OsCallProfile(EFalse, EOsVfsFullPathName), aBufLen, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsFullPathName], ::OsCallProfile(EFalse, EOsVfsFullPathName), aBufLen, 0, 0, aRelative);
 	COsLayerData& osLayerData = COsLayerData::Instance();
 	osLayerData.StoreFhData(NULL, EFalse);
 	//Convert the received file name to UTF16
@@ -2538,7 +2559,7 @@ Generates a set of random numbers and stores them in the aBuf output parameter.
 	{
 	SQLUTRACE_PROFILER(aVfs);
 	__OS_CALL(EOsVfsRandomness, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsRandomness], ::OsCallProfile(EFalse, EOsVfsRandomness), aBufLen, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsRandomness], ::OsCallProfile(EFalse, EOsVfsRandomness), aBufLen, 0, 0, 0);
 	COsLayerData& osLayerData = COsLayerData::Instance();
 	const TInt KRandIterations = aBufLen / sizeof(int);
 	for(TInt i=0;i<KRandIterations;++i)
@@ -2562,7 +2583,7 @@ Sleeps for aMicrosec microseconds.
 	{
 	SQLUTRACE_PROFILER(aVfs);
 	__OS_CALL(EOsVfsSleep, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsSleep], ::OsCallProfile(EFalse, EOsVfsSleep), aMicrosec, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsSleep], ::OsCallProfile(EFalse, EOsVfsSleep), aMicrosec, 0, 0, 0);
 	User::AfterHighRes(TTimeIntervalMicroSeconds32(aMicrosec));
 	return aMicrosec;
 	}
@@ -2582,7 +2603,7 @@ Retrieves the current date and time.
 	{
 	SQLUTRACE_PROFILER(aVfs);
 	__OS_CALL(EOsVfsCurrentTime, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsCurrentTime], ::OsCallProfile(EFalse, EOsVfsCurrentTime), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsCurrentTime], ::OsCallProfile(EFalse, EOsVfsCurrentTime), 0, 0, 0, 0);
 	TTime now;
 	now.UniversalTime();
 	TDateTime date = now.DateTime();
@@ -2618,7 +2639,7 @@ Note: the method has a default "no-op" implementation at the moment.
 	{
 	SQLUTRACE_PROFILER(aVfs);
 	__OS_CALL(EOsVfsGetLastError, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsGetLastError], ::OsCallProfile(EFalse, EOsVfsGetLastError), 0, 0);
+	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsGetLastError], ::OsCallProfile(EFalse, EOsVfsGetLastError), 0, 0, 0, 0);
 	return 0;
 	}
 
@@ -2631,11 +2652,9 @@ SQLite OS porting layer API.
 
 Memory allocation routine.
 
-EXPORT_C required to match IMPORT_C in stdlib.h and avoid compiler warning
-
 @internalComponent
 */
-extern "C" EXPORT_C void* sqlite3SymbianMalloc(size_t aSize)
+extern "C" void* sqlite3SymbianMalloc(size_t aSize)
 	{
 	__MEM_CALL(EMemOpAlloc, aSize, 0);
 	return Allocator().Alloc(aSize);
@@ -2646,11 +2665,9 @@ SQLite OS porting layer API.
 
 Memory reallocation routine.
 
-EXPORT_C required to match IMPORT_C in stdlib.h and avoid compiler warning
-
 @internalComponent
 */
-extern "C" EXPORT_C void* sqlite3SymbianRealloc(void* aPtr, size_t aSize)
+extern "C" void* sqlite3SymbianRealloc(void* aPtr, size_t aSize)
 	{
 #ifdef _SQLPROFILER
 	TInt size = Allocator().AllocLen(aPtr);
@@ -2664,11 +2681,9 @@ SQLite OS porting layer API.
 
 Memory free routine.
 
-EXPORT_C required to match IMPORT_C in stdlib.h and avoid compiler warning
-
 @internalComponent
 */
-extern "C" EXPORT_C void sqlite3SymbianFree(void* aPtr)
+extern "C" void sqlite3SymbianFree(void* aPtr)
 	{
 #ifdef _SQLPROFILER
 	TInt size = Allocator().AllocLen(aPtr);

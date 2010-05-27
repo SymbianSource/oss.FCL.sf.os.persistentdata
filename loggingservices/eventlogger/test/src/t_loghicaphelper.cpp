@@ -149,7 +149,7 @@ static void TestInvalidSchemaL()
    	//This eventually calls CLogBackup::ChangeFileLockL(..) which closes the database 
    	//file and notifies all handles to that file that it has closed.
    	backup->CloseFileL(KLogDatabaseName, MBackupObserver::EReleaseLockNoAccess);
- 	User::After(1000000);
+ 	User::After(300000);
    	
    	//Since the log engine database file is closed we can replace it.   
    	//Once this file is deleted, the backup server notices this and attempts to reopen 
@@ -387,7 +387,7 @@ static void DoDeleteDatabaseL(const TDesC& aDbPath, TBool aCloseBeforeDelete)
         //This eventually calls CLogBackup::ChangeFileLockL(..) which closes the database 
         //file and notifies all handles to that file that it has closed.
         backup->CloseFileL(aDbPath, MBackupObserver::EReleaseLockNoAccess);
-        User::After(1000000);
+        User::After(300000);
         }
 
     //Since the log engine database file is closed we can delete it.   

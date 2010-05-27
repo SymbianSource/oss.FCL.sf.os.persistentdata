@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -134,6 +134,8 @@ Works with 8/16-bit SQL statements.
                       ESqlDbError or other system-wide error codes;
         KErrNone      Operation has completed successfully.
 
+@panic SqlDb 7 In _DEBUG mode, invalid column count.
+
 @see CSqlStatementImpl::New()
 */
 template <class DES> TInt CSqlStatementImpl::Construct(CSqlDatabaseImpl& aDatabase, const DES& aSqlStmt)
@@ -143,15 +145,13 @@ template <class DES> TInt CSqlStatementImpl::Construct(CSqlDatabaseImpl& aDataba
 		{
 		return err;	
 		}
-	if(iColumnCnt >= 0)
-		{
-		err = iColumnValueBuf.SetCount(iColumnCnt);
-		if(err != KErrNone)
-			{
-			return err;	
-			}
-		iColumnValBufIt.Set(iColumnValueBuf);
-		}
+    __SQLASSERT(iColumnCnt >= 0, ESqlPanicInternalError);
+    err = iColumnValueBuf.SetCount(iColumnCnt);
+    if(err != KErrNone)
+        {
+        return err;	
+        }
+    iColumnValBufIt.Set(iColumnValueBuf);
 	if(iParamCnt > 0)
 		{
 		err = iParamValueBuf.SetCount(iParamCnt);

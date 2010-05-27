@@ -410,6 +410,19 @@ void OpenCloseDatabaseTest()
 	TEST(rc==KSqlErrNotDb || rc==KErrNone);
 	db.Close();
 
+	//An attempt to open database with name containing non-convertible characters.
+    TBuf<6> invName;
+    invName.SetLength(6);
+    invName[0] = TChar('c'); 
+    invName[1] = TChar(':'); 
+    invName[2] = TChar('\\'); 
+    invName[3] = TChar(0xD800); 
+    invName[4] = TChar(0xFC00); 
+    invName[5] = TChar(0x0000);
+	rc = db.Open(invName);
+	db.Close();
+	TEST(rc != KErrNone);
+
 	//Copy the corrupted database file on drive C:
 	TEST2(fs.Connect(), KErrNone);
 	rc = BaflUtils::CopyFile(fs, KDbPath10, KTestDbName3);
@@ -792,6 +805,7 @@ _LIT8(KStmt18, "CREATE TABLE BBB(Fld1 INTEGER, Fld2 BIGINT, Fld3 DOUBLE, \
 _LIT8(KStmt19, "INSERT INTO BBB(Fld1, Fld2, Fld3, Fld4, Fld5, Fld6)\
 	                                       VALUES(:V1, :V2, :V3, :V4, :V5, :V6)");
 _LIT8(KStmt20, "SELECT * FROM BBB");
+_LIT8(KStmt21, "SELECT fld1, fld2 FROM AAA;SELECT fld1, fld2 FROM AAA");
 
 /**
 @SYMTestCaseID			SYSLIB-SQL-CT-1606
@@ -824,6 +838,10 @@ template <class DES, class BUF> void StatementTest()
 	ExecSqlStmt(db, stmt, KErrNone);
 	stmt.Close();
 
+	//String containg more than one SQL statement.
+	stmt = PrepareSqlStmt<DES, BUF>(db, KStmt21, KErrArgument); 
+	stmt.Close();
+	
 	//SQL statement without parameters. Insert a record into the table.
 	stmt = PrepareSqlStmt<DES, BUF>(db, KStmt13, KErrNone);
 	ExecSqlStmt(db, stmt, KErrNone);
@@ -1088,6 +1106,17 @@ void ColumnTextStreamTest()
 	rc = stmt.Next();
 	TEST2(rc, KSqlAtRow);
 
+	//An attempt to read integer column using binary stream
+	RSqlColumnReadStream strm2;
+	rc = strm2.ColumnBinary(stmt, 0);
+	strm2.Close();
+	TEST2(rc, KErrArgument);
+
+	//An attempt to read integer column using text stream
+	rc = strm2.ColumnText(stmt, 0);
+	strm2.Close();
+	TEST2(rc, KErrArgument);
+	
 	//Read the long text column using a stream
 	RSqlColumnReadStream columnStream;
 	rc = columnStream.ColumnText(stmt, 1);
@@ -2358,6 +2387,48 @@ void DiffCompactModeSize2Test()
 	(void)RSqlDatabase::Delete(KTestDbName1);
 	}
 
+/**
+@SYMTestCaseID			PDS-SQL-CT-4205
+@SYMTestCaseDesc		"PRAGMA count_changes" test.
+						When "count_changes" pragma is ON, sqlite3_step() is called two times by the 
+						SQL server, before getting the SQLITE_DONE return code.
+						Everything else is the same (statement processing, etc.).
+@SYMTestPriority		High
+@SYMTestActions			"PRAGMA count_changes" test.
+@SYMTestExpectedResults Test must not fail
+*/
+void CountChangesTest()
+	{
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	RSqlDatabase db;
+	TInt err = db.Create(KTestDbName1);
+	TEST2(err, KErrNone);
+	err = db.Exec(_L("CREATE TABLE A(I INTEGER)"));
+	TEST(err >= 0);
+	
+	err = db.Exec(_L("PRAGMA count_changes=ON"));
+	TEST(err >= 0);
+	
+	err = db.Exec(_L("INSERT INTO A VALUES(1)"));
+	TEST2(err, 1);
+	
+	err = db.Exec(_L8("INSERT INTO A VALUES(2)"));
+	TEST2(err, 1);
+	
+	RSqlStatement stmt;
+	err = stmt.Prepare(db, _L("DELETE FROM A WHERE I>=1 AND I<=2"));
+	TEST2(err, KErrNone);
+	err = stmt.Exec();
+	TEST2(err, 2);
+	stmt.Close();
+	
+	err = db.Exec(_L("PRAGMA count_changes=OFF"));
+	TEST(err >= 0);
+	
+	db.Close();
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	}
+
 void DoTestsL()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1601 Create/Open/Close database tests "));
@@ -2427,6 +2498,9 @@ void DoTestsL()
 	
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4041 RSqlDatabase::Size(RSqlDatabase::TSize&) - different compaction modes tests"));
 	DiffCompactModeSize2Test();
+
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4205 PRAGMA \"count_changes\" test"));
+	CountChangesTest();
 	}
 
 TInt E32Main()

@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -835,7 +835,7 @@ void CSqlCompactTestActive::FileIoErrTest()
 			break;	
 			}
 		
-		(void)TheFs.SetErrorCondition(err, ++ioCounter);
+		(void)TheFs.SetErrorCondition(err, ioCounter++);
 
 		CSqlCompactEntry* impl = compactor->iEntries[0];
 		impl->iPageCount = freePageCount2;

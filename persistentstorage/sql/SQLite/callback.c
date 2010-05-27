@@ -217,7 +217,7 @@ CollSeq *sqlite3FindCollSeq(
     pColl = db->pDfltColl;
   }
   assert( SQLITE_UTF8==1 && SQLITE_UTF16LE==2 && SQLITE_UTF16BE==3 );
-  assert( enc>=SQLITE_UTF8 && enc<=SQLITE_UTF16BE );
+  /*assert( enc>=SQLITE_UTF8 && enc<=SQLITE_UTF16BE );*/
   if( pColl ) pColl += enc-1;
   return pColl;
 }

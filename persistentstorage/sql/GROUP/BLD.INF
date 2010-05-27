@@ -76,6 +76,7 @@ t_sqlsecurity2.mmp
 t_sqlsecurity3.mmp
 t_sqlsecurity4.mmp
 t_sqlsecurity5.mmp
+t_sqlsecurity6.mmp
 t_sqlattach.mmp
 #ifndef WINS //hardware only
 t_sqlattach2.mmp manual
@@ -109,6 +110,7 @@ t_sqlstartup.mmp
 t_sqlfilesrvcrash1.mmp manual
 t_sqlfilesrvcrash2.mmp manual
 #endif
+t_sqlcorrupt.mmp
 t_sqlenvdestroy.mmp
 
 

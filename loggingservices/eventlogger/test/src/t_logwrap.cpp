@@ -277,7 +277,8 @@ LOCAL_C void TestFileFailL()
 	
 	while(!finished)
 		{
-		__FILE_FAILNEXT(failCount++);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 		TRAP(error, wrapper = CLogWrapper::NewL(theFs));
 
@@ -291,8 +292,11 @@ LOCAL_C void TestFileFailL()
 			delete wrapper;
 			}
 		else
-			TEST2(error, KErrGeneral);
+			{
+			TEST2(error, KErrNoMemory);
+			}
 		}
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**

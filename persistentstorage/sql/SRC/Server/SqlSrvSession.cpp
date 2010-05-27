@@ -9,7 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
-// NTT DOCOMO, INC - Fix for defect 1915 "SQL server panics when using long column type strings"
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -479,6 +479,8 @@ void CSqlSrvSession::ServiceError(const RMessage2& aMessage, TInt aError)
 ////////////////////////////          Profiler  operations           ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#pragma BullseyeCoverage off
+
 /**
 Retrieves the counter values for the specified profiling counter.
 
@@ -514,6 +516,8 @@ void CSqlSrvSession::ProfilerQueryL(const RMessage2& aMessage)
 		TSqlSrvResourceProfiler::QueryL(aMessage);
 		}				
 	}
+
+#pragma BullseyeCoverage on
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////          Database operations           ///////////////////////////////////
@@ -1082,6 +1086,7 @@ Arg 2: [in]  file session handle
 Arg 3: [in]  database file handle
 
 @panic SqlDb 2 Client panic. iDatabase is NULL (the database object is not created yet).
+@panic SqlDb 4 Client panic. Invalid IPC data, an indication of a problme in client side sql library.
 */
 void CSqlSrvSession::DbAttachFromHandleL(const RMessage2& aMessage)
 	{
@@ -1089,10 +1094,7 @@ void CSqlSrvSession::DbAttachFromHandleL(const RMessage2& aMessage)
 	//Read-only flag, buffer length, buffer allocation
 	TBool readOnly = (aMessage.Int0() & 0x80000000) != 0;
 	const TInt KBufLen = aMessage.Int0() & 0x7FFFFFFF;
-	if(KBufLen <= 0)
-		{
-		__SQLLEAVE(KErrArgument);
-		}
+    __SQLPANIC_CLIENT(KBufLen > 0, aMessage, ESqlPanicBadArgument);
 	HBufC8* buf = HBufC8::NewLC(KBufLen);
 	TPtr8 bufPtr = buf->Des();
 	aMessage.ReadL(1, bufPtr);
@@ -1198,16 +1200,16 @@ Processes the request for creating an IPC stream for accessing the content of a 
 @return The blob stream handle
 
 @leave KErrNoMemory, 		 An out of memory condition has occurred;
-	   KErrArgument, 		 The IPC data buffer length is invalid, or the ROWID is invalid,
-	   				 		 or UTF-16 to UTF-8 string conversion failed;	
+	   KErrArgument, 		 The ROWID is invalid or UTF-16 to UTF-8 string conversion failed;	
 	   KErrBadDescriptor 	 The transferred data is bigger than the specified length;
 	   KErrBadName,	 		 The table name, column name or database name has an invalid length;
        KErrPermissionDenied, The client does not have the required security capabilites for this operation; 						 
        						 Note that the function may also leave with some other system wide errors or 
                      		 database specific errors categorised as ESqlDbError.
 
-@panic SqlDb 2 Client panic. The database object is not yet created (iDatabase is NULL)
-@panic SqlDb 3 Client panic. Failed to create a blob stream handle
+@panic SqlDb 2 Client panic. The database object is not yet created (iDatabase is NULL).
+@panic SqlDb 3 Client panic. Failed to create a blob stream handle.
+@panic SqlDb 4 Client panic. IPC buffer length is 0.
 
 Usage of the IPC call arguments:
 Arg 0: [in]	    The length of the IPC data buffer
@@ -1218,13 +1220,11 @@ TInt CSqlSrvSession::DbBlobSourceL(const RMessage2& aMessage)
 	{	
 	__SQLPANIC_CLIENT(iDatabase != NULL, aMessage, ESqlPanicInvalidObj);
 	
+	TInt ipcPrmLen = aMessage.Int0();
+	__SQLPANIC_CLIENT(ipcPrmLen > 0, aMessage, ESqlPanicBadArgument);
+	
 	iIpcStreams.AllocL();
 	
-	TInt ipcPrmLen = aMessage.Int0();
-	if(ipcPrmLen < 1)
-		{
-		__SQLLEAVE(KErrArgument);
-		}
 	TDes8& ipcPrmDes = ReadString8ZL(aMessage, 1, ipcPrmLen);
 	RDesReadStream strm(ipcPrmDes);
 	
@@ -1578,8 +1578,8 @@ Reads a 8-bit string with "aByteLen" bytes length, which is in "aArgNum" argumen
 The string will be zero terminated after the "read" operation.
 Returns TDes8 reference pointing to the zero-terminated string.
 
-@leave KErrBadDescriptor The transferred data length is bigger than the aByteLen value 
-
+@panic SqlDb 3 Client panic. The string length is not equal to aByteLen. If happens then it is an indication of a 
+                             problem inside client side sql library.
 @panic SqlDb 4 Client panic. Negative aByteLen value.
 */
 TDes8& CSqlSrvSession::ReadString8ZL(const RMessage2& aMessage, TInt aArgNum, TInt aByteLen)
@@ -1588,10 +1588,7 @@ TDes8& CSqlSrvSession::ReadString8ZL(const RMessage2& aMessage, TInt aArgNum, TI
 	TDes8& buf = Server().GetBuf8L(aByteLen + 1);
 	aMessage.ReadL(aArgNum, buf);
 	SQLPROFILER_REPORT_IPC(ESqlIpcRead, aByteLen);
-	if(buf.Length() > aByteLen)
-		{
-		__SQLLEAVE(KErrBadDescriptor);
-		}
+    __SQLPANIC_CLIENT(buf.Length() == aByteLen, aMessage, ESqlPanicBadHandle);
 	buf.Append(TChar(0));
 	return buf;
 	}
@@ -1601,8 +1598,8 @@ Reads a 16-bit string with "aCharLen" character length, which is in "aArgNum" ar
 The string will be zero terminated after the "read" operation.
 Returns TDes16 reference pointing to the zero-terminated string.
 
-@leave KErrBadDescriptor The transferred data length is bigger than the aCharLen value
-
+@panic SqlDb 3 Client panic. The string length is not equal to aCharLen. If happens then it is an indication of a 
+                             problem inside client side sql library.
 @panic SqlDb 4 Client panic. Negative aCharLen value.
 */
 TDes16& CSqlSrvSession::ReadString16ZL(const RMessage2& aMessage, TInt aArgNum, TInt aCharLen)
@@ -1611,10 +1608,7 @@ TDes16& CSqlSrvSession::ReadString16ZL(const RMessage2& aMessage, TInt aArgNum, 
 	TDes16& buf = Server().GetBuf16L(aCharLen + 1);
 	aMessage.ReadL(aArgNum, buf);
 	SQLPROFILER_REPORT_IPC(ESqlIpcRead, (aCharLen * sizeof(TText)));
-	if(buf.Length() > aCharLen)
-		{
-		__SQLLEAVE(KErrBadDescriptor);
-		}
+    __SQLPANIC_CLIENT(buf.Length() == aCharLen, aMessage, ESqlPanicBadHandle);
 	buf.Append(TChar(0));
 	return buf;
 	}
@@ -1623,8 +1617,8 @@ TDes16& CSqlSrvSession::ReadString16ZL(const RMessage2& aMessage, TInt aArgNum, 
 Reads a 16-bit string with "aCharLen" character length, which is in "aArgNum" argument of aMessage.
 Returns TDes16 reference pointing to the string.
 
-@leave KErrBadDescriptor The transferred data length is bigger than the aCharLen value
-
+@panic SqlDb 3 Client panic. The string length is not equal to aCharLen. If happens then it is an indication of a 
+                             problem inside client side sql library.
 @panic SqlDb 4 Client panic. Negative aCharLen value.
 */
 TDes16& CSqlSrvSession::ReadString16L(const RMessage2& aMessage, TInt aArgNum, TInt aCharLen)
@@ -1633,10 +1627,7 @@ TDes16& CSqlSrvSession::ReadString16L(const RMessage2& aMessage, TInt aArgNum, T
 	TDes16& buf = Server().GetBuf16L(aCharLen);
 	aMessage.ReadL(aArgNum, buf);
 	SQLPROFILER_REPORT_IPC(ESqlIpcRead, (aCharLen * sizeof(TText)));
-	if(buf.Length() > aCharLen)
-		{
-		__SQLLEAVE(KErrBadDescriptor);
-		}
+    __SQLPANIC_CLIENT(buf.Length() == aCharLen, aMessage, ESqlPanicBadHandle);
 	return buf;
 	}
 

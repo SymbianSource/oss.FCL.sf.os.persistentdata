@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -730,7 +730,7 @@ void FileIOFailureTest()
 	TheDb.Close();
 	err = -1;
 	const TInt KTestRecCnt = 100;
-	for(TInt cnt=1;err<KErrNone;++cnt)
+	for(TInt cnt=0;err<KErrNone;++cnt)
 		{		
 		TheTest.Printf(_L("%d \r"), cnt);		
 		err = TheDb.Open(KTestDbName);

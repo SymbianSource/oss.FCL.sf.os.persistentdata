@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -274,7 +274,7 @@ The function is used when _NOTIFY is defined.
 
 @internalComponent
 */	
-void* Util::LeaveIfNull(const TText* aFile, TInt aLine, void* aPtr)
+const void* Util::LeaveIfNull(const TText* aFile, TInt aLine, const void* aPtr)
 	{
 	if(!aPtr)
 		{

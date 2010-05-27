@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -25,7 +25,7 @@ LOCAL_C void doExternalizeL(const TDesC& aName);
 // Internalize CCompound object from the stream
 LOCAL_C void doInternalizeL(const TDesC& aName);
 
-#define STREAMRUNSIZE 1000
+#define STREAMRUNSIZE 500
 // Declare a class used by the example
 class CStreamA
 	{

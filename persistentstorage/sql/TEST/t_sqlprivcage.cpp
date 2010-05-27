@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -242,6 +242,9 @@ void SimpleDbOpTest()
     //Very long private database name
     err = db.Create(_L("c:\\private\\21212124\\hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh.db"));
     TEST2(err, KErrBadName);
+    //Private database name without drive letter
+    err = db.Create(_L("\\private\\21212124\\dbname_no_drive_letter.db"));
+    TEST2(err, KErrBadName);
     //Zero length private database name
     err = db.Create(_L(""));
     TEST2(err, KErrBadName);
@@ -302,10 +305,14 @@ void AttachDbOpTest()
 	TEST2(err, 1);
 	db2.Close();
 
-	//Open database 1, attach database 2
+	//Open database 1
 	RSqlDatabase db;
 	err = db.Open(KTestDb1);
 	TEST2(err, KErrNone);
+	//An attempt to attach a database with zero length name
+    err = db.Attach(_L(""), _L("Db2"));
+    TEST2(err, KErrBadName);
+    //Attach database 2
 	err = db.Attach(KTestDb2, _L("Db2"));
 	TEST2(err, KErrNone);
 
@@ -349,6 +356,32 @@ void AttachDbOpTest()
 	stmt.Close();
 	db.Close();
 		
+    //Open database 1, attach read-only database 2
+    err = db.Open(KTestDb1);
+    TEST2(err, KErrNone);
+    //Make database 2 read-only.
+    err = TheFs.SetAtt(KTestDb2, KEntryAttReadOnly, 0);
+    TEST2(err, KErrNone);
+    //Attach database 2
+    err = db.Attach(KTestDb2, _L("Db2"));
+    TEST2(err, KErrNone);
+    //
+    err = db.Exec(_L("INSERT INTO Db2.A(ID, T) VALUES(3, 'AAA')"));
+    TPtrC errmsg = db.LastErrorMessage();
+    TheTest.Printf(_L(" === Read-only private attached database. Msg=%S, err=%d\r\n"), &errmsg, err);
+    TEST(err != KErrNone);
+    TSqlScalarFullSelectQuery q(db);
+    TBuf<20> text2;
+    TRAP(err, q.SelectTextL(_L("SELECT T FROM Db2.A WHERE ID=2"), text2));
+    TEST2(err, KErrNone);
+    TEST(text2 == _L("AAA"));
+    //
+    err = db.Detach(_L("Db2"));
+    TEST2(err, KErrNone);
+    err = TheFs.SetAtt(KTestDb2, 0, KEntryAttReadOnly);
+    TEST2(err, KErrNone);
+    db.Close();
+    
 	err = RSqlDatabase::Delete(KTestDb2);
 	TEST2(err, KErrNone);
 	err = RSqlDatabase::Delete(KTestDb1);

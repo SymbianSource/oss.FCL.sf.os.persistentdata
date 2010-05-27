@@ -39,7 +39,12 @@ cenrepsrv.mmp
 
 PRJ_TESTEXPORTS
 // Stub sis file required by various tests.
-../test/testexecute/SWI/data/centrepswiteststub.SIS     z:/system/install/centrepswiteststub.sis
+
+#ifdef __SERIES60_
+../test/testexecute/SWI/data/rnd_sis/centrepswiteststub.SIS     z:/system/install/centrepswiteststub.sis
+#else
+../test/testexecute/SWI/data/techview_sis/centrepswiteststub.SIS     z:/system/install/centrepswiteststub.sis
+#endif //__SERIES60_
 
 CentralRepositoryTests.bat                              /epoc32/data/z/system/test/centralrepositorytests.bat
 centrepswiteststub.iby                                  /epoc32/rom/include/centrepswiteststub.iby
@@ -170,10 +175,18 @@ centreptestdata.iby                                     /epoc32/rom/include/cent
 ../test/sw.txt                  z:/resource/versions/sw.txt
 ../test/00000003.txt            z:/private/102081e4/00000003.txt
 ../test/00112273.txt            z:/private/10202be9/00112273.txt
-../test/RF1.sis	                z:/private/10202be9/rf1.sis
-../test/RF2.sis                 z:/private/10202be9/rf2.sis
-../test/RF3.sis                 z:/private/10202be9/rf3.sis
-../test/RF4.sis	                z:/private/10202be9/rf4.sis
+
+#ifdef __SERIES60_
+../test/rnd_RF1.sis             z:/private/10202be9/rf1.sis
+../test/rnd_RF2.sis             z:/private/10202be9/rf2.sis
+../test/rnd_RF3.sis             z:/private/10202be9/rf3.sis
+../test/rnd_RF4.sis             z:/private/10202be9/rf4.sis
+#else
+../test/techview_RF1.sis	    z:/private/10202be9/rf1.sis
+../test/techview_RF2.sis        z:/private/10202be9/rf2.sis
+../test/techview_RF3.sis        z:/private/10202be9/rf3.sis
+../test/techview_RF4.sis	    z:/private/10202be9/rf4.sis
+#endif //__SERIES60_
 
 #ifdef SYMBIAN_CENTREP_SUPPORT_MULTIROFS
 // Multi Rofs testing

@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -18,6 +18,7 @@
 #include <e32math.h>
 #include <sqldb.h>
 #include "SqlUtil.h"
+#include "SqlSrvStartup.h" //KSqlMajorVer, KSqlMinorVer, KSqlBuildVer
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -172,18 +173,18 @@ TInt StartSqlServer()
 class RTestSqlDbSession : public RSessionBase
 	{
 public:	
-	TInt Connect();
+	TInt Connect(const TVersion& aVersion);
 	void Close();
 	TInt SendReceive(TInt aFunction);
 	TInt SendReceive(TInt aFunction, const TIpcArgs& aArgs);
 
 private:
-	TInt DoCreateSession();
+	TInt DoCreateSession(const TVersion& aVersion);
 	};
 	
-TInt RTestSqlDbSession::Connect()
+TInt RTestSqlDbSession::Connect(const TVersion& aVersion)
 	{
-	TInt err = DoCreateSession();
+	TInt err = DoCreateSession(aVersion);
 	if(err == KErrNone)
 		{
 		TIpcArgs ipcArgs(KTestDbName1().Length(), &KTestDbName1(), 0, 0);
@@ -215,18 +216,14 @@ TInt RTestSqlDbSession::SendReceive(TInt aFunction, const TIpcArgs& aArgs)
 	return RSessionBase::SendReceive(aFunction, aArgs);	
 	}
 
-TInt RTestSqlDbSession::DoCreateSession()
+TInt RTestSqlDbSession::DoCreateSession(const TVersion& aVersion)
 	{
 	const TInt KTimesToRetryConnection = 2;
 	TInt retry = KTimesToRetryConnection;
 	_LIT(KSqlSrvName, "!SQL Server");//SqlDb server name
-	//SQL server: major version number, minor version number, build number constants.
-	const TInt KSqlMajorVer = 1;
-	const TInt KSqlMinorVer = 1;
-	const TInt KSqlBuildVer = 0;
 	for(;;)
 		{
-		TInt err = CreateSession(KSqlSrvName, TVersion(KSqlMajorVer, KSqlMinorVer, KSqlBuildVer));
+		TInt err = CreateSession(KSqlSrvName, aVersion);
 		if(err != KErrNotFound && err != KErrServerTerminated)
 			{
 			return err;
@@ -286,8 +283,9 @@ TInt ThreadFunc1(void* aData)
 	TTEST(p != NULL);
 	TThreadData& data = *p;
 
+	TVersion sqlSoftwareVersion(KSqlMajorVer, KSqlMinorVer, KSqlBuildVer);
 	RTestSqlDbSession sess;
-	TInt err = sess.Connect();
+	TInt err = sess.Connect(sqlSoftwareVersion);
 	TTEST2(err, KErrNone);
 
 	while(++data.iIteration <= KTestIterCount)
@@ -595,13 +593,62 @@ void BadNameTest()
 	TheTest.Printf(_L("Delete database-2, err=%d\r\n"), err);
 	TEST(err != KErrNone);
 	}
+
+/**
+@SYMTestCaseID          PDS-SQL-CT-4200
+@SYMTestCaseDesc        Invalid sql software version test.
+@SYMTestPriority        High
+@SYMTestActions			The test verifies that the SQL server checks that the software version of SQL sessions
+						to be created is less or equal to the current version of the server software. 
+						If that is not true then the SQL server does not create the session annd returns KErrNotSupported.
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF145236
+*/  
+void InvalidSoftwareVersionTest()
+	{
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	RSqlDatabase db;
+	TInt err = db.Create(KTestDbName1);
+	TEST2(err, KErrNone);
+	db.Close();
 	
+	//Smaller version number
+	TVersion sqlSoftwareVersion1(1, 0, 0);
+	RTestSqlDbSession sess1;
+	err = sess1.Connect(sqlSoftwareVersion1);
+	sess1.Close();
+	TEST2(err, KErrNone);
+	
+	//Bigger version number 1
+	TVersion sqlSoftwareVersion2(1, 97, 3);
+	RTestSqlDbSession sess2;
+	err = sess2.Connect(sqlSoftwareVersion2);
+	TEST2(err, KErrNotSupported);
+	
+	//Bigger version number 2
+	TVersion sqlSoftwareVersion3(78, 0, 1);
+	RTestSqlDbSession sess3;
+	err = sess3.Connect(sqlSoftwareVersion3);
+	TEST2(err, KErrNotSupported);
+
+	//The current version number
+	TVersion sqlSoftwareVersion4(KSqlMajorVer, KSqlMinorVer, KSqlBuildVer);
+	RTestSqlDbSession sess4;
+	err = sess4.Connect(sqlSoftwareVersion4);
+	sess4.Close();
+	TEST2(err, KErrNone);
+	
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	}
+
 void DoTests()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1769 Bad client test "));
 	BadClientTest();
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4048 Bad names test"));
 	BadNameTest();
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4200 Invalid software version test"));
+	InvalidSoftwareVersionTest();
 	}
 
 TInt E32Main()

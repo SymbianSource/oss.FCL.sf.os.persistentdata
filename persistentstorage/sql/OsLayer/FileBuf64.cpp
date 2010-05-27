@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -22,53 +22,98 @@
 
 extern TBool TheOsCallTimeDetailedProfileEnabled;//If true, the OS porting layer call details are enabled and for each call an entry will be added to the log file (epocwind.out).
 
-#define PROFILE_READ(pos,amount) \
+#define PROFILE_READ(pos, amount, err) \
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileReadCount; iFileReadAmount += (amount); \
-			RDebug::Print(_L(" -- FRead    this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileReadCount,  pos, amount, iFileReadAmount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Read¬%d¬%ld¬%d¬%ld¬%d\r\n"), (TUint32)this, iFileReadCount, pos, amount, iFileReadAmount, err); \
 			} \
 		} while(0)
 	
-#define PROFILE_WRITE(pos,amount) \
+#define PROFILE_WRITE(pos, amount, err) \
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileWriteCount; iFileWriteAmount += (amount); \
-			RDebug::Print(_L(" -- FWrite   this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileWriteCount, pos, amount, iFileWriteAmount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Write¬%d¬%ld¬%d¬%ld¬%d\r\n"), (TUint32)this, iFileWriteCount, pos, amount, iFileWriteAmount, err); \
 			} \
 		} while(0)
 
-#define PROFILE_SIZE() \
+#define PROFILE_SIZE(size, err) \
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileSizeCount; \
-			RDebug::Print(_L(" -- FSize    this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSizeCount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Size¬%d¬%ld¬¬¬%d\r\n"), (TUint32)this, iFileSizeCount, size, err); \
 			} \
 		} while(0)
 
-#define PROFILE_SETSIZE() \
+#define PROFILE_SETSIZE(size, err) \
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileSetSizeCount; \
-			RDebug::Print(_L(" -- FSetSize this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSetSizeCount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬SetSize¬%d¬%ld¬¬¬%d\r\n"), (TUint32)this, iFileSetSizeCount, size, err); \
 			} \
 		} while(0)
 
-#define PROFILE_FLUSH()	\
+#define PROFILE_FLUSH(err)	\
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileFlushCount; \
-			RDebug::Print(_L(" -- FFlush   this=%X, Cnt=%d\r\n"), (TUint32)this, iFileFlushCount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Flush¬%d¬¬¬¬%d\r\n"), (TUint32)this, iFileFlushCount, err); \
+			} \
+		} while(0)
+
+#define PROFILE_CREATE(fname, err) \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Create¬¬¬¬¬%d¬%S\r\n"), (TUint32)this, err, &fname); \
+			} \
+		} while(0)
+
+#define PROFILE_OPEN(fname, err) \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Open¬¬¬¬¬%d¬%S\r\n"), (TUint32)this, err, &fname); \
+			} \
+		} while(0)
+
+#define PROFILE_TEMP(fname, err) \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Temp¬¬¬¬¬%d¬%S\r\n"), (TUint32)this, err, &fname); \
+			} \
+		} while(0)
+
+#define PROFILE_ADOPT(fname, err) \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Adopt¬¬¬¬¬%d¬%S\r\n"), (TUint32)this, err, &fname); \
+			} \
+		} while(0)
+
+#define PROFILE_CLOSE() \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Close¬¬¬¬¬¬\r\n"), (TUint32)this); \
 			} \
 		} while(0)
 
@@ -80,12 +125,18 @@ void RFileBuf64::ProfilerReset()
 
 #else
 
-#define PROFILE_READ(pos,amount)	void(0)
-#define PROFILE_WRITE(pos,amount)	void(0)
+#define PROFILE_READ(pos,amount, err)	void(0)
+#define PROFILE_WRITE(pos,amount, err)	void(0)
 
-#define PROFILE_SIZE()			void(0)
-#define PROFILE_SETSIZE()		void(0)
-#define PROFILE_FLUSH()			void(0)
+#define PROFILE_SIZE(size, err)			void(0)
+#define PROFILE_SETSIZE(size, err)		void(0)
+#define PROFILE_FLUSH(err)				void(0)
+
+#define PROFILE_CREATE(fname, err)		void(0)
+#define PROFILE_OPEN(fname, err)		void(0)
+#define PROFILE_TEMP(fname, err)		void(0)
+#define PROFILE_ADOPT(fname, err)		void(0)
+#define PROFILE_CLOSE()					void(0)
 
 #endif//_SQLPROFILER
 
@@ -238,6 +289,7 @@ TInt RFileBuf64::Create(RFs& aFs, const TDesC& aFileName, TUint aFileMode)
 	    {
 	    err = iFile.Create(aFs, aFileName, aFileMode);
 	    }
+	PROFILE_CREATE(aFileName, err);
 	return DoPostInit(err);
 	}
 
@@ -269,6 +321,7 @@ TInt RFileBuf64::Open(RFs& aFs, const TDesC& aFileName, TUint aFileMode)
         {
         err = iFile.Open(aFs, aFileName, aFileMode);
         }
+	PROFILE_OPEN(aFileName, err);
     return DoPostInit(err);
 	}
 
@@ -300,6 +353,7 @@ TInt RFileBuf64::Temp(RFs& aFs, const TDesC& aPath, TFileName& aFileName, TUint 
         {
         err = iFile.Temp(aFs, aPath, aFileName, aFileMode);
         }
+	PROFILE_TEMP(aFileName, err);
     return DoPostInit(err);
 	}
 
@@ -336,6 +390,7 @@ TInt RFileBuf64::AdoptFromClient(const RMessage2& aMsg, TInt aFsIndex, TInt aFil
         {
         err = iFile.AdoptFromClient(aMsg, aFsIndex, aFileIndex);
         }
+	PROFILE_ADOPT(KNullDesC, err);
     return DoPostInit(err);
 	}
 
@@ -356,6 +411,7 @@ void RFileBuf64::Close()
 	iFile.Close();
 	User::Free(iBase);
 	iBase = 0;
+	PROFILE_CLOSE();
 	}
 
 /**
@@ -441,7 +497,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 		if(err == KErrNone)
 			{
 			err = iFile.Read(aFilePos, aDes);
-			PROFILE_READ(aFilePos, aDes.Size());
+			PROFILE_READ(aFilePos, aDes.Size(), err);
 			}
 		__FILEBUF64_INVARIANT();
 		return err;
@@ -472,7 +528,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 				iNextReadFilePosHits = 0;
 				TPtr8 ptr2(outptr, len);
 				err = iFile.Read(aFilePos, ptr2);
-				PROFILE_READ(aFilePos, ptr2.Size());
+				PROFILE_READ(aFilePos, ptr2.Size(), err);
 				if(err == KErrNone)
 					{
 					iNextReadFilePos = aFilePos + len;
@@ -496,7 +552,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 				}
 			TPtr8 ptr(iBase, Min(iCapacity, (len + readahead)));
 			err = iFile.Read(aFilePos, ptr);
-			PROFILE_READ(aFilePos, ptr.Size());
+			PROFILE_READ(aFilePos, ptr.Size(), err);
 			if(err == KErrNone)
 				{
 				iFilePos = aFilePos;
@@ -787,8 +843,8 @@ TInt RFileBuf64::DoFileSize()
 		__FILEBUF64_INVARIANT();
 		return KErrNone;
 		}
-	PROFILE_SIZE();
 	TInt err = iFile.Size(iFileSize);
+	PROFILE_SIZE(iFileSize, err);
 	if(err != KErrNone)
 		{
 		DoDiscard();
@@ -825,8 +881,8 @@ TInt RFileBuf64::DoSetFileSize(TInt64 aFileSize)
 		{
 		iLength = aFileSize - iFilePos;
 		}
-	PROFILE_SETSIZE();
 	TInt err = iFile.SetSize(aFileSize);
+	PROFILE_SETSIZE(aFileSize, err);
 	if(err != KErrNone)
 		{
 		DoDiscard();
@@ -857,8 +913,8 @@ TInt RFileBuf64::DoFileFlush()
 		__FILEBUF64_INVARIANT();
 		return err;	
 		}
-	PROFILE_FLUSH();
 	err = iFile.Flush();
+	PROFILE_FLUSH(err);
 	if(err != KErrNone)
 		{
 		DoDiscard();
@@ -889,9 +945,9 @@ TInt RFileBuf64::DoFileWrite()
 		__FILEBUF64_INVARIANT();
 		return KErrNone;	
 		}
-	PROFILE_WRITE(iFilePos, iLength);
 	TPtrC8 data(iBase, iLength);		
 	TInt err = iFile.Write(iFilePos, data);
+	PROFILE_WRITE(iFilePos, iLength, err);
 	if(err == KErrNone)
 		{
 		iFileSize = Max(iFileSize, (iFilePos + iLength));
