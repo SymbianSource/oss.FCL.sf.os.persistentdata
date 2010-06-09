@@ -1107,9 +1107,9 @@ TInt RFileBuf64::DoSetCapacity(TInt aRwDataLength)
 	const TInt KDefaultPageSize = 1024;//The journal header size is equal to 512 bytes, so it is not easy
                                        //to detect the 512 bytes page size. 
 	
-	__FBUF64_ASSERT(aRwDataLength >= 0, EFBufPanicRwDataLength);
+	__FBUF64_ASSERT(aRwDataLength > 0, EFBufPanicRwDataLength);
 	__FILEBUF64_INVARIANT();
-	if(iOptimized || aRwDataLength == 0)
+	if(iOptimized)
 		{
 		__FILEBUF64_INVARIANT();
 		return KErrNone;

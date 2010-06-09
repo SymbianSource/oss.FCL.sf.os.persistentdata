@@ -50,6 +50,10 @@ enum TOomTestType
 	EOomTempTest
 	};
 
+//Used in read/write OOM tests
+const TUint8 KChar = 'A';
+const TInt KPageSize = 32768;
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 void DeleteTestFiles()
@@ -1118,6 +1122,140 @@ void TempFileIoErrTest()
     TheTest.Printf(_L("\r\n===File I/O error simulation test succeeded on iteration %d===\r\n"), cnt);
 	}
 
+/**
+@SYMTestCaseID			PDS-SQL-UT-4207
+@SYMTestCaseDesc		RFileBuf64::Write() OOM test.
+						The test calls RFileBuf64:Write() in an OOM
+						simulation loop and verifies that no memory is leaked.
+						The test also check that RFileBuf::DoSetCapacity() correctly operates in
+						"out of memory" situation.
+@SYMTestActions			RFileBuf64::Write() OOM test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					380056
+*/
+void WriteOomTest()
+	{
+	HBufC8* databuf = HBufC8::New(KPageSize);
+	TEST(databuf != NULL);
+	TPtr8 dataptr = databuf->Des();
+	dataptr.SetLength(KPageSize);
+	dataptr.Fill(TChar(KChar));
+	
+	TInt err = KErrNoMemory;
+	TInt failingAllocationNo = 0;
+	TheTest.Printf(_L("Iteration:\r\n"));
+	while(err == KErrNoMemory)
+		{
+		TheTest.Printf(_L(" %d"), ++failingAllocationNo);
+
+		(void)TheFs.Delete(KTestFile);
+		
+		MarkHandles();
+		MarkAllocatedCells();
+		
+		__UHEAP_MARK;
+		__UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, failingAllocationNo, KBurstRate);
+
+		const TInt KDefaultBufCapacity = 1024;
+		RFileBuf64 fbuf(KDefaultBufCapacity);
+		err = fbuf.Create(TheFs, KTestFile, EFileWrite | EFileRead);
+		if(err == KErrNone)
+			{
+			err = fbuf.Write(0LL, dataptr);
+			}
+		fbuf.Close();
+		
+		__UHEAP_RESET;
+		__UHEAP_MARKEND;
+
+		CheckAllocatedCells();
+		CheckHandles();
+		}
+	TEST2(err, KErrNone);
+	RFile64 file;
+	err = file.Open(TheFs, KTestFile, EFileRead);
+	TEST2(err, KErrNone);
+	dataptr.Zero();
+	err = file.Read(dataptr);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST2(dataptr.Length(), KPageSize);
+	for(TInt i=0;i<KPageSize;++i)
+		{
+		TEST(dataptr[i] == KChar);
+		}
+	TheTest.Printf(_L("\r\n=== OOM Test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
+	
+	//The file is left undeleted - to be used in ReadOomTest().
+	delete databuf;
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4208
+@SYMTestCaseDesc		RFileBuf64::Read() OOM test.
+						The test calls RFileBuf64:Read() in an OOM
+						simulation loop and verifies that no memory is leaked.
+						The test also check that RFileBuf::DoSetCapacity() correctly operates in
+						"out of memory" situation.
+@SYMTestActions			RFileBuf64::Read() OOM test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					380056
+*/
+void ReadOomTest()
+	{
+	HBufC8* databuf = HBufC8::New(KPageSize);
+	TEST(databuf != NULL);
+	TPtr8 dataptr = databuf->Des();
+	
+	TInt err = KErrNoMemory;
+	TInt failingAllocationNo = 0;
+	TheTest.Printf(_L("Iteration:\r\n"));
+	while(err == KErrNoMemory)
+		{
+		TheTest.Printf(_L(" %d"), ++failingAllocationNo);
+
+		MarkHandles();
+		MarkAllocatedCells();
+		
+		__UHEAP_MARK;
+		__UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, failingAllocationNo, KBurstRate);
+
+		const TInt KDefaultBufCapacity = 1024;
+		RFileBuf64 fbuf(KDefaultBufCapacity);
+		err = fbuf.Open(TheFs, KTestFile, EFileRead);
+		if(err == KErrNone)
+			{
+			err = fbuf.Read(0LL, dataptr);
+			}
+		fbuf.Close();
+		
+		__UHEAP_RESET;
+		__UHEAP_MARKEND;
+
+		CheckAllocatedCells();
+		CheckHandles();
+		}
+	TEST2(err, KErrNone);
+	RFile64 file;
+	err = file.Open(TheFs, KTestFile, EFileRead);
+	TEST2(err, KErrNone);
+	dataptr.Zero();
+	err = file.Read(dataptr);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST2(dataptr.Length(), KPageSize);
+	for(TInt i=0;i<KPageSize;++i)
+		{
+		TEST(dataptr[i] == KChar);
+		}
+	TheTest.Printf(_L("\r\n=== OOM Test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
+	
+	(void)TheFs.Delete(KTestFile);
+	delete databuf;
+	}
+
 void DoTests()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:PDS-SQL-UT-4132 RFileBuf64 write test 1"));
@@ -1152,6 +1290,10 @@ void DoTests()
 	OomTest(EOomOpenTest);
 	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4142 RFileBuf64::Temp() OOM test"));
 	OomTest(EOomTempTest);
+	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4207 RFileBuf64::Write() OOM test"));
+	WriteOomTest();
+	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4208 RFileBuf64::Read() OOM test"));
+	ReadOomTest();
 	
 	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4195 RFileBuf64::Create() file I/O error simulation test"));
 	CreateFileIoErrTest();
