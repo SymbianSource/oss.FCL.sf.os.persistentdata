@@ -299,22 +299,24 @@ void OpenCloseDatabaseTest()
 	    {
         maxFileName = KMaxFileName -150;//The test will panic in PlatSim when the file name is too long. This line should be removed when platsim team fixes the file system defect.
 	    }
-	HBufC* dbPath = HBufC::NewLC(maxFileName);
+	HBufC* dbPath = HBufC::New(maxFileName);
+	TEST(dbPath != NULL);
+	TPtr dbPathPtr = dbPath->Des();
 	_LIT(KExt, ".DB");
-	dbPath->Des().Copy(_L("C:"));
-	dbPath->Des().Append(KSecureUid.Name());
-	TInt len = maxFileName + 1 - (dbPath->Length() + KExt().Length() + privatePath.Length());
+	dbPathPtr.Copy(_L("C:"));
+	dbPathPtr.Append(KSecureUid.Name());
+	TInt len = maxFileName + 1 - (dbPathPtr.Length() + KExt().Length() + privatePath.Length());
 	
 	while(--len)
 		{
-        dbPath->Des().Append(TChar('A'));	
+        dbPathPtr.Append(TChar('A'));	
 		}
-	dbPath->Des().Append(KExt);	
-	TEST(dbPath->Length() == (maxFileName - privatePath.Length()));	
-	rc = db.Create(dbPath->Des(), securityPolicy);
+	dbPathPtr.Append(KExt);	
+	TEST(dbPathPtr.Length() == (maxFileName - privatePath.Length()));	
+	rc = db.Create(dbPathPtr, securityPolicy);
 	TEST2(rc, KErrNone);
 	db.Close();
-	rc2 = RSqlDatabase::Delete(dbPath->Des());
+	rc2 = RSqlDatabase::Delete(dbPathPtr);
 	TEST2(rc2, KErrNone);
 	
 	// Private database with config
@@ -330,19 +332,20 @@ void OpenCloseDatabaseTest()
 	
 	//Public shared database file on an existing drive (C:). 
 	//Very long database file name.
-	dbPath->Des().Copy(_L("C:\\TEST\\D"));
-	len = maxFileName + 1 - (dbPath->Length() + KExt().Length());
+	dbPathPtr.Copy(_L("C:\\TEST\\D"));
+	len = maxFileName + 1 - (dbPathPtr.Length() + KExt().Length());
 	while(--len)
 		{
-        dbPath->Des().Append(TChar('A'));	
+        dbPathPtr.Append(TChar('A'));	
 		}
-	dbPath->Des().Append(KExt);	
-	TEST(dbPath->Length() == maxFileName);
-	rc = db.Create(dbPath->Des());
+	dbPathPtr.Append(KExt);	
+	TEST(dbPathPtr.Length() == maxFileName);
+	rc = db.Create(dbPathPtr);
 	db.Close();
-	rc2 = RSqlDatabase::Delete(dbPath->Des());
+	rc2 = RSqlDatabase::Delete(dbPathPtr);
 	
-	CleanupStack::PopAndDestroy(dbPath);
+	delete dbPath;
+
 	TEST2(rc, KErrNone);
 	TEST2(rc2, KErrNone);
 

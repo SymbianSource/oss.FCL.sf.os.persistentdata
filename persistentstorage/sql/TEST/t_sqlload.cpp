@@ -137,7 +137,7 @@ TBool IsTimeLimitReached()
 		};
 	
 	static TStartTime startTime; 
-	const TInt KTestTimeLimit = 250;//seconds
+	const TInt KTestTimeLimit = 150;//seconds
 	
 	TTime currTime;
 	currTime.HomeTime();

@@ -44,6 +44,7 @@ struct TCmdLineParams
 		iPageSize = iDefaultPageSize;
 		iCacheSize = iDefaultCacheSize;
 		iDriveName.Copy(_L("c:"));
+		iSoftHeapLimitKb = 0;
 		}
 	
 	const TDbEncoding	iDefaultEncoding;
@@ -54,9 +55,12 @@ struct TCmdLineParams
 	TInt		iPageSize;
 	TInt 		iCacheSize;
 	TDriveName	iDriveName;
+	TInt		iSoftHeapLimitKb;
 	};
 
 void GetCmdLineParamsAndSqlConfigString(RTest& aTest, const TDesC& aTestName, TCmdLineParams& aCmdLineParams, TDes8& aConfigStr);
 void PrepareDbName(const TDesC& aDeafultDbName, const TDriveName& aDriveName, TDes& aDbName);
+void SetSoftHeapLimit(TInt aSoftHeapLimit);
+void ResetSoftHeapLimit();
 
 #endif//T_SQLCMDLINEUTIL_H

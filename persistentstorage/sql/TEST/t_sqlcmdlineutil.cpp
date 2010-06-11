@@ -21,7 +21,7 @@ static void GetCmdLine(RTest& aTest, const TDesC& aTestName, TDes& aCmdLine)
 	aCmdLine.TrimAll();
 	if(aCmdLine.Length() == 0)
 		{
-		aTest.Printf(_L("Usage: %S [ [/enc=<16/8>] /drv=<drive letter>:] [/page=<512/1024/2048/4096/8192/16384/32768>] ] [/cache=<number>]\r\n"), &aTestName);
+		aTest.Printf(_L("Usage: %S [ [/enc=<16/8>] /drv=<drive letter>:] [/page=<512/1024/2048/4096/8192/16384/32768>] ] [/cache=<number>] [/hlimit=<Kb>]\r\n"), &aTestName);
 		return;
 		}
 	aCmdLine.Append(TChar('/'));
@@ -139,6 +139,16 @@ static void ExtractParamNamesAndValues(const RArray<TPtrC>& aPrmNames, const RAr
 				aCmdLineParams.iCacheSize = cacheSize;
 				}
 			}
+		else if(aPrmNames[i].CompareF(_L("hlimit")) == 0)
+			{
+			TLex lex(aPrmValues[i]);
+			TInt softHeapLimit = 0;
+			TInt err = lex.Val(softHeapLimit);
+			if(err == KErrNone && (softHeapLimit >= 0 && softHeapLimit < 1000000000))
+				{
+				aCmdLineParams.iSoftHeapLimitKb = softHeapLimit;
+				}
+			}
 		}
 	}
 
@@ -168,7 +178,92 @@ static void PrepareSqlConfigString(RTest& aTest, const TCmdLineParams& aCmdLineP
 	aConfigStr.Append(cacheSizeBuf);
 	
 	aTest.Printf(_L("--PRM--Database drive: %S\r\n"), &aCmdLineParams.iDriveName);
+
+	if(aCmdLineParams.iSoftHeapLimitKb > 0)
+		{
+		aTest.Printf(_L("--PRM--Soft heap limit: %d Kb\r\n"), aCmdLineParams.iSoftHeapLimitKb);
+		}
+	else
+		{
+		aTest.Printf(_L("--PRM--Soft heap limit: default\r\n"));
+		}
 	}
+
+#ifdef SQL_SOFT_HEAP_LIMIT_TEST	
+
+static TInt KillProcess(const TDesC& aProcessName)
+	{
+	TFullName name;
+	TBuf<64> pattern(aProcessName);
+	TInt length = pattern.Length();
+	pattern += _L("*");
+	TFindProcess procFinder(pattern);
+
+	while (procFinder.Next(name) == KErrNone)
+		{
+		if (name.Length() > length)
+			{//If found name is a string containing aProcessName string.
+			TChar c(name[length]);
+			if (c.IsAlphaDigit() ||
+				c == TChar('_') ||
+				c == TChar('-'))
+				{
+				// If the found name is other valid application name
+				// starting with aProcessName string.
+				continue;
+				}
+			}
+		RProcess proc;
+		if (proc.Open(name) == KErrNone)
+			{
+			proc.Kill(0);
+			}
+		proc.Close();
+		}
+	return KErrNone;
+	}
+
+_LIT(KSqlSrvName, "sqlsrv.exe");
+_LIT(KSqlSrvConfigFile, "c:\\test\\t_sqlserver.cfg");
+
+static void ReplaceConfigFile(const TDesC16& aConfig)
+	{
+	RFs fs;
+	TInt err = fs.Connect();
+	__ASSERT_ALWAYS(err == KErrNone, User::Invariant());
+	
+	(void)KillProcess(KSqlSrvName);
+	
+	(void)fs.MkDirAll(KSqlSrvConfigFile);
+	(void)fs.Delete(KSqlSrvConfigFile);
+	
+	RFile file;
+	err = file.Create(fs, KSqlSrvConfigFile, EFileRead | EFileWrite);
+	__ASSERT_ALWAYS(err == KErrNone, User::Invariant());
+	
+	TPtrC8 p((const TUint8*)aConfig.Ptr(), aConfig.Length() * sizeof(TUint16));
+	err = file.Write(p);
+	file.Close();
+	__ASSERT_ALWAYS(err == KErrNone, User::Invariant());
+	
+	fs.Close();
+	}
+
+static void DeleteConfigFile()
+	{
+	RFs fs;
+	TInt err = fs.Connect();
+	__ASSERT_ALWAYS(err == KErrNone, User::Invariant());
+	
+	(void)KillProcess(KSqlSrvName);
+	
+	(void)fs.MkDirAll(KSqlSrvConfigFile);
+	(void)fs.Delete(KSqlSrvConfigFile);
+	
+	fs.Close();
+	}
+
+#endif //SQL_SOFT_HEAP_LIMIT_TEST	
 
 void GetCmdLineParamsAndSqlConfigString(RTest& aTest, const TDesC& aTestName, TCmdLineParams& aCmdLineParams, TDes8& aConfigStr)
 	{
@@ -190,3 +285,29 @@ void PrepareDbName(const TDesC& aDeafultDbName, const TDriveName& aDriveName, TD
 	const TDesC& dbFilePath = parse.FullName();
 	aDbName.Copy(dbFilePath);
 	}
+
+void SetSoftHeapLimit(TInt aSoftHeapLimit)
+	{
+	if(aSoftHeapLimit > 0)
+		{
+#ifdef SQL_SOFT_HEAP_LIMIT_TEST	
+		TBuf<50> configBuf;
+		configBuf.Format(_L("soft_heap_limit_kb=%d"), aSoftHeapLimit);
+		ReplaceConfigFile(configBuf);
+#else
+		RDebug::Print(_L("The soft heap limit cannot be set if \"SQL_SOFT_HEAP_LIMIT_TEST\" macro is not defined!\r\n"));
+#endif
+		}
+	else if(aSoftHeapLimit < 0)
+		{
+		RDebug::Print(_L("Soft heap limit of %d Kb cannot be set!\r\n"), aSoftHeapLimit);
+		}
+	}
+
+void ResetSoftHeapLimit()
+	{
+#ifdef SQL_SOFT_HEAP_LIMIT_TEST	
+	DeleteConfigFile();
+#endif
+	}
+

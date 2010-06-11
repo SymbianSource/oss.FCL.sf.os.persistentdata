@@ -2652,9 +2652,11 @@ SQLite OS porting layer API.
 
 Memory allocation routine.
 
+EXPORT_C required to match IMPORT_C in stdlib.h and avoid compiler warning
+
 @internalComponent
 */
-extern "C" void* sqlite3SymbianMalloc(size_t aSize)
+extern "C" EXPORT_C void* sqlite3SymbianMalloc(size_t aSize)
 	{
 	__MEM_CALL(EMemOpAlloc, aSize, 0);
 	return Allocator().Alloc(aSize);
@@ -2665,9 +2667,11 @@ SQLite OS porting layer API.
 
 Memory reallocation routine.
 
+EXPORT_C required to match IMPORT_C in stdlib.h and avoid compiler warning
+
 @internalComponent
 */
-extern "C" void* sqlite3SymbianRealloc(void* aPtr, size_t aSize)
+extern "C" EXPORT_C void* sqlite3SymbianRealloc(void* aPtr, size_t aSize)
 	{
 #ifdef _SQLPROFILER
 	TInt size = Allocator().AllocLen(aPtr);
@@ -2681,9 +2685,11 @@ SQLite OS porting layer API.
 
 Memory free routine.
 
+EXPORT_C required to match IMPORT_C in stdlib.h and avoid compiler warning
+
 @internalComponent
 */
-extern "C" void sqlite3SymbianFree(void* aPtr)
+extern "C" EXPORT_C void sqlite3SymbianFree(void* aPtr)
 	{
 #ifdef _SQLPROFILER
 	TInt size = Allocator().AllocLen(aPtr);

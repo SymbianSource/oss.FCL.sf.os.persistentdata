@@ -43,8 +43,34 @@ SqlDb.mmp
 
 PRJ_TESTEXPORTS
 
-sqltests.iby		/epoc32/rom/include/sqltests.iby
-sqltests.bat		/epoc32/data/z/system/test/sqltests.bat
+sqltests.iby                                /epoc32/rom/include/sqltests.iby
+sqltests.bat                                z:/test/sqltests.bat
+
+../TEST/TestDb1.db                          z:/test/testdb1.db
+../TEST/CorruptDb.db                        z:/test/corruptdb.db
+../TEST/contacts_schema_to_vendors.sql      z:/test/contacts_schema_to_vendors.sql
+../TEST/add_simple_contacts.sql             z:/test/add_simple_contacts.sql
+../TEST/t_SqlShortNonDb.db                  z:/test/t_sqlshortnondb.db
+../TEST/contacts_startup_time.sql           z:/test/contacts_startup_time.sql
+../TEST/t_inc095412.db                      z:/test/t_inc095412.db
+../TEST/default_avacon.dbSQL                z:/test/default_avacon.dbSQL
+../TEST/t_sqlbur_backup_ver0.bak            z:/test/t_sqlbur_backup_ver0.bak
+../TEST/t_sqlperformance4.sql               z:/test/t_sqlperformance4.sql
+../TEST/{21212122}AADb2.db                  z:/private/10281e17/[21212122]aadb2.db
+../TEST/{21212122}BBDb2.db                  z:/private/10281e17/[21212122]bbdb2.db
+../TEST/{21212125}T_AB.db                   z:/private/10281e17/[21212125]t_ab.db
+../TEST/{1111CCCC}T_AB.db                   z:/private/10281e17/[1111CCCC]t_ab.db
+../TEST/{21212125}T_OneDefPolicy.db         z:/private/10281e17/[21212125]t_onedefpolicy.db
+//../TEST/SqlServer.cfg                     z:/private/10281e17/sqlserver.cfg
+../TEST/t_sqldb1.db                         z:/private/21212124/t_sqldb1.db
+../TEST/{98765432}t_2defaultpolicies.db     z:/private/10281e17/[98765432]t_2defaultpolicies.db
+../TEST/{98765432}t_emptysettings.db        z:/private/10281e17/[98765432]t_emptysettings.db
+../TEST/{98765432}t_invobject.db            z:/private/10281e17/[98765432]t_invobject.db
+../TEST/{98765432}t_invversion.db           z:/private/10281e17/[98765432]t_invversion.db
+../TEST/{98765432}t_longcollation.db        z:/private/10281e17/[98765432]t_longcollation.db
+../TEST/{98765432}t_nocollation.db          z:/private/10281e17/[98765432]t_nocollation.db
+../TEST/{98765432}t_nodefaultpolicy.db      z:/private/10281e17/[98765432]t_nodefaultpolicy.db
+../TEST/{98765432}t_nosettings.db           z:/private/10281e17/[98765432]t_nosettings.db
 
 PRJ_TESTMMPFILES
 
@@ -85,6 +111,7 @@ t_sqlperformance.mmp
 t_sqlperformance2.mmp
 t_sqlperformance3.mmp
 t_sqlperformance4.mmp
+t_sqlperformance5.mmp
 t_sqlood.mmp
 t_sqloslayer.mmp
 t_sqldefect.mmp
@@ -112,11 +139,6 @@ t_sqlfilesrvcrash2.mmp manual
 #endif
 t_sqlcorrupt.mmp
 t_sqlenvdestroy.mmp
-
-
-PRJ_TESTEXTENSIONS 
-start extension syslibs/test/sql_copysqltestfiles
-end
 
 #include "../TEST/testexecute/group/bld.inf"
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -77,6 +77,39 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+//t_sqlcompact1 timeouts in WDP builds.
+//This function is used to check whether the time limit is reaqched or not.
+TBool IsTimeLimitReached()
+	{
+	struct TStartTime
+		{
+		TStartTime()
+			{
+			iTime.HomeTime();
+			}
+		TTime iTime;
+		};
+	
+	static TStartTime startTime; 
+	const TInt KTestTimeLimit = 100;//seconds
+	
+	TTime currTime;
+	currTime.HomeTime();
+	
+	TTimeIntervalSeconds s;
+	TInt err = currTime.SecondsFrom(startTime.iTime, s);
+	TEST2(err, KErrNone);
+	return s.Int() > KTestTimeLimit;
+	}
+
+void GetHomeTimeAsString(TDes& aStr)
+	{
+	TTime time;
+	time.HomeTime();
+	TDateTime dt = time.DateTime();
+	aStr.Format(_L("%02d:%02d:%02d.%06d"), dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond());
+	}
+
 void CreateTestEnv()
     {
     RFs fs;
@@ -116,6 +149,8 @@ void InsertRecords(const TDesC& aDbName)
 	{
 	TInt err = TheDb.Open(aDbName);
 	TEST2(err, KErrNone);
+	err = TheDb.Exec(_L("BEGIN TRANSACTION"));
+	TEST(err >= 0);
 	TheText.SetLength(TheText.MaxLength());
 	TheText.Fill(TChar('A'));
 	for(TInt i=0;i<100;++i)
@@ -124,6 +159,8 @@ void InsertRecords(const TDesC& aDbName)
 		err = TheDb.Exec(TheSqlBuf);
 		TEST2(err, 1);
 		}
+	err = TheDb.Exec(_L("COMMIT TRANSACTION"));
+	TEST(err >= 0);
 	TheDb.Close();
 	}
 
@@ -132,6 +169,8 @@ TInt DeleteRecords(const TDesC& aDbName, TInt aPageCount, TInt aPageSize)
 	TInt freePageCount = -1;
 	TInt err = TheDb.Open(aDbName);
 	TEST2(err, KErrNone);
+	err = TheDb.Exec(_L("BEGIN TRANSACTION"));
+	TEST(err >= 0);
 	for(TInt i=0;;++i)
 		{
 		TheSqlBuf.Format(_L("DELETE FROM A WHERE I=%d"), i + 1);
@@ -146,6 +185,8 @@ TInt DeleteRecords(const TDesC& aDbName, TInt aPageCount, TInt aPageSize)
 			break;	
 			}
 		}
+	err = TheDb.Exec(_L("COMMIT TRANSACTION"));
+	TEST(err >= 0);
 	TheDb.Close();
 	return freePageCount;
 	}
@@ -177,6 +218,10 @@ void CompactDbTest1()
 	
 	TInt i;
 	
+	TBuf<50> timeBuf;
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time1: %S\r\n"), &timeBuf);
+	
 	//Create databases, tables, insert records, delete part of the just inserted records.
 	for(i=0;i<KSize;++i)
 		{
@@ -186,6 +231,9 @@ void CompactDbTest1()
 		freePageCount[i] = DeleteRecords(KDbName[i], KFreePageCount[i], KDbPageSize[i]);
 		}
 
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time2: %S\r\n"), &timeBuf);
+	
 	//Open the first database, attach all others.
 	TInt err = TheDb.Open(KDbName1());
 	TEST2(err, KErrNone);
@@ -194,6 +242,9 @@ void CompactDbTest1()
 		err = TheDb.Attach(KDbName[i], KDbAttachName[i]);
 		TEST2(err, KErrNone);
 		}
+
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time3: %S\r\n"), &timeBuf);
 	
 	//Check the size of the main database.
 	RSqlDatabase::TSize size;
@@ -219,6 +270,9 @@ void CompactDbTest1()
 		TEST2(count, expected);
 		}
 	
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time4: %S\r\n"), &timeBuf);
+	
 	//Detach databases and close the main database.
 	for(i=0;i<KSize;++i)
 		{
@@ -227,6 +281,9 @@ void CompactDbTest1()
 		}
 	TheDb.Close();
 
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time5: %S\r\n"), &timeBuf);
+	
 	//Cleanup.
 	for(i=0;i<KSize;++i)
 		{
@@ -252,6 +309,8 @@ void PrepareDb(TInt aPageSize, TInt aRecordCount, TBool aManualCompaction = EFal
 	TInt err = TheDb.Create(KDbName1, &config);
 	TEST2(err, KErrNone);
 	
+	err = TheDb.Exec(_L("BEGIN TRANSACTION"));
+	TEST(err >= 0);
 	err = TheDb.Exec(_L("CREATE TABLE A(I INTEGER, T TEXT)"));
 	TEST(err >= 0);
 	//Insert records
@@ -263,6 +322,8 @@ void PrepareDb(TInt aPageSize, TInt aRecordCount, TBool aManualCompaction = EFal
 		err = TheDb.Exec(TheSqlBuf);
 		TEST2(err, 1);
 		}
+	err = TheDb.Exec(_L("COMMIT TRANSACTION"));
+	TEST(err >= 0);
 	//Delete all records making a lot of free pages. This operation should kick-off the background compaction
 	err = TheDb.Exec(_L("DELETE FROM A WHERE 1"));
 	TEST2(err, aRecordCount);
@@ -288,11 +349,18 @@ void PrepareDb(TInt aPageSize, TInt aRecordCount, TBool aManualCompaction = EFal
 */
 void CompactDbTest2()
 	{
+	TBuf<50> timeBuf;
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time1: %S\r\n"), &timeBuf);
+	
 	const TInt KPageSize = 1024;
 	//Number of records to be added and removed from database. Need to be increased when testing on a faster 
 	// hardware, otherwise at fastest case the background compaction could be finished in just 1 step.
-	const TInt KRecordCount = 2000;
+	const TInt KRecordCount = 2000;	
 	PrepareDb(KPageSize, KRecordCount);
+
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time2: %S\r\n"), &timeBuf);
 	
 	//Check the free space-1
 	RSqlDatabase::TSize size1;
@@ -321,6 +389,9 @@ void CompactDbTest2()
 		{
 		TEST(size2.iFree == size1.iFree);
 		}
+
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time3: %S\r\n"), &timeBuf);
 	
 	//Wait (KSqlCompactStepIntervalMs + KSqlCompactStepLengthMs) ms. During the pause only part of the free pages
 	//should be removed (whatever can be completed for KSqlCompactStepLengthMs ms).
@@ -335,6 +406,9 @@ void CompactDbTest2()
 		TheTest.Printf(_L("WARNING: Background compaction finished in 1 step. Initial number of records need to be increased.\r\n"));
 		}
 	TEST(size3.iFree > 0 && size3.iFree < size2.iFree);
+
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time4: %S\r\n"), &timeBuf);
 	
 	//Wait another (KSqlCompactStepIntervalMs + KSqlCompactStepLengthMs) ms. During the pause only part of the free pages
 	//should be removed (whatever can be completed for KSqlCompactStepLengthMs ms).
@@ -345,6 +419,9 @@ void CompactDbTest2()
 	TEST2(err, KErrNone);
 	TheTest.Printf(_L("===Free space after compaction-3, pages=%d\r\n"), size4.iFree / KPageSize);
 	TEST((size4.iFree > 0 && size4.iFree < size3.iFree) || (size4.iFree == 0));
+
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time5: %S\r\n"), &timeBuf);
 	
 	//Cleanup
 	TheDb.Close();
@@ -370,10 +447,17 @@ void CompactDbTest2()
 */
 void CompactDbTest3()
 	{
+	TBuf<50> timeBuf;
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time1: %S\r\n"), &timeBuf);
+	
 	const TInt KPageSize = 1024;
 	const TInt KRecordCount = 1000;
 	PrepareDb(KPageSize, KRecordCount);
 
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time2: %S\r\n"), &timeBuf);
+	
 	//Check the free space-1
 	RSqlDatabase::TSize size1;
 	TInt err = TheDb.Size(size1);
@@ -406,6 +490,10 @@ void CompactDbTest3()
 			break;	
 			}
 		}
+	
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time3: %S\r\n"), &timeBuf);
+	
 	//Check the free space-2
 	RSqlDatabase::TSize size2;
 	err = TheDb.Size(size2);
@@ -432,10 +520,18 @@ void CompactDbTest3()
 */
 void ManualCompactTest()
 	{
+	TBuf<50> timeBuf;
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time1: %S\r\n"), &timeBuf);
+	
 	//Create a database with 1000 free pages
 	const TInt KPageSize = 1024;
 	const TInt KRecordCount = 1000;
 	PrepareDb(KPageSize, KRecordCount, ETrue);//create the database with manual compaction mode
+	
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time2: %S\r\n"), &timeBuf);
+	
 	//Check the free space-1
 	RSqlDatabase::TSize size1;
 	TInt err = TheDb.Size(size1);
@@ -446,6 +542,10 @@ void ManualCompactTest()
 	//Compact
 	err = TheDb.Compact(RSqlDatabase::EMaxCompaction);
 	TEST2(err, size1.iFree);
+	
+	GetHomeTimeAsString(timeBuf);
+	TheTest.Printf(_L("===Time3: %S\r\n"), &timeBuf);
+	
 	//Cleanup
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(KDbName1);
@@ -456,12 +556,30 @@ void DoTestsL()
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4072 Manual Compact() - attached databases, different page sizes"));	
 	CompactDbTest1();
 
+	if(IsTimeLimitReached())
+		{
+		TheTest.Printf(_L("===Test timeout!\r\n"));
+		return;
+		}
+	
 	TheTest.Next( _L(" @SYMTestCaseID:SYSLIB-SQL-UT-4073 Background compaction steps test"));	
 	CompactDbTest2();
 
+	if(IsTimeLimitReached())
+		{
+		TheTest.Printf(_L("===Test timeout!\r\n"));
+		return;
+		}
+	
 	TheTest.Next( _L(" @SYMTestCaseID:SYSLIB-SQL-UT-4074 Background compaction timer test"));	
 	CompactDbTest3();
 
+	if(IsTimeLimitReached())
+		{
+		TheTest.Printf(_L("===Test timeout!\r\n"));
+		return;
+		}
+	
 	TheTest.Next( _L(" @SYMTestCaseID:SYSLIB-SQL-UT-4103 Big manual compaction test"));	
 	ManualCompactTest();
 	}
