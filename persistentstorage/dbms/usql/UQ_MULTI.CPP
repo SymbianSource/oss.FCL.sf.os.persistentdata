@@ -30,7 +30,7 @@ inline TBool CSqlMultiNode::IsFull() const
 	{ return ( Size() & ( EGranularity - 1 ) ) == 0; }
 
 inline TInt CSqlMultiNode::Size( TInt aLeaves )
-	{ return _FOFF( CSqlMultiNode, iLeaves[ aLeaves ] ); }
+	{ return _FOFF_DYNAMIC( CSqlMultiNode, iLeaves[ aLeaves ] ); }
 
 CSqlMultiNode::~CSqlMultiNode()
 	{

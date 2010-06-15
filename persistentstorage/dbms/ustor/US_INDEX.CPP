@@ -340,7 +340,7 @@ inline TBool CDbStoreIndex::HKey::FullComparison() const
 CDbStoreIndex::HKey* CDbStoreIndex::HKey::NewL(const CDbKey& aKey,const HDbColumnSet& aColumns)
 	{
 	TInt count=aKey.Count();
-	HKey* self=(HKey*)User::AllocLC(_FOFF(HKey,iKeys[count]));
+	HKey* self=(HKey*)User::AllocLC(_FOFF_DYNAMIC(HKey,iKeys[count]));
 	if (aKey.IsUnique())
 		new(self) HKey;
 	else

@@ -26,7 +26,7 @@ inline TUint16* TextCopy(TUint16* aDest,const TUint16* aSrc,TInt aLen)
 
 template <class T,class D>
 inline HMatcherPattern<T,D>* HMatcherPattern<T,D>::Realloc(HMatcherPattern<T,D>* aThis,TInt aSize)
-	{return STATIC_CAST(TThis*,User::ReAlloc(aThis,_FOFF(TThis,iPattern[aSize])));}
+	{return STATIC_CAST(TThis*,User::ReAlloc(aThis,_FOFF_DYNAMIC(TThis,iPattern[aSize])));}
 
 /**
 Creates a HMatcherPattern that converts the pattern into more manageable pieces

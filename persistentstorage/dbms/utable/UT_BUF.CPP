@@ -180,7 +180,7 @@ inline CDbTableCursor::HHeapBuf::HHeapBuf( CDbTableCursor& aCursor )
 CDbTableCursor::HHeapBuf* CDbTableCursor::HHeapBuf::NewL( CDbTableCursor& aCursor, const TDbBlob& aBlob, TDbColType aType )
 	{
 	__ASSERT( aBlob.Size() <= EMaxBlobBuffer );
-	TAny* mem = User::AllocL(_FOFF(HHeapBuf,iBuf[aBlob.Size()]));	// get the extra size for the entries, leaves on error
+	TAny* mem = User::AllocL(_FOFF_DYNAMIC(HHeapBuf,iBuf[aBlob.Size()]));	// get the extra size for the entries, leaves on error
 	HHeapBuf* self = new( mem ) HHeapBuf(aCursor);	// do an in place new, now we've got the memory
 	self->PushL();
 	MStreamBuf* buf = aCursor.BlobsL().ReadLC( aBlob.Id(), aType );

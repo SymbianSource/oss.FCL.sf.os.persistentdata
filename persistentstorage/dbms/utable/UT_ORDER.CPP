@@ -90,7 +90,7 @@ private:
 
 inline TInt CDbOrderByStage::HOrdering::TBlobKey::Size() const
 	{
-	TInt size=_FOFF(TBlobKey,iData8[iSize+3]);
+	TInt size=_FOFF_DYNAMIC(TBlobKey,iData8[iSize+3]);
 	return (size&ETrunc) ? sizeof(TBlobKey) : size&~3;
 	}
 
@@ -109,7 +109,7 @@ CDbOrderByStage::HOrdering* CDbOrderByStage::HOrdering::NewL(CDbTable& aTable,co
 	{
 	TInt count=aKey.Count();
 	__ASSERT(count>0);
-	HOrdering* self=new(User::AllocLC(_FOFF(HOrdering,iKeys[count])))
+	HOrdering* self=new(User::AllocLC(_FOFF_DYNAMIC(HOrdering,iKeys[count])))
 								HOrdering(count,aKey.Comparison(),aTable);
 	TKeyCol* pKey=&self->iKeys[0];
 	const HDbColumnSet& columns=aTable.Def().Columns();
@@ -505,7 +505,7 @@ private:
 // Class CDbOrderByStage::CKeys
 
 CDbOrderByStage::CKeys::CKeys(TInt aMaxKeySize)
-	:iKeys(EKeysGranularity),iMaxKeySize(_FOFF(TKey,iKey[aMaxKeySize])),
+	:iKeys(EKeysGranularity),iMaxKeySize(_FOFF_DYNAMIC(TKey,iKey[aMaxKeySize])),
 	 iPageSize(Max(EMinPageSize+iMaxKeySize,iMaxKeySize*EMinKeyElements))
 	{}
 

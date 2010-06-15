@@ -197,7 +197,7 @@ EXPORT_C TBtreeInlineIndexOrg::TBtreeInlineIndexOrg()
 EXPORT_C void TBtreeInlineIndexOrg::SetEntrySize(TInt aSize)
 	{
 	__ASSERT_DEBUG(aSize<=KMaxBtreeKeyLength,Panic(EBadEntrySize));
-	iEntrySize=_FOFF(SEntry,iKey[Align4(aSize)]);
+	iEntrySize=_FOFF_DYNAMIC(SEntry,iKey[Align4(aSize)]);
 	iMaxEntries=(KPoolPageSize-sizeof(SHeader)-sizeof(TPageRef))/iEntrySize;
 	}
 

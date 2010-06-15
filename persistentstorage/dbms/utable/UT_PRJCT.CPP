@@ -33,7 +33,7 @@ private:
 HDbColumnMap* HDbColumnMap::NewL(const RSqlColumnList& aSelect,const HDbColumnSet& aColumns)
 	{
 	TInt count=aSelect.Count();
-	HDbColumnMap* self=(HDbColumnMap*)User::AllocLC(_FOFF(HDbColumnMap,iMap[count]));
+	HDbColumnMap* self=(HDbColumnMap*)User::AllocLC(_FOFF_DYNAMIC(HDbColumnMap,iMap[count]));
 	self->iCount=count;
 	TDbColNo* pCol=&self->iMap[0];
 	for (TInt ii=0;ii<count;++ii)

@@ -108,7 +108,7 @@ void TDbColumnDef::AsTDbCol(TDbCol& aColumn) const
 
 HDbColumnSet* HDbColumnSet::NewL(TInt aCount)
 	{
-	return new(User::AllocL(_FOFF(HDbColumnSet,iColumns[aCount]))) HDbColumnSet(aCount);
+	return new(User::AllocL(_FOFF_DYNAMIC(HDbColumnSet,iColumns[aCount]))) HDbColumnSet(aCount);
 	}
 
 HDbColumnSet::HDbColumnSet(TInt aCount)

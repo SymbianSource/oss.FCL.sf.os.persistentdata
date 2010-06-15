@@ -51,7 +51,7 @@ inline TDbColType HDbsColumns::Type(TDbColNo aCol) const
 
 HDbsColumns* HDbsColumns::NewL(TInt aCount)
 	{
-	return new(User::AllocL(_FOFF(HDbsColumns,iType[aCount]))) HDbsColumns(aCount);
+	return new(User::AllocL(_FOFF_DYNAMIC(HDbsColumns,iType[aCount]))) HDbsColumns(aCount);
 	}
 
 void HDbsColumns::Check(TDbColNo aColNo) const

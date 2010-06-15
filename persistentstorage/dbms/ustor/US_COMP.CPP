@@ -407,7 +407,7 @@ inline HDeflateHash::HDeflateHash()
 inline HDeflateHash& HDeflateHash::NewLC(TInt aLinks)
 	{
 	__ASSERT(!(KDeflateMaxDistance&(KDeflateMaxDistance-1)));	// ensure power of two
-	return *new(User::AllocLC(_FOFF(HDeflateHash,iOffset[Min(aLinks,KDeflateMaxDistance)]))) HDeflateHash;
+	return *new(User::AllocLC(_FOFF_DYNAMIC(HDeflateHash,iOffset[Min(aLinks,KDeflateMaxDistance)]))) HDeflateHash;
 	}
 
 inline TInt HDeflateHash::Hash(const TUint8* aPtr)

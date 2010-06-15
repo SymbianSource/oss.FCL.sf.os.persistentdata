@@ -135,12 +135,12 @@ inline TDbBlobId TDbBlob::Id() const
 
 inline TInt TDbBlob::CellSize() const
 	{
-    return _FOFF(TDbBlob,iInline[IsInline() ? Size() : 0]);
+    return _FOFF_DYNAMIC(TDbBlob,iInline[IsInline() ? Size() : 0]);
     }
 
 inline TInt TDbBlob::InlineSize(TInt aSize)
 	{
-    return _FOFF(TDbBlob,iInline[aSize]);
+    return _FOFF_DYNAMIC(TDbBlob,iInline[aSize]);
     }
 
 inline TInt TDbBlob::RefSize()

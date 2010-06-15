@@ -34,7 +34,7 @@ private:
 CDbTableCursor::HColumns* CDbTableCursor::HColumns::NewL(const CDbDataSource* aSource)
 	{
 	TInt count=aSource->ColumnCount();
-	HColumns* self=(HColumns*)User::AllocL(_FOFF(HColumns,iType[count]));
+	HColumns* self=(HColumns*)User::AllocL(_FOFF_DYNAMIC(HColumns,iType[count]));
 	self->iCount=count;
 	TUint8* pp=&self->iType[0];
 	for (TDbColNo ii=1;ii<=count;++ii,++pp)
