@@ -1,4 +1,4 @@
-// Copyright (c) 1997-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1997-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -25,6 +25,11 @@
 @internalComponent
 */
 const TInt KOpenLogFilesGranularity=5;
+
+/* Internal error. Use positive number to ensure no conflict with other error code
+    Indicate that client message has panic'ed and should not be completed.
+*/
+const TInt KErrMessagePanic = 1;  
 
 /**
 panics for log client
@@ -268,7 +273,10 @@ void CFileLogSession::ServiceL(const RMessage2& aMessage)
 	{
   
  	TRAPD(ret,DispatchMessageL(aMessage));
- 	aMessage.Complete(ret);
+ 	if (ret!=KErrMessagePanic)
+ 	    {
+        aMessage.Complete(ret);
+ 	    }
  	}
 
 void CFileLogSession::DispatchMessageL(const RMessage2& aMessage)
@@ -281,13 +289,24 @@ void CFileLogSession::DispatchMessageL(const RMessage2& aMessage)
  	TLogFile log;
  	TPckg<TLogFile> logPckg(log);
  	aMessage.ReadL(0,logPckg);
- 	__ASSERT_ALWAYS(log.Directory().Length()!=0,aMessage.Panic(KFLoggerServerName,ELogDirectoryNameDoesNotExist));
- 	__ASSERT_ALWAYS(log.Name().Length()!=0,aMessage.Panic(KFLoggerServerName,ELogFileNameDoesNotExist));	
+ 	if (log.Directory().Length()<=0)
+        {
+        aMessage.Panic(KFLoggerServerName,ELogDirectoryNameDoesNotExist);
+        User::Leave(KErrMessagePanic);
+        }
+    
+    if (log.Name().Length()<=0)
+        {
+        aMessage.Panic(KFLoggerServerName,ELogFileNameDoesNotExist);
+        User::Leave(KErrMessagePanic);
+        }
  
  //	TBuf8<KLogBufferSize> buf;
  	TBuf8<1600> buf;
  	if (func==EWriteLog || func==ECreateWriteAndCloseLog)
+ 	    {
  		aMessage.ReadL(1,buf);
+ 	    }
  
  	switch (func)
  		{

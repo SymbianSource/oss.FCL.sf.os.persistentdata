@@ -614,7 +614,7 @@ void Utf16OpenAttachDatabaseOomTest()
                         attached (secure and non-secure).
                         UTF8 encoded database is used.
 @SYMTestExpectedResults Test must not fail
-@SYMDEF                 DEF????
+@SYMDEF                 DEF144603
 */  
 void Utf8OpenAttachDatabaseOomTest()
     {

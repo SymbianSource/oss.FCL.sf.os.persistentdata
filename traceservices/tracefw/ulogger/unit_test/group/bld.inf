@@ -13,9 +13,6 @@
 // Description:
 //
 
-PRJ_PLATFORMS
-WINSCW
-ARMV5
 
 PRJ_TESTEXPORTS
 //te_outfrwk files

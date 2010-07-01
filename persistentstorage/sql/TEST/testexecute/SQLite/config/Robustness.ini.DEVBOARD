@@ -19,7 +19,7 @@ NewBlock4=CheckBlock10-1
 NewBlock5=FillDisk150K
 NewBlock6=FillDisk100K
 
-Exec7=Begin Transaction;
+NoOperation7=
 // Fill the disk until an out of disk error occurs. Then close the
 // database because once it's reported a disk full error all bets are off..
 NewBlock8=FillDisk1
@@ -33,12 +33,12 @@ Delete10=E:\fillfile.txt
 // still be usable.
 Open11=E:\Robustness0.db
 
-// Check the original block is still ok...
-NewBlock12=CheckBlock10-1
-
 // Delete the data that we used to fill the disk. This is easy, our 'AddBlock'
 // data has 'Someint' values that are negative, the filldisk data is positive.
-Exec13=Delete From Sometable where Someint >= 0;
+Exec12=Delete From Sometable where Someint >= 0;
+
+// Check the original block is still ok...
+NewBlock13=CheckBlock10-1
 
 NewBlock14=AddBlock10-2
 NewBlock15=CheckBlock10-2

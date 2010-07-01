@@ -33,7 +33,7 @@ CClearConfig::CClearConfig()
 	/*Constructor*/
 }
 
-void CClearConfig::Clear(RULogger& loggerSession)
+void CClearConfig::ClearL(RULogger& loggerSession)
 {	
 	loggerSession.Stop();
 	loggerSession.DeActivateInputPlugin();

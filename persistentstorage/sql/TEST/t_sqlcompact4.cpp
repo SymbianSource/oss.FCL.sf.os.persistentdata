@@ -1019,6 +1019,78 @@ void BackgroundCompactionInDDLTransactionTest()
 	(void)RSqlDatabase::Delete(KDbName);
 	}
 
+/**
+@SYMTestCaseID			PDS-SQL-CT-4209
+@SYMTestCaseDesc		Corrupted database background compaction test.
+						The test creates a database, inserts records, then deletes part of the records.
+						The free pages count should be big enough to kick off the background compaction.
+						But the database is closed immediatelly and then the db file is corrupted in a such
+						way that during the "database open" operation the corruption is not detected.
+						But the corruption is detected during the background compaction. The SQL server
+						should detect during the compaction that the databas eis corrupted and should
+						stop compacting the database (and draining the battery). Unfortunatelly, this 
+						cannot be tested automatically, so a breakpoint should be set at the User::After()
+						call, and then the SQL server side should be debugged in order to berify that the
+						background compaction is really stopped for that database.  
+@SYMTestPriority		High
+@SYMTestActions			Corrupted database background compaction test.
+@SYMTestExpectedResults Test must not fail
+@SYMDEF					ou1cimx1#406830
+*/
+void CorruptedDbBckgCompactionTest()
+	{
+	//Step 1: Create a database with some records
+	const TInt KOperationCount = 100;
+	(void)RSqlDatabase::Delete(KDbName);
+	TInt err = TheDb.Create(KDbName);
+	TEST2(err, KErrNone);
+	err = TheDb.Exec(_L("BEGIN"));
+	TEST(err >= 0);
+	err = TheDb.Exec(_L("CREATE TABLE A(I INTEGER, T TEXT)"));
+	TEST2(err, 1);
+	TheText.SetLength(KTextLen);
+	TheText.Fill(TChar('A'));
+	for(TInt i=0;i<=KOperationCount;++i)	
+		{
+		TheSqlTexLen.Format(_L("INSERT INTO A VALUES(%d, '%S')"), i + 1, &TheText);
+		err = TheDb.Exec(TheSqlTexLen);
+		TEST2(err, 1);
+		}
+	err = TheDb.Exec(_L("COMMIT"));
+	TEST(err >= 0);
+	//Step 2: Delete some records to free some space
+	err = TheDb.Exec(_L("DELETE FROM A WHERE (I % 2) = 0"));
+	TEST(err > 0);
+	//Step 3: Close the database
+	TheDb.Close();
+	//Step 4: Corrupt the database
+    RFs fs;
+	err = fs.Connect();
+	TEST2(err, KErrNone);
+	RFile file;
+	err = file.Open(fs, KDbName, EFileRead | EFileWrite); 
+	TEST2(err, KErrNone);
+	TInt pos = 5000;
+	err = file.Seek(ESeekStart, pos);
+	TEST2(err, KErrNone);
+	TheSqlQuery.SetLength(1000);
+	for(TInt i=0;i<30;++i)
+		{
+		err = file.Write(TheSqlQuery);
+		TEST2(err, KErrNone);
+		}
+	file.Close();
+	//Step 5: Check the background compaction. Wait 10 seconds allowing the SQL server to try to compact the
+	//        database. The SQL server should detect that the SQL database is corrupted and should stop trying to
+	//        compact the database.
+	err = TheDb.Open(KDbName);
+	TEST2(err, KErrNone);
+	User::After(10000000);
+	//
+	TheDb.Close();
+	(void)RSqlDatabase::Delete(KDbName);
+	}
+
 void DoTestsL()
 	{
 	CreateTestDatabase8();
@@ -1049,6 +1121,9 @@ void DoTestsL()
 
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4071 Background compaction activated inside a DDL transaction - test"));	
 	BackgroundCompactionInDDLTransactionTest();
+	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4209 Corrupted database background compaction test"));	
+	CorruptedDbBckgCompactionTest();
 	}
 
 TInt E32Main()

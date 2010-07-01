@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -46,7 +46,7 @@ public:
 	static TInt Assert(const TText* aFile, TInt aLine, TInt aPanicCode);
 	static void Leave(const TText* aFile, TInt aLine, TInt aError);
 	static TInt LeaveIfError(const TText* aFile, TInt aLine, TInt aError);
-	static void* LeaveIfNull(const TText* aFile, TInt aLine, void* aPtr);
+	static const void* LeaveIfNull(const TText* aFile, TInt aLine, const void* aPtr);
 	static TInt PanicClientL(const TText* aFile, TInt aLine, const RMessage2& aMessage, TInt aPanicCode);
 	static void ErrorPrint(const TDesC& aMsg, TInt aErr);
 	static void ErrorPrint(const TDesC& aMsg, const TDesC& aStr);

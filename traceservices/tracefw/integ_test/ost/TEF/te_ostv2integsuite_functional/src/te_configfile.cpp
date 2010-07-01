@@ -229,7 +229,7 @@ TBool CPrivateConfigFileWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 		Result=logger.Connect();
 		INFO_PRINTF2(_L("connect err %d"), Result);
 		CClearConfig configIni;
-		configIni.Default(logger);
+		configIni.DefaultL(logger);
 
 		/**************First get primary filter*************/
 

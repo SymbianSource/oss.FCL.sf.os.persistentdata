@@ -1394,7 +1394,7 @@ void DEF125881L()
 	
 	// Begin test
 	TInt fsError = KErrGeneral;
-	TInt count = 1;
+	TInt count = 0;
 	
 	const TInt KMaxOps = 300;
 
@@ -1634,7 +1634,8 @@ void DEF144027()
     }
 
 /**
-Test defect where calling RSQLStatement::DeclaredColumnType() on a table which contains long (> 20 characters) column type names results in a USER 11 panic.
+Test defect where calling RSQLStatement::DeclaredColumnType() on a table which contains long (> 20 characters) column type 
+names results in a USER 11 panic.
 This test should pass because these are valid SQL column types 
 */
 void LongColumnTypeTest()

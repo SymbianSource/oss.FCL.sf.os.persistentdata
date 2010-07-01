@@ -904,34 +904,44 @@ TInt CPermanentStoreCollector::ExtentL(TInt aStream)
 	return ::ExtentL(Host(),iMark,Coord().Base(),aStream);
 	}
 
-void CPermanentStoreCollector::RelocateStreamL(const CPermanentStoreCollector::TEntry& aReloc, TInt aExtent)
 /* relocate a stream into [iFree, aExtent)
 
-During compaction the sequence of operations is:
+During compaction, for each string which is to be moved from position A1 to B1, the sequence of operations is:
 
 1.  Copy stream S1 content from position A1 to position B1 . The copy never overlaps so the old stream content is still good at this point.
 2.  Optionally rewrite the file header to state that stream S1 is being relocated to B1 (more about the ‘optional below’)
 3.  Overwrite the TOC entry for S1 to state that the content is now at B1
-4.  Carry on with stream S2
-5.  … etc
 
+This function completes 3 steps above and will be called again and again for every string to be moved.
 
-First consider the impact of a mid-write failure in any of these steps (when write caching is disabled):
+In terms of data consistency, first consider the impact of a mid-write failure in any of these steps (when write caching is disabled):
 1.  If step #1 only partially completes the file is good as the original content is intact and the new content was being written to otherwise free space
-2.  If step #2 only partially completes the header CRC fails and only the TOC reference is considered valid (so the corrupt stream relocation record is ignored). The TOC will be good because it is being overwritten with the same content.
-3.  If step #3 only partially completes the entry for S1 in the TOC is corrupt, BUT the relocation record for S1 in the file header is good and will override the entry in the TOC.
+2.  If step #2 only partially completes the header CRC fails and only the TOC reference is considered valid (so the corrupt stream relocation record is ignored).
+		 The TOC will be good because it is being overwritten with the same content.
+3.  If step #3 only partially completes the entry for S1 in the TOC is corrupt, BUT the relocation record for S1 in the file header is good and will
+ override the entry in the TOC.
 
 In all cases the file is never broken by a crash in mid-compaction.
 
-Step #2 is optional – there are many cases when step #3 cannot fail ‘halfway through’ because the underlying media makes atomic block/page based updates and the write does not cross any block boundaries. In STORE we assume that blocks cannot be smaller than 512 bytes and any flash based media provides the required behavior. Thus 99% of the step #2 writes are eliminated.
+Step #2 is optional – there are many cases when step #3 cannot fail ‘halfway through’ because the underlying media makes atomic block/page based
+updates and the write does not cross any block boundaries. In STORE we assume that blocks cannot be smaller than 512 bytes and any flash based
+media provides the required behavior. Thus 99% of the step #2 writes are eliminated.
 
-Note that sequencing MATTERS even for just one stream. If the TOC update hits the disk before the content is moved, and then the device fails we will have a broken file: S1 points to B1 which contains garbage.  Equally in the case where step #2 is required (i.e. when step #3 straddles a block boundary and could fail) step 2 has to go before the step 3. Otherwise write #3 could go to disk and fail part way through before write #2 and leave the TOC corrupt with no recovery in the file header.
+Note that sequencing MATTERS even for just one stream. If the TOC update hits the disk before the content is moved, and then the device fails
+we will have a broken file: S1 points to B1 which contains garbage.  Equally in the case where step #2 is required (i.e. when step #3 straddles
+a block boundary and could fail) step 2 has to go before the step 3. Otherwise write #3 could go to disk and fail part way through before write #2 
+and leave the TOC corrupt with no recovery in the file header.
 
-Consider the case that step 2 was omitted, so the Store relies on step 3 being completed in order to know that S1 is in location B1; and that no flush is done after step 3. In step 4 the stream S2 is moved – at this point the old space for stream S1 at A1 is considered empty – and suppose it gets moved from A2 to B2 where B2 overlaps/overwrites A1. If the writes in step 3 and step 4 are re-ordered and the step 3 write does not happen – then the TOC will claim that S1 is still at A1 but this location in the file has been overwritten with data from S2. A corrupted file.
+Consider the case that step 2 was omitted, so the Store relies on step 3 being completed in order to know that S1 is in location B1;
+and that no flush is done after step 3. In step 4 the stream S2 is moved – at this point the old space for stream S1 at A1 is considered empty
+– and suppose it gets moved from A2 to B2 where B2 overlaps/overwrites A1. If the writes in step 3 and step 4 are re-ordered and the step 3
+write does not happen – then the TOC will claim that S1 is still at A1 but this location in the file has been overwritten with data from S2.
+A corrupted file.
 
-Based on the knowledge above, it is strongly recommended to set EFileWriteDirectIO bit when opening the file so that the order is maintained when writing to the file.
-
+Based on the knowledge above, it is strongly recommended to set EFileWriteDirectIO bit when opening the file so that the order is maintained
+when writing to the file.
 */
+void CPermanentStoreCollector::RelocateStreamL(const CPermanentStoreCollector::TEntry& aReloc, TInt aExtent)
 	{
 	if (Coord().Accessed())	// must have exclusive access to relocate the stream
 		__LEAVE(KErrInUse);

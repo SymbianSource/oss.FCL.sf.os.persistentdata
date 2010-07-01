@@ -55,8 +55,8 @@ public:
 	TInt Test15L();//CULoggerServer::GetInstalledPlugins
 	TInt Test16L();//CULoggerServer::GetOutputPluginSettingsL
 	TInt Test17L();//CULoggerServer::GetOutputChannelL
-	TInt Test18L();//CULoggerServer::SetBufferSize
-	TInt Test19L();//CULoggerServer::SetDataNotificationSize
+	TInt Test18L();//CULoggerServer::SetBufferSizeL
+	TInt Test19L();//CULoggerServer::SetDataNotificationSizeL
 	TInt Test20L();//CULoggerServer::GetBufferSize
 	TInt Test21L();// CULoggerServer::GetDataNotificationSize
 	TInt Test22L();//CULoggerServer::SetGlobalSecondaryFilters

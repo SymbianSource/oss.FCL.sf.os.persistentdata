@@ -1,4 +1,4 @@
-// Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -30,6 +30,7 @@ static RFs   TheFs;
 _LIT(KTestDir, "c:\\test\\");
 _LIT(KTestFile, "c:\\test\\t_sqlfilebuf64.bin");
 _LIT(KTestFile2, "\\test\\t_sqlfilebuf64_2.bin");
+_LIT(KTestFile3, "c:\\test\\t_sqlfilebuf64_3.bin");
 
 static TBuf8<1024> TheBuf;
 static TFileName TheDbName;
@@ -49,6 +50,10 @@ enum TOomTestType
 	EOomTempTest
 	};
 
+//Used in read/write OOM tests
+const TUint8 KChar = 'A';
+const TInt KPageSize = 32768;
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 void DeleteTestFiles()
@@ -57,6 +62,7 @@ void DeleteTestFiles()
 		{
 		(void)TheFs.Delete(TheDbName);
 		}
+	(void)TheFs.Delete(KTestFile3);
 	(void)TheFs.Delete(KTestFile);
 	}
 
@@ -508,20 +514,18 @@ void ReadTest1()
 	const TInt KBufMaxSize = 20;// This is half the file size
 	RFileBuf64 fbuf(KBufMaxSize);
 	TInt err = fbuf.Open(TheFs, KTestFile, EFileWrite | EFileRead | EFileShareReadersOrWriters);
-	TEST2(err, KErrNone); 
+	TEST2(err, KErrNone);
     fbuf.ProfilerReset();
     
 	//Zero max length request
-	HBufC8* buf1 = HBufC8::New(0);
-	TEST(buf1 != NULL);
-	TPtr8 ptr1 = buf1->Des();
+    TUint8 buf1[1];
+	TPtr8 ptr1(buf1, 0);
 	err = fbuf.Read(0, ptr1);
 	TEST2(err, KErrNone); 
-	delete buf1;
 	TEST2(fbuf.iFileReadCount, 0);
 	TEST2(fbuf.iFileReadAmount, 0);
 	TEST2(fbuf.iFileSizeCount, 0);
-	
+
 	//Too big request
 	TBuf8<KBufMaxSize * 2> buf2;
 	err = fbuf.Read(0, buf2);
@@ -536,6 +540,30 @@ void ReadTest1()
 	TEST2(err, KErrNone); 
 	TEST2(buf2.Length(), 0); 
 
+	//Write "5678" in the buffer, pos [4..8)
+	err = fbuf.Write(4, _L8("5678"));
+	TEST2(err, KErrNone); 
+
+	//Too big request. There are pending data in the buffer.
+	TBuf8<KBufMaxSize + 2> buf3;
+	err = fbuf.Read(1, buf3);
+	TEST2(err, KErrNone); 
+	VerifyFileContent(buf3, 1);
+
+	//Read from a non-zero file position to move the buffer start pos. The cached file pos will be 35 at the end.
+	TBuf8<5> buf4;
+	err = fbuf.Read(30, buf4);
+	TEST2(err, KErrNone); 
+	VerifyFileContent(buf4, 30);
+	err = fbuf.Read(35, buf4);
+	TEST2(err, KErrNone); 
+	VerifyFileContent(buf4, 35);
+
+	//Too big request. No pending data in the buffer. The file read pos is before the position of the cached data in the buffer.  
+	err = fbuf.Read(10, buf3);
+	TEST2(err, KErrNone); 
+	VerifyFileContent(buf3, 10);
+	
 	fbuf.Close();
 	}
 
@@ -797,15 +825,21 @@ void SetReadAheadSizeTest()
 					parse.Set(KTestFile2, &drvName, NULL);
 					TheDbName.Copy(parse.FullName());
 					TRAP(err, BaflUtils::EnsurePathExistsL(TheFs, TheDbName));
-					TEST(err == KErrNone || err == KErrAlreadyExists);
-					(void)TheFs.Delete(TheDbName);
-					RFileBuf64 fbuf64(8 * 1024);
-					err = fbuf64.Create(TheFs, TheDbName, EFileRead | EFileWrite);
-					TEST2(err, KErrNone);
-					TInt readAhead = fbuf64.SetReadAheadSize(vparam.iBlockSize, vparam.iRecReadBufSize);
-					TheTest.Printf(_L("       Read-ahead size=%d.\r\n"), readAhead);
-					fbuf64.Close();
-					(void)TheFs.Delete(TheDbName);
+					if(err == KErrNone || err == KErrAlreadyExists)
+						{
+						(void)TheFs.Delete(TheDbName);
+						RFileBuf64 fbuf64(8 * 1024);
+						err = fbuf64.Create(TheFs, TheDbName, EFileRead | EFileWrite);
+						TEST2(err, KErrNone);
+						TInt readAhead = fbuf64.SetReadAheadSize(vparam.iBlockSize, vparam.iRecReadBufSize);
+						TheTest.Printf(_L("       Read-ahead size=%d.\r\n"), readAhead);
+						fbuf64.Close();
+						(void)TheFs.Delete(TheDbName);
+						}
+					else
+						{
+						TheTest.Printf(_L("Drive %C. BaflUtils::EnsurePathExistsL() has failed with err=%d.\r\n"), 'A' + drive, err);	
+						}
 					}
 				}
 			else
@@ -981,6 +1015,247 @@ void OomTest(TOomTestType aOomTestType)
 	(void)TheFs.Delete(KTestFile);
 	}
 
+/**
+@SYMTestCaseID			PDS-SQL-UT-4195
+@SYMTestCaseDesc		RFileBuf64::Create() file I/O error simulation test.
+						The test calls RFileBuf64:Create() in a file I/O error simulation loop.
+@SYMTestActions			RFileBuf64::Create() file I/O error simulation test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					DEF145198
+*/
+void CreateFileIoErrTest()
+	{
+    TInt err = KErrGeneral;
+    TInt cnt = 0;
+    for(;err<KErrNone;++cnt)
+        {
+        TheTest.Printf(_L("===Iteration %d. Simulated error:\r\n"), cnt);       
+        for (TInt fsError=KErrNotFound;fsError>=KErrBadName;--fsError)
+            {
+            TheTest.Printf(_L("%d "), fsError);
+        	__UHEAP_MARK;
+            (void)TheFs.SetErrorCondition(fsError, cnt);
+        	RFileBuf64 fbuf(1024);//buffer capacity = 1024 bytes
+        	err = fbuf.Create(TheFs, KTestFile3, EFileRead | EFileWrite);
+            (void)TheFs.SetErrorCondition(KErrNone);
+            fbuf.Close();
+            __UHEAP_MARKEND;
+			TInt err2 = TheFs.Delete(KTestFile3);
+			TInt expectedErr = err == KErrNone ? KErrNone : KErrNotFound;
+			TEST2(err2, expectedErr);
+            }
+        TheTest.Printf(_L("\r\n"));
+        }
+    TheTest.Printf(_L("\r\n===File I/O error simulation test succeeded on iteration %d===\r\n"), cnt);
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4196
+@SYMTestCaseDesc		RFileBuf64::Open() file I/O error simulation test.
+						The test calls RFileBuf64:Open() in a file I/O error simulation loop.
+@SYMTestActions			RFileBuf64::Open() file I/O error simulation test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					DEF145198
+*/
+void OpenFileIoErrTest()
+	{
+	RFileBuf64 fbuf(1024);//buffer capacity = 1024 bytes
+	TInt err = fbuf.Create(TheFs, KTestFile3, EFileRead | EFileWrite);
+	fbuf.Close();
+	TEST2(err, KErrNone);
+    err = KErrGeneral;
+    TInt cnt = 0;
+    for(;err<KErrNone;++cnt)
+        {
+        TheTest.Printf(_L("===Iteration %d. Simulated error:\r\n"), cnt);       
+        for (TInt fsError=KErrNotFound;fsError>=KErrBadName;--fsError)
+            {
+            TheTest.Printf(_L("%d "), fsError);
+        	__UHEAP_MARK;
+            (void)TheFs.SetErrorCondition(fsError, cnt);
+        	err = fbuf.Open(TheFs, KTestFile3, EFileRead | EFileWrite);
+            (void)TheFs.SetErrorCondition(KErrNone);
+            fbuf.Close();
+            __UHEAP_MARKEND;
+            }
+        TheTest.Printf(_L("\r\n"));
+        }
+    TheTest.Printf(_L("\r\n===File I/O error simulation test succeeded on iteration %d===\r\n"), cnt);
+	(void)TheFs.Delete(KTestFile3);
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4197
+@SYMTestCaseDesc		RFileBuf64::Temp() file I/O error simulation test.
+						The test calls RFileBuf64:Temp() in a file I/O error simulation loop.
+@SYMTestActions			RFileBuf64::temp() file I/O error simulation test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					DEF145198
+*/
+void TempFileIoErrTest()
+	{
+    TInt err = KErrGeneral;
+    TInt cnt = 0;
+    for(;err<KErrNone;++cnt)
+        {
+        TheTest.Printf(_L("===Iteration %d. Simulated error:\r\n"), cnt);       
+        for (TInt fsError=KErrNotFound;fsError>=KErrBadName;--fsError)
+            {
+            TheTest.Printf(_L("%d "), fsError);
+        	__UHEAP_MARK;
+            (void)TheFs.SetErrorCondition(fsError, cnt);
+        	RFileBuf64 fbuf(1024);//buffer capacity = 1024 bytes
+        	TFileName tmpFileName;
+			err = fbuf.Temp(TheFs, KTestDir, tmpFileName, EFileWrite | EFileRead);
+            (void)TheFs.SetErrorCondition(KErrNone);
+            fbuf.Close();
+            __UHEAP_MARKEND;
+			TInt err2 = TheFs.Delete(tmpFileName);
+			TInt expectedErr = err == KErrNone ? KErrNone : KErrNotFound;
+			TEST2(err2, expectedErr);
+            }
+        TheTest.Printf(_L("\r\n"));
+        }
+    TheTest.Printf(_L("\r\n===File I/O error simulation test succeeded on iteration %d===\r\n"), cnt);
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4207
+@SYMTestCaseDesc		RFileBuf64::Write() OOM test.
+						The test calls RFileBuf64:Write() in an OOM
+						simulation loop and verifies that no memory is leaked.
+						The test also check that RFileBuf::DoSetCapacity() correctly operates in
+						"out of memory" situation.
+@SYMTestActions			RFileBuf64::Write() OOM test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					380056
+*/
+void WriteOomTest()
+	{
+	HBufC8* databuf = HBufC8::New(KPageSize);
+	TEST(databuf != NULL);
+	TPtr8 dataptr = databuf->Des();
+	dataptr.SetLength(KPageSize);
+	dataptr.Fill(TChar(KChar));
+	
+	TInt err = KErrNoMemory;
+	TInt failingAllocationNo = 0;
+	TheTest.Printf(_L("Iteration:\r\n"));
+	while(err == KErrNoMemory)
+		{
+		TheTest.Printf(_L(" %d"), ++failingAllocationNo);
+
+		(void)TheFs.Delete(KTestFile);
+		
+		MarkHandles();
+		MarkAllocatedCells();
+		
+		__UHEAP_MARK;
+		__UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, failingAllocationNo, KBurstRate);
+
+		const TInt KDefaultBufCapacity = 1024;
+		RFileBuf64 fbuf(KDefaultBufCapacity);
+		err = fbuf.Create(TheFs, KTestFile, EFileWrite | EFileRead);
+		if(err == KErrNone)
+			{
+			err = fbuf.Write(0LL, dataptr);
+			}
+		fbuf.Close();
+		
+		__UHEAP_RESET;
+		__UHEAP_MARKEND;
+
+		CheckAllocatedCells();
+		CheckHandles();
+		}
+	TEST2(err, KErrNone);
+	RFile64 file;
+	err = file.Open(TheFs, KTestFile, EFileRead);
+	TEST2(err, KErrNone);
+	dataptr.Zero();
+	err = file.Read(dataptr);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST2(dataptr.Length(), KPageSize);
+	for(TInt i=0;i<KPageSize;++i)
+		{
+		TEST(dataptr[i] == KChar);
+		}
+	TheTest.Printf(_L("\r\n=== OOM Test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
+	
+	//The file is left undeleted - to be used in ReadOomTest().
+	delete databuf;
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4208
+@SYMTestCaseDesc		RFileBuf64::Read() OOM test.
+						The test calls RFileBuf64:Read() in an OOM
+						simulation loop and verifies that no memory is leaked.
+						The test also check that RFileBuf::DoSetCapacity() correctly operates in
+						"out of memory" situation.
+@SYMTestActions			RFileBuf64::Read() OOM test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					380056
+*/
+void ReadOomTest()
+	{
+	HBufC8* databuf = HBufC8::New(KPageSize);
+	TEST(databuf != NULL);
+	TPtr8 dataptr = databuf->Des();
+	
+	TInt err = KErrNoMemory;
+	TInt failingAllocationNo = 0;
+	TheTest.Printf(_L("Iteration:\r\n"));
+	while(err == KErrNoMemory)
+		{
+		TheTest.Printf(_L(" %d"), ++failingAllocationNo);
+
+		MarkHandles();
+		MarkAllocatedCells();
+		
+		__UHEAP_MARK;
+		__UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, failingAllocationNo, KBurstRate);
+
+		const TInt KDefaultBufCapacity = 1024;
+		RFileBuf64 fbuf(KDefaultBufCapacity);
+		err = fbuf.Open(TheFs, KTestFile, EFileRead);
+		if(err == KErrNone)
+			{
+			err = fbuf.Read(0LL, dataptr);
+			}
+		fbuf.Close();
+		
+		__UHEAP_RESET;
+		__UHEAP_MARKEND;
+
+		CheckAllocatedCells();
+		CheckHandles();
+		}
+	TEST2(err, KErrNone);
+	RFile64 file;
+	err = file.Open(TheFs, KTestFile, EFileRead);
+	TEST2(err, KErrNone);
+	dataptr.Zero();
+	err = file.Read(dataptr);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST2(dataptr.Length(), KPageSize);
+	for(TInt i=0;i<KPageSize;++i)
+		{
+		TEST(dataptr[i] == KChar);
+		}
+	TheTest.Printf(_L("\r\n=== OOM Test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
+	
+	(void)TheFs.Delete(KTestFile);
+	delete databuf;
+	}
+
 void DoTests()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:PDS-SQL-UT-4132 RFileBuf64 write test 1"));
@@ -1015,6 +1290,17 @@ void DoTests()
 	OomTest(EOomOpenTest);
 	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4142 RFileBuf64::Temp() OOM test"));
 	OomTest(EOomTempTest);
+	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4207 RFileBuf64::Write() OOM test"));
+	WriteOomTest();
+	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4208 RFileBuf64::Read() OOM test"));
+	ReadOomTest();
+	
+	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4195 RFileBuf64::Create() file I/O error simulation test"));
+	CreateFileIoErrTest();
+	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4196 RFileBuf64::Open() file I/O error simulation test"));
+	OpenFileIoErrTest();
+	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4197 RFileBuf64::Temp() file I/O error simulation test"));
+	OpenFileIoErrTest();
 	}
 
 TInt E32Main()

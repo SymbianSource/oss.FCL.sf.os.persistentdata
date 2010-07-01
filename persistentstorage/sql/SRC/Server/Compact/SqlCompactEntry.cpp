@@ -189,6 +189,8 @@ void CSqlCompactEntry::ConstructL(const TDesC& aFullName, TSqlCompactConnFactory
 Performs a compaction step on the database.
 If the number of the free pages is bigger than the number of pages removed in one compaction step,
 the function will reschedule itself for another compaction step.
+If the database file is corrupted, then the function will remove the database entry from the timer queue - 
+the database won't be compacted anymore.
 
 @return KErrNoMemory, an out of memory condition has occurred;
                       Note that the function may also return some other database specific 
@@ -213,8 +215,9 @@ TInt CSqlCompactEntry::Compact()
 		iPageCount -= processedPageCount;
 		__SQLASSERT(iPageCount >= 0, ESqlPanicInternalError);
 		}
-	if(iPageCount <= 0)
-		{//No more pages to compact. Stop the compacting, move to EInactive state, remove from the timer queue.
+	TBool stopCompaction = err == KSqlErrCorrupt || err == KSqlErrNotDb || err == KErrCorrupt || err == KErrDisMounted;
+	if(iPageCount <= 0 || stopCompaction)
+		{//No more pages to compact or the file is corrupted . Stop the compacting, move to EInactive state, remove from the timer queue.
 		ResetState();
 		iTimer.DeQueue(*this);
 		}

@@ -45,7 +45,7 @@ public:
 	TBool DoCommandL(	const TTEFFunction& aCommand,
 						const TTEFSectionName& aSection, 
 						const TInt aAsyncErrorIndex);
-	TVerdict TestGroupIdFiltering(RULogger& aLogger, const TBool aFilter, const TBool aFiltering);
+	TVerdict TestGroupIdFilteringL(RULogger& aLogger, const TBool aFilter, const TBool aFiltering);
 
 private:
 	CTCMAdvancedGroupIDFilteringWrapper();
@@ -62,7 +62,7 @@ public:
 	TBool DoCommandL(	const TTEFFunction& aCommand,
 						const TTEFSectionName& aSection, 
 						const TInt aAsyncErrorIndex);
-	TVerdict TestComponentIdFiltering(RULogger& aLogger, const TBool aFilter, const TBool aFiltering);
+	TVerdict TestComponentIdFilteringL(RULogger& aLogger, const TBool aFilter, const TBool aFiltering);
 	
 // Please add/modify your class members here:
 private:

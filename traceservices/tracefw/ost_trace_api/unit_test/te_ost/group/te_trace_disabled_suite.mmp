@@ -28,11 +28,11 @@ MACRO 				TE_MODULE_UID=0x10287240
 
 OS_LAYER_SYSTEMINCLUDE
 
-USERINCLUDE			..\inc
+USERINCLUDE			../inc
 USERINCLUDE 		../../devicedriver/inc/
 USERINCLUDE 		../../lauterbach_perf_tester/inc/
 
-SOURCEPATH  		..\src
+SOURCEPATH  		../src
 SOURCE              te_suite_server.cpp
 SOURCE				te_suite_step_base.cpp 
 SOURCE				te_check_build_variability_step.cpp

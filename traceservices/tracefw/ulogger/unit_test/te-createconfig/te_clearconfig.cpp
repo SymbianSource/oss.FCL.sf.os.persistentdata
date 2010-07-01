@@ -35,7 +35,7 @@ CClearConfig::CClearConfig()
 
 }
 
-void CClearConfig::Clear(RULogger& loggerSession)
+void CClearConfig::ClearL(RULogger& loggerSession)
 	{	
 //	CArrayPtrFlat<HBufC8> *activeplugins = new (ELeave)CArrayPtrFlat<HBufC8>(1);				
 //	CleanupStack::PushL(activeplugins);

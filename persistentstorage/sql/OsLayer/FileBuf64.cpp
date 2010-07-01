@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -22,53 +22,98 @@
 
 extern TBool TheOsCallTimeDetailedProfileEnabled;//If true, the OS porting layer call details are enabled and for each call an entry will be added to the log file (epocwind.out).
 
-#define PROFILE_READ(pos,amount) \
+#define PROFILE_READ(pos, amount, err) \
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileReadCount; iFileReadAmount += (amount); \
-			RDebug::Print(_L(" -- FRead    this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileReadCount,  pos, amount, iFileReadAmount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Read¬%d¬%ld¬%d¬%ld¬%d\r\n"), (TUint32)this, iFileReadCount, pos, amount, iFileReadAmount, err); \
 			} \
 		} while(0)
 	
-#define PROFILE_WRITE(pos,amount) \
+#define PROFILE_WRITE(pos, amount, err) \
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileWriteCount; iFileWriteAmount += (amount); \
-			RDebug::Print(_L(" -- FWrite   this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileWriteCount, pos, amount, iFileWriteAmount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Write¬%d¬%ld¬%d¬%ld¬%d\r\n"), (TUint32)this, iFileWriteCount, pos, amount, iFileWriteAmount, err); \
 			} \
 		} while(0)
 
-#define PROFILE_SIZE() \
+#define PROFILE_SIZE(size, err) \
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileSizeCount; \
-			RDebug::Print(_L(" -- FSize    this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSizeCount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Size¬%d¬%ld¬¬¬%d\r\n"), (TUint32)this, iFileSizeCount, size, err); \
 			} \
 		} while(0)
 
-#define PROFILE_SETSIZE() \
+#define PROFILE_SETSIZE(size, err) \
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileSetSizeCount; \
-			RDebug::Print(_L(" -- FSetSize this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSetSizeCount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬SetSize¬%d¬%ld¬¬¬%d\r\n"), (TUint32)this, iFileSetSizeCount, size, err); \
 			} \
 		} while(0)
 
-#define PROFILE_FLUSH()	\
+#define PROFILE_FLUSH(err)	\
 	do \
 		{ \
 		if(TheOsCallTimeDetailedProfileEnabled) \
 			{ \
 			++iFileFlushCount; \
-			RDebug::Print(_L(" -- FFlush   this=%X, Cnt=%d\r\n"), (TUint32)this, iFileFlushCount); \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Flush¬%d¬¬¬¬%d\r\n"), (TUint32)this, iFileFlushCount, err); \
+			} \
+		} while(0)
+
+#define PROFILE_CREATE(fname, err) \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Create¬¬¬¬¬%d¬%S\r\n"), (TUint32)this, err, &fname); \
+			} \
+		} while(0)
+
+#define PROFILE_OPEN(fname, err) \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Open¬¬¬¬¬%d¬%S\r\n"), (TUint32)this, err, &fname); \
+			} \
+		} while(0)
+
+#define PROFILE_TEMP(fname, err) \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Temp¬¬¬¬¬%d¬%S\r\n"), (TUint32)this, err, &fname); \
+			} \
+		} while(0)
+
+#define PROFILE_ADOPT(fname, err) \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Adopt¬¬¬¬¬%d¬%S\r\n"), (TUint32)this, err, &fname); \
+			} \
+		} while(0)
+
+#define PROFILE_CLOSE() \
+	do \
+		{ \
+		if(TheOsCallTimeDetailedProfileEnabled) \
+			{ \
+			RDebug::Print(_L("[SQL-FBUF]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬Close¬¬¬¬¬¬\r\n"), (TUint32)this); \
 			} \
 		} while(0)
 
@@ -80,12 +125,18 @@ void RFileBuf64::ProfilerReset()
 
 #else
 
-#define PROFILE_READ(pos,amount)	void(0)
-#define PROFILE_WRITE(pos,amount)	void(0)
+#define PROFILE_READ(pos,amount, err)	void(0)
+#define PROFILE_WRITE(pos,amount, err)	void(0)
 
-#define PROFILE_SIZE()			void(0)
-#define PROFILE_SETSIZE()		void(0)
-#define PROFILE_FLUSH()			void(0)
+#define PROFILE_SIZE(size, err)			void(0)
+#define PROFILE_SETSIZE(size, err)		void(0)
+#define PROFILE_FLUSH(err)				void(0)
+
+#define PROFILE_CREATE(fname, err)		void(0)
+#define PROFILE_OPEN(fname, err)		void(0)
+#define PROFILE_TEMP(fname, err)		void(0)
+#define PROFILE_ADOPT(fname, err)		void(0)
+#define PROFILE_CLOSE()					void(0)
 
 #endif//_SQLPROFILER
 
@@ -144,6 +195,7 @@ enum TFileBufPanic64
 	EFBufPanicNextReadFilePos,
 	EFBufPanicNextReadFilePosHits,
 	EFBufPanicFileBlockSize,			//15
+	EFBufPanicRwDataLength,
 	};
 
 /**
@@ -198,15 +250,16 @@ Works in only in debug mode. In release mode evaluates to nothing.
 /**
 Initializes RFileBuf64 data members with their default values.
 
-@param aSize Max file buffer size (capacity) in bytes.
+@param aMinCapacity Minimal file buffer size (capacity) in bytes.
 
-@panic FBuf64 1 In _DEBUG mode - aSize is 0 or negative.
+@panic FBuf64 1 In _DEBUG mode - aMinCapacity is 0 or negative.
 */
-RFileBuf64::RFileBuf64(TInt aSize) :
-	iCapacity(aSize),
-	iReadAheadSize(RFileBuf64::KDefaultReadAheadSize)
+RFileBuf64::RFileBuf64(TInt aMinCapacity) :
+	iCapacity(aMinCapacity),
+	iReadAheadSize(RFileBuf64::KDefaultReadAheadSize),
+	iOptimized(EFalse)
 	{
-	__FBUF64_ASSERT(aSize > 0, EFBufPanicCapacity);
+	__FBUF64_ASSERT(aMinCapacity > 0, EFBufPanicCapacity);
 	}
 
 /**
@@ -238,6 +291,7 @@ TInt RFileBuf64::Create(RFs& aFs, const TDesC& aFileName, TUint aFileMode)
 	    {
 	    err = iFile.Create(aFs, aFileName, aFileMode);
 	    }
+	PROFILE_CREATE(aFileName, err);
 	return DoPostInit(err);
 	}
 
@@ -269,6 +323,7 @@ TInt RFileBuf64::Open(RFs& aFs, const TDesC& aFileName, TUint aFileMode)
         {
         err = iFile.Open(aFs, aFileName, aFileMode);
         }
+	PROFILE_OPEN(aFileName, err);
     return DoPostInit(err);
 	}
 
@@ -300,6 +355,7 @@ TInt RFileBuf64::Temp(RFs& aFs, const TDesC& aPath, TFileName& aFileName, TUint 
         {
         err = iFile.Temp(aFs, aPath, aFileName, aFileMode);
         }
+	PROFILE_TEMP(aFileName, err);
     return DoPostInit(err);
 	}
 
@@ -336,6 +392,7 @@ TInt RFileBuf64::AdoptFromClient(const RMessage2& aMsg, TInt aFsIndex, TInt aFil
         {
         err = iFile.AdoptFromClient(aMsg, aFsIndex, aFileIndex);
         }
+	PROFILE_ADOPT(KNullDesC, err);
     return DoPostInit(err);
 	}
 
@@ -356,6 +413,7 @@ void RFileBuf64::Close()
 	iFile.Close();
 	User::Free(iBase);
 	iBase = 0;
+	PROFILE_CLOSE();
 	}
 
 /**
@@ -417,21 +475,26 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 	__FBUF64_ASSERT(aFilePos >= 0, EFBufPanicFilePos);
 	__FILEBUF64_INVARIANT();
 	aDes.SetLength(0);
-	//1. The output buffer max len is 0
+	//0. The output buffer max len is 0
 	if(aDes.MaxLength() == 0)
 		{
 		__FILEBUF64_INVARIANT();
 		return KErrNone;	
 		}
-	//2. Initialize the "iFileSize" if it is not initialized yet
+	//1. Initialize the "iFileSize" if it is not initialized yet
 	TInt err = DoFileSize();
 	if(err != KErrNone)
 		{
 		__FILEBUF64_INVARIANT();
 		return err;	
 		}
-	//3. Too big "read" request - read directly from the file
+	//2. Optimize the buffer capacity
 	TInt len = aDes.MaxLength();
+	if((err = DoSetCapacity(len)) != KErrNone)
+		{
+		return err;
+		}
+	//3. Too big "read" request - read directly from the file
 	if(len > iCapacity)
 		{
 		if((aFilePos + len) > iFilePos && aFilePos < (iFilePos + iLength))
@@ -441,7 +504,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 		if(err == KErrNone)
 			{
 			err = iFile.Read(aFilePos, aDes);
-			PROFILE_READ(aFilePos, aDes.Size());
+			PROFILE_READ(aFilePos, aDes.Size(), err);
 			}
 		__FILEBUF64_INVARIANT();
 		return err;
@@ -472,7 +535,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 				iNextReadFilePosHits = 0;
 				TPtr8 ptr2(outptr, len);
 				err = iFile.Read(aFilePos, ptr2);
-				PROFILE_READ(aFilePos, ptr2.Size());
+				PROFILE_READ(aFilePos, ptr2.Size(), err);
 				if(err == KErrNone)
 					{
 					iNextReadFilePos = aFilePos + len;
@@ -481,7 +544,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 				break;
 				}
 			//The guessed from the previous "file read" operation file pos is correct. Start reading-ahead.
-			const TInt KMaxReadFilePosHits = 8;//The max read-ahead buffer size can be up to 2^8 times the iReadAheadSize
+			const TInt KMaxReadFilePosHits = 4;//The max read-ahead buffer size can be up to 2^4 times the iReadAheadSize
 			if(iNextReadFilePosHits < KMaxReadFilePosHits)
 				{
 				++iNextReadFilePosHits;
@@ -496,7 +559,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 				}
 			TPtr8 ptr(iBase, Min(iCapacity, (len + readahead)));
 			err = iFile.Read(aFilePos, ptr);
-			PROFILE_READ(aFilePos, ptr.Size());
+			PROFILE_READ(aFilePos, ptr.Size(), err);
 			if(err == KErrNone)
 				{
 				iFilePos = aFilePos;
@@ -551,6 +614,10 @@ TInt RFileBuf64::Write(TInt64 aFilePos, const TDesC8& aData)
 		{
 		__FILEBUF64_INVARIANT();
 		return err;	
+		}
+	if((err = DoSetCapacity(aData.Length())) != KErrNone)
+		{
+		return err;
 		}
 	DoDiscardBufferedReadData();
 	const TUint8* data = aData.Ptr();
@@ -787,8 +854,8 @@ TInt RFileBuf64::DoFileSize()
 		__FILEBUF64_INVARIANT();
 		return KErrNone;
 		}
-	PROFILE_SIZE();
 	TInt err = iFile.Size(iFileSize);
+	PROFILE_SIZE(iFileSize, err);
 	if(err != KErrNone)
 		{
 		DoDiscard();
@@ -825,8 +892,8 @@ TInt RFileBuf64::DoSetFileSize(TInt64 aFileSize)
 		{
 		iLength = aFileSize - iFilePos;
 		}
-	PROFILE_SETSIZE();
 	TInt err = iFile.SetSize(aFileSize);
+	PROFILE_SETSIZE(aFileSize, err);
 	if(err != KErrNone)
 		{
 		DoDiscard();
@@ -857,8 +924,8 @@ TInt RFileBuf64::DoFileFlush()
 		__FILEBUF64_INVARIANT();
 		return err;	
 		}
-	PROFILE_FLUSH();
 	err = iFile.Flush();
+	PROFILE_FLUSH(err);
 	if(err != KErrNone)
 		{
 		DoDiscard();
@@ -889,9 +956,9 @@ TInt RFileBuf64::DoFileWrite()
 		__FILEBUF64_INVARIANT();
 		return KErrNone;	
 		}
-	PROFILE_WRITE(iFilePos, iLength);
 	TPtrC8 data(iBase, iLength);		
 	TInt err = iFile.Write(iFilePos, data);
+	PROFILE_WRITE(iFilePos, iLength, err);
 	if(err == KErrNone)
 		{
 		iFileSize = Max(iFileSize, (iFilePos + iLength));
@@ -1022,6 +1089,64 @@ void RFileBuf64::DoDiscardBufferedReadData()
 	__FILEBUF64_INVARIANT();
 	}
 
+/**
+Sets the most appropriate buffer capacity based on the database page size.
+The function does a lazy evaluation. The first time the function is called and 
+aRwDataLength parameter is recognized to be a database or journal page size, the new (optimal)
+buffer capacity is calculated and set. All next DoSetCapacity() calls will detect that the new
+capacity is already set and will return KErrNone.
+
+@param  aRwDataLength The length of the data being read or written.
+@return KErrNone The new capacity was set successfully,
+        KErrNoMemory Out of memory.
+*/
+TInt RFileBuf64::DoSetCapacity(TInt aRwDataLength)
+	{
+	const TInt KMinPageCount = 4;//the buffer capacity should be at least (KMinPageCount * page size) 
+	                             //but not less than the original capacity.
+	const TInt KDefaultPageSize = 1024;//The journal header size is equal to 512 bytes, so it is not easy
+                                       //to detect the 512 bytes page size. 
+	
+	__FBUF64_ASSERT(aRwDataLength > 0, EFBufPanicRwDataLength);
+	__FILEBUF64_INVARIANT();
+	if(iOptimized)
+		{
+		__FILEBUF64_INVARIANT();
+		return KErrNone;
+		}
+	if((aRwDataLength & (aRwDataLength - 1)) != 0 || aRwDataLength < KDefaultPageSize)
+		{
+		__FILEBUF64_INVARIANT();
+		return KErrNone;
+		}
+	//Here: aRwDataLength is power of 2 and is bigger than the default db page size.
+	//aRwDataLength is the size of the db page.
+	const TInt pageSize = aRwDataLength;
+	TInt cnt = iCapacity / pageSize;//how many pages can fit in the buffer now
+	TInt pageCount = Max(cnt, KMinPageCount);//the number of pages that should fit in the new buffer
+	TInt newBufCapacity = pageCount * pageSize;
+	if(newBufCapacity != iCapacity)
+		{
+		TUint8* newBase = static_cast <TUint8*> (User::ReAlloc(iBase, newBufCapacity));
+		if(!newBase)
+			{
+			__FILEBUF64_INVARIANT();
+			return KErrNoMemory;
+			}
+		iBase = newBase;
+		iCapacity = newBufCapacity;
+		//Adjust the initial read-ahead size to be multiple of the page size.
+		if((iReadAheadSize % pageSize) != 0)
+			{
+			TInt q = iReadAheadSize / pageSize;
+			iReadAheadSize = q != 0 ? pageSize * q : pageSize;
+			}
+		}
+	iOptimized = ETrue;
+	__FILEBUF64_INVARIANT();
+	return KErrNone;
+	}
+
 #ifdef _DEBUG
 
 /**
@@ -1037,7 +1162,7 @@ RFileBuf64 invariant. Called in _DEBUG mode at the beginning and before the end 
 @panic FBuf64   6 In _DEBUG mode - null file handle (the RFile64 object is not created or already destroyed).
 @panic FBuf64  13 In _DEBUG mode - set but negative iNextReadFilePos value.
 @panic FBuf64  14 In _DEBUG mode - negative iNextReadFilePosHits value.
-@panic FBuf64  15 In _DEBUG mode - iReadAheadSize is negative or is not power of two.
+@panic FBuf64  15 In _DEBUG mode - iReadAheadSize is negative or is bigger than iCapacity.
 */
 void RFileBuf64::Invariant() const
 	{
@@ -1050,7 +1175,7 @@ void RFileBuf64::Invariant() const
 	__FBUF64_ASSERT(iFile.SubSessionHandle() != 0, EFBufPanicFileHandle);
 	__FBUF64_ASSERT(iNextReadFilePos == KNextReadFilePosNotSet || iNextReadFilePos >= 0, EFBufPanicNextReadFilePos);
 	__FBUF64_ASSERT(iNextReadFilePosHits >= 0, EFBufPanicNextReadFilePosHits);
-	__FBUF64_ASSERT(iReadAheadSize > 0 && (iReadAheadSize & (iReadAheadSize - 1)) == 0, EFBufPanicFileBlockSize);
+	__FBUF64_ASSERT(iReadAheadSize > 0, EFBufPanicFileBlockSize);
 	}
 	
 #endif

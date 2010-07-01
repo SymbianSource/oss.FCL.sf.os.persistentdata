@@ -48,7 +48,7 @@ public:
  * and loose our state. So we solve this by running the device driver as
  * as it's own separate thread in the kernel (DLogicalChannelBase runs a user thread in kernel mode,
  * DLogicalChannel runs a kernel thread called from a user thread).
- * We also solve the long timing issue by making an asynchrounous call by using the DoRequest call.
+ * We also solve the long timing issue by making an asynchrounous call by using the DoRequestL call.
  * For this to work we need to create a DfcQ, i.e. a queue of all the incoming calls from the user side.
  * These then get's run in turn.
  */
@@ -68,7 +68,7 @@ public:
 	// Inherited from DLogicalChannel
 	virtual TInt DoCreate(TInt aUnit, const TDesC8* anInfo, const TVersion& aVer);
 	//Make an asynchronous call...
-	virtual TInt DoRequest(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2);
+	virtual TInt DoRequestL(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2);
 
 	void TestUptTraces(const TApiRunConfig& aApiRunConfig, TApiRunResults& aApiRunResults);
 	void TimeUptTraces(const TApiRunConfig& aApiRunConfig, TApiRunResults& aApiRunResults);
@@ -80,7 +80,7 @@ private:
 	TDfcQue* 		iDfcQ;
 
 	TKernelTimer	iTimer;
- 	//This is used to signal when one of the async calls (to DoRequest) is finished.
+ 	//This is used to signal when one of the async calls (to DoRequestL) is finished.
  	TRequestStatus	iStatus;
 	};
 
@@ -164,10 +164,10 @@ void DUptUTraceChannel::HandleMsg(TMessageBase* aMsg)
 		message.Complete(KErrNone, ETrue);
 		return;
 		}
-	if(id < 0 )  //it was a call for DoRequest()
+	if(id < 0 )  //it was a call for DoRequestL()
 		{
 		TRequestStatus* status = (TRequestStatus*)message.Ptr0();
-		DoRequest(~id, status, message.Ptr1(), message.Ptr2());
+		DoRequestL(~id, status, message.Ptr1(), message.Ptr2());
 		message.Complete(KErrNone, ETrue);
 		}
 	else //it was a call for DoControl, we dont implement that now so just fall through
@@ -178,7 +178,7 @@ void DUptUTraceChannel::HandleMsg(TMessageBase* aMsg)
 		}
 	}
 
-TInt DUptUTraceChannel::DoRequest(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2)
+TInt DUptUTraceChannel::DoRequestL(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2)
 	{
 	TInt error = KErrNone;
 
@@ -258,11 +258,11 @@ TInt DUptUTraceChannel::DoRequest(TInt aReqNo, TRequestStatus* aStatus, TAny* a1
 			    	{
 			    	TTestTimer timer;
 			    	if(aReqNo == RUptUTrace::ESanityTestTimer)
-			    		results.iPass = timer.TestKernelTimer(results.iTime);
+			    		results.iPass = timer.TestKernelTimerL(results.iTime);
 			    	if(aReqNo == RUptUTrace::ESanityTestLongTimer)
-			    		results.iPass = timer.TestKernelLongTimer(results.iTime);
+			    		results.iPass = timer.TestKernelLongTimerL(results.iTime);
 			    	if(aReqNo == RUptUTrace::ESanityUtraceTimer)
-			    		results.iPass = timer.TestUTraceKernelTimer(results.iTime);
+			    		results.iPass = timer.TestUTraceKernelTimerL(results.iTime);
 			    	}
 			    if(!error)
 			    	error = Kern::ThreadRawWrite(iClient, a1, (TUint8 *)&results, sizeof(TSanityResults));

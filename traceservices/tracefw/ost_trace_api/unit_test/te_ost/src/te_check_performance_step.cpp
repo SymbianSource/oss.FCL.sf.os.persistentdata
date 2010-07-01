@@ -49,11 +49,12 @@ CCheckPerformanceStep::CCheckPerformanceStep()
 	SetTestStepName(KCheckPerformanceStep);
 
  	SetLogFilename(KLogFilename);
- 	DeleteLogFile();
 	}
 
 TVerdict CCheckPerformanceStep::doTestStepPreambleL()
 	{
+	DeleteLogFileL();
+	
 	if(TestStepResult()==EPass)
 		{
 		//SetTestStepResult(EFail);

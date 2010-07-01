@@ -42,8 +42,8 @@ public:
 private:
 	CPerformanceSanityWrapper();
 	void ConstructL();
-	TVerdict 	TestTimer();
-	TBool 	SanityTestTimedUtrace();
+	TVerdict 	TestTimerL();
+	TBool 	SanityTestTimedUtraceL();
 
 	};		
 

@@ -34,7 +34,7 @@ class CClearConfig : public CBase
 public:
 	~CClearConfig();
 	CClearConfig();
-	void Clear(RULogger& loggerSession);
+	void ClearL(RULogger& loggerSession);
 //private:
 	
 };

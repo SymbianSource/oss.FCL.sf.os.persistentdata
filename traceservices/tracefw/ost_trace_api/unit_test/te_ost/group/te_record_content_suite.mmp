@@ -29,11 +29,11 @@ epocprocesspriority high
 
 OS_LAYER_SYSTEMINCLUDE
 
-USERINCLUDE			..\inc
+USERINCLUDE			../inc
 USERINCLUDE ../../devicedriver/inc/
 USERINCLUDE ../../lauterbach_perf_tester/inc/
 
-SOURCEPATH  		..\src
+SOURCEPATH  		../src
 SOURCE				te_suite_server.cpp
 SOURCE				te_suite_step_base.cpp
 SOURCE				te_check_record_content_step.cpp 

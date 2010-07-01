@@ -19,14 +19,6 @@
 
 #include <testexecute.iby>
 #include <burtestserver.iby>
-#include <connectivity_securebackupengine.iby>
-// the backup engine is dependant on all of these:
-#include <swi.iby>
-#include <certman.iby>
-#include <filetokens.iby>
-#include <httpcore.iby>
-#include <tls.iby>
-#include <ResponseMsg.iby>
 
 file=ABI_DIR\BUILD_DIR\teflogengbur.exe	sys\bin\teflogengbur.exe
 

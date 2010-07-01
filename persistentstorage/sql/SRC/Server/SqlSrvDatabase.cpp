@@ -963,12 +963,8 @@ void CSqlSrvDatabase::InitAttachedDbL(const TSqlSrvFileData& aFileData, const TD
 			err = StmtExec(stmtHandle);
 			}
 		}
-	TInt err2 = ::FinalizeStmtHandle(stmtHandle);
+	(void)::FinalizeStmtHandle(stmtHandle);//sqlite3_finalize() fails only if an invalid statement handle is passed.
 	CleanupStack::PopAndDestroy();//TCleanupItem(&EnableAuthorizer, &iAuthorizerDisabled)
-	if(err == KErrNone && err2 != KErrNone)
-		{//::FinalizeStmtHandle() has failed
-		err = err2;
-		}
 	__SQLLEAVE_IF_ERROR(err);
 	
 	TAttachCleanup attachCleanup(*this, aDbName);
@@ -1013,11 +1009,7 @@ TInt CSqlSrvDatabase::FinalizeAttachedDb(const TDesC& aDbName)
 			err = StmtExec(stmtHandle);
 			}
 		}
-	TInt err2 = ::FinalizeStmtHandle(stmtHandle);
-	if(err == KErrNone && err2 != KErrNone)
-		{//::FinalizeStmtHandle() has failed
-		err = err2;
-		}
+	(void)::FinalizeStmtHandle(stmtHandle);//sqlite3_finalize() fails only if an invalid statement handle is passed.
 	iAuthorizerDisabled	= EFalse;
 	return err;
 	}

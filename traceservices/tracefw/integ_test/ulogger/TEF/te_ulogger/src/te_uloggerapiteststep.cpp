@@ -81,7 +81,7 @@ TVerdict CULoggerAPIPrimTestStep::doTestStepL()
 		Result=logger.Connect();
 		INFO_PRINTF2(_L("connect err %d"), Result);
 		CClearConfig configIni;
-		configIni.Clear(logger);
+		configIni.ClearL(logger);
 		INFO_PRINTF2(_L("connect err %d"), Result);
 		Result=logger.SetPrimaryFiltersEnabled(*setfilter,ETrue);
 		
@@ -280,7 +280,7 @@ TVerdict CULoggerAPIPrimTestStep::doTestStepL()
 		
 		//  **************   Block end ****************
 	
-		configIni.Clear(logger);
+		configIni.ClearL(logger);
 		logger.Close();
 		if(setfilter)
 			delete setfilter;
@@ -361,7 +361,7 @@ TVerdict CULoggerAPISecondTestStep::doTestStepL()
 
 			logger.Connect();
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			Result = logger.SetSecondaryFiltersEnabled(setfilter,ETrue);
 			INFO_PRINTF2(_L("Secondary filter has been set with single filter, %d, check log"), setfilter[0]);
 			INFO_PRINTF2(_L("code: %d"), Result);
@@ -547,7 +547,7 @@ TVerdict CULoggerAPISecondTestStep::doTestStepL()
 					}		
 				}
 				INFO_PRINTF1(_L("Now call clear config to check removing multiple second filters performance"));
-				configIni.Clear(logger);
+				configIni.ClearL(logger);
 				INFO_PRINTF1(_L("after clear config- multiple second filters performance"));
 		
 				if(Result==1)
@@ -640,7 +640,7 @@ TVerdict CULoggerAPILoggingTestStep::doTestStepL()
 #endif	
 #ifndef SysStartTest
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 #endif
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(UTracePrimary);
@@ -909,7 +909,7 @@ TVerdict CULoggerAPILoggingTestStep::doTestStepL()
 		{	
 			INFO_PRINTF1(_L("Now do some multiple type logging testing."));
 			//CClearConfig configIni;
-			//configIni.Clear(logger);
+			//configIni.ClearL(logger);
 		
 			if(Result==0)
 			{
@@ -1062,7 +1062,7 @@ TVerdict CULoggerAPILoggingTestStep::doTestStepL()
 						multsetprimfilter=NULL;
 					}
 				}		
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			}
 			else
 				INFO_PRINTF1(_L("adding file as output plugin failed"));
@@ -1151,7 +1151,7 @@ TVerdict CULoggerAPIKernelTestStep::doTestStepL()
 			RULogger logger;
 			logger.Connect();
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(UTracePrimary);		
 			RArray<TUint32> setsecondfilter;
@@ -1377,7 +1377,7 @@ TVerdict CULoggerAPIKernelTestStep::doTestStepL()
 			else
 					SetTestStepResult(EFail);
 			INFO_PRINTF1(_L("Multiple logging to file with kernel side tracing has been tested - check output log. It should contain four lines of tracing of type, (sec,prim), (sec+2, prim), (sec, prim+2), (sec+2, prim+2)"));
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 		}
 		if(setprimfilter)
 		{
@@ -1462,7 +1462,7 @@ TVerdict CULoggerAPIPrintfTestStep::doTestStepL()
 			RULogger logger;
 			logger.Connect();
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(UTracePrimary);
 			RArray<TUint32> setsecondfilter;
@@ -1643,7 +1643,7 @@ TVerdict CULoggerAPIKernelPrintfTestStep::doTestStepL()
 			RULogger logger;
 			logger.Connect();
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(UTracePrimary);
 			RArray<TUint32> setsecondfilter;
@@ -1870,7 +1870,7 @@ TVerdict CULoggerAPIKernelPrintfTestStep::doTestStepL()
 				else
 						SetTestStepResult(EFail);
 				INFO_PRINTF1(_L("Multiple printf logging to file with kernel side tracing has been tested - check output log. It should contain four lines of tracing of type, (sec,prim), (sec+2, prim), (sec, prim+2), (sec+2, prim+2)"));
-				configIni.Clear(logger);
+				configIni.ClearL(logger);
 			}
 			if(setprimfilter)
 			{

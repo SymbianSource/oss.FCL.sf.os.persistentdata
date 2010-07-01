@@ -157,7 +157,7 @@ TBool CTCMBufferModeWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
                     }
             	}
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			logger.SetSecondaryFilteringEnabled(EFalse);//C.A. previously:logger.DisableModuleUidFiltering();
 //			C.A. previously:
 /*			TBufferMode bufferCircular = ECircular;

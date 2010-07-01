@@ -30,39 +30,39 @@
 #endif
 #include "te_dataparameters.h"
 
-TBool TTestTimer::TestUserTimer(TUint32& aTestTime)
+TBool TTestTimer::TestUserTimerL(TUint32& aTestTime)
 	{
-	return DoTestTrace(ESanityFoo, aTestTime);
+	return DoTestTraceL(ESanityFoo, aTestTime);
 	}
 
-TBool TTestTimer::TestUserLongTimer(TUint32& aTestTime)
+TBool TTestTimer::TestUserLongTimerL(TUint32& aTestTime)
 	{
-	return DoTestTrace(ESanityFooLong, aTestTime);
-	}
-
-
-TBool TTestTimer::TestKernelTimer(TUint32& aTestTime)
-	{
-	return DoTestTrace(ESanityFoo, aTestTime);
-	}
-
-TBool TTestTimer::TestKernelLongTimer(TUint32& aTestTime)
-	{
-	return DoTestTrace(ESanityFooLong, aTestTime);
-	}
-
-TBool TTestTimer::TestUTraceUserTimer(TUint32& aTestTime)
-	{
-	return DoTestTrace(EUtraceUsr, aTestTime);
-	}
-
-TBool TTestTimer::TestUTraceKernelTimer(TUint32& aTestTime)
-	{
-	return DoTestTrace(EUtraceKrn, aTestTime);
+	return DoTestTraceL(ESanityFooLong, aTestTime);
 	}
 
 
-TBool TTestTimer::DoTestTrace(const TTestMethodType aMethod, TUint32& aTestTime)
+TBool TTestTimer::TestKernelTimerL(TUint32& aTestTime)
+	{
+	return DoTestTraceL(ESanityFoo, aTestTime);
+	}
+
+TBool TTestTimer::TestKernelLongTimerL(TUint32& aTestTime)
+	{
+	return DoTestTraceL(ESanityFooLong, aTestTime);
+	}
+
+TBool TTestTimer::TestUTraceUserTimerL(TUint32& aTestTime)
+	{
+	return DoTestTraceL(EUtraceUsr, aTestTime);
+	}
+
+TBool TTestTimer::TestUTraceKernelTimerL(TUint32& aTestTime)
+	{
+	return DoTestTraceL(EUtraceKrn, aTestTime);
+	}
+
+
+TBool TTestTimer::DoTestTraceL(const TTestMethodType aMethod, TUint32& aTestTime)
 	{
 	aTestTime = 0;
 

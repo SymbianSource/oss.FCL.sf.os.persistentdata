@@ -37,7 +37,7 @@ public:
 //	virtual TVerdict doTestStepPostambleL();
 private:
 	TInt CompareTraces();
-	TInt WriteTraces();
+	TInt WriteTracesL();
 	TInt ReadTraces();
 	TTraceConfigs* CreateTrace(TTraceApiUsed aApi);
 	TTraceParser	iParser;

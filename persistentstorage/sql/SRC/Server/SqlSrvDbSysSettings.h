@@ -67,7 +67,7 @@ private:
 	TInt BindSecurityPolicyPrm(sqlite3_stmt* aStmtHandle, TInt aObjType, const TDesC& aObjName, 
 							   TInt aPolicyType, const TSecurityPolicy& aPolicy);
 	TSecurityPolicy ReadCurrSecurityPolicyL(sqlite3_stmt* aStmtHandle, TInt& aObjType, TPtrC& aObjName, TInt& aPolicyType);
-	void StoreDefaultSecurityPolicyL(CSqlSecurityPolicy& aSecurityPolicyCon, const TSecurityPolicy& aPolicy, TInt aDbPolicySetFlag);
+	void StoreDefaultSecurityPolicy(CSqlSecurityPolicy& aSecurityPolicyCon, const TSecurityPolicy& aPolicy, TInt aDbPolicySetFlag);
 	void StoreDbSecurityPolicyL(CSqlSecurityPolicy& aSecurityPolicyCon, TInt aPolicyType, 
 								const TSecurityPolicy& aPolicy, TInt& aDbPolicySetFlag);
 	void StoreDbObjSecurityPolicyL(CSqlSecurityPolicy& aSecurityPolicyCon, TInt aObjType, const TDesC& aObjName,
