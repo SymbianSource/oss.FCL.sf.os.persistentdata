@@ -64,10 +64,10 @@ PRJ_TESTEXPORTS
 ../Rom/logengtest.iby                   /epoc32/rom/include/logengtest.iby
 ../group/logengtests.bat                z:/test/logengtests.bat
 
-../test/src/oldLogdbu.dat               z:/test/oldLogdbu.dat
-../test/src/corruptLogdbu.dat           z:/test/corruptLogdbu.dat
-../test/src/corruptDamagedLogdbu.dat    z:/test/corruptDamagedLogdbu.dat
-../test/101f401d.txt                    z:/test/101f401d.txt
+../test/src/oldLogdbu.dat               z:/test/oldlogdbu.dat
+../test/src/corruptLogdbu.dat           z:/test/corruptlogdbu.dat
+../test/src/corruptDamagedLogdbu.dat    z:/test/corruptdamagedlogdbu.dat
+../test/101f401d.txt                    z:/test/101f401d_test.txt
 
 PRJ_TESTMMPFILES
 

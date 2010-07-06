@@ -15,12 +15,17 @@
 
 #include <f32file.h>
 #include <sqldb.h>
-#include "SqlPanic.h"
+#include "SqlAssert.h"
 #include "sqlite3.h"
 #include "SqliteSymbian.h"		//TSqlFreePageCallback
 #include "SqlSrvUtil.h"
 #include "SqlSrvStatementUtil.h"
 #include "SqlCompactConn.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlCompactConnTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
 /**
 Creates a new CSqlCompactConn instance.
@@ -45,12 +50,14 @@ Creates a new CSqlCompactConn instance.
 */
 CSqlCompactConn* CSqlCompactConn::NewL(const TDesC& aFullName, TSqlFreePageCallback& aFreePageCallback)
 	{
-	__SQLASSERT(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, ESqlPanicBadArgument);
-	__SQLASSERT(aFreePageCallback.IsValid(), ESqlPanicBadArgument);
+	SQL_TRACE_COMPACT(OstTraceExt1(TRACE_INTERNALS, CSQLCOMPACTCONN_NEWLC_ENTRY, "Entry;0;CSqlCompactConn::NewL;aFullName=%S", __SQLPRNSTR(aFullName)));
+	__ASSERT_DEBUG(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, __SQLPANIC2(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aFreePageCallback.IsValid(), __SQLPANIC2(ESqlPanicBadArgument));
 	CSqlCompactConn* self = new (ELeave) CSqlCompactConn;
 	CleanupStack::PushL(self);
 	self->ConstructL(aFullName, aFreePageCallback);
 	CleanupStack::Pop(self);
+	SQL_TRACE_COMPACT(OstTraceExt2(TRACE_INTERNALS, CSQLCOMPACTCONN_NEWLC_EXIT, "Exit;0x%X;CSqlCompactConn::NewL;aFullName=%S", (TUint)self, __SQLPRNSTR(aFullName)));
 	return self;
 	}
 
@@ -59,6 +66,7 @@ Destroys the CSqlCompactConn instance.
 */
 CSqlCompactConn::~CSqlCompactConn()
 	{
+	SQL_TRACE_COMPACT(OstTrace1(TRACE_INTERNALS, CSQLCOMPACTCONN_CSQLCOMPACTCONN2, "0x%X;CSqlCompactConn::~CSqlCompactConn", (TUint)this));
 	::CloseDbHandle(iHandle);
  	}
 
@@ -89,8 +97,8 @@ Compacts the database making an attempt to remove the specified amount of free p
 */
 TInt CSqlCompactConn::Compact(TInt aPageCount, TInt& aProcessedPageCount, TInt aLength)
 	{
-	__SQLASSERT(aPageCount >= 0, ESqlPanicBadArgument);
-	__SQLASSERT(aLength >= 0, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aPageCount >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aLength >= 0, __SQLPANIC(ESqlPanicBadArgument));
 	SQLCOMPACTCONN_INVARIANT();
 	TInt err = ::DbCompact(iHandle, KNullDesC, aPageCount, aProcessedPageCount, aLength);
 	SQLCOMPACTCONN_INVARIANT();
@@ -123,9 +131,9 @@ Note: The free page threshold data member of the callback is in Kb.
 */
 void CSqlCompactConn::ConstructL(const TDesC& aFullName, TSqlFreePageCallback& aFreePageCallback)
 	{
-	__SQLASSERT(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, ESqlPanicBadArgument);
-	__SQLASSERT(aFreePageCallback.IsValid(), ESqlPanicBadArgument);
-	__SQLASSERT(!iHandle, ESqlPanicInternalError);
+	__ASSERT_DEBUG(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aFreePageCallback.IsValid(), __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(!iHandle, __SQLPANIC(ESqlPanicInternalError));
 	
 	TBuf8<KMaxFileName + 1> fname;
 	(void)::UTF16ToUTF8Z(aFullName, fname);//The file is first open by the main connection. 
@@ -190,7 +198,7 @@ CSqlCompactConn invariant.
 */
 void CSqlCompactConn::Invariant() const
 	{
-	__SQLASSERT_ALWAYS(iHandle != NULL, ESqlPanicInternalError);
+	__ASSERT_ALWAYS(iHandle != NULL, __SQLPANIC(ESqlPanicInternalError));
 	}
 #endif//_DEBUG
 
@@ -222,7 +230,7 @@ A factory function for CSqlCompactConn.
 */
 MSqlCompactConn* SqlCreateCompactConnL(const TDesC& aFullName, TSqlFreePageCallback& aFreePageCallback)
 	{
-	__SQLASSERT(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, ESqlPanicBadArgument);
-	__SQLASSERT(aFreePageCallback.IsValid(), ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, __SQLPANIC2(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aFreePageCallback.IsValid(), __SQLPANIC2(ESqlPanicBadArgument));
 	return CSqlCompactConn::NewL(aFullName, aFreePageCallback);
 	}

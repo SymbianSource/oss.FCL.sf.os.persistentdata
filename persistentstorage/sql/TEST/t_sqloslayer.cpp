@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -27,6 +27,7 @@ extern "C" {
 #ifdef __cplusplus
 }  /* End of the 'extern "C"' block */
 #endif
+#include "SqliteUtil.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -51,6 +52,9 @@ TInt TheSqlSrvProfilerFileWrite = 0;
 TInt TheSqlSrvProfilerFileSync = 0;
 TInt TheSqlSrvProfilerFileSetSize = 0;
 #endif
+
+//SQLite panic category.
+_LIT(KSqlitePanicCategory, "Sqlite");
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -623,16 +627,24 @@ void NegativeTest()
 	User::Free(osFile);
 	}
 
-void VfsOpenTempFileOomTest()
-    {
-    //Delete all temp files in this test private data cage.
+TInt DoDeleteTempFiles()
+	{
     CFileMan* fm = NULL;
     TRAPD(err, fm = CFileMan::NewL(TheFs));
     TEST2(err, KErrNone);
-    TBuf<50> path;
+    TFileName path;
     path.Copy(KPrivateDir);
+    path.Append(_L("temp\\"));
     path.Append(_L("*.$$$"));
     err = fm->Delete(path);
+    delete fm;
+    return err;
+	}
+
+void VfsOpenTempFileOomTest()
+    {
+    //Delete all temp files in this test private data cage.
+	TInt err = DoDeleteTempFiles();
     TEST(err == KErrNone || err == KErrNotFound);
     
     sqlite3_vfs* vfs = sqlite3_vfs_find(NULL);
@@ -653,7 +665,9 @@ void VfsOpenTempFileOomTest()
         err = sqlite3OsOpen(vfs, NULL, osFile, SQLITE_OPEN_READWRITE, &outFlags);
         if(err == SQLITE_OK)
             {
-            err = sqlite3OsClose(osFile);
+			//Since this is a temp file, its creation will be delayed till the first file write operation.
+			err = sqlite3OsWrite(osFile, "1234", 4, 0);
+			(void)sqlite3OsClose(osFile);
             }
         OomPostStep();
         if(err != SQLITE_OK)
@@ -662,15 +676,67 @@ void VfsOpenTempFileOomTest()
             }
         //If the iteration has failed, then no temp file should exist in the test private data cage.
         //If the iteration has succeeded, then sqlite3OsClose() should have deleted the temp file.
-        TInt err2 = fm->Delete(path);
+        TInt err2 = DoDeleteTempFiles();
         TEST2(err2, KErrNotFound);
         }
     TEST2(err, SQLITE_OK);
     TheTest.Printf(_L("\r\n=== TVfs::Open(<temp file>) OOM test succeeded at allcoation %d\r\n"), failingAllocNum);
     
     User::Free(osFile);
-    delete fm;
     }
+
+void VfsOpenTempFileFileIoErrTest()
+	{
+    //Delete all temp files in this test private data cage.
+	TInt err = DoDeleteTempFiles();
+    TEST(err == KErrNone || err == KErrNotFound);
+    
+    sqlite3_vfs* vfs = sqlite3_vfs_find(NULL);
+    TEST(vfs != NULL);
+
+    sqlite3_file* osFile = (sqlite3_file*)User::Alloc(vfs->szOsFile);
+    TEST(osFile != NULL);
+    
+	err = SQLITE_ERROR;
+	TInt cnt = 1;
+	while(err != SQLITE_OK)
+		{
+		TInt processHandleCnt = 0;
+		TInt threadHandleCnt = 0;
+		RThread().HandleCount(processHandleCnt, threadHandleCnt);
+		TInt allocCellsCnt = User::CountAllocCells();
+
+        TheTest.Printf(_L("%d "), cnt);
+		(void)TheFs.SetErrorCondition(KErrGeneral, cnt);
+        int outFlags = 0;
+        err = sqlite3OsOpen(vfs, NULL, osFile, SQLITE_OPEN_READWRITE, &outFlags);
+        if(err == SQLITE_OK)
+            {
+			//Since this is a temp file, its creation will be delayed till the first file write operation.
+			err = sqlite3OsWrite(osFile, "1234", 4, 0);
+			(void)sqlite3OsClose(osFile);
+            }
+		(void)TheFs.SetErrorCondition(KErrNone);
+		if(err != SQLITE_OK)
+			{
+			TInt processHandleCnt2 = 0;
+			TInt threadHandleCnt2 = 0;
+			RThread().HandleCount(processHandleCnt2, threadHandleCnt2);
+			TEST2(processHandleCnt2, processHandleCnt);
+			TEST2(threadHandleCnt2, threadHandleCnt);
+			TInt allocCellsCnt2 = User::CountAllocCells();
+			TEST2(allocCellsCnt2, allocCellsCnt);
+	        ++cnt;
+			}
+        //If the iteration has failed, then no temp file should exist in the test private data cage.
+        //If the iteration has succeeded, then sqlite3OsClose() should have deleted the temp file.
+        TInt err2 = DoDeleteTempFiles();
+        TEST2(err2, KErrNotFound);
+		}
+    TEST2(err, SQLITE_OK);
+    TheTest.Printf(_L("\r\n=== TVfs::Open(<temp file>) file I/O error simulation test succeeded at iteration %d\r\n"), cnt);
+    User::Free(osFile);
+	}
 
 void VfsCreateDeleteOnCloseFileOomTest()
     {
@@ -711,6 +777,71 @@ void VfsCreateDeleteOnCloseFileOomTest()
     User::Free(osFile);
     }
 
+///////////////////////////////////////////////////////////////////////////////////////
+
+//Panic thread function. 
+//It will cast aData parameter to a TFunctor pointer and call it.
+//The expectation is that the called function will panic and kill the panic thread.
+TInt ThreadFunc(void* aData)
+	{
+	CTrapCleanup* tc = CTrapCleanup::New();
+	TEST(tc != NULL);
+	
+	User::SetJustInTime(EFalse);	// disable debugger panic handling
+	
+	TFunctor* obj = reinterpret_cast<TFunctor*> (aData);
+	TEST(obj != NULL);
+	(*obj)();//call the panic function
+	
+	delete tc;
+	
+	return KErrNone;		
+	}
+
+//Panic test.
+//PanicTest function will create a new thread - panic thread, giving it a pointer to the function which has to
+//be executed and the expectation is that the function will panic and kill the panic thread.
+//PanicTest function will check the panic thread exit code, exit category and the panic code.
+void PanicTest(TFunctor& aFunctor, TExitType aExpectedExitType, const TDesC& aExpectedCategory, TInt aExpectedPanicCode)
+	{
+	RThread thread;
+	_LIT(KThreadName,"OsLayerPanicThread");
+	TEST2(thread.Create(KThreadName, &ThreadFunc, 0x2000, 0x1000, 0x10000, (void*)&aFunctor, EOwnerThread), KErrNone);
+	
+	TRequestStatus status;
+	thread.Logon(status);
+	TEST2(status.Int(), KRequestPending);
+	thread.Resume();
+	User::WaitForRequest(status);
+	User::SetJustInTime(ETrue);	// enable debugger panic handling
+
+	TEST2(thread.ExitType(), aExpectedExitType);
+	TEST(thread.ExitCategory() == aExpectedCategory);
+	TEST2(thread.ExitReason(), aExpectedPanicCode);
+	
+	CLOSE_AND_WAIT(thread);
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////     Panic test functions    /////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef _DEBUG    
+
+//Panic when calling COsLayerData::Create() is called and the OS layer data has been already created.
+class TOsLayerDataDuplicated : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		(void)sqlite3SymbianLibInit();//This should crash the thread in debug mode (because the Os layer
+		                              //data was created already in TestEnvInit()).
+		}
+	};
+static TOsLayerDataDuplicated TheOsLayerDataDuplicated;
+
+#endif //_DEBUG
+
 /**
 @SYMTestCaseID			SYSLIB-SQL-CT-1650
 @SYMTestCaseDesc		SQL, OS porting layer tests.
@@ -740,8 +871,14 @@ void DoTests()
 	NegativeTest();
     TheTest.Printf(_L("TVfs::Open(<temp file>) OOM test\r\n"));
     VfsOpenTempFileOomTest();
+    TheTest.Printf(_L("TVfs::Open(<temp file>) file I/O error simulation test\r\n"));
+    VfsOpenTempFileFileIoErrTest();
     TheTest.Printf(_L("TVfs::Open(<'delete on close' file>) OOM test\r\n"));
     VfsCreateDeleteOnCloseFileOomTest();
+#ifdef _DEBUG    
+	TheTest.Printf(_L("'An attempt to create the OS layer data again' panic\r\n"));
+	PanicTest(TheOsLayerDataDuplicated, EExitPanic, KSqlitePanicCategory, ESqliteOsPanicOsLayerDataExists);
+#endif //_DEBUG	
 	}
 
 TInt E32Main()

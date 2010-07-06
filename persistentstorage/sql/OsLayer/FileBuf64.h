@@ -180,7 +180,8 @@ private:
 	TInt		iLength;				//The length of the data currently held in the buffer.
 	//File related
 	TInt64		iFilePos;				//The file position associated with the beginning of the buffer.
-	TInt64		iFileSize;				//The file size.
+	TInt64		iFileSize;				//The file size which is the nominal file length including the buffer contents.
+    TInt64      iRealFileSize;          //The real file size in disk.
 	RFile64		iFile;					//The file object.
 	//Read-ahead related
 	TBool		iDirty;					//The buffer contains pending data to be written to the file

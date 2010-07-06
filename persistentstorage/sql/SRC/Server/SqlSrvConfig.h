@@ -18,7 +18,7 @@
 
 #include <e32std.h>
 #include <f32file.h> 
-#include "SqlPanic.h"
+#include "SqlAssert.h"
 #include "SqlUtil.h"
 
 //Forward declarations
@@ -55,7 +55,6 @@ NONSHARABLE_STRUCT(TSqlSrvConfigParams)
 #else
 		KDefaultSoftHeapLimitKb = 8192,
 #endif	
-
 #ifdef SYSLIBS_TEST	
 		KMinSoftHeapLimitKb = 8, 
 #else

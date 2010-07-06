@@ -14,10 +14,15 @@
 //
 
 #include <stdlib.h>				//wchar_t
-#include "SqlPanic.h"
+#include "SqlAssert.h"
 #include "SqlSrvUtil.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlSrvUtilTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
-#ifdef _NOTIFY
+#ifdef _SQL_AUTHORIZER_TRACE_ENABLED
 
 //Used in PrintAuthorizerArguments()
 _LIT8(KCreateIndex,			"Create index");			//SQLITE_CREATE_INDEX
@@ -66,9 +71,9 @@ const TPtrC8 KDbOpNames[] =
 	KCreateVTable(), KDropVTable(), KFunctionCall()
 	};
 
+#ifdef _DEBUG
 const TInt KMaxOpCodes = sizeof(KDbOpNames) / sizeof(KDbOpNames[0]);
-
-_LIT(KFormatStr, "!!Authorize: %20.20S, %40.40S, %10.10S, %10.10S, %10.10S\r\n"); 
+#endif
 
 /**
 This function has a defined implementaion only in _DEBUG mode and is used to print the authorizer arguments.
@@ -78,7 +83,7 @@ This function has a defined implementaion only in _DEBUG mode and is used to pri
 void PrintAuthorizerArguments(TInt aDbOpType, const char* aDbObjName1, const char* aDbObjName2, 
 							  const char* aDbName, const char* aTrgOrViewName)
 	{
-	__SQLASSERT(aDbOpType > 0 && aDbOpType <= KMaxOpCodes, ESqlPanicInternalError);
+	__ASSERT_DEBUG(aDbOpType > 0 && aDbOpType <= KMaxOpCodes, __SQLPANIC2(ESqlPanicInternalError));
 	
 	//TPtrC8 objects cannot be used for the function arguments, because the arguments may not be 16-bit aligned!!!	
 
@@ -126,9 +131,9 @@ void PrintAuthorizerArguments(TInt aDbOpType, const char* aDbObjName1, const cha
 			}
 		}
 		
-	RDebug::Print(KFormatStr, &opName, &dbObjName1, &dbObjName2, &dbName, &trgOrViewName);
+	SQL_TRACE_AUTHORIZER(OstTraceExt5(TRACE_INTERNALS, SQLAUTHORIZER, "0;PrintAuthorizerArguments;%20.20S;%40.40S;%10.10S;%10.10S;%10.10S", __SQLPRNSTR(opName), __SQLPRNSTR(dbObjName1), __SQLPRNSTR(dbObjName2), __SQLPRNSTR(dbName), __SQLPRNSTR(trgOrViewName)));
 	}
-#endif//_NOTIFY
+#endif//_SQL_AUTHORIZER_TRACE_ENABLED
 
 /**
 Converts a UTF16 encoded descriptor to a UTF8 encoded descriptor.
@@ -145,8 +150,8 @@ Note: the function works only for input descriptors with length less or equal th
 */
 TBool UTF16ToUTF8(const TDesC& aIn, TDes8& aOut)
 	{
-	__SQLASSERT(aIn.Length() <= KMaxFileName, ESqlPanicBadArgument);
-	__SQLASSERT(aOut.MaxLength() >= KMaxFileName, ESqlPanicBadArgument);
+    __ASSERT_DEBUG(aIn.Length() <= KMaxFileName, __SQLPANIC2(ESqlPanicBadArgument));
+    __ASSERT_DEBUG(aOut.MaxLength() >= KMaxFileName, __SQLPANIC2(ESqlPanicBadArgument));
 	TBuf16<KMaxFileName + 1> des;
 	des.Copy(aIn);
 	des.Append(TChar(0));
@@ -175,9 +180,9 @@ Converts a zero-terminated, UTF16 encoded file name to a zero-terminated, UTF8 e
 */
 TBool UTF16ZToUTF8Z(const TDesC& aFileName, TDes8& aFileNameDestBuf)
 	{
-	__SQLASSERT(aFileName.Length() <= (KMaxFileName + 1), ESqlPanicBadArgument);
-	__SQLASSERT(aFileName[aFileName.Length() - 1] == 0, ESqlPanicBadArgument);
-	__SQLASSERT(aFileNameDestBuf.MaxLength() >= (KMaxFileName + 1), ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aFileName.Length() <= (KMaxFileName + 1), __SQLPANIC2(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aFileName[aFileName.Length() - 1] == 0, __SQLPANIC2(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aFileNameDestBuf.MaxLength() >= (KMaxFileName + 1), __SQLPANIC2(ESqlPanicBadArgument));
 	const wchar_t* src = reinterpret_cast <const wchar_t*> (aFileName.Ptr());
 	TInt len = wcstombs((char*)aFileNameDestBuf.Ptr(), src, KMaxFileName);
 	//Check the file name length. If it is longer than KMaxFileName characters, then the file name is not valid.
@@ -204,8 +209,8 @@ Converts a UTF16 encoded file name to a zero-terminated, UTF8 encoded file name.
 */
 TBool UTF16ToUTF8Z(const TDesC& aFileName, TDes8& aFileNameDestBuf)
 	{
-	__SQLASSERT(aFileName.Length() <= KMaxFileName, ESqlPanicBadArgument);
-	__SQLASSERT(aFileNameDestBuf.MaxLength() >= (KMaxFileName + 1), ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aFileName.Length() <= KMaxFileName, __SQLPANIC2(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aFileNameDestBuf.MaxLength() >= (KMaxFileName + 1), __SQLPANIC2(ESqlPanicBadArgument));
 	TBool rc = ::UTF16ToUTF8(aFileName, aFileNameDestBuf);
 	if(rc)
 		{
@@ -223,6 +228,6 @@ TBool IsReadOnlyFileL(RFs& aFs, const TDesC& aDbFileName)
 		{//Non-existing file
 		return EFalse;	
 		}
-	__SQLLEAVE_IF_ERROR(err);
+	__SQLLEAVE_IF_ERROR2(err);
 	return entry.IsReadOnly();
 	}

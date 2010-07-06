@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -20,6 +20,12 @@
  @file
 */
 #include "os_symbian.h"
+#include "SqliteUtil.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "os_symbian_hrdwTraces.h"
+#endif
+#include "SqliteTraceDef.h"
 
 #ifdef SQLITE_OS_SYMBIAN
 
@@ -47,7 +53,7 @@ TStaticFs::TStaticFs()
 	TInt err = Connect();
 	if(err != KErrNone)
 		{
-		RDebug::Print(_L("===SQLITE OS porting layer, file session creation has failed with err=%d.\r\n"), err);
+		SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TSTATICFS_TSTATICFS, "OS;0x%X;TStaticFs::TStaticFs;err=%d", (TUint)this, err));
 		User::Exit(err);	
 		}
 	}
@@ -63,7 +69,7 @@ Returns a reference to the already created global RFs object.
 */
 RFs& TStaticFs::Fs()
 	{
-	__ASSERT_DEBUG(TheFs.iFs.Handle() != KNullHandle, User::Panic(KPanicCategory, EPanicInvalidFs));
+	__ASSERT_DEBUG(TheFs.iFs.Handle() != KNullHandle, __SQLITEPANIC2(ESqliteOsPanicInvalidFs));
 	return TheFs.iFs;
 	}
 
@@ -91,14 +97,14 @@ TStaticMutex::TStaticMutex()
 	TInt err = Create();
 	if(err != KErrNone)
 		{
-		RDebug::Print(_L("===SQLITE OS porting layer, static mutex creation has failed with err=%d.\r\n"), err);
+		SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TSTATICMUTEX_TSTATICMUTEX, "OS;0x%X;TStaticMutex::TStaticMutex;err=%d", (TUint)this, err));
 		User::Exit(err);	
 		}
 	}
 
 sqlite3_mutex* StaticMutex(TInt aType)
 	{
-	__ASSERT_ALWAYS((TUint)aType < (sizeof(TheStaticMutex)/sizeof(TheStaticMutex[0])), User::Panic(KPanicCategory, EPanicInvalidMutexType));
+	__ASSERT_ALWAYS((TUint)aType < (sizeof(TheStaticMutex)/sizeof(TheStaticMutex[0])), __SQLITEPANIC2(ESqliteOsPanicInvalidMutexType));
 	return &TheStaticMutex[aType];
 	}
 

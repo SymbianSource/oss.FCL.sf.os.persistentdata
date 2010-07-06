@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -46,7 +46,7 @@ Moves to the specified field in the flat buffer.
 */
 inline void TSqlBufRIterator::MoveTo(TInt aIndex)
 	{
-	__SQLASSERT((iBegin + (TUint)aIndex) < iEnd, ESqlPanicBadArgument);
+	__ASSERT_DEBUG((iBegin + (TUint)aIndex) < iEnd, __SQLPANIC(ESqlPanicBadArgument));
 	iCurrent = iBegin + aIndex;
 	}
 
@@ -55,7 +55,7 @@ inline void TSqlBufRIterator::MoveTo(TInt aIndex)
 */
 inline TBool TSqlBufRIterator::IsPresent() const
 	{
-	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
 	return iCurrent->iPos > 0;
 	}
 	
@@ -64,7 +64,7 @@ inline TBool TSqlBufRIterator::IsPresent() const
 */
 inline TInt TSqlBufRIterator::Type() const
 	{
-	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
 	return iCurrent->Type();
 	}
 	
@@ -73,7 +73,7 @@ inline TInt TSqlBufRIterator::Type() const
 */
 inline TInt TSqlBufRIterator::Size() const
 	{
-	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
 	return Type() == ESqlText ? iCurrent->Size() / sizeof(TUint16) : iCurrent->Size();
 	}
 
@@ -101,7 +101,7 @@ Moves to the next flat buffer field
 */
 inline TBool TSqlBufWIterator::Next()
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
 	return ++iIndex < iBuf->Count();	
 	}
 	
@@ -112,8 +112,8 @@ Moves to the specified field in the flat buffer.
 */
 inline void TSqlBufWIterator::MoveTo(TInt aIndex)
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
-	__SQLASSERT((TUint)aIndex < iBuf->Count(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG((TUint)aIndex < iBuf->Count(), __SQLPANIC(ESqlPanicInternalError));
 	iIndex = aIndex;
 	}
 
@@ -122,8 +122,8 @@ Sets the current flat buffer field to NULL.
 */
 inline void TSqlBufWIterator::SetNull()
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
-	__SQLASSERT((TUint)iIndex < iBuf->Count(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG((TUint)iIndex < iBuf->Count(), __SQLPANIC(ESqlPanicInternalError));
 	(void)iBuf->SetField(iIndex, ESqlNull, NULL, 0);
 	}
 	
@@ -135,10 +135,10 @@ Sets the current flat buffer field as "Not present".
 */
 inline void TSqlBufWIterator::SetAsNotPresent(TInt aType, TInt aLength)
 	{
-	__SQLASSERT(::IsSequenceSqlType(aType), ESqlPanicBadArgument);
-	__SQLASSERT(aLength >= 0, ESqlPanicBadArgument);
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
-	__SQLASSERT((TUint)iIndex < iBuf->Count(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(::IsSequenceSqlType(aType), __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aLength >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG((TUint)iIndex < iBuf->Count(), __SQLPANIC(ESqlPanicInternalError));
 	iBuf->SetField(iIndex, aType, NULL, aType == ESqlText ? aLength * sizeof(TUint16) : aLength);
 	}
 	
@@ -152,8 +152,8 @@ Initializes current flat buffer field with an integer value.
 */
 inline TInt TSqlBufWIterator::SetInt(TInt aValue)
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
-	__SQLASSERT((TUint)iIndex < iBuf->Count(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG((TUint)iIndex < iBuf->Count(), __SQLPANIC(ESqlPanicInternalError));
 	return iBuf->SetField(iIndex, ESqlInt, &aValue, sizeof(TInt));
 	}
 	
@@ -167,8 +167,8 @@ Initializes current flat buffer field with an 64 bit integer value.
 */
 inline TInt TSqlBufWIterator::SetInt64(TInt64 aValue)
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
-	__SQLASSERT((TUint)iIndex < iBuf->Count(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG((TUint)iIndex < iBuf->Count(), __SQLPANIC(ESqlPanicInternalError));
 	return iBuf->SetField(iIndex, ESqlInt64, &aValue, sizeof(TInt64));
 	}
 	
@@ -182,8 +182,8 @@ Initializes current flat buffer field with a real value.
 */
 inline TInt TSqlBufWIterator::SetReal(TReal aValue)
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
-	__SQLASSERT((TUint)iIndex < iBuf->Count(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG((TUint)iIndex < iBuf->Count(), __SQLPANIC(ESqlPanicInternalError));
 	return iBuf->SetField(iIndex, ESqlReal, &aValue, sizeof(TReal));
 	}
 	
@@ -197,8 +197,8 @@ Initializes current flat buffer field with a block of binary data.
 */
 inline TInt TSqlBufWIterator::SetBinary(const TDesC8& aValue)
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
-	__SQLASSERT((TUint)iIndex < iBuf->Count(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG((TUint)iIndex < iBuf->Count(), __SQLPANIC(ESqlPanicInternalError));
 	return iBuf->SetField(iIndex, ESqlBinary, aValue.Ptr(), aValue.Length());
 	}
 	
@@ -212,8 +212,8 @@ Initializes current flat buffer field with a block of 16 bit text.
 */
 inline TInt TSqlBufWIterator::SetText(const TDesC16& aValue)
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
-	__SQLASSERT((TUint)iIndex < iBuf->Count(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG((TUint)iIndex < iBuf->Count(), __SQLPANIC(ESqlPanicInternalError));
 	return iBuf->SetField(iIndex, ESqlText, aValue.Ptr(), aValue.Length() * sizeof(TUint16));
 	}
 
@@ -228,7 +228,7 @@ Initializes current flat buffer field with a zeroblob of the specified size.
 */
 inline TInt TSqlBufWIterator::SetZeroBlob(TInt aSize)
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
-	__SQLASSERT((TUint)iIndex < iBuf->Count(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG((TUint)iIndex < iBuf->Count(), __SQLPANIC(ESqlPanicInternalError));
 	return iBuf->SetField(iIndex, ESqlZeroBlob, &aSize, sizeof(TInt));
 	}

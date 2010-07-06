@@ -22,6 +22,11 @@
 #include "SqlSrvUtil.h"			//Global server functions
 #include "SqlCompact.h"
 #include "SqlSrvResourceProfiler.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlSrvDatabaseTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
 //
 // The following macro disables the creation/loading of the settings table.
@@ -66,6 +71,7 @@ _LIT(KPageSizePragma,	"PRAGMA \"%S\".page_size=%d\x0");
 _LIT(KAutoVacuumPragma,	"PRAGMA \"%S\".auto_vacuum=%d\x0");
 //_LIT(KPersist, "persist");
 //_LIT(KPersistentJournalPragma, "PRAGMA \"%S\".journal_mode=%S\x0");
+_LIT(KJournalSizeLimitPragma, "PRAGMA \"%S\".journal_size_limit=%d\x0");
 ////////////////////////////////////////////////////////
 //"LIKE" - user defined function name
 _LIT8(KStrLikeFuncName,  "LIKE\x0");
@@ -85,7 +91,7 @@ _LIT8(KStrLikeFuncName,  "LIKE\x0");
 //aRight argument is NULL.
 static TInt Compare(const TSqlAttachDbPair& aLeft, const TSqlAttachDbPair& aRight)
 	{
-	__SQLASSERT(aLeft.iKey != NULL && aRight.iKey != NULL, ESqlPanicInternalError);
+	__ASSERT_DEBUG(aLeft.iKey != NULL && aRight.iKey != NULL, __SQLPANIC2(ESqlPanicInternalError));
 	return ::CompareNoCase8(TPtrC8(aLeft.iKey), TPtrC8(aRight.iKey));
 	}
 
@@ -100,7 +106,7 @@ static TInt Compare(const TSqlAttachDbPair& aLeft, const TSqlAttachDbPair& aRigh
 //aRight argument is NULL.
 static TInt Compare2(const TSqlCompactDbPair& aLeft, const TSqlCompactDbPair& aRight)
 	{
-	__SQLASSERT(aLeft.iKey != NULL && aRight.iKey != NULL, ESqlPanicInternalError);
+	__ASSERT_DEBUG(aLeft.iKey != NULL && aRight.iKey != NULL, __SQLPANIC2(ESqlPanicInternalError));
 	return ::CompareNoCase(*aLeft.iKey, *aRight.iKey);
 	}
 
@@ -114,13 +120,13 @@ static void CreateDbHandleL(const TSqlSrvFileData& aFileData, sqlite3*& aDbHandl
 		TBuf8<KMaxFileName + 1> fileNameZ;
 		if(!::UTF16ZToUTF8Z(aFileData.FileNameZ(), fileNameZ))
 			{
-			__SQLLEAVE(KErrGeneral);	
+			__SQLLEAVE2(KErrGeneral);	
 			}
-		__SQLLEAVE_IF_ERROR(::CreateDbHandle8(fileNameZ, aDbHandle));
+		__SQLLEAVE_IF_ERROR2(::CreateDbHandle8(fileNameZ, aDbHandle));
 		}
 	else
 		{
-		__SQLLEAVE_IF_ERROR(::CreateDbHandle16(aFileData.FileNameZ(), aDbHandle));
+		__SQLLEAVE_IF_ERROR2(::CreateDbHandle16(aFileData.FileNameZ(), aDbHandle));
 		}
 	}
 	
@@ -152,7 +158,7 @@ static CSqlSecurityPolicy* LoadAttachedDbSecurityPolicyLC(const TSqlSrvFileData&
 //The function is used to read the security policy of the main database.
 static CSqlSecurityPolicy* LoadDbSecurityPolicyLC(sqlite3* aDbHandle)
 	{
-	__SQLASSERT(aDbHandle != NULL, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aDbHandle != NULL, __SQLPANIC2(ESqlPanicBadArgument));
 	//Create new database security policy object and initialize it with a default security policy
 	TSecurityPolicy defaultPolicy(TSecurityPolicy::EAlwaysFail);
 	CSqlSecurityPolicy* dbPolicy = CSqlSecurityPolicy::NewLC(defaultPolicy);
@@ -167,7 +173,7 @@ static CSqlSecurityPolicy* LoadDbSecurityPolicyLC(sqlite3* aDbHandle)
 //The function panics in _DEBUG mode if aSrc is NULL.
 static TUint8* CreateStrCopyLC(const TUint8* aSrc)
 	{
-	__SQLASSERT(aSrc != NULL, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aSrc != NULL, __SQLPANIC2(ESqlPanicBadArgument));
 	TInt len = User::StringLength(aSrc) + 1;
 	TUint8* copy = new (ELeave) TUint8[len];
 	Mem::Copy(copy, aSrc, len);
@@ -179,7 +185,7 @@ static TUint8* CreateStrCopyLC(const TUint8* aSrc)
 //during the stack cleanup.
 static void EnableAuthorizer(void* aAuthorizerDisabled)
 	{
-	__SQLASSERT(aAuthorizerDisabled != NULL, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aAuthorizerDisabled != NULL, __SQLPANIC2(ESqlPanicBadArgument));
 	TBool* authorizerDisabled = static_cast <TBool*> (aAuthorizerDisabled);
 	*authorizerDisabled = EFalse;
 	}
@@ -208,7 +214,7 @@ private:
 //CSqlSrvDatabase's ConstructL() method(s) leave (when creating a new database file).
 static void DbFileCleanup(void* aDbFileCleanup)
 	{
-	__SQLASSERT(aDbFileCleanup != NULL, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aDbFileCleanup != NULL, __SQLPANIC2(ESqlPanicBadArgument));
 	TDbFileCleanup* dbFileCleanup = static_cast <TDbFileCleanup*> (aDbFileCleanup);
 	dbFileCleanup->Cleanup();
 	}
@@ -222,14 +228,35 @@ static void DbFileCleanup(void* aDbFileCleanup)
 //During the call the authorizer will be disabled.
 static TInt ExecPragma(sqlite3* aDbHandle, TBool& aAuthorizerDisabled, const TDesC& aPragma, TInt aValue, const TDesC& aDbName = KMainDb16)
 	{
-	__SQLASSERT(aDbHandle != NULL, ESqlPanicBadArgument);
+    __SQLTRACE_INTERNALSEXPR(TPtrC pragmaprnptr(aPragma.Left(aPragma.Length() - 1)));
+	SQL_TRACE_INTERNALS(OstTraceExt4(TRACE_INTERNALS, EXECPRAGMA_ENTRY, "Entry;0;ExecPragma;sqlite3*=0x%X;aPragma=%S;aValue=%d;aDbName=%S", (TUint)aDbHandle, __SQLPRNSTR(pragmaprnptr), aValue, __SQLPRNSTR(aDbName)));
+	__ASSERT_DEBUG(aDbHandle != NULL, __SQLPANIC2(ESqlPanicBadArgument));
 	TBuf<KMaxFileName + 64> pragmaSql;//(KMaxFileName + 64) characters buffer length is enough for the longest possible PRAGMA statement
 	pragmaSql.Format(aPragma, &aDbName, aValue);
 	TBool authorizerDisabledState = aAuthorizerDisabled;
 	aAuthorizerDisabled	= ETrue;
 	TInt err = DbExecStmt16(aDbHandle, pragmaSql);
 	aAuthorizerDisabled = authorizerDisabledState;
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, EXECPRAGMA_EXIT, "Exit;0;ExecPragma;sqlite3*=0x%X;err=%d", (TUint)aDbHandle, err));
 	return err;
+	}
+
+//The journal size limit is set to be at lest 16 pages and no less than 64 Kb.
+static void SetJournalSizeLimitL(sqlite3* aDbHandle, TBool& aAuthorizerDisabled, TInt aPageSize, const TDesC& aDbName = KMainDb16)
+	{
+	__ASSERT_DEBUG(aDbHandle != NULL, __SQLPANIC2(ESqlPanicBadArgument));
+	if(aPageSize == TSqlSrvConfigParams::KConfigPrmValueNotSet)
+		{
+		__SQLLEAVE_IF_ERROR2(DbPageSize(aDbHandle, aDbName, aPageSize));
+		}
+	const TInt KPageMultiplier = 16;
+	const TInt KDefaultJournalSizeLimit = 64 * 1024;
+	const TInt KMaxJournalSizeLimit = 512 * 1024;
+	const TInt KJournalSizeLimit = Min((aPageSize * KPageMultiplier), KMaxJournalSizeLimit);
+	if(KJournalSizeLimit > KDefaultJournalSizeLimit)
+		{
+		__SQLLEAVE_IF_ERROR2(::ExecPragma(aDbHandle, aAuthorizerDisabled, KJournalSizeLimitPragma, KJournalSizeLimit));
+		}
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,15 +301,16 @@ Creates new CSqlSrvDatabase instance which creates and manages new secure SQL da
 */
 CSqlSrvDatabase* CSqlSrvDatabase::CreateSecureL(const TSqlSrvFileData& aFileData, CSqlSecurityPolicy* aSecurityPolicy)
 	{
-	__SQLASSERT(aFileData.IsSecureFileNameFmt(), ESqlPanicBadArgument);
-	__SQLASSERT(aSecurityPolicy != NULL, ESqlPanicBadArgument);
+	SQL_TRACE_INTERNALS(OstTrace0(TRACE_INTERNALS, CSQLSRVDATABASE_CREATESECUREL_ENTRY, "Entry;0;CSqlSrvDatabase::CreateSecureL"));
+	__ASSERT_DEBUG(aFileData.IsSecureFileNameFmt(), __SQLPANIC2(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aSecurityPolicy != NULL, __SQLPANIC2(ESqlPanicBadArgument));
 	if(!::SqlServer().SecurityInspector().Check(aSecurityPolicy->DbPolicy(RSqlSecurityPolicy::ESchemaPolicy)))
 		{
 		//The caller has no "SCHEMA" policy. Then the client is not given a permission to create the database.
 		//Delete aSecurityPolicy since no database object is going to be created and the security policy object 
 		//won't be put in the security policies map.
 		delete aSecurityPolicy;
-		__SQLLEAVE(KErrPermissionDenied);
+		__SQLLEAVE2(KErrPermissionDenied);
 		}
 	//What does happen with aSecurityPolicy instance?
 	// If the database is created successfully, then a lookup will be made in the security policies map.
@@ -305,6 +333,7 @@ CSqlSrvDatabase* CSqlSrvDatabase::CreateSecureL(const TSqlSrvFileData& aFileData
 	CleanupStack::PushL(self);
 	self->ConstructCreateSecureL(aFileData, aSecurityPolicy);
 	CleanupStack::Pop(self);
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_CREATESECUREL_EXIT, "Exit;0x%X;CSqlSrvDatabase::CreateSecureL;sqlite3*=0x%X", (TUint)self, (TUint)self->iDbHandle));
 	return self;
 	}
 
@@ -335,11 +364,13 @@ Creates new CSqlSrvDatabase instance which creates and manages new SQL database.
 */
 CSqlSrvDatabase* CSqlSrvDatabase::CreateL(const TSqlSrvFileData& aFileData)
 	{
-	__SQLASSERT(!aFileData.IsSecureFileNameFmt(), ESqlPanicBadArgument);
+	SQL_TRACE_INTERNALS(OstTrace0(TRACE_INTERNALS, CSQLSRVDATABASE_CREATEL_ENTRY, "Entry;0;CSqlSrvDatabase::CreateL"));
+	__ASSERT_DEBUG(!aFileData.IsSecureFileNameFmt(), __SQLPANIC2(ESqlPanicBadArgument));
 	CSqlSrvDatabase* self = new (ELeave) CSqlSrvDatabase();
 	CleanupStack::PushL(self);
 	self->ConstructCreateL(aFileData);
 	CleanupStack::Pop(self);
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_CREATEL_EXIT, "Exit;0x%X;CSqlSrvDatabase::CreateL;sqlite3*=0x%X", (TUint)self, (TUint)self->iDbHandle));
 	return self;
 	}
 
@@ -374,10 +405,12 @@ Creates new CSqlSrvDatabase instance which opens and manages an existing SQL dat
 */
 CSqlSrvDatabase* CSqlSrvDatabase::OpenL(const TSqlSrvFileData& aFileData)
 	{
+	SQL_TRACE_INTERNALS(OstTrace0(TRACE_INTERNALS, CSQLSRVDATABASE_OPENL_ENTRY, "Entry;0;CSqlSrvDatabase::OpenL"));
 	CSqlSrvDatabase* self = new (ELeave) CSqlSrvDatabase();
 	CleanupStack::PushL(self);
 	aFileData.IsSecureFileNameFmt() ? self->ConstructOpenSecureL(aFileData) : self->ConstructOpenL(aFileData);
 	CleanupStack::Pop(self);
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_OPENL_EXIT, "Exit;0x%X;CSqlSrvDatabase::OpenL;sqlite3*=0x%X", (TUint)self, (TUint)self->iDbHandle));
 	return self;
 	}
 
@@ -386,12 +419,12 @@ Cleans up the allocated for the database connection memory and other resources.
 */
 CSqlSrvDatabase::~CSqlSrvDatabase()
 	{
-    SQLPROFILER_DB_CLOSE((TUint)iDbHandle);
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_CSQLSRVDATABASE2_ENTRY, "Entry;0x%X;CSqlSrvDatabase::~CSqlSrvDatabase;sqlite3*=0x%X", (TUint)this, (TUint)iDbHandle));
 	TSqlCompactDbMapIterator compactDbIt(iCompactDbMap);
 	TSqlCompactDbPair compactDbPair;
 	while(compactDbIt.Next(compactDbPair))
 		{
-        __SQLASSERT(compactDbPair.iData, ESqlPanicInvalidObj);
+	   __ASSERT_DEBUG(compactDbPair.iData, __SQLPANIC2(ESqlPanicInvalidObj));
 		::SqlServer().Compactor().ReleaseEntry(*compactDbPair.iData);
 		}
 	iCompactDbMap.Close();
@@ -434,11 +467,12 @@ CSqlSrvDatabase::~CSqlSrvDatabase()
     TSqlAttachDbPair attachDbPair;
     while(it.Next(attachDbPair))
         {
-        __SQLASSERT(attachDbPair.iData, ESqlPanicInvalidObj);
-        ::SqlServer().SecurityMap().Remove(attachDbPair.iData);
+        __ASSERT_DEBUG(attachDbPair.iData, __SQLPANIC2(ESqlPanicInvalidObj));
+       ::SqlServer().SecurityMap().Remove(attachDbPair.iData);
         }
 	iAttachDbMap.Close();
 	::CloseDbHandle(iDbHandle);
+	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSRVDATABASE_CSQLSRVDATABASE2_EXIT, "Exit;0x%X;CSqlSrvDatabase::~CSqlSrvDatabase", (TUint)this));
 	}
 
 /**
@@ -476,6 +510,8 @@ If the function leaves and the error is not KErrAlreadyExists, the database file
 */
 void CSqlSrvDatabase::CreateNewDbFileL(const TSqlSrvFileData& aFileData)
 	{
+	__SQLTRACE_INTERNALSVAR(TPtrC fname = aFileData.FileName());
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_CREATENEWDBFILEL, "0x%x;CSqlSrvDatabase::CreateNewDbFileL;fname=%S", (TUint)this, __SQLPRNSTR(fname)));
 	if(::FileExists(aFileData.Fs(), aFileData.FileName()))
 		{
 		__SQLLEAVE(KErrAlreadyExists);	
@@ -511,6 +547,8 @@ This function is part of CSqlSrvDatabase instance initialization.
 */
 void CSqlSrvDatabase::OpenExistingDbFileL(const TSqlSrvFileData& aFileData)
 	{
+	__SQLTRACE_INTERNALSVAR(TPtrC fname = aFileData.FileName());
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_OPENEXISTINGDBFILEL, "0x%x;CSqlSrvDatabase::OpenExistingDbFileL;fname=%S", (TUint)this, __SQLPRNSTR(fname)));
 	if(!aFileData.ContainHandles())
 		{//This check is valid only if the database is outside application's private data cage
 		if(!::FileExists(aFileData.Fs(), aFileData.FileName()))
@@ -635,6 +673,7 @@ Attaches a secure or non-secure database to the current database connection.
 */
 void CSqlSrvDatabase::AttachDbL(const TSqlSrvFileData& aFileData, const TDesC& aDbName)
 	{
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_ATTACHDBL_ENTRY, "Entry;0x%X;CSqlSrvDatabase::AttachDbL;aDbName=%S", (TUint)this, __SQLPRNSTR(aDbName)));
 	if(!aFileData.ContainHandles())
 		{//This check is valid only if the database is outside application's private data cage
 		if(!::FileExists(aFileData.Fs(), aFileData.FileName()))
@@ -677,6 +716,7 @@ void CSqlSrvDatabase::AttachDbL(const TSqlSrvFileData& aFileData, const TDesC& a
 			__SQLLEAVE(err);
 			}
 		}
+	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSRVDATABASE_ATTACHDBL_EXIT, "Exit;0x%X;CSqlSrvDatabase::AttachDbL", (TUint)this));
 	}
 
 /**
@@ -760,6 +800,7 @@ which is about to be detached, and will remove the entries.
 */
 void CSqlSrvDatabase::DetachDbL(const TDesC& aDbName)
 	{
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_DETACHDBL_ENTRY, "Entry;0x%X;CSqlSrvDatabase::DetachDbL;aDbName=%S", (TUint)this, __SQLPRNSTR(aDbName)));
 	TInt err = FinalizeAttachedDb(aDbName);
 	if(err == KErrNone)
 		{
@@ -769,6 +810,7 @@ void CSqlSrvDatabase::DetachDbL(const TDesC& aDbName)
 		{
 		__SQLLEAVE(err);
 		}
+	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSRVDATABASE_DETACHDBL_EXIT, "Exit;0x%X;CSqlSrvDatabase::DetachDbL", (TUint)this));
 	}
 
 /**
@@ -787,7 +829,7 @@ TInt64 CSqlSrvDatabase::SizeL(const TDesC& aDbName)
 	CleanupStack::PushL(TCleanupItem(&EnableAuthorizer, &iAuthorizerDisabled));
 	TInt pageCount = 0;
 	__SQLLEAVE_IF_ERROR(::DbPageCount(iDbHandle, aDbName, pageCount));
-	__SQLASSERT(pageCount >= 0, ESqlPanicInternalError);
+	__ASSERT_DEBUG(pageCount >= 0, __SQLPANIC(ESqlPanicInternalError));
 	CleanupStack::PopAndDestroy();
 	return (TInt64)pageCount * PageSizeL(aDbName);
 	}
@@ -809,7 +851,7 @@ TInt64 CSqlSrvDatabase::FreeSpaceL(const TDesC& aDbName)
 	TInt freePageCount = 0;
 	__SQLLEAVE_IF_ERROR(::DbFreePageCount(iDbHandle, aDbName, freePageCount));
 	CleanupStack::PopAndDestroy();
-	__SQLASSERT(freePageCount >= 0, ESqlPanicInternalError);
+	__ASSERT_DEBUG(freePageCount >= 0, __SQLPANIC(ESqlPanicInternalError));
 	return (TInt64)freePageCount * PageSizeL(aDbName);
 	}
 
@@ -873,7 +915,8 @@ Compacts the database free space.
 */
 TInt CSqlSrvDatabase::CompactL(TInt aSize, const TDesC& aDbName)
 	{
-	__SQLASSERT(aSize > 0 || aSize == RSqlDatabase::EMaxCompaction, ESqlPanicBadArgument);
+	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLSRVDATABASE_COMPACTL_ENTRY, "Entry;0x%X;CSqlSrvDatabase::CompactL;aSize=%d;aDbName=%S", (TUint)this, aSize, __SQLPRNSTR(aDbName)));
+	__ASSERT_DEBUG(aSize > 0 || aSize == RSqlDatabase::EMaxCompaction, __SQLPANIC(ESqlPanicBadArgument));
 	TInt pageSize = PageSizeL(aDbName);//PageSizeL() will disable/enable the authorizer
 	TInt pageCount = KMaxTInt;
 	if(aSize > 0)
@@ -887,6 +930,7 @@ TInt CSqlSrvDatabase::CompactL(TInt aSize, const TDesC& aDbName)
 		__SQLLEAVE_IF_ERROR(::DbCompact(iDbHandle, aDbName, pageCount, pageCount));
 		CleanupStack::PopAndDestroy();
 		}
+	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLSRVDATABASE_COMPACTL_EXIT, "Exit;0x%X;CSqlSrvDatabase::CompactL;pageCount=%d;pageSize=%d", (TUint)this, pageCount, pageSize));
 	return pageCount * pageSize;
 	}
 
@@ -924,7 +968,7 @@ Cleanup function. Calls FinalizeAttachedDb() if InitAttachedDbL() has failed.
 void CSqlSrvDatabase::AttachCleanup(void* aCleanup)
 	{
 	TAttachCleanup* cleanup = reinterpret_cast <TAttachCleanup*> (aCleanup);
-	__SQLASSERT(cleanup != NULL, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(cleanup != NULL, __SQLPANIC2(ESqlPanicBadArgument));
 	(void)cleanup->iSelf.FinalizeAttachedDb(cleanup->iDbName);
 	}
 
@@ -1059,17 +1103,17 @@ void CSqlSrvDatabase::UpdateSecurityMapL(TBool aAttachedDb, const TSqlSrvFileDat
 		{
 		//No, it is not in the map. Read the security policies from the security policies tables and 
 		//insert a new item in the map.
-		__SQLASSERT(aMapKey != NULL, ESqlPanicInternalError);
+		__ASSERT_DEBUG(aMapKey != NULL, __SQLPANIC(ESqlPanicInternalError));
 		aMapKey = ::CreateStrCopyLC(aMapKey);
 		CSqlSecurityPolicy* securityPolicy = aAttachedDb ? ::LoadAttachedDbSecurityPolicyLC(aFileData) :
 		                                                   ::LoadDbSecurityPolicyLC(iDbHandle);
-        __SQLASSERT(!::SqlServer().SecurityMap().Entry(aMapKey), ESqlPanicObjExists);
+	    __ASSERT_DEBUG(!::SqlServer().SecurityMap().Entry(aMapKey), __SQLPANIC2(ESqlPanicObjExists));
 		__SQLLEAVE_IF_ERROR(::SqlServer().SecurityMap().Insert(aMapKey, securityPolicy));
 		CleanupStack::Pop(2);//iSecurityMap owns aMapKey and securityPolicy objects
 		aSecurityPolicy = securityPolicy;
 		}
-	__SQLASSERT(aMapKey != NULL, ESqlPanicInternalError);
-	__SQLASSERT(aSecurityPolicy != NULL, ESqlPanicInternalError);
+	__ASSERT_DEBUG(aMapKey != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aSecurityPolicy != NULL, __SQLPANIC(ESqlPanicInternalError));
 	}
 
 /**
@@ -1098,6 +1142,7 @@ The sequence of the performed by the function operations is:
 */
 void CSqlSrvDatabase::RemoveFromMapsL(const TDesC& aDbName)
 	{
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_REMOVEFROMMAPSL, "0x%X;CSqlSrvDatabase::RemoveFromMapsL;aDbName=%S", (TUint)this, __SQLPRNSTR(aDbName)));
 	TPtr8 ptr(iFileNameBuf, sizeof(iFileNameBuf));
 	if(!::UTF16ToUTF8Z(aDbName, ptr))
 		{
@@ -1128,6 +1173,7 @@ iAttachDbMap or the method fails and the content of iAttachDbMap remains unchang
 */
 void CSqlSrvDatabase::InsertInAttachDbMapL(const TDesC& aDbFileName, const TDesC& aDbName)
 	{
+	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLSRVDATABASE_INSERTINATTACHDBMAPL, "0x%X;CSqlSrvDatabase::InsertInAttachDbMapL;aDbFileName=%S;aDbName=%S", (TUint)this, __SQLPRNSTR(aDbFileName), __SQLPRNSTR(aDbName)));
 	//Convert aDbName to UTF8, zero-terminated name
 	TPtr8 ptr(iFileNameBuf, sizeof(iFileNameBuf));
 	if(!::UTF16ToUTF8Z(aDbName, ptr))
@@ -1137,7 +1183,7 @@ void CSqlSrvDatabase::InsertInAttachDbMapL(const TDesC& aDbFileName, const TDesC
 	const TUint8* mapKey = ::CreateStrCopyLC(iFileNameBuf);
 	const TUint8* mapData = SecurityMapKeyL(aDbFileName);
 	mapData = ::CreateStrCopyLC(mapData);
-    __SQLASSERT(!iAttachDbMap.Entry(mapKey), ESqlPanicObjExists);
+	__ASSERT_DEBUG(!iAttachDbMap.Entry(mapKey), __SQLPANIC(ESqlPanicObjExists));
 	__SQLLEAVE_IF_ERROR(iAttachDbMap.Insert(mapKey, mapData));
 	CleanupStack::Pop(2);//iAttachDbMap owns mapKey amd mapData.
 	}
@@ -1159,7 +1205,7 @@ changed and/or executing database configuration file operations.
 */
 void CSqlSrvDatabase::ProcessSettingsL(const TSqlSrvFileData& aFileData, const TDesC& aDbName)
 	{
-	__SQLASSERT(!aFileData.IsReadOnly(), ESqlPanicInternalError);
+	__ASSERT_DEBUG(!aFileData.IsReadOnly(), __SQLPANIC(ESqlPanicInternalError));
 #if !defined(__SQL_DISABLE_SYMBIAN_SETTINGS_TABLE__)
 	//Make the journal file persistent - done by SQLite automatically because the locking mode is EXCLUSIVE
 	//__SQLLEAVE_IF_ERROR(::ExecPragma(iDbHandle, iAuthorizerDisabled, KPersistentJournalPragma, KPersist, aDbName));
@@ -1172,7 +1218,7 @@ void CSqlSrvDatabase::ProcessSettingsL(const TSqlSrvFileData& aFileData, const T
 	TSqlCompactionMode compactionMode = currVacuumMode == ESqliteVacuumOff ? ESqlCompactionManual : ESqlCompactionNotSet;
 	TSqlDbSysSettings dbSettings(iDbHandle);
 	dbSettings.LoadSettingsL(aDbName, storedCollationDllName, storedDbConfigFileVer, compactionMode);
-	__SQLASSERT(currVacuumMode == ESqliteVacuumOff ? compactionMode == ESqlCompactionManual : 1, ESqlPanicInternalError);
+	__ASSERT_DEBUG(currVacuumMode == ESqliteVacuumOff ? compactionMode == ESqlCompactionManual : 1, __SQLPANIC(ESqlPanicInternalError));
 	if(aFileData.ContainHandles() && aFileData.IsCreated())
 		{
 		compactionMode = aFileData.ConfigParams().iCompactionMode;
@@ -1216,6 +1262,7 @@ void CSqlSrvDatabase::ApplyConfigUpdatesL(const TDesC& aStoredCollationDllName, 
 	//Check whether reindexing is necessary
 	if(::SqlServer().CollationDllName().CompareF(aStoredCollationDllName) != 0)
 		{
+		SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLSRVDATABASE_APPLYCONFIGUPDATES2L, "0x%X;CSqlSrvDatabase::ApplyConfigUpdatesL;Reindex db;aStoredCollationDllName=%S;aDbName=%S", (TUint)this, __SQLPRNSTR(aStoredCollationDllName), __SQLPRNSTR(aDbName)));
 		dbSettings.ReindexDatabaseL(aDbName, ::SqlServer().CollationDllName());
 		}
 
@@ -1226,7 +1273,7 @@ void CSqlSrvDatabase::ApplyConfigUpdatesL(const TDesC& aStoredCollationDllName, 
 	TRAPD(err, dbSettings.ConfigureDatabaseL(aStoredDbConfigFileVersion, aFileData, aDbName));
 	if(KErrNone != err)
 		{
-		__SQLLOG_ERR(_L("SQLLOG: CSqlSrvDatabase::ApplyConfigUpdatesL() - ConfigureDatabaseL() failed with error code %d"), err);	
+		SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_APPLYCONFIGUPDATESL, "0x%X;CSqlSrvDatabase::ApplyConfigUpdatesL;ConfigureDatabaseL() failed with error code %d", (TUint)this, err));	
 		}
 	}
 
@@ -1243,8 +1290,8 @@ This is done formatting and executing PRAGMA statements.
 */
 void CSqlSrvDatabase::SetConfigL(const TSqlSrvConfigParams& aConfigParams, TBool aSetPageSize, const TDesC& aLogicalDbName)
 	{
-	__SQLASSERT(aConfigParams.iPageSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iPageSize >= 0, ESqlPanicBadArgument);
-	__SQLASSERT(aConfigParams.iCacheSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iCacheSize >= 0, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aConfigParams.iPageSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iPageSize >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aConfigParams.iCacheSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iCacheSize >= 0, __SQLPANIC(ESqlPanicBadArgument));
 	if(aSetPageSize && aConfigParams.iPageSize != TSqlSrvConfigParams::KConfigPrmValueNotSet)
 		{
 		__SQLLEAVE_IF_ERROR(::ExecPragma(iDbHandle, iAuthorizerDisabled, KPageSizePragma, aConfigParams.iPageSize));
@@ -1252,6 +1299,8 @@ void CSqlSrvDatabase::SetConfigL(const TSqlSrvConfigParams& aConfigParams, TBool
 	
 	const TDesC& logicalDbName = aLogicalDbName.Length() > 0 ? aLogicalDbName : KMainDb16;
 	
+	::SetJournalSizeLimitL(iDbHandle, iAuthorizerDisabled, aConfigParams.iPageSize, logicalDbName);
+
 	//Setting the cache size.
 	//Step 1: Check if aConfigParams.iCacheSize value is set. If it is set, then use it.
 	if(aConfigParams.iCacheSize != TSqlSrvConfigParams::KConfigPrmValueNotSet)
@@ -1263,8 +1312,8 @@ void CSqlSrvDatabase::SetConfigL(const TSqlSrvConfigParams& aConfigParams, TBool
 	//Step 2: aConfigParams.iCacheSize value is not set. Then check if aConfigParams.iSoftHeapLimitKb value is set.
 		if(aConfigParams.iSoftHeapLimitKb != TSqlSrvConfigParams::KConfigPrmValueNotSet)
 			{
-			__SQLASSERT(aConfigParams.iSoftHeapLimitKb >= TSqlSrvConfigParams::KMinSoftHeapLimitKb && 
-			            aConfigParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb, ESqlPanicInternalError);
+			__ASSERT_DEBUG(aConfigParams.iSoftHeapLimitKb >= TSqlSrvConfigParams::KMinSoftHeapLimitKb && 
+			            aConfigParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb, __SQLPANIC(ESqlPanicInternalError));
 	//Step 3: aConfigParams.iSoftHeapLimitKb value is set. Then use it to calculate the cache size. But we need the page size first.
     //        aLogicalDbName is used instead of logicalDbName because PageSizeL() if called with non-zero length name, 
 	//        "thinks" it is the main database name. KMainDb16 will be interpreted as an attached database name. 
@@ -1305,10 +1354,10 @@ to the compactor for background compacting.
 void CSqlSrvDatabase::InitCompactionL(TSqlCompactionMode aCompactionMode, TInt aFreePageThresholdKb, 
 									  const TDesC& aDbFileName, TSqliteVacuumMode aCurrentVacuumMode, const TDesC& aDbName)
 	{
-	__SQLASSERT(aCompactionMode == ESqlCompactionManual || aCompactionMode == ESqlCompactionBackground || aCompactionMode == ESqlCompactionAuto, ESqlPanicBadArgument);
-	__SQLASSERT(aCurrentVacuumMode == ESqliteVacuumOff || aCurrentVacuumMode == ESqliteVacuumAuto || 
-			    aCurrentVacuumMode == ESqliteVacuumIncremental, ESqlPanicBadArgument);
-	__SQLASSERT(aFreePageThresholdKb >= 0, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aCompactionMode == ESqlCompactionManual || aCompactionMode == ESqlCompactionBackground || aCompactionMode == ESqlCompactionAuto, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aCurrentVacuumMode == ESqliteVacuumOff || aCurrentVacuumMode == ESqliteVacuumAuto || 
+			    aCurrentVacuumMode == ESqliteVacuumIncremental, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aFreePageThresholdKb >= 0, __SQLPANIC(ESqlPanicBadArgument));
 	TSqliteVacuumMode newSqliteVacuumMode = aCompactionMode == ESqlCompactionAuto ? ESqliteVacuumAuto : ESqliteVacuumIncremental;
 	if(aCurrentVacuumMode == ESqliteVacuumOff)
 		{
@@ -1341,6 +1390,7 @@ Adds the aDbFileName database to the compactor object for background compacting.
 */
 void CSqlSrvDatabase::NewCompactEntryL(TInt aFreePageThresholdKb, const TDesC& aDbFileName, const TDesC& aDbName)
 	{
+	SQL_TRACE_INTERNALS(OstTraceExt4(TRACE_INTERNALS, CSQLSRVDATABASE_NEWCOMPACTENTRYL_ENTRY, "Entry;0x%X;CSqlSrvDatabase::NewCompactEntryL;aFreePageThresholdKb=%d;aDbFileName=%S;aDbName=%S", (TUint)this, aFreePageThresholdKb, __SQLPRNSTR(aDbFileName), __SQLPRNSTR(aDbName)));	
 	TSqlCompactSettings settings;
 	settings.iFreePageThresholdKb = aFreePageThresholdKb;
 	::SqlServer().Compactor().AddEntryL(aDbFileName, settings);
@@ -1349,7 +1399,7 @@ void CSqlSrvDatabase::NewCompactEntryL(TInt aFreePageThresholdKb, const TDesC& a
 	HBufC* data = aDbFileName.Alloc();
 	if(key && data)
 		{
-	    __SQLASSERT(!iCompactDbMap.Entry(key), ESqlPanicObjExists);
+	    __ASSERT_DEBUG(!iCompactDbMap.Entry(key), __SQLPANIC(ESqlPanicObjExists));
 		err = iCompactDbMap.Insert(key, data);//returns the index of the new entry
 		}
 	if(err < 0) //If either "key" or "data" or both is NULL, then "err" is KErrNoMemory and the next "if" will be executed.
@@ -1358,6 +1408,7 @@ void CSqlSrvDatabase::NewCompactEntryL(TInt aFreePageThresholdKb, const TDesC& a
 		delete key;
 		::SqlServer().Compactor().ReleaseEntry(aDbFileName);
 		}
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVDATABASE_NEWCOMPACTENTRYL_EXIT, "Exit;0x%X;CSqlSrvDatabase::NewCompactEntryL;err=%d", (TUint)this, err));	
 	__SQLLEAVE_IF_ERROR(err);
 	}
 
@@ -1379,6 +1430,7 @@ void CSqlSrvDatabase::ReleaseCompactEntry(const TDesC& aDbName)
 			{
 			::SqlServer().Compactor().ReleaseEntry(*compactDbPair.iData);
 			iCompactDbMap.Remove(compactDbPair.iKey);
+			SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSRVDATABASE_RELEASECOMPACTENTRY, "0x%X;CSqlSrvDatabase::ReleaseCompactEntry", (TUint)this));	
 			break;
 			}
 		}
@@ -1398,7 +1450,7 @@ The database will be removed from the compactor as a result of the call.
 void CSqlSrvDatabase::CompactCleanup(void* aCleanup)
 	{
 	CSqlSrvDatabase* self = reinterpret_cast <CSqlSrvDatabase*> (aCleanup);
-	__SQLASSERT(self != NULL, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(self != NULL, __SQLPANIC2(ESqlPanicBadArgument));
     self->ReleaseCompactEntry(KMainDb16);
 	}
 
@@ -1426,7 +1478,7 @@ TInt CSqlSrvDatabase::PageSizeL(const TDesC& aDbName)
 	TInt pageSize = 0;
 	__SQLLEAVE_IF_ERROR(::DbPageSize(iDbHandle, aDbName, pageSize));
 	CleanupStack::PopAndDestroy();
-	__SQLASSERT(pageSize > 0, ESqlPanicInternalError);
+	__ASSERT_DEBUG(pageSize > 0, __SQLPANIC(ESqlPanicInternalError));
 	if(aDbName == KNullDesC)
 		{
 		iPageSize = pageSize;	
@@ -1454,13 +1506,13 @@ If the function fails, the database file will be closed and deleted.
 */
 void CSqlSrvDatabase::ConstructCreateSecureL(const TSqlSrvFileData& aFileData, CSqlSecurityPolicy* aSecurityPolicy)
 	{
-	__SQLASSERT(aSecurityPolicy != NULL, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aSecurityPolicy != NULL, __SQLPANIC(ESqlPanicBadArgument));
 	//Insert a new item in the security policies map.
 	CleanupStack::PushL(aSecurityPolicy);
 	const TUint8* mapKey = SecurityMapKeyL(aFileData.FileName());
 	mapKey = ::CreateStrCopyLC(mapKey);
-    __SQLASSERT(!::SqlServer().SecurityMap().Entry(mapKey), ESqlPanicObjExists);
-	__SQLLEAVE_IF_ERROR(::SqlServer().SecurityMap().Insert(mapKey, aSecurityPolicy));
+	__ASSERT_DEBUG(!::SqlServer().SecurityMap().Entry(mapKey), __SQLPANIC(ESqlPanicObjExists));
+ 	__SQLLEAVE_IF_ERROR(::SqlServer().SecurityMap().Insert(mapKey, aSecurityPolicy));
 	CleanupStack::Pop(2);//iSecurityMap owns mapKey and aSecurityPolicy.
 	iSecureDbName = mapKey;
 	iSecurityPolicy = aSecurityPolicy;
@@ -1497,8 +1549,8 @@ void CSqlSrvDatabase::ConstructCreateL(const TSqlSrvFileData& aFileData)
 //If the method fails and the error is not KErrAlreadyExists, the database file will be closed and deleted.
 void CSqlSrvDatabase::DoCommonConstructCreateL(const TSqlSrvFileData& aFileData, TBool aSecureDb)
 	{
-	__SQLASSERT(!iDbHandle, ESqlPanicInternalError);
-	__SQLASSERT(aSecureDb ? iSecurityPolicy != NULL : ETrue, ESqlPanicInternalError);
+	__ASSERT_DEBUG(!iDbHandle, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aSecureDb ? iSecurityPolicy != NULL : ETrue, __SQLPANIC(ESqlPanicInternalError));
 	CreateNewDbFileL(aFileData);
 	TDbFileCleanup dbFileCleanup(aFileData, iDbHandle);
 	CleanupStack::PushL(TCleanupItem(&DbFileCleanup, &dbFileCleanup));

@@ -53,13 +53,13 @@ sqltests.bat                                z:/test/sqltests.bat
 ../TEST/t_SqlShortNonDb.db                  z:/test/t_sqlshortnondb.db
 ../TEST/contacts_startup_time.sql           z:/test/contacts_startup_time.sql
 ../TEST/t_inc095412.db                      z:/test/t_inc095412.db
-../TEST/default_avacon.dbSQL                z:/test/default_avacon.dbSQL
+../TEST/default_avacon.dbSQL                z:/test/default_avacon.dbsql
 ../TEST/t_sqlbur_backup_ver0.bak            z:/test/t_sqlbur_backup_ver0.bak
 ../TEST/t_sqlperformance4.sql               z:/test/t_sqlperformance4.sql
 ../TEST/{21212122}AADb2.db                  z:/private/10281e17/[21212122]aadb2.db
 ../TEST/{21212122}BBDb2.db                  z:/private/10281e17/[21212122]bbdb2.db
-../TEST/{21212125}T_AB.db                   z:/private/10281e17/[21212125]t_ab.db
-../TEST/{1111CCCC}T_AB.db                   z:/private/10281e17/[1111CCCC]t_ab.db
+../TEST/{21212125}t_ab.db                   z:/private/10281e17/[21212125]t_ab.db
+../TEST/{1111CCCC}t_ab.db                   z:/private/10281e17/[1111cccc]t_ab.db
 ../TEST/{21212125}T_OneDefPolicy.db         z:/private/10281e17/[21212125]t_onedefpolicy.db
 //../TEST/SqlServer.cfg                     z:/private/10281e17/sqlserver.cfg
 ../TEST/t_sqldb1.db                         z:/private/21212124/t_sqldb1.db

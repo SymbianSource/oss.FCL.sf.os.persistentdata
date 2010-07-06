@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,6 +15,7 @@
 
 #include "SqlUtil.h"
 #include "SqlBufFlat.h"
+#include "OstTraceDefinitions.h"
 
 /**
 Sets the flat buffer pointer to NULL
@@ -45,7 +46,7 @@ All elements set to have:
 */
 TInt RSqlBufFlat::SetCount(TInt aCount)
 	{
-	__SQLASSERT(aCount >= 0, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aCount >= 0, __SQLPANIC(ESqlPanicBadArgument));
 	TInt headerSize = sizeof(RSqlBufFlat::TCell) * aCount;
 	TInt newSize = headerSize + sizeof(RSqlBufFlat::TBufFlat);
 	if(DoReAlloc(newSize) != KErrNone)
@@ -110,7 +111,7 @@ void RSqlBufFlat::ResetAndMinimize()
 		iMaxSize = KBufLimit - 1;  //to force the reallocation
 		(void)DoReAlloc(KBufLimit);//User::ReAlloc() does not fail if the new requested size is less than the current block size
 		}
-	__SQLASSERT(oldBuf == iBuf, ESqlPanicInternalError);
+	__ASSERT_DEBUG(oldBuf == iBuf, __SQLPANIC(ESqlPanicInternalError));
 	SQLFLATBUF_INVARIANT();
 	}
 
@@ -156,12 +157,12 @@ Sets the content of a field.
 TInt RSqlBufFlat::SetField(TInt aIndex, TInt aType, const void* aData, TInt aDataLength)
 	{
 	SQLFLATBUF_INVARIANT();
-	__SQLASSERT((TUint)aIndex < iBuf->iCount, ESqlPanicBadArgument);
-	__SQLASSERT((TUint)aType < RSqlBufFlat::EMaxType, ESqlPanicBadArgument);
-	__SQLASSERT((TUint)aDataLength < RSqlBufFlat::EMaxLength, ESqlPanicBadArgument);
+	__ASSERT_DEBUG((TUint)aIndex < iBuf->iCount, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG((TUint)aType < RSqlBufFlat::EMaxType, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG((TUint)aDataLength < RSqlBufFlat::EMaxLength, __SQLPANIC(ESqlPanicBadArgument));
 	if(aData)						//field value "present"
 		{
-		__SQLASSERT(aDataLength >= 0, ESqlPanicBadArgument);
+		__ASSERT_DEBUG(aDataLength >= 0, __SQLPANIC(ESqlPanicBadArgument));
 		if(aDataLength > 0)
 			{
 			if(Reserve(aDataLength) != KErrNone)
@@ -195,9 +196,9 @@ All field set:
 void RSqlBufFlat::DoInit()
 	{
 	TBufFlat& buf = *iBuf;
-	__SQLASSERT(buf.iCount >= 0, ESqlPanicInternalError);
-	__SQLASSERT(buf.iSize <= iMaxSize, ESqlPanicInternalError);
-	__SQLASSERT(buf.iHeaderSize == sizeof(RSqlBufFlat::TCell) * buf.iCount, ESqlPanicInternalError);
+	__ASSERT_DEBUG(buf.iCount >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(buf.iSize <= iMaxSize, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(buf.iHeaderSize == sizeof(RSqlBufFlat::TCell) * buf.iCount, __SQLPANIC(ESqlPanicInternalError));
 	if(buf.iHeaderSize > 0)
 		{
 		Mem::FillZ(Header(), buf.iHeaderSize);
@@ -244,10 +245,10 @@ A memory for the field data has to be allocated before the call.
 void RSqlBufFlat::DoSet(TInt aIndex, TInt aType, const void* aData, TInt aDataLength)
 	{
 	TBufFlat& buf = *iBuf;
-	__SQLASSERT((TUint)aDataLength < RSqlBufFlat::EMaxLength, ESqlPanicBadArgument);
-	__SQLASSERT(aDataLength > 0 ? aData != NULL : ETrue, ESqlPanicBadArgument);
-	__SQLASSERT(aDataLength <= (iMaxSize - buf.iSize), ESqlPanicInternalError);
-	__SQLASSERT(::IsAligned8(buf.iSize), ESqlPanicInternalError);
+	__ASSERT_DEBUG((TUint)aDataLength < RSqlBufFlat::EMaxLength, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aDataLength > 0 ? aData != NULL : ETrue, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aDataLength <= (iMaxSize - buf.iSize), __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(::IsAligned8(buf.iSize), __SQLPANIC(ESqlPanicInternalError));
 	RSqlBufFlat::TCell& cell = *(Header() + aIndex);
 	cell.iBits = (TUint)(((TUint)aType << RSqlBufFlat::EWidthLen) | (TUint)aDataLength);
 	cell.iPos = 1;	//not 0, because 0 means "not present"
@@ -291,24 +292,24 @@ Panics in _DEBUG mode if the flat buffer content is inconsistent.
 */
 void RSqlBufFlat::Invariant() const
 	{
-	__SQLASSERT(iBuf != NULL, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInternalError));
 	const TBufFlat& buf = *iBuf;
-	__SQLASSERT(buf.iCount >= 0, ESqlPanicInternalError);
-	__SQLASSERT(buf.iHeaderSize == sizeof(RSqlBufFlat::TCell) * buf.iCount, ESqlPanicInternalError);
-	__SQLASSERT(::IsAligned8(buf.iSize), ESqlPanicInternalError);
-	__SQLASSERT(buf.iSize >= buf.iHeaderSize + sizeof(RSqlBufFlat::TBufFlat), ESqlPanicInternalError);
-	__SQLASSERT(buf.iSize <= iMaxSize, ESqlPanicInternalError);
- 	__SQLASSERT(buf.iSize <= User::AllocLen(iBuf), ESqlPanicInternalError);	
+	__ASSERT_DEBUG(buf.iCount >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(buf.iHeaderSize == sizeof(RSqlBufFlat::TCell) * buf.iCount, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(::IsAligned8(buf.iSize), __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(buf.iSize >= buf.iHeaderSize + sizeof(RSqlBufFlat::TBufFlat), __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(buf.iSize <= iMaxSize, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(buf.iSize <= User::AllocLen(iBuf), __SQLPANIC(ESqlPanicInternalError));	
 	for(TInt i=0;i<(TInt)buf.iCount;++i)
 		{
 		const RSqlBufFlat::TCell& cell = *((reinterpret_cast <const RSqlBufFlat::TCell*> (iBuf + 1)) + i);
-		__SQLASSERT(cell.Type() < RSqlBufFlat::EMaxType, ESqlPanicInternalError);
+		__ASSERT_DEBUG(cell.Type() < RSqlBufFlat::EMaxType, __SQLPANIC(ESqlPanicInternalError));
 		if(cell.Size() > 0 && cell.iPos >= buf.iHeaderSize) //only for present fields with length > 0
 			{
-			__SQLASSERT((TUint)cell.Size() <= buf.iSize, ESqlPanicInternalError);
-			__SQLASSERT(cell.iPos < (buf.iSize - sizeof(RSqlBufFlat::TBufFlat)), ESqlPanicInternalError);
+			__ASSERT_DEBUG((TUint)cell.Size() <= buf.iSize, __SQLPANIC(ESqlPanicInternalError));
+			__ASSERT_DEBUG(cell.iPos < (buf.iSize - sizeof(RSqlBufFlat::TBufFlat)), __SQLPANIC(ESqlPanicInternalError));
 			TUint64 val = *(TUint64*)(reinterpret_cast <TUint8*> (iBuf) + cell.iPos + sizeof(RSqlBufFlat::TBufFlat) - sizeof(KSqlBufFlatMagicValue));
-			__SQLASSERT(val == KSqlBufFlatMagicValue, ESqlPanicInternalError);
+			__ASSERT_DEBUG(val == KSqlBufFlatMagicValue, __SQLPANIC(ESqlPanicInternalError));
 			}
 		}
 	}

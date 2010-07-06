@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -16,6 +16,11 @@
 #include <f32file64.h>
 #include "SqlSrvConfig.h"
 #include "SqlSrvUtil.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlSrvConfigTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
 /**
 Initializes TSqlSrvConfigParams data members with their default values.
@@ -46,11 +51,15 @@ except:
 */
 void TSqlSrvConfig::InitL(RFs& aFs, const TDesC& aFileName)
 	{
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, TSQLSRVCONFIGFILE_INITL_ENTRY, "Entry;0;TSqlSrvConfig::InitL;aFs.Handle()=0x%X;aFileName=%S", (TUint)aFs.Handle(), __SQLPRNSTR(aFileName)));
 	if(::FileExists(aFs, aFileName))
 		{
+        SQL_TRACE_INTERNALS(OstTrace0(TRACE_INTERNALS, TSQLSRVCONFIGFILE_INITL1, "0;TSqlSrvConfig::InitL;Config file found"));
 		TBuf8<KSqlSrvMaxConfigStrLen> configFileStr;
 		//Step 1: get the config string from the config file and store the string in configFileStr
 		TSqlSrvConfig::GetConfigStringFromFileL(aFs, aFileName, configFileStr);
+		__SQLTRACE_INTERNALSVAR(TBuf<100> des16prnbuf);
+        SQL_TRACE_INTERNALS(OstTraceExt1(TRACE_INTERNALS, TSQLSRVCONFIGFILE_INITL2, "0;TSqlSrvConfig::InitL;Config file string=%s", __SQLPRNSTR8(configFileStr, des16prnbuf)));
 		//Step 2: extract config file parameters from the string (configFileStr)  and store them in iConfigFileParams
 		TSqlSrvConfig::ExtractConfigParamsFromStringL(configFileStr, iConfigFileParams);
 		}
@@ -64,6 +73,13 @@ void TSqlSrvConfig::InitL(RFs& aFs, const TDesC& aFileName)
 		{
 		iConfigFileParams.iFreePageThresholdKb = KSqlCompactFreePageThresholdKb;
 		}
+
+#ifdef _SQL_RDEBUG_PRINT
+    SQL_TRACE_INTERNALS(OstTraceExt4(TRACE_INTERNALS, TSQLSRVCONFIGFILE_INITL_EXIT1, "Exit;0;TSqlSrvConfig::InitL;iCacheSize=%d;iPageSize=%d;iDbEncoding=%d;iSoftHeapLimit=%d", iConfigFileParams.iCacheSize, iConfigFileParams.iPageSize, iConfigFileParams.iDbEncoding, iConfigFileParams.iSoftHeapLimitKb));
+#else	
+    SQL_TRACE_INTERNALS(OstTraceExt4(TRACE_INTERNALS, TSQLSRVCONFIGFILE_INITL_EXIT2, "Exit;0;TSqlSrvConfig::InitL;iCacheSize=%d;iPageSize=%d;iDbEncoding=%{TSqlSrvConfig_TDbEncoding};iSoftHeapLimit=%d", iConfigFileParams.iCacheSize, iConfigFileParams.iPageSize, iConfigFileParams.iDbEncoding, iConfigFileParams.iSoftHeapLimitKb));
+#endif    
+    SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, TSQLSRVCONFIGFILE_INITL_EXIT3, "Exit;0;TSqlSrvConfig::InitL;iCompactionMode=%d;iFreePageThresholdKb=%d", iConfigFileParams.iCompactionMode, iConfigFileParams.iFreePageThresholdKb));
 	}
 
 /**
@@ -82,6 +98,8 @@ The rules for TSqlSrvConfigParams data members initialization are described in T
 */
 void TSqlSrvConfig::GetConfigParamsL(const TDesC8& aConfigStr, TSqlSrvConfigParams& aConfigParams) const
 	{
+	__SQLTRACE_INTERNALSVAR(TBuf<100> des16prnbuf);
+    SQL_TRACE_INTERNALS(OstTraceExt1(TRACE_INTERNALS, TSQLSRVCONFIGFILE_GETCONFIGPARAMSL_ENTRY, "Entry;0;TSqlSrvConfig::GetConfigParamsL;aConfigStr=%s", __SQLPRNSTR8(aConfigStr, des16prnbuf)));
 	TSqlSrvConfigParams tmpConfigParams;
 	//Step 1: extract configuration parameters from aConfigStr, store them in tmpConfigParams.
 	TSqlSrvConfig::ExtractConfigParamsFromStringL(aConfigStr, tmpConfigParams);
@@ -111,18 +129,24 @@ void TSqlSrvConfig::GetConfigParamsL(const TDesC8& aConfigStr, TSqlSrvConfigPara
 	//Step 5: set the free page threshold.
 	aConfigParams.iFreePageThresholdKb = iConfigFileParams.iFreePageThresholdKb;
 	//Step 6: assert the parameter values.
-	__SQLASSERT(aConfigParams.iPageSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iPageSize >= 0, ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iCacheSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iCacheSize >= 0, ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncNotSet || 
+	__ASSERT_DEBUG(aConfigParams.iPageSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iPageSize >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iCacheSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iCacheSize >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncNotSet || 
 				aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncUtf8 || 
-				aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncUtf16, ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iSoftHeapLimitKb == TSqlSrvConfigParams::KConfigPrmValueNotSet || 
+				aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncUtf16, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iSoftHeapLimitKb == TSqlSrvConfigParams::KConfigPrmValueNotSet || 
 	            (aConfigParams.iSoftHeapLimitKb >= TSqlSrvConfigParams::KMinSoftHeapLimitKb &&
-	             aConfigParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb), ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iCompactionMode == ESqlCompactionNotSet || aConfigParams.iCompactionMode == ESqlCompactionManual || 
-				aConfigParams.iCompactionMode == ESqlCompactionBackground || aConfigParams.iCompactionMode == ESqlCompactionAuto, ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iFreePageThresholdKb == TSqlSrvConfigParams::KConfigPrmValueNotSet || 
-				aConfigParams.iFreePageThresholdKb >= 0, ESqlPanicInternalError);
+	             aConfigParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb), __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iCompactionMode == ESqlCompactionNotSet || aConfigParams.iCompactionMode == ESqlCompactionManual || 
+				aConfigParams.iCompactionMode == ESqlCompactionBackground || aConfigParams.iCompactionMode == ESqlCompactionAuto, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iFreePageThresholdKb == TSqlSrvConfigParams::KConfigPrmValueNotSet || 
+				aConfigParams.iFreePageThresholdKb >= 0, __SQLPANIC(ESqlPanicInternalError));
+#ifdef _SQL_RDEBUG_PRINT
+    SQL_TRACE_INTERNALS(OstTraceExt4(TRACE_INTERNALS, TSQLSRVCONFIGFILE_GETCONFIGPARAMSL_EXIT1, "Exit;0;TSqlSrvConfig::GetConfigParamsL;cacheSize=%d;pageSize=%d;dbEncoding=%d;softHeapLimit=%d", aConfigParams.iCacheSize, aConfigParams.iPageSize, aConfigParams.iDbEncoding, aConfigParams.iSoftHeapLimitKb));
+#else   
+    SQL_TRACE_INTERNALS(OstTraceExt4(TRACE_INTERNALS, TSQLSRVCONFIGFILE_GETCONFIGPARAMSL_EXIT2, "Exit;0;TSqlSrvConfig::GetConfigParamsL;cacheSize=%d;pageSize=%d;dbEncoding=%{TSqlSrvConfig_TDbEncoding};softHeapLimit=%d", aConfigParams.iCacheSize, aConfigParams.iPageSize, aConfigParams.iDbEncoding, aConfigParams.iSoftHeapLimitKb));
+#endif    
+    SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, TSQLSRVCONFIGFILE_GETCONFIGPARAMSL_EXIT3, "Exit;0;TSqlSrvConfig::GetConfigParamsL;compactionMode=%d;freePageThresholdKb=%d", aConfigParams.iCompactionMode, aConfigParams.iFreePageThresholdKb));
 	}
 
 //The function opeans the aFileName config file and reads the config string, storring it in aConfigStr argument.
@@ -133,10 +157,10 @@ void TSqlSrvConfig::GetConfigParamsL(const TDesC8& aConfigStr, TSqlSrvConfigPara
 //The function may leave if some of the file I/O operations (open file, read file) fails.
 void TSqlSrvConfig::GetConfigStringFromFileL(RFs& aFs, const TDesC& aFileName, TDes8& aConfigStr)
 	{
-	__SQLASSERT(aConfigStr.MaxLength() >= KSqlSrvMaxConfigStrLen, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aConfigStr.MaxLength() >= KSqlSrvMaxConfigStrLen, __SQLPANIC2(ESqlPanicBadArgument));
 	RFile64 cfgFile;
 	CleanupClosePushL(cfgFile);
-	__SQLLEAVE_IF_ERROR(cfgFile.Open(aFs, aFileName, EFileRead));
+	__SQLLEAVE_IF_ERROR2(cfgFile.Open(aFs, aFileName, EFileRead));
 	TFileText cfgFileReader;
 	cfgFileReader.Set(cfgFile);
 	TBuf<KSqlSrvMaxConfigStrLen> buf;
@@ -156,13 +180,13 @@ void TSqlSrvConfig::GetConfigStringFromFileL(RFs& aFs, const TDesC& aFileName, T
 	CleanupStack::PopAndDestroy(&cfgFile);
 	if(err != KErrEof)
 		{//The "read configuration file" operation has failed with "err" (if err != KErrNone)
-		__SQLLEAVE_IF_ERROR(err);	
+		__SQLLEAVE_IF_ERROR2(err);	
 		}
 	if(!cfgLineFound)
 		{//End of config file reached - no valid configuration line found.
-		__SQLLEAVE(KErrEof);	
+		__SQLLEAVE2(KErrEof);	
 		}
-	__SQLASSERT(err == KErrNone || err == KErrEof, ESqlPanicInternalError);
+	__ASSERT_DEBUG(err == KErrNone || err == KErrEof, __SQLPANIC2(ESqlPanicInternalError));
 	aConfigStr.Copy(buf);
 	}
 
@@ -184,18 +208,18 @@ void TSqlSrvConfig::ExtractConfigParamsFromStringL(const TDesC8& aConfigStr, TSq
 			}
 		}
 	//Assert the extracted parameter values.
-	__SQLASSERT(aConfigParams.iPageSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iPageSize >= 0, ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iCacheSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iCacheSize >= 0, ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncNotSet || 
+	__ASSERT_DEBUG(aConfigParams.iPageSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iPageSize >= 0, __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iCacheSize == TSqlSrvConfigParams::KConfigPrmValueNotSet || aConfigParams.iCacheSize >= 0, __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncNotSet || 
 				aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncUtf8 || 
-				aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncUtf16, ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iSoftHeapLimitKb == TSqlSrvConfigParams::KConfigPrmValueNotSet || 
+				aConfigParams.iDbEncoding == TSqlSrvConfigParams::EEncUtf16, __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iSoftHeapLimitKb == TSqlSrvConfigParams::KConfigPrmValueNotSet || 
 	            (aConfigParams.iSoftHeapLimitKb >= TSqlSrvConfigParams::KMinSoftHeapLimitKb &&
-	             aConfigParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb), ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iCompactionMode == ESqlCompactionNotSet || aConfigParams.iCompactionMode == ESqlCompactionManual || 
-				aConfigParams.iCompactionMode == ESqlCompactionBackground || aConfigParams.iCompactionMode == ESqlCompactionAuto, ESqlPanicInternalError);
-	__SQLASSERT(aConfigParams.iFreePageThresholdKb == TSqlSrvConfigParams::KConfigPrmValueNotSet || 
-			    aConfigParams.iFreePageThresholdKb >= 0, ESqlPanicInternalError);
+	             aConfigParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb), __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iCompactionMode == ESqlCompactionNotSet || aConfigParams.iCompactionMode == ESqlCompactionManual || 
+				aConfigParams.iCompactionMode == ESqlCompactionBackground || aConfigParams.iCompactionMode == ESqlCompactionAuto, __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aConfigParams.iFreePageThresholdKb == TSqlSrvConfigParams::KConfigPrmValueNotSet || 
+			    aConfigParams.iFreePageThresholdKb >= 0, __SQLPANIC2(ESqlPanicInternalError));
 	}
 
 //The function searches aConfigStr arguments for "PARAM=VALUE;" pair. If such pair is found, then 
@@ -237,7 +261,7 @@ TBool TSqlSrvConfig::ExtractParamValuePairL(TPtrC8& aConfigStr, TPtrC8& aParamNa
 	pos = prmText.Locate(KAssignment);
 	if(pos < 0 || pos >= (prmText.Length() - 1))
 		{
-		__SQLLEAVE(KErrArgument);
+		__SQLLEAVE2(KErrArgument);
 		}
 	//we've got now prmText pointing to a " PARAM = VALUE " string.
 	aParamName.Set(TSqlSrvConfig::TrimAndConstructPtr(prmText.Ptr(), pos));
@@ -289,7 +313,7 @@ TInt TSqlSrvConfig::GetCacheSizeL(const TDesC8& aParamValue)
 	TInt err = lex.Val(cacheSize);
 	if(err != KErrNone || cacheSize < 0) 	//The correct check is for "<=0", but it has to be backward 
 		{									//compatible with the previous implementation
-		__SQLLEAVE(KErrArgument);
+		__SQLLEAVE2(KErrArgument);
 		}
 	return cacheSize;
 	}
@@ -303,7 +327,7 @@ TInt TSqlSrvConfig::GetPageSizeL(const TDesC8& aParamValue)
 	TInt err = lex.Val(pageSize);
 	if(err != KErrNone || pageSize < 0) 	//The correct check is for "<0", "power of 2", "between 512 and 32768",
 		{									//but it has to be backward compatible with the previous implementation
-		__SQLLEAVE(KErrArgument);
+		__SQLLEAVE2(KErrArgument);
 		}
 	return pageSize;
 	}
@@ -336,7 +360,7 @@ TInt TSqlSrvConfig::GetSoftHeapLimitL(const TDesC8& aParamValue)
 	if(err != KErrNone || softHeapLimitKb < 0 || 
 	   (softHeapLimitKb < TSqlSrvConfigParams::KMinSoftHeapLimitKb || softHeapLimitKb > TSqlSrvConfigParams::KMaxSoftHeapLimitKb))
 		{					
-		__SQLLEAVE(KErrArgument);
+		__SQLLEAVE2(KErrArgument);
 		}
 	return softHeapLimitKb;
 	}
@@ -372,7 +396,7 @@ TInt TSqlSrvConfig::GetFreePageThresholdL(const TDesC8& aParamValue)
 	TInt err = lex.Val(freePageThreshold);
 	if(err != KErrNone || freePageThreshold < 0)
 		{					
-		__SQLLEAVE(KErrArgument);
+		__SQLLEAVE2(KErrArgument);
 		}
 	return freePageThreshold;
 	}
@@ -383,8 +407,8 @@ TInt TSqlSrvConfig::GetFreePageThresholdL(const TDesC8& aParamValue)
 //aStr content without leading and trailing whitespace characters.
 TPtrC8 TSqlSrvConfig::TrimAndConstructPtr(const TUint8* aStr, TInt aLength)
 	{
-	__SQLASSERT(aStr != NULL, ESqlPanicBadArgument);
-	__SQLASSERT(aLength >= 0, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aStr != NULL, __SQLPANIC2(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aLength >= 0, __SQLPANIC2(ESqlPanicBadArgument));
 	//Trim left
 	for(;aLength>0;--aLength,++aStr)
 		{

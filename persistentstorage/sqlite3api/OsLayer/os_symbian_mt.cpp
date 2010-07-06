@@ -36,7 +36,16 @@ extern "C"
 	}
 #include <e32math.h>
 #include "os_symbian.h"
-#include "UTraceSqlite.h"
+#include "SqliteUtil.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "os_symbian_mtTraces.h"
+#endif
+#include "SqliteTraceDef.h"
+
+//Bit-mask constant. If xOpen()'s "aFlag" parameter contains one of these bits set, then the the file top be
+//opened or created is a journal file.
+const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEMP_JOURNAL | SQLITE_OPEN_SUBJOURNAL | SQLITE_OPEN_MASTER_JOURNAL; 
 
 #ifdef SQLITE_TEST
 
@@ -96,7 +105,7 @@ static TInt Os2SqliteErr(TInt aOsErr, TInt aDefaultErr)
 			return SQLITE_FULL;
 		default:
 #ifdef _DEBUG		
-			RDebug::Print(_L("SQLite3 C API, Os2SqliteErr(), err=%d\n"), aOsErr);
+			SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, OS2SQLITEERR, "OS;0;Os2SqliteErr;aOsErr=%d", aOsErr));
 #endif			
 			break;
 		}
@@ -125,6 +134,7 @@ TInt TStaticFs::Connect()
 		{
 		iFs.Close();	
 		}
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TSTATICFS_CONNECT, "OS;0;TStaticFs::Connect;iFs.Handle()=0x%X;err=%d", iFs.Handle(), err));
 	return err;
 	}
 
@@ -139,6 +149,7 @@ sqlite3_mutex::sqlite3_mutex() :
 	iRefCount(0),
 	iOwnerThreadId(KMaxTUint64)
 	{
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, SQLITE3_MUTEX_SQLITE3_MUTEX, "OS;0x%X;sqlite3_mutex::sqlite3_mutex", (TUint)this));
 	}
 
 /**
@@ -146,6 +157,7 @@ Closes the mutex handle.
 */
 sqlite3_mutex::~sqlite3_mutex()
 	{
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, SQLITE3_MUTEX_SQLITE3_MUTEX2, "OS;0x%X;sqlite3_mutex::~sqlite3_mutex", (TUint)this));
 	iMutex.Close();
 	}
 
@@ -159,7 +171,7 @@ The method can be called by the mutex owning thread more than once, even if the 
 */
 void sqlite3_mutex::Enter()
 	{
-    __ASSERT_DEBUG(iRefCount >= 0, User::Panic(KPanicCategory, EPanicMutexLockCounter));
+    __ASSERT_DEBUG(iRefCount >= 0, __SQLITEPANIC(ESqliteOsPanicMutexLockCounter));
 	iMutex.Wait();
 	RThread currThread;
 	iOwnerThreadId = currThread.Id();
@@ -177,10 +189,10 @@ will be able to lock the mutex and get an exclusive access to the guarded resour
 */
 void sqlite3_mutex::Leave()
 	{
-	__ASSERT_DEBUG(iRefCount > 0, User::Panic(KPanicCategory, EPanicMutexLockCounter));
+	__ASSERT_DEBUG(iRefCount > 0, __SQLITEPANIC(ESqliteOsPanicMutexLockCounter));
 #ifdef _DEBUG
 	RThread currThread;	
-	__ASSERT_DEBUG(iOwnerThreadId == currThread.Id(), User::Panic(KPanicCategory, EPanicMutexOwner));
+	__ASSERT_DEBUG(iOwnerThreadId == currThread.Id(), __SQLITEPANIC(ESqliteOsPanicMutexOwner));
 #endif
 	--iRefCount;
 	iMutex.Signal();
@@ -205,7 +217,9 @@ Creates the mutex.
 */
 TInt sqlite3_mutex::Create()
 	{
-	return iMutex.CreateLocal();
+	TInt err = iMutex.CreateLocal();
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, SQLITE3_MUTEX_CREATE, "OS;0x%X;sqlite3_mutex::Create;err=%d", (TUint)this, err));
+	return err;
 	}
 
 /**
@@ -224,6 +238,7 @@ CRecursiveMutex* CRecursiveMutex::New()
 			self = NULL;
 			}
 		}
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, CRECURSIVEMUTEX_NEWL, "OS;0x%X;CRecursiveMutex::New", (TUint)self));
 	return self;
 	}
 
@@ -243,7 +258,6 @@ No-op function.
 */
 int TMutexApi::Init()
 	{
-	SQLUTRACE_PROFILER(0);
 	return SQLITE_OK;
 	}
 	
@@ -255,7 +269,6 @@ No-op function.
 */
 int TMutexApi::End()
 	{
-	SQLUTRACE_PROFILER(0);
 	return SQLITE_OK;
 	}
 	
@@ -268,7 +281,6 @@ If the request is for a static mutex, a pointer to already created static mutex 
 */
 sqlite3_mutex* TMutexApi::Alloc(int aType)
 	{
-	SQLUTRACE_PROFILER(0);
 	sqlite3_mutex* mutex = NULL;
 	switch(aType)
 		{
@@ -281,6 +293,7 @@ sqlite3_mutex* TMutexApi::Alloc(int aType)
 			//value is 2 (SQLITE_MUTEX_FAST is 0, SQLITE_MUTEX_RECURSIVE is 1). 
 			break;	
 		}
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TMUTEXAPI_ALLOC, "OS;0;TMutexApi::Alloc;aType=%d;mutex=0x%X", aType, (TUint)mutex));
 	return mutex;
 	}
 	
@@ -290,7 +303,7 @@ Destroys a mutex, created previously by a call to TMutexApi::Alloc().
 */
 void TMutexApi::Free(sqlite3_mutex* aMutex)
 	{
-	SQLUTRACE_PROFILER(0);
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, TMUTEXAPI_FREE, "OS;0;TMutexApi::Free;mutex=0x%X", (TUint)aMutex));
 	delete aMutex;
 	}
 	
@@ -304,7 +317,6 @@ See sqlite3_mutex::Enter() for more details.
 */
 void TMutexApi::Enter(sqlite3_mutex* aMutex)
 	{
-	SQLUTRACE_PROFILER(0);
 	aMutex->Enter();
 	}
 	
@@ -315,7 +327,6 @@ No-op. Always returns SQLITE_BUSY.
 */
 int TMutexApi::Try(sqlite3_mutex*)
 	{
-	SQLUTRACE_PROFILER(0);
 	return SQLITE_BUSY;
 	}
 	
@@ -329,7 +340,6 @@ See sqlite3_mutex::Leave() for more details.
 */
 void TMutexApi::Leave(sqlite3_mutex* aMutex)
 	{
-	SQLUTRACE_PROFILER(0);
 	aMutex->Leave();
 	}
 	
@@ -345,7 +355,6 @@ See sqlite3_mutex::IsHeld() for more details.
 */
 int TMutexApi::Held(sqlite3_mutex* aMutex)
 	{
-	SQLUTRACE_PROFILER(0);
 	return aMutex->IsHeld();
 	}
 	
@@ -361,7 +370,6 @@ See sqlite3_mutex::IsHeld() for more details.
 */
 int TMutexApi::Notheld(sqlite3_mutex* aMutex)
 	{
-	SQLUTRACE_PROFILER(0);
 	return !aMutex->IsHeld();
 	}
 
@@ -374,7 +382,9 @@ Initializes the OS porting layer global data.
 */
 extern "C" SQLITE_EXPORT int sqlite3_os_init(void)
 	{
-	return sqlite3_vfs_register(VfsApi(), 1);
+	TInt err = sqlite3_vfs_register(VfsApi(), 1);
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, SQLITE3_OS_INIT, "OS;0;sqlite3_os_init;err=%d", err));
+	return err;
 	}
 
 /**
@@ -382,7 +392,9 @@ Destroys the OS porting layer global data.
 */
 extern "C" SQLITE_EXPORT int sqlite3_os_end(void)
 	{
-	return sqlite3_vfs_unregister(VfsApi());
+	TInt err = sqlite3_vfs_unregister(VfsApi());
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, SQLITE3_OS_END, "OS;0;sqlite3_os_end;err=%d", err));
+	return err;
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -521,6 +533,7 @@ inline TDbFile::TDbFile() :
 	iDeviceCharacteristics(-1)
 	{
 	pMethods = 0;
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, TDBFILE_TDBFILE, "OS;0x%X;TDbFile::TDbFile", (TUint)this));
 	}
 
 /**
@@ -541,7 +554,7 @@ So the cast is safe.
 */
 static inline TDbFile& DbFile(sqlite3_file* aDbFile)
 	{
-	__ASSERT_DEBUG(aDbFile != 0, User::Panic(KPanicCategory, EPanicNullDbFilePtr));
+	__ASSERT_DEBUG(aDbFile != 0, __SQLITEPANIC2(ESqliteOsPanicNullDbFilePtr));
 	return *(static_cast <TDbFile*> (aDbFile));
 	}
 
@@ -563,13 +576,14 @@ If aDbFile.iFullName data member is not NULL, then the file will be deleted.
 */
 /* static */ int TFileIo::Close(sqlite3_file* aDbFile)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, TFILEIO_CLOSE1, "OS;0x%X;TFileIo::Close", (TUint)&dbFile));
 	dbFile.iFileBuf.Close();	
 	if(dbFile.iFullName)
         {//"iFullName" will not be NULL only when TVfs::Open() is called with SQLITE_OPEN_DELETEONCLOSE flag.
          //That means - SQlite expects the file to be deleted after the file close operation. 
-		(void)TStaticFs::Fs().Delete(*dbFile.iFullName);
+		__SQLITETRACE_OSEXPR(TInt err = ) TStaticFs::Fs().Delete(*dbFile.iFullName);
+		SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_CLOSE2, "OS;0x%X;TFileIo::Close;delete fileName=%S;err=%d", (TUint)&dbFile, __SQLITEPRNSTR(*dbFile.iFullName), err));
 		delete dbFile.iFullName;
 		dbFile.iFullName = NULL;
 		}
@@ -598,10 +612,9 @@ Reads from the file referred by the aDbFile parameter.
 */
 /* static */ int TFileIo::Read(sqlite3_file* aDbFile, void* aBuf, int aAmt, sqlite3_int64 aOffset)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
-	SYMBIAN_TRACE_SQLITE_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileRead, aAmt, aOffset));
 	SimulateIOError(return SQLITE_IOERR_READ);
 	TDbFile& dbFile = ::DbFile(aDbFile);
+	SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_READ_ENTRY, "OS-Entry;0x%X;TFileIo::Read;aAmt=%d;aOffset=%lld", (TUint)&dbFile, aAmt, aOffset));
 	TPtr8 ptr((TUint8*)aBuf, 0, aAmt);
 	TInt err = dbFile.iFileBuf.Read(aOffset, ptr);
 	TInt cnt = ptr.Length();
@@ -611,6 +624,7 @@ Reads from the file referred by the aDbFile parameter.
 		Mem::FillZ(static_cast <TUint8*> (aBuf) + cnt, aAmt - cnt);
 		sqliteErr = SQLITE_IOERR_SHORT_READ;
 		}
+	SQLITE_TRACE_OS(OstTraceExt4(TRACE_INTERNALS, TFILEIO_READ_EXIT, "OS-Exit;0x%X;TFileIo::Read;cnt=%d;err=%d;sqliteErr=%d", (TUint)&dbFile, cnt, err, sqliteErr));
 	return sqliteErr;
 	}
 
@@ -634,18 +648,19 @@ Writes to the file referred by the aDbFile parameter.
 */
 /* static */ int TFileIo::Write(sqlite3_file* aDbFile, const void* aData, int aAmt, sqlite3_int64 aOffset)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
-	SYMBIAN_TRACE_SQLITE_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileWrite, aAmt, aOffset));
 	SimulateIOError(return SQLITE_IOERR_WRITE);
 	SimulateDiskfullError(return SQLITE_FULL);
 	TDbFile& dbFile = ::DbFile(aDbFile);
+	SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_WRITE_ENTRY, "OS-Entry;0x%X;TFileIo::Write;aAmt=%d;aOffset=%lld", (TUint)&dbFile, aAmt, aOffset));
 	TInt err = KErrAccessDenied;
 	if(!dbFile.iReadOnly)
 		{
 		TPtrC8 ptr((const TUint8*)aData, aAmt);
 		err = dbFile.iFileBuf.Write(aOffset, ptr);
 		}
-	return ::Os2SqliteErr(err, SQLITE_IOERR_WRITE);
+	TInt sqliteErr = ::Os2SqliteErr(err, SQLITE_IOERR_WRITE);
+	SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_WRITE_EXIT, "OS-Exit;0x%X;TFileIo::Write;err=%d;sqliteErr=%d", (TUint)&dbFile, err, sqliteErr));
+	return sqliteErr;
 	}
 
 /**
@@ -666,16 +681,17 @@ Truncates the file referred by the aDbFile parameter.
 */
 /* static */ int TFileIo::Truncate(sqlite3_file* aDbFile, sqlite3_int64 aLength)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
-	SYMBIAN_TRACE_SQLITE_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileTruncate, aLength));
 	SimulateIOError(return SQLITE_IOERR_TRUNCATE);
 	TDbFile& dbFile = ::DbFile(aDbFile);
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_TRUNCATE_ENTRY, "OS-Entry;0x%X;TFileIo::Truncate;aLength=%lld", (TUint)&dbFile, aLength));
 	TInt err = KErrAccessDenied;
 	if(!dbFile.iReadOnly)
 		{
 		err = dbFile.iFileBuf.SetSize(aLength);
 		}
-	return ::Os2SqliteErr(err, SQLITE_IOERR_TRUNCATE);
+	TInt sqliteErr = ::Os2SqliteErr(err, SQLITE_IOERR_TRUNCATE);
+	SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_TRUNCATE_EXIT, "OS-Exit;0x%X;TFileIo::Truncate;err=%d;sqliteErr=%d", (TUint)&dbFile, err, sqliteErr));
+	return sqliteErr;
 	}
 
 /**
@@ -696,9 +712,9 @@ Flushes the file referred by the aDbFile parameter.
 */
 /* static */int TFileIo::Sync(sqlite3_file* aDbFile, int aFlags)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
 	SimulateIOError(return SQLITE_IOERR_FSYNC);
 	TDbFile& dbFile = ::DbFile(aDbFile);
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, TFILEIO_SYNC_ENTRY, "OS-Entry;0x%X;TFileIo::Sync", (TUint)&dbFile));
 #ifdef SQLITE_TEST
 	if(aFlags & SQLITE_SYNC_FULL)
 		{
@@ -713,7 +729,9 @@ Flushes the file referred by the aDbFile parameter.
 		{
 		err = dbFile.iFileBuf.Flush();
 		}
-	return ::Os2SqliteErr(err, SQLITE_IOERR_FSYNC);
+	TInt sqliteErr = ::Os2SqliteErr(err, SQLITE_IOERR_FSYNC);
+	SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_SYNC_EXIT, "OS-Exit;0x%X;TFileIo::Sync;err=%d;sqliteErr=%d", (TUint)&dbFile, err, sqliteErr));
+	return sqliteErr;
 	}
 
 /**
@@ -732,11 +750,13 @@ Returns the size of the file referred by the aDbFile parameter.
 */
 /* static */ int TFileIo::FileSize(sqlite3_file* aDbFile, sqlite3_int64* aSize)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
 	SimulateIOError(return SQLITE_IOERR_FSTAT);
 	TDbFile& dbFile = ::DbFile(aDbFile);
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, TFILEIO_FILESIZE_ENTRY, "OS-Entry;0x%X;TFileIo::FileSize", (TUint)&dbFile));
 	TInt err =  dbFile.iFileBuf.Size(*aSize);
-	return ::Os2SqliteErr(err, SQLITE_IOERR_FSTAT);
+	TInt sqliteErr = ::Os2SqliteErr(err, SQLITE_IOERR_FSTAT);
+	SQLITE_TRACE_OS(OstTraceExt4(TRACE_INTERNALS, TFILEIO_FILESIZE_EXIT, "OS-Exit;0x%X;TFileIo::FileSize;aSize=%lld;err=%d;sqliteErr=%d", (TUint)&dbFile, *aSize, err, sqliteErr));
+	return sqliteErr;
 	}
 
 /**
@@ -779,6 +799,7 @@ unlock operation.
 	    	break;
 	    	}
 		}
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_GETREADLOCK, "OS;0x%X;TFileIo::GetReadLock;rc=%d", (TUint)&aDbFile, rc));
 	return rc;
 	}
 
@@ -795,7 +816,9 @@ The beginning of the locked area with length 1 byte is stored in TDbFile::iShare
 */
 /* static */TInt TFileIo::UnlockReadLock(TDbFile& aDbFile)
 	{
-	return aDbFile.iFileBuf.UnLock(SHARED_FIRST + aDbFile.iSharedLockByte, 1);
+	TInt err = aDbFile.iFileBuf.UnLock(SHARED_FIRST + aDbFile.iSharedLockByte, 1);
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_UNLOCKREADLOCK, "OS;0x%X;TFileIo::UnlockReadLock;err=%d", (TUint)&aDbFile, err));
+	return err;
 	}
 
 /**
@@ -832,11 +855,11 @@ SQLITE_LOCK_PENDING 	-> SQLITE_LOCK_EXCLUSIVE
 */
 /* static */ int TFileIo::Lock(sqlite3_file* aDbFile, int aLockType)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	//If there is already a lock of this type or more restrictive on the aDbFile, then - do nothing.
 	if(dbFile.iLockType >= aLockType)
 		{
+		SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_LOCK1, "OS;0x%X;TFileIo::Lock;dbFile.iLockType=%d;aLockType=%d", (TUint)&dbFile, dbFile.iLockType, aLockType));
 		return SQLITE_OK;
 		}
 
@@ -848,14 +871,15 @@ SQLITE_LOCK_PENDING 	-> SQLITE_LOCK_EXCLUSIVE
 		TInt err = dbFile.iFileBuf.Flush(ETrue);
 		if(err != KErrNone)
 			{
+			SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_LOCK2, "OS;0x%X;TFileIo::Lock;iFileBuf.Flush() failed, err=%d", (TUint)&dbFile, err));
 			return ::Os2SqliteErr(err, SQLITE_IOERR_LOCK);
 			}
 		}
 
 	//Make sure the locking sequence is correct
-	__ASSERT_DEBUG(dbFile.iLockType != SQLITE_LOCK_NONE || aLockType == SQLITE_LOCK_SHARED, User::Panic(KPanicCategory, EPanicInvalidLock));
-	__ASSERT_DEBUG(aLockType != SQLITE_LOCK_PENDING, User::Panic(KPanicCategory, EPanicInvalidLock));
-	__ASSERT_DEBUG(aLockType != SQLITE_LOCK_RESERVED || dbFile.iLockType == SQLITE_LOCK_SHARED, User::Panic(KPanicCategory, EPanicInvalidLock));
+	__ASSERT_DEBUG(dbFile.iLockType != SQLITE_LOCK_NONE || aLockType == SQLITE_LOCK_SHARED, __SQLITEPANIC2(ESqliteOsPanicInvalidLock));
+	__ASSERT_DEBUG(aLockType != SQLITE_LOCK_PENDING, __SQLITEPANIC2(ESqliteOsPanicInvalidLock));
+	__ASSERT_DEBUG(aLockType != SQLITE_LOCK_RESERVED || dbFile.iLockType == SQLITE_LOCK_SHARED, __SQLITEPANIC2(ESqliteOsPanicInvalidLock));
 		
 	TInt rc = SQLITE_OK;    //Return code from subroutines
 	TBool locked = ETrue;   //Result of a file lock call (the default value means: "lock accuired")
@@ -892,10 +916,11 @@ SQLITE_LOCK_PENDING 	-> SQLITE_LOCK_EXCLUSIVE
 	//Acquire a shared lock
 	if(aLockType == SQLITE_LOCK_SHARED && locked)
 		{
-		__ASSERT_DEBUG(dbFile.iLockType == SQLITE_LOCK_NONE, User::Panic(KPanicCategory, EPanicInvalidLock));
+		__ASSERT_DEBUG(dbFile.iLockType == SQLITE_LOCK_NONE, __SQLITEPANIC2(ESqliteOsPanicInvalidLock));
 		TInt err = TFileIo::GetReadLock(dbFile);
 		if(err != KErrNone && err != KErrLocked) 
 			{
+			SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_LOCK3, "OS;0x%X;TFileIo::Lock;TFileIo::GetReadLock() failed, err=%d", (TUint)&dbFile, err));
 			return ::Os2SqliteErr(err, SQLITE_IOERR_LOCK);
 			}
 		locked = (err == KErrNone);
@@ -908,10 +933,11 @@ SQLITE_LOCK_PENDING 	-> SQLITE_LOCK_EXCLUSIVE
 	//Acquire a RESERVED lock
 	if(aLockType == SQLITE_LOCK_RESERVED && locked)
 		{
-		__ASSERT_DEBUG(dbFile.iLockType == SQLITE_LOCK_SHARED, User::Panic(KPanicCategory, EPanicInvalidLock));
+		__ASSERT_DEBUG(dbFile.iLockType == SQLITE_LOCK_SHARED, __SQLITEPANIC2(ESqliteOsPanicInvalidLock));
 		TInt err = dbFile.iFileBuf.Lock(RESERVED_BYTE, 1); 
 		if(err != KErrNone && err != KErrLocked) 
 			{
+			SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_LOCK4, "OS;0x%X;TFileIo::Lock;iFileBuf.Lock() failed, err=%d", (TUint)&dbFile, err));
 			return ::Os2SqliteErr(err, SQLITE_IOERR_LOCK);
 			}
 		locked = (err == KErrNone);
@@ -931,11 +957,12 @@ SQLITE_LOCK_PENDING 	-> SQLITE_LOCK_EXCLUSIVE
 	//Acquire an EXCLUSIVE lock
 	if(aLockType == SQLITE_LOCK_EXCLUSIVE && locked)
 		{
-		__ASSERT_DEBUG(dbFile.iLockType >= SQLITE_LOCK_SHARED, User::Panic(KPanicCategory, EPanicInvalidLock));
+		__ASSERT_DEBUG(dbFile.iLockType >= SQLITE_LOCK_SHARED, __SQLITEPANIC2(ESqliteOsPanicInvalidLock));
 		(void)TFileIo::UnlockReadLock(dbFile);
 		TInt err = dbFile.iFileBuf.Lock(SHARED_FIRST, SHARED_SIZE);
 		if(err != KErrNone && err != KErrLocked)
 			{
+			SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_LOCK5, "OS;0x%X;TFileIo::Lock;iFileBuf.Lock()-2 failed, err=%d", (TUint)&dbFile, err));
 			return ::Os2SqliteErr(err, SQLITE_IOERR_LOCK);
 			}
 		locked = (err == KErrNone);
@@ -949,13 +976,15 @@ SQLITE_LOCK_PENDING 	-> SQLITE_LOCK_EXCLUSIVE
 	// release it now.
 	if(gotPendingLock && aLockType == SQLITE_LOCK_SHARED)
 		{
-		(void)dbFile.iFileBuf.UnLock(PENDING_BYTE, 1);
+		__SQLITETRACE_OSEXPR(TInt err =) dbFile.iFileBuf.UnLock(PENDING_BYTE, 1);
+		SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_LOCK6, "OS;0x%X;TFileIo::Lock;iFileBuf.UnLock()=%d", (TUint)&dbFile, err));
   		}
 
 	// Update the state of the lock has held in the file descriptor then
 	// return the appropriate result code.
 	rc = locked ? SQLITE_OK : SQLITE_BUSY;
 	dbFile.iLockType = newLockType;
+	SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_LOCK7, "OS;0x%X;TFileIo::Lock;rc=%d;newLockType=%d", (TUint)&dbFile, rc, newLockType));
 	return rc;
 	}
 
@@ -986,21 +1015,22 @@ might return SQLITE_IOERR;
 */
 /* static */ int TFileIo::Unlock(sqlite3_file* aDbFile, int aLockType)
 	{
-	__ASSERT_DEBUG(aLockType <= SQLITE_LOCK_SHARED, User::Panic(KPanicCategory, EPanicInvalidLock));
+	__ASSERT_DEBUG(aLockType <= SQLITE_LOCK_SHARED, __SQLITEPANIC2(ESqliteOsPanicInvalidLock));
 	
-	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	TInt rc = SQLITE_OK;
 	TInt currLockType = dbFile.iLockType;
 	
 	if(currLockType >= SQLITE_LOCK_EXCLUSIVE)
 		{
-		(void)dbFile.iFileBuf.UnLock(SHARED_FIRST, SHARED_SIZE);
+		__SQLITETRACE_OSEXPR(TInt err2 =) dbFile.iFileBuf.UnLock(SHARED_FIRST, SHARED_SIZE);
+		SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_UNLOCK1, "OS;0x%X;TFileIo::Unlock;iFileBuf.UnLock()=%d", (TUint)&dbFile, err2));
 		if(aLockType == SQLITE_LOCK_SHARED)
     		{
 			TInt err = TFileIo::GetReadLock(dbFile); 
 			if(err != KErrNone && err != KErrLocked)
 				{
+				SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_UNLOCK2, "OS;0x%X;TFileIo::Unlock;TFileIo::GetReadLock() failed, err=%d", (TUint)&dbFile, err));
 				return ::Os2SqliteErr(err, SQLITE_IOERR_UNLOCK);
 				}
 			if(err == KErrLocked)
@@ -1012,18 +1042,22 @@ might return SQLITE_IOERR;
 		}
 	if(currLockType >= SQLITE_LOCK_RESERVED)
 		{
-    	(void)dbFile.iFileBuf.UnLock(RESERVED_BYTE, 1);
+		__SQLITETRACE_OSEXPR(TInt err2 =) dbFile.iFileBuf.UnLock(RESERVED_BYTE, 1);
+		SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_UNLOCK3, "OS;0x%X;TFileIo::Unlock;iFileBuf.UnLock()-2=%d", (TUint)&dbFile, err2));
 		}
 	if(aLockType == SQLITE_LOCK_NONE && currLockType >= SQLITE_LOCK_SHARED)
 		{
-		(void)TFileIo::UnlockReadLock(dbFile);
+		__SQLITETRACE_OSEXPR(TInt err2 =) TFileIo::UnlockReadLock(dbFile);
+		SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_UNLOCK4, "OS;0x%X;TFileIo::Unlock;TFileIo::UnlockReadLock()=%d", (TUint)&dbFile, err2));
 		}
 	if(currLockType>= SQLITE_LOCK_PENDING)
 		{
-		(void)dbFile.iFileBuf.UnLock(PENDING_BYTE, 1);
+		__SQLITETRACE_OSEXPR(TInt err2 =) dbFile.iFileBuf.UnLock(PENDING_BYTE, 1);
+		SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_UNLOCK5, "OS;0x%X;TFileIo::Unlock;iFileBuf.UnLock()-3=%d", (TUint)&dbFile, err2));
 		}
 		
 	dbFile.iLockType = aLockType;
+	SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_UNLOCK6, "OS;0x%X;TFileIo::Unlock;rc=%d;newLockType=%d", (TUint)&dbFile, rc, aLockType));
 	return rc;
 	}
 
@@ -1046,7 +1080,6 @@ Checks if the file lock type is SQLITE_LOCK_RESERVED or bigger.
 */
 /* static */ int TFileIo::CheckReservedLock(sqlite3_file* aDbFile, int *aResOut)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
 	TInt rc;
 	if(dbFile.iLockType >= SQLITE_LOCK_RESERVED)
@@ -1058,16 +1091,19 @@ Checks if the file lock type is SQLITE_LOCK_RESERVED or bigger.
 		TInt err = dbFile.iFileBuf.Lock(RESERVED_BYTE, 1);
 		if(err != KErrNone && err != KErrLocked)
 			{
+			SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_CHECKRESERVEDLOCK1, "OS;0x%X;TFileIo::CheckReservedLock;iFileBuf.Lock(), err=%d", (TUint)&dbFile, err));
 			return ::Os2SqliteErr(err, SQLITE_IOERR_CHECKRESERVEDLOCK);
 			}
 		rc = (err == KErrNone);
 		if(rc) //non-zero rc means: the lock has been successful (there wasn't a reserved lock on this file)
 			{
-			(void)dbFile.iFileBuf.UnLock(RESERVED_BYTE, 1);
+			__SQLITETRACE_OSEXPR(TInt err2 =) dbFile.iFileBuf.UnLock(RESERVED_BYTE, 1);
+			SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_CHECKRESERVEDLOCK2, "OS;0x%X;TFileIo::CheckReservedLock;iFileBuf.UnLock()=%d", (TUint)&dbFile, err2));
 			}
     	rc = !rc;
 		}
 	*aResOut = rc;
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TFILEIO_CHECKRESERVEDLOCK3, "OS;0x%X;TFileIo::CheckReservedLock;rc=%d", (TUint)&dbFile, rc));
 	return SQLITE_OK;
 	}
 
@@ -1092,9 +1128,7 @@ is retured if the operation is SQLITE_FCNTL_LOCKSTATE.
 */
 /* static */ int TFileIo::FileControl(sqlite3_file* aDbFile, int aOp, void* aArg)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
-	SYMBIAN_TRACE_SQLITE_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileFileCtr, aOp, dbFile.iFullName));
 	TInt err = KErrNone;
 	switch(aOp)
 		{
@@ -1105,7 +1139,9 @@ is retured if the operation is SQLITE_FCNTL_LOCKSTATE.
 			err = KErrArgument;
 			break;
 		}
-	return err == KErrNone ? SQLITE_OK : SQLITE_ERROR;
+	TInt sqliteErr = err == KErrNone ? SQLITE_OK : SQLITE_ERROR;
+	SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TFILEIO_FILECONTROL, "OS;0x%X;TFileIo::FileControl;err=%d;sqliteErr=%d", (TUint)&dbFile, err, sqliteErr));
+	return sqliteErr;
 	}
 
 /**
@@ -1127,9 +1163,8 @@ call returns the value of TDbFile::iSectorSize.
 */
 /* static */ int TFileIo::SectorSize(sqlite3_file* aDbFile)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
-	__ASSERT_DEBUG(dbFile.iSectorSize > 0, User::Panic(KPanicCategory, EPanicInternalError));
+	__ASSERT_DEBUG(dbFile.iSectorSize > 0, __SQLITEPANIC2(ESqliteOsPanicInternalError));
 	if(dbFile.iSectorSize > 0)
 		{
 		return dbFile.iSectorSize;	
@@ -1156,9 +1191,8 @@ The DeviceCharacteristics() call returns the value of TDbFile::iDeviceCharacteri
 */
 /* static */ int TFileIo::DeviceCharacteristics(sqlite3_file* aDbFile)
 	{
-	SQLUTRACE_PROFILER(aDbFile);
 	TDbFile& dbFile = ::DbFile(aDbFile);
-	__ASSERT_DEBUG(dbFile.iDeviceCharacteristics >= 0, User::Panic(KPanicCategory, EPanicInternalError));
+	__ASSERT_DEBUG(dbFile.iDeviceCharacteristics >= 0, __SQLITEPANIC2(ESqliteOsPanicInternalError));
 	if(dbFile.iDeviceCharacteristics >= 0)
 		{
 		return dbFile.iDeviceCharacteristics;	
@@ -1185,7 +1219,9 @@ Collects information about the drive referred by the aDriveNo parameter.
 */
 /* static */ inline TInt TVfs::DoGetVolumeIoParamInfo(RFs& aFs, TInt aDriveNo, TVolumeIOParamInfo& aVolumeInfo)
 	{
-	return aFs.VolumeIOParam(aDriveNo, aVolumeInfo);
+	TInt err = aFs.VolumeIOParam(aDriveNo, aVolumeInfo);
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TVFS_DOGETVOLUMEIOPARAMINFO, "OS;0;TVfs::DoGetVolumeIoParamInfo;aDriveNo=%d;err=%d", aDriveNo, err));
+	return err;
 	}
 
 /**
@@ -1277,7 +1313,7 @@ SQLITE_DEFAULT_SECTOR_SIZE value (512 bytes) will be used as a sector size.
 			sectorSize = aVolumeInfo.iBlockSize;
 			}
 		}
-	__ASSERT_DEBUG(sectorSize > 0 && (sectorSize & (sectorSize - 1)) == 0, User::Panic(KPanicCategory, EPanicInternalError));
+	__ASSERT_DEBUG(sectorSize > 0 && (sectorSize & (sectorSize - 1)) == 0, __SQLITEPANIC2(ESqliteOsPanicInternalError));
 	return sectorSize;
 	}
 
@@ -1306,8 +1342,8 @@ The stored values will be used later by TFileIo::DeviceCharacteristics() and TFi
 */
 /* static */ TInt TVfs::DoGetDeviceCharacteristicsAndSectorSize(TDbFile& aDbFile, TInt& aRecReadBufSize)
 	{
-	__ASSERT_DEBUG(aDbFile.iDeviceCharacteristics < 0, User::Panic(KPanicCategory, EPanicInternalError));
-	__ASSERT_DEBUG(aDbFile.iSectorSize <= 0, User::Panic(KPanicCategory, EPanicInternalError));
+	__ASSERT_DEBUG(aDbFile.iDeviceCharacteristics < 0, __SQLITEPANIC2(ESqliteOsPanicInternalError));
+	__ASSERT_DEBUG(aDbFile.iSectorSize <= 0, __SQLITEPANIC2(ESqliteOsPanicInternalError));
 	TInt driveNo;
 	TDriveInfo driveInfo;
 	TInt err = aDbFile.iFileBuf.Drive(driveNo, driveInfo);
@@ -1324,6 +1360,7 @@ The stored values will be used later by TFileIo::DeviceCharacteristics() and TFi
 	aDbFile.iDeviceCharacteristics = TVfs::DoGetDeviceCharacteristics(driveInfo, volumeInfo);
 	aDbFile.iSectorSize = TVfs::DoGetSectorSize(driveInfo, volumeInfo);
 	aRecReadBufSize = volumeInfo.iRecReadBufSize;
+	SQLITE_TRACE_OS(OstTraceExt5(TRACE_INTERNALS, TVFS_DOGETGETDEVICECHARACTERISTICSANDSECTORSIZE, "OS;0x%X;TVfs::DoGetDeviceCharacteristicsAndSectorSize;driveNo=%d;sectorSize=%d;devCharact=0x%X;readBufSize=%d", (TUint)&aDbFile, driveNo, aDbFile.iSectorSize, (TUint)aDbFile.iDeviceCharacteristics, volumeInfo.iRecReadBufSize));
 	return KErrNone;
 	}
 
@@ -1361,6 +1398,64 @@ static TInt CreateTempFile(TDbFile& aDbFile, TFileName& aFileNameOut, TInt aFile
 /**
 SQLite OS porting layer API.
 
+The behaviour of the RFile/RFile64::SetSize operation is not atomic for non-rugged drives. 
+When RFile/RFile64::SetSize() is called 2 operations occurs:-
+
+1)The cluster chain of the file is updated.
+2)The new file size is added to the file cache.
+
+If a power loss occurs after a SetSize there is a chance that the cluster chain was updated 
+but the new file size is not yet flushed to the file. This puts the file into an inconsistent state.
+This is most likely to occur in the journal file where the time between a SetSize and Flush can 
+be long. 
+
+For this reason this check is added when the file is opened to see if the end of the file can 
+be read straight away, if an error is returned then it is assumed that the SetSize has not be 
+completed previously. In this case the file is deleted and re-created.
+ 
+@param aDbFile A pointer to a TDbFile instance, that contains the file handle.
+@param aFname A string of 16-bit wide characters containing name of the file to be checked.
+@param aFmode The mode in which the file is opened. These mode are documented in TFileMode.
+
+@return KErrNone,          The operation has completed succesfully;
+                           Note that other system-wide error codes may also be returned.
+@see TFileMode
+@see TVfs::Open()
+@see TDbFile
+*/
+/* static */ TInt TVfs::DoFileSizeCorruptionCheck(TDbFile& aDbFile, const TDesC& aFname, TInt aFmode)
+    {
+    const TInt KMinSize = 16;
+    TInt64 size;
+    TInt err = KErrNone ;
+    TBuf8<KMinSize> buf;
+
+    err = aDbFile.iFileBuf.Size(size);
+    if (err != KErrNone)
+        {
+        return err;
+        }
+    TBool IsMinFileSize = (size >= KMinSize);
+    
+    if (IsMinFileSize)
+        {
+        err = aDbFile.iFileBuf.Read(size - KMinSize, buf);
+        }
+    
+    if (err == KErrCorrupt || err == KErrEof || !IsMinFileSize)
+        {
+        aDbFile.iFileBuf.Close();
+        __SQLITETRACE_OSEXPR(TInt err2 =) TStaticFs::Fs().Delete(aFname);
+		SQLITE_TRACE_OS(OstTraceExt4(TRACE_INTERNALS, TVFS_DOFILESIZECORRUPTIONCHECK1, "OS;0x%X;TVfs::DoFileSizeCorruptionCheck;size=%lld;err=%d;deleteErr=%d", (TUint)&aDbFile, size, err, err2));
+        err = aDbFile.iFileBuf.Create(TStaticFs::Fs(), aFname, aFmode);
+		SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TVFS_DOFILESIZECORRUPTIONCHECK2, "OS;0x%X;TVfs::DoFileSizeCorruptionCheck;createErr=%d", (TUint)&aDbFile, err));
+        }
+    return err;
+    }
+
+/**
+SQLite OS porting layer API.
+
 Opens or creates a file which name is in the aFileName parameter.
 If the function succeeds, the file handle and other related information will be stored in the place pointed by the 
 aDbFile parameter, a memory block of sizeof(TDbFile) size for which is allocated by the caller.
@@ -1388,20 +1483,21 @@ which is actually a TDbFile pointer, for later use.
 */
 /* static */ int TVfs::Open(sqlite3_vfs* aVfs, const char* aFileName, sqlite3_file* aDbFile, int aFlags, int* aOutFlags)
 	{
-	SQLUTRACE_PROFILER(aVfs);
 	TFileName fname;
 	if(aFileName && !::ConvertToUnicode(aFileName, fname))
 		{
+		SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, TVFS_OPEN1, "OS;0;TVfs::Open;ConvertToUnicode() failed"));
 		return SQLITE_CANTOPEN;	
 		}
-	SYMBIAN_TRACE_SQLITE_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileOpen, aDbFile, &fname));
 	new (aDbFile) TDbFile;
 	TDbFile& dbFile = ::DbFile(aDbFile);
+	SQLITE_TRACE_OS(OstTraceExt3(TRACE_INTERNALS, TVFS_OPEN_ENTRY, "OS-Entry;0x%X;TVfs::Open;fname=%S;aFlags=0x%X", (TUint)&aDbFile, __SQLITEPRNSTR(fname), (TUint)aFlags));
 	if(aFileName && (aFlags & SQLITE_OPEN_DELETEONCLOSE))
 		{
 		dbFile.iFullName = fname.Alloc();
 		if(!dbFile.iFullName)
 			{
+			SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, TVFS_OPEN2, "OS;0;TVfs::Open;fname.Alloc() failed"));
 			return SQLITE_IOERR_NOMEM;
 			}
 		}
@@ -1427,21 +1523,30 @@ which is actually a TDbFile pointer, for later use.
 		}
 	else
 		{
-		err = KErrGeneral;//The error has to be set here, because, there is case where none of the file create/open operations will be executed
+		err = KErrAccessDenied;//The error has to be set here, because, there is a case where none of the file create/open operations will be executed
+		TInt prevErr = KErrNone;
 		if(aFlags & SQLITE_OPEN_CREATE)
 			{
-			err = dbFile.iFileBuf.Create(TStaticFs::Fs(), fname, fmode);
+			prevErr = err = dbFile.iFileBuf.Create(TStaticFs::Fs(), fname, fmode);
 			}
-		if(err != KErrNone && err != KErrNoMemory)
+		if(err != KErrNone && err != KErrNoMemory && err != KErrDiskFull)
 			{
 			err = dbFile.iFileBuf.Open(TStaticFs::Fs(), fname, fmode);
+			if(err == KErrNone && (aFlags & KJournalFileTypeBitMask))
+			    {
+                err = TVfs::DoFileSizeCorruptionCheck(dbFile, fname, fmode);
+			    }
 			}
-		if((err != KErrNone && err != KErrNoMemory) && (aFlags & SQLITE_OPEN_READWRITE))
+		if((err != KErrNone && err != KErrNoMemory && err != KErrDiskFull) && (aFlags & SQLITE_OPEN_READWRITE))
 			{
 			aFlags &= ~SQLITE_OPEN_READWRITE;
 			aFlags |= SQLITE_OPEN_READONLY;
 			fmode &= ~EFileWrite;
 			err = dbFile.iFileBuf.Open(TStaticFs::Fs(), fname, fmode);
+			}
+		if(err != KErrNone && prevErr == KErrAccessDenied)
+			{
+			err = KErrAccessDenied;
 			}
 		}
 	if(err == KErrNone)
@@ -1453,6 +1558,11 @@ which is actually a TDbFile pointer, for later use.
 		dbFile.iFileBuf.Close();	
 		delete dbFile.iFullName;
 		dbFile.iFullName = NULL;
+        if(!aFileName && fname.Length() > 0)
+            {//temporary file, the error is not KErrNone. Then delete the file (after a successfull 
+             //temporary file creation there could be a failed memory allocation)
+            (void)TStaticFs::Fs().Delete(fname);
+            }
 		}
 	else
 		{
@@ -1465,7 +1575,9 @@ which is actually a TDbFile pointer, for later use.
 		(void)dbFile.iFileBuf.SetReadAheadSize(dbFile.iSectorSize, recReadBufSize);
 		OpenCounter(+1);
 		}
-	return ::Os2SqliteErr(err, SQLITE_CANTOPEN);
+	TInt sqliteErr = ::Os2SqliteErr(err, SQLITE_CANTOPEN);
+	SQLITE_TRACE_OS(OstTraceExt4(TRACE_INTERNALS, TVFS_OPEN_EXIT, "OS-Exit;0x%X;TVfs::Open;outFlags=0x%X;err=%d;sqliteErr=%d", (TUint)&aDbFile, aOutFlags ? (TUint)*aOutFlags : 0, err, sqliteErr));
+	return sqliteErr;
 	}
 
 /**
@@ -1483,16 +1595,17 @@ Deletes a file which name is in the aFileName parameter.
 */
 /* static */ int TVfs::Delete(sqlite3_vfs* aVfs, const char* aFileName, int /*aSyncDir*/)
 	{
-	SQLUTRACE_PROFILER(aVfs);
 	SimulateIOError(return SQLITE_IOERR_DELETE);
 	TFileName fname;
 	if(!::ConvertToUnicode(aFileName, fname))
 		{
+		SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, TVFS_DELETE1, "OS;0;TVfs::Delete;ConvertToUnicode() failed"));
 		return SQLITE_ERROR;	
 		}
-	SYMBIAN_TRACE_SQLITE_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileName, &fname));
 	TInt err = TStaticFs::Fs().Delete(fname);
-	return ::Os2SqliteErr(err, SQLITE_IOERR_DELETE);
+	TInt sqliteErr = ::Os2SqliteErr(err, SQLITE_IOERR_DELETE);
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TVFS_DELETE2, "OS;0;TVfs::Delete;err=%d;sqliteErr=%d", err, sqliteErr));
+	return sqliteErr;
 	}
 
 /**
@@ -1511,22 +1624,24 @@ The requested information type can be: does the file exist, is the file read-onl
 */
 /* static */ int TVfs::Access(sqlite3_vfs* aVfs, const char* aFileName, int aFlags, int* aResOut)
 	{
-	SQLUTRACE_PROFILER(aVfs);
 	TFileName fname;
 	if(!::ConvertToUnicode(aFileName, fname))
 		{
+		SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, TVFS_ACCESS1, "OS;0;TVfs::Access;ConvertToUnicode() failed"));
 		return SQLITE_IOERR_ACCESS;
 		}
-	SYMBIAN_TRACE_SQLITE_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileName, &fname));
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TVFS_ACCESS_ENTRY, "OS-Entry;0;TVfs::Access;fname=%S;aFlags=0x%X", __SQLITEPRNSTR(fname), (TUint)aFlags));
 	TEntry entry;
 	TInt err = TStaticFs::Fs().Entry(fname, entry);
 	if(aFlags == SQLITE_ACCESS_EXISTS && err == KErrNotFound)
 		{
 		*aResOut = 0;
+		SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, TVFS_ACCESS_EXIT1, "OS-Exit;0;TVfs::Access;Exists-NoFound"));
 		return SQLITE_OK;
 		}
 	if(err != KErrNone)
 		{
+		SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, TVFS_ACCESS_EXIT2, "OS-Exit;0;TVfs::Access;err=%d", err));
 		return err == KErrNoMemory ? SQLITE_IOERR_NOMEM : SQLITE_IOERR_ACCESS;
 		}
 	*aResOut = 0;
@@ -1544,6 +1659,7 @@ The requested information type can be: does the file exist, is the file read-onl
 		default:
 			break;			
 		}
+	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, TVFS_ACCESS_EXIT3, "OS-Exit;0;TVfs::Access;aResOut=%d", *aResOut));
 	return SQLITE_OK;
 	}
 
@@ -1575,18 +1691,19 @@ private data cage.
 */
 /* static */ int TVfs::FullPathName(sqlite3_vfs* aVfs, const char* aRelative, int aBufLen, char* aBuf)
 	{
-	SQLUTRACE_PROFILER(aVfs);
 	if(!aRelative)	//NULL argument
 		{
+		SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, TVFS_FULLPATHNAME1, "OS;0;TVfs::FullPathName;err=SQLITE_ERROR"));
 		return SQLITE_ERROR;
 		}
 	//Convert the received file name to UTF16
 	TBuf<KMaxFileName + 1> fname;
 	if(!::ConvertToUnicode(aRelative, fname))
 		{
+		SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, TVFS_FULLPATHNAME_EXIT1, "OS-Exit;0;TVfs::FullPathName;ConvertToUnicode() failed"));
 		return SQLITE_ERROR;
 		}	
-	SYMBIAN_TRACE_SQLITE_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileName, &fname));
+	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, TVFS_FULLPATHNAME_ENTRY, "OS-Entry;0;TVfs::FullPathName;fname=%S;aBufLen=%d", __SQLITEPRNSTR(fname), aBufLen));
 	//Search if the file name begins with ".\" - current directory
 	if(fname.Find(KCwd) == 0)
 		{
@@ -1597,6 +1714,7 @@ private data cage.
 	TInt err = TStaticFs::Fs().SessionPath(defaultPath);
 	if(err != KErrNone)
 		{
+		SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, TVFS_FULLPATHNAME_EXIT4, "OS-Exit;0;TVfs::FullPathName;SessionPath() failed, err=%d", err));
 		return SQLITE_ERROR;
 		}
 	TParse parse;
@@ -1604,8 +1722,10 @@ private data cage.
 	TPtr8 dest8(reinterpret_cast <TUint8*> (aBuf), aBufLen);	
 	if(!::ConvertFromUnicode(parse.FullName(), dest8))
 		{
+		SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, TVFS_FULLPATHNAME_EXIT2, "OS-Exit;0;TVfs::FullPathName;ConvertFromUnicode() failed"));
 		return SQLITE_ERROR;	
 		}
+	SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, TVFS_FULLPATHNAME_EXIT3, "OS-Exit;0;TVfs::FullPathName;err=SQLITE_OK"));
 	return SQLITE_OK;
 	}
 
@@ -1621,7 +1741,6 @@ Generates a set of random numbers and stores them in the aBuf output parameter.
 */
 /* static */ int TVfs::Randomness(sqlite3_vfs* aVfs, int aBufLen, char* aBuf)
 	{
-	SQLUTRACE_PROFILER(aVfs);
 	const TInt KRandIterations = aBufLen / sizeof(int);
 	for(TInt i=0;i<KRandIterations;++i)
 		{
@@ -1642,7 +1761,6 @@ Sleeps for aMicrosec microseconds.
 */
 /* static */ int TVfs::Sleep(sqlite3_vfs* aVfs, int aMicrosec)
 	{
-	SQLUTRACE_PROFILER(aVfs);
 	User::AfterHighRes(TTimeIntervalMicroSeconds32(aMicrosec));
 	return aMicrosec;
 	}
@@ -1660,7 +1778,6 @@ Retrieves the current date and time.
 */
 /* static */ int TVfs::CurrentTime(sqlite3_vfs* aVfs, double* aNow)
 	{
-	SQLUTRACE_PROFILER(aVfs);
 	TTime now;
 	now.UniversalTime();
 	TDateTime date = now.DateTime();
@@ -1700,7 +1817,6 @@ Note: the method has a default "no-op" implementation at the moment.
 */
 /* static */int TVfs::GetLastError(sqlite3_vfs* aVfs, int /*aBufLen*/, char* /*aBuf*/)
 	{
-	SQLUTRACE_PROFILER(aVfs);
 	return 0;
 	}
 

@@ -24,7 +24,12 @@
 #include "SqlSrvBlob.h"
 #include "SqlResourceProfiler.h"
 #include "SqlCompact.h"
-#include "UTraceSql.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlSrvSessionTraces.h"
+#endif
+#include "SqlTraceDef.h"
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -159,7 +164,7 @@ If there is no object, the client gets a panic.
 template <class T> T& SqlSessObjFind(RDbObjContainer<T>& aContainer, TInt aHandle, const RMessage2& aMessage)
 	{
 	T* obj = aContainer.Find(aHandle);
-	__SQLPANIC_CLIENT(obj != NULL, aMessage, ESqlPanicBadArgument);
+	__SQLPANIC_CLIENT2(obj != NULL, aMessage, ESqlPanicBadArgument);
 	return *obj;
 	}
 
@@ -183,6 +188,7 @@ static TInt ConvertSqlFull2DiskFullErr(TInt aError, RFs& aFs, TDriveNumber aDriv
 	if(aError == KSqlErrFull && !HasFreeDiskSpace(aFs, aDrive))
 		{
 		aError = KErrDiskFull;
+		SQL_TRACE_SESSION(OstTrace1(TRACE_INTERNALS, CONVERTSQLFULL2DISKFULLERRROR, "0;ConvertSqlFull2DiskFullErr;aError=KSqlErrFull;!HasFreeDiskSpace();aDrive=%d", (TInt)aDrive));
 		}
 	return aError;
 	}
@@ -206,10 +212,12 @@ client side session instance.
 */
 CSqlSrvSession* CSqlSrvSession::NewL()
 	{
+	SQL_TRACE_SESSION(OstTrace0(TRACE_INTERNALS, CSQLSRVSESSION_NEWL_ENTRY, "Entry;0;CSqlSrvSession::NewL"));
 	CSqlSrvSession* self = new (ELeave)	CSqlSrvSession;
 	CleanupStack::PushL(self);
 	self->ConstructL();
 	CleanupStack::Pop(self);
+	SQL_TRACE_SESSION(OstTrace1(TRACE_INTERNALS, CSQLSRVSESSION_NEWL_EXIT, "Exit;0x%X;CSqlSrvSession::NewL", (TUint)self));
 	return self;
 	}
 
@@ -218,11 +226,13 @@ Frees the allocated by CSqlSrvSession instance resources and memory.
 */
 CSqlSrvSession::~CSqlSrvSession()
 	{
+	SQL_TRACE_SESSION(OstTraceExt2(TRACE_INTERNALS, CSQLSRVSESSION_CSQLSRVSESSION2_ENTRY, "Entry;0x%X;CSqlSrvSession::~CSqlSrvSession;iDatabase=0x%X", (TUint)this, (TUint)iDatabase));
 	StopDbTestMode();
 	DbFreeReservedSpace();
 	iIpcStreams.Close();
 	iStatements.Close();
 	delete iDatabase;
+	SQL_TRACE_SESSION(OstTrace1(TRACE_INTERNALS, CSQLSRVSESSION_CSQLSRVSESSION2_EXIT, "Exit;0x%X;CSqlSrvSession::~CSqlSrvSession", (TUint)this));
 	}
 
 /**
@@ -247,11 +257,9 @@ void CSqlSrvSession::ServiceL(const RMessage2& aMessage)
 		{
 		SQLPROFILER_REPORT_IPC(ESqlIpcRq, 0);
 		}
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(TPtrC8 funcName = GetIPCFuncStr(funcCode));
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EBorder), KSrvMsgStr, &funcName));
-	
-	SQLPROFILER_IPC_START(iIpcCounter, iDatabase ? (TUint)iDatabase->RawDbHandle() : 0);
-	
+	__SQLTRACE_SESSIONEXPR(++iIpcCallCounter);
+    SQL_TRACE_SESSION(OstTraceExt4(TRACE_INTERNALS, CSQLSRVSESSION_SERVICEL_ENTRY, "Entry;0x%X;CSqlSrvSession::ServiceL;aMessage.Handle()=0x%X;funcCode=0x%X;iIpcCallCounter=%u", (TUint)this, (TUint)aMessage.Handle(), (TUint)funcCode, iIpcCallCounter));
+	SQLPROFILER_IPC_START(iIpcCallCounter, iDatabase ? (TUint)iDatabase->RawDbHandle() : 0);
 	switch(funcCode)
 		{
 		//////////////////////  resource check operations  ///////////////////////////
@@ -447,7 +455,7 @@ void CSqlSrvSession::ServiceL(const RMessage2& aMessage)
 		{
 		aMessage.Complete(retCode);
 		}
-    SQLPROFILER_IPC_END(iIpcCounter, funcCode, iDatabase ? (TUint)iDatabase->RawDbHandle() : 0, iIpcTraceData, retCode);
+	SQL_TRACE_SESSION(OstTraceExt4(TRACE_INTERNALS, CSQLSRVSESSION_SERVICEL_EXIT, "Exit;0x%X;CSqlSrvSession::ServiceL;funcCode=0x%X;retCode=%d;iIpcCallCounter=%u", (TUint)this, (TUint)funcCode, retCode, iIpcCallCounter));
 	}
 
 /**
@@ -457,6 +465,7 @@ descriptor to the server.
 */
 void CSqlSrvSession::ServiceError(const RMessage2& aMessage, TInt aError)
  	{
+	SQL_TRACE_SESSION(OstTraceExt4(TRACE_INTERNALS, CSQLSRVSESSION_SERVICEERROR_ENTRY, "Entry;0x%X;CSqlSrvSession::ServiceError;aMessage.Function()=0x%X;aError=%d;iIpcCallCounter=%u", (TUint)this, (TUint)aMessage.Function(), aError, iIpcCallCounter));
 	Server().MinimizeBuffers();		
 	aError = ::ConvertSqlFull2DiskFullErr(aError, Server().FileData().Fs(), iDrive);
  	if(aError == KErrBadDescriptor)
@@ -464,15 +473,12 @@ void CSqlSrvSession::ServiceError(const RMessage2& aMessage, TInt aError)
 		//The __SQLPANIC_CLIENT() macro cannot be used here because it calls a leaving function. A leaving call
 		//from a leaving call will terminate the server.
 		_LIT(KPanicCategory, "SqlDb");
-		
-		SYMBIAN_TRACE_SQL_ERR_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EError), KSqlSrvPanicClient, aError));
 		aMessage.Panic(KPanicCategory, ESqlPanicBadDescriptor);
  		}
- 	
- 	SYMBIAN_TRACE_SQL_ERR_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EError), KSqlSrvError, aError));
- 	SQLPROFILER_IPC_ERROR(iIpcCounter, static_cast <TSqlSrvFunction> (KSqlSrvFunctionMask & aMessage.Function()), 
+ 	SQLPROFILER_IPC_ERROR(iIpcCallCounter, static_cast <TSqlSrvFunction> (KSqlSrvFunctionMask & aMessage.Function()), 
  	       iDatabase ? (TUint)iDatabase->RawDbHandle() : 0, aError);
  	CSession2::ServiceError(aMessage, aError);
+ 	SQL_TRACE_SESSION(OstTraceExt3(TRACE_INTERNALS, CSQLSRVSESSION_SERVICEERROR_EXIT, "Exit;0x%X;CSqlSrvSession::ServiceError;aMessage.Function()=0x%X;iIpcCallCounter=%u", (TUint)this, (TUint)aMessage.Function(), iIpcCallCounter));
    	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -726,10 +732,8 @@ void CSqlSrvSession::DbDeleteFileL(const RMessage2& aMessage)
 			__SQLLEAVE(KErrPermissionDenied);	
 			}
 		}
-	#ifdef _NOTIFY
-	TPtrC fname = fileData.FileName();
-	RDebug::Print(_L("--SrvSess, delete, fname=\"%S\"\r\n"), &fname);
-	#endif		
+	__SQLTRACE_SESSIONVAR(TPtrC fname(fileData.FileName()));
+	SQL_TRACE_SESSION(OstTraceExt2(TRACE_INTERNALS, CSQLSRVSESSION_DBDELETEFILEL, "0x%X;CSqlSrvSession::DbDeleteFileL;file='%S'", (TUint)this, __SQLPRNSTR(fname)));
 	__SQLLEAVE_IF_ERROR(fileData.Fs().Delete(fileData.FileName()));
 	}
 
@@ -1166,7 +1170,7 @@ void CSqlSrvSession::ExtractNameL(RDesReadStream& aStrm, TDes8& aNameOut, const 
 			__SQLLEAVE(KErrBadName);
 			}
 	  	}
-	 __SQLASSERT(len > 0, ESqlPanicInternalError);//The "if" above should have hanled the case with "len == 0"
+	 __ASSERT_DEBUG(len > 0, __SQLPANIC2(ESqlPanicInternalError));//The "if" above should have hanled the case with "len == 0"
 	 if((TUint)len > KMaxFileName)
 	  {
 	  __SQLLEAVE(KErrBadName);
@@ -1380,7 +1384,7 @@ TInt CSqlSrvSession::StmtNextL(const RMessage2& aMessage, TInt aStmtHandle, TSql
 		SQLPROFILER_REPORT_IPC(ESqlIpcWrite, size);
 		}
 	__SQLLEAVE_IF_ERROR(err);
-	__SQLASSERT(err == KSqlAtRow || err == KSqlAtEnd, ESqlPanicInternalError);
+	__ASSERT_DEBUG(err == KSqlAtRow || err == KSqlAtEnd, __SQLPANIC(ESqlPanicInternalError));
 	return err;
 	}
 
@@ -1550,7 +1554,7 @@ TInt CSqlSrvSession::NewOutputStreamL(const RMessage2& aMessage, MStreamBuf* aSt
 	aStreamBuf->PushL();
 	iIpcStreams.AllocL();
 	TInt size = aStreamBuf->SizeL();
-	__SQLASSERT(size >= 0, ESqlPanicInternalError);
+	__ASSERT_DEBUG(size >= 0, __SQLPANIC(ESqlPanicInternalError));
 	TPckgBuf<TIpcStreamBuf> ipcBuf;
     // read the first buffer-full
     TInt len = Min(size, KIpcBufSize);

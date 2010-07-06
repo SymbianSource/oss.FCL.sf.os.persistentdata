@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -16,7 +16,12 @@
 //
 
 #include "SqlSrvDriveSpace.h"
-#include "SqlPanic.h"
+#include "SqlAssert.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlSrvDriveSpaceTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
 /**
 The amount of the disk space, which will be reserved at the moment of creation of
@@ -52,10 +57,12 @@ Standard phase-one factory method for creation of CSqlDriveSpace objects.
 */
 CSqlDriveSpace* CSqlDriveSpace::NewLC(RFs& aFs, TDriveNumber aDrive)
     {
-	__SQLASSERT(aDrive >= EDriveA && aDrive <= EDriveZ, ESqlPanicBadArgument);
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLDRIVESPACE_NEWLC_ENTRY, "Entry;0;CSqlDriveSpace::NewLC;aFs.Handle()=0x%X;aDrive=%d", (TUint)aFs.Handle(), (TInt)aDrive));
+	__ASSERT_DEBUG(aDrive >= EDriveA && aDrive <= EDriveZ, __SQLPANIC2(ESqlPanicBadArgument));
     CSqlDriveSpace* self = new (ELeave) CSqlDriveSpace(aFs, aDrive);
     CleanupStack::PushL(self);
     self->ConstructL();
+	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLDRIVESPACE_NEWLC_EXIT, "Exit;0x%X;CSqlDriveSpace::NewLC", (TUint)self));
     return self;
     }
 
@@ -64,6 +71,7 @@ Frees the reserved disk space.
 */
 CSqlDriveSpace::~CSqlDriveSpace()
     {
+	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLDRIVESPACE_CSQLDRIVESPACE2, "0x%X;CSqlDriveSpace::~CSqlDriveSpace;iDrive=%d;iGetAccessRefCnt=%d", (TUint)this, (TInt)iDrive, iGetAccessRefCnt));
 	SQLDRIVESPACE_INVARIANT();
 	(void)iFs.ReleaseReserveAccess(static_cast <TInt> (iDrive));
 	(void)iFs.ReserveDriveSpace(static_cast <TInt> (iDrive), 0);
@@ -82,6 +90,7 @@ this is a shared file session instance.
 */
 void CSqlDriveSpace::GetAccessL()
 	{
+	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLDRIVESPACE_GETACCESSL_ENTRY, "Entry;0x%X;CSqlDriveSpace::GetAccessL;iDrive=%d;iGetAccessRefCnt=%d", (TUint)this, (TInt)iDrive, iGetAccessRefCnt));
 	SQLDRIVESPACE_INVARIANT();
 	//Gets an access only once, there is only one RFs session instance.
 	if(iGetAccessRefCnt == 0)
@@ -89,6 +98,7 @@ void CSqlDriveSpace::GetAccessL()
 		__SQLLEAVE_IF_ERROR(iFs.GetReserveAccess(static_cast <TInt> (iDrive)));
 		}
 	++iGetAccessRefCnt;
+	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLDRIVESPACE_GETACCESSL_EXIT, "Exit;0x%X;CSqlDriveSpace::GetAccessL;iDrive=%d;iGetAccessRefCnt=%d", (TUint)this, (TInt)iDrive, iGetAccessRefCnt));
 	SQLDRIVESPACE_INVARIANT();
 	}
 
@@ -103,6 +113,7 @@ The method calls RFs::ReleaseReserveAccess() only when iGetAccessRefCnt value re
 */
 void CSqlDriveSpace::ReleaseAccess()
 	{
+	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLDRIVESPACE_RELEASEACCESS, "0x%X;CSqlDriveSpace::ReleaseAccess;iDrive=%d;iGetAccessRefCnt=%d", (TUint)this, (TInt)iDrive, iGetAccessRefCnt));
 	SQLDRIVESPACE_INVARIANT();
     if(iGetAccessRefCnt == 0)
         {
@@ -127,7 +138,7 @@ CSqlDriveSpace::CSqlDriveSpace(RFs& aFs, TDriveNumber aDrive) :
 	iFs(aFs),
 	iDrive(aDrive)
 	{
-	__SQLASSERT(aDrive >= EDriveA && aDrive <= EDriveZ, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aDrive >= EDriveA && aDrive <= EDriveZ, __SQLPANIC(ESqlPanicBadArgument));
 	}
 
 /**
@@ -152,8 +163,8 @@ CSqlDriveSpace invariant.
 */
 void CSqlDriveSpace::Invariant() const
 	{
-	__SQLASSERT(iDrive >= EDriveA && iDrive <= EDriveZ, ESqlPanicInternalError);
-	__SQLASSERT(iGetAccessRefCnt >= 0, ESqlPanicMisuse);
+	__ASSERT_DEBUG(iDrive >= EDriveA && iDrive <= EDriveZ, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(iGetAccessRefCnt >= 0, __SQLPANIC(ESqlPanicMisuse));
 	}
 #endif//_DEBUG
 
@@ -202,7 +213,7 @@ Searches the collection for a CSqlDriveSpace object holding information about th
 */
 CSqlDriveSpace* RSqlDriveSpaceCol::Find(TDriveNumber aDrive)
     {
-	__SQLASSERT(aDrive >= EDriveA && aDrive <= EDriveZ, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aDrive >= EDriveA && aDrive <= EDriveZ, __SQLPANIC(ESqlPanicBadArgument));
 	SQLDRIVESPACECOL_INVARIANT();
     for(TInt index=iDriveSpaceCol.Count()-1;index>=0;--index)
         {
@@ -230,8 +241,8 @@ The method creates a new CSqlDriveSpace object, adds it to the collection and re
 */
 CSqlDriveSpace* RSqlDriveSpaceCol::AddL(TDriveNumber aDrive)
 	{
-	__SQLASSERT(aDrive >= EDriveA && aDrive <= EDriveZ, ESqlPanicBadArgument);
-    __SQLASSERT(!Find(aDrive), ESqlPanicMisuse);
+	__ASSERT_DEBUG(aDrive >= EDriveA && aDrive <= EDriveZ, __SQLPANIC(ESqlPanicBadArgument));
+    __ASSERT_DEBUG(!Find(aDrive), __SQLPANIC(ESqlPanicMisuse));
 	SQLDRIVESPACECOL_INVARIANT();
     CSqlDriveSpace* drvSpace = CSqlDriveSpace::NewLC(*iFs, aDrive);
     __SQLLEAVE_IF_ERROR(iDriveSpaceCol.Append(drvSpace));
@@ -246,7 +257,7 @@ RSqlDriveSpaceCol invariant.
 */
 void RSqlDriveSpaceCol::Invariant() const
 	{
-	__SQLASSERT(iFs != NULL, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iFs != NULL, __SQLPANIC(ESqlPanicInternalError));
     for(TInt index=iDriveSpaceCol.Count()-1;index>=0;--index)
     	{
 		iDriveSpaceCol[index]->Invariant();

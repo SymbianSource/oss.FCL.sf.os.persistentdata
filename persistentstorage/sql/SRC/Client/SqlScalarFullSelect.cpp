@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,8 +13,13 @@
 // Description:
 //
 
-#include "SqlPanic.h"			//ESqlPanicInvalidObj, ESqlPanicObjExists
+#include "SqlAssert.h"			//ESqlPanicInvalidObj, ESqlPanicObjExists
 #include "SqlDatabaseImpl.h"	//CSqlDatabaseImpl
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlScalarFullSelectTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
 /**
 Returns a reference to the implementation object of RSqlDatabase - CSqlDatabaseImpl.
@@ -25,7 +30,7 @@ Returns a reference to the implementation object of RSqlDatabase - CSqlDatabaseI
 */
 inline CSqlDatabaseImpl& TSqlScalarFullSelectQuery::Impl() const
 	{
-	__SQLASSERT_ALWAYS(iDatabaseImpl != NULL, ESqlPanicInvalidObj);
+	__ASSERT_ALWAYS(iDatabaseImpl != NULL, __SQLPANIC(ESqlPanicInvalidObj));
 	return *iDatabaseImpl;	
 	}
 
@@ -46,6 +51,7 @@ Initializes TSqlScalarFullSelectQuery object.
 EXPORT_C TSqlScalarFullSelectQuery::TSqlScalarFullSelectQuery(RSqlDatabase& aDatabase) :
 	iDatabaseImpl(&aDatabase.Impl())
 	{
+	SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_TSQLSCALARFULLSELECTQUERY, "0x%X;TSqlScalarFullSelectQuery::TSqlScalarFullSelectQuery;aDatabase=0x%X;iDatabaseImpl=0x%X", (TUint)this, (TUint)&aDatabase, (TUint)iDatabaseImpl));
 	}
 	
 /**
@@ -56,8 +62,8 @@ Initializes/reinitializes TSqlScalarFullSelectQuery object.
 */
 EXPORT_C void TSqlScalarFullSelectQuery::SetDatabase(RSqlDatabase& aDatabase)
 	{
-	SQLUTRACE_PROFILER(this);
 	iDatabaseImpl = &aDatabase.Impl();
+    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SETDATABASE, "0x%X;TSqlScalarFullSelectQuery::SetDatabase;aDatabase=0x%X;iDatabaseImpl=0x%X", (TUint)this, (TUint)&aDatabase, (TUint)iDatabaseImpl));
 	}
 	
 /**
@@ -74,12 +80,11 @@ a single 32-bit integer value and returns that value.
 */
 EXPORT_C TInt TSqlScalarFullSelectQuery::SelectIntL(const TDesC& aSqlStmt)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aSqlStmt));
-
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTINTL_ENTRY16, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectIntL-16;aSqlStmt=%S", (TUint)this, __SQLPRNSTR(aSqlStmt)));
 	TInt res;
 	TPtr8 ptr(reinterpret_cast <TUint8*> (&res), sizeof(res));
 	(void)Impl().ExecScalarFullSelectL(aSqlStmt, ESqlInt, ptr);
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTINTL_EXIT16, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectIntL-16;res=%d", (TUint)this, res));
 	return res;
 	}
 	
@@ -97,12 +102,11 @@ a single 64-bit integer value and returns that value.
 */
 EXPORT_C TInt64 TSqlScalarFullSelectQuery::SelectInt64L(const TDesC& aSqlStmt)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aSqlStmt));
-
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTINT64L_ENTRY16, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectInt64L-16;aSqlStmt=%S", (TUint)this, __SQLPRNSTR(aSqlStmt)));
 	TInt64 res;
 	TPtr8 ptr(reinterpret_cast <TUint8*> (&res), sizeof(res));
 	(void)Impl().ExecScalarFullSelectL(aSqlStmt, ESqlInt64, ptr);
+	SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTINT64L_EXIT16, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectInt64L-16;res=%lld", (TUint)this, res));
 	return res;
 	}
 	
@@ -120,12 +124,11 @@ a single real value and returns that value.
 */
 EXPORT_C TReal TSqlScalarFullSelectQuery::SelectRealL(const TDesC& aSqlStmt)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aSqlStmt));
-
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTREALL_ENTRY16, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectRealL-16;aSqlStmt=%S", (TUint)this, __SQLPRNSTR(aSqlStmt)));
 	TReal res;
 	TPtr8 ptr(reinterpret_cast <TUint8*> (&res), sizeof(res));
 	(void)Impl().ExecScalarFullSelectL(aSqlStmt, ESqlReal, ptr);
+    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTREALL_EXIT16, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectRealL-16", (TUint)this));
 	return res;
 	}
 	
@@ -149,13 +152,12 @@ possible and will return positive value - the character length of the text colum
 */
 EXPORT_C TInt TSqlScalarFullSelectQuery::SelectTextL(const TDesC& aSqlStmt, TDes& aDest)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aSqlStmt));
-	
+    SQL_TRACE_BORDER(OstTraceExt5(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTTEXTL_ENTRY16, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectTextL-16;aSqlStmt=%S;aDest.Ptr()=0x%X;aDest.Size()=%d;aDest.MaxSize()=%d", (TUint)this, __SQLPRNSTR(aSqlStmt), (TUint)aDest.Ptr(), aDest.Size(), aDest.MaxSize()));
 	TPtr8 ptr(reinterpret_cast <TUint8*> (const_cast <TUint16*> (aDest.Ptr())), aDest.MaxLength() * sizeof(TUint16));
-	TInt err = Impl().ExecScalarFullSelectL(aSqlStmt, ESqlText, ptr);
+	TInt rc = Impl().ExecScalarFullSelectL(aSqlStmt, ESqlText, ptr);
 	aDest.SetLength(ptr.Length() / sizeof(TUint16));
-	return err;
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTTEXTL_EXIT16, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectTextL-16;rc=%d", (TUint)this, rc));
+	return rc;
 	}
 	
 /**
@@ -178,10 +180,10 @@ possible and will return positive value - the byte length of the binary column.
 */
 EXPORT_C TInt TSqlScalarFullSelectQuery::SelectBinaryL(const TDesC& aSqlStmt, TDes8& aDest)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aSqlStmt));
-	
-	return Impl().ExecScalarFullSelectL(aSqlStmt, ESqlBinary, aDest);
+    SQL_TRACE_BORDER(OstTraceExt5(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTBINARYL_ENTRY16, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectBinaryL-16;aSqlStmt=%S;aDest.Ptr()=0x%X;aDest.Size()=%d;aDest.MaxSize()=%d", (TUint)this, __SQLPRNSTR(aSqlStmt), (TUint)aDest.Ptr(), aDest.Size(), aDest.MaxSize()));
+	TInt rc = Impl().ExecScalarFullSelectL(aSqlStmt, ESqlBinary, aDest);
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTBINARYL_EXIT16, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectBinaryL-16;rc=%d", (TUint)this, rc));
+	return rc;
 	}
 	
 /**
@@ -198,12 +200,12 @@ a single 32-bit integer value and returns that value.
 */
 EXPORT_C TInt TSqlScalarFullSelectQuery::SelectIntL(const TDesC8& aSqlStmt)
 	{
-	SQLUTRACE_PROFILER(this);	
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam, 1, &aSqlStmt));
-
+	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTINTL_ENTRY8, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectIntL-8;aSqlStmt=%s", (TUint)this, __SQLPRNSTR8(aSqlStmt, des16prnbuf)));
 	TInt res;
 	TPtr8 ptr(reinterpret_cast <TUint8*> (&res), sizeof(res));
 	(void)Impl().ExecScalarFullSelectL(aSqlStmt, ESqlInt, ptr);
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTINTL_EXIT8, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectIntL-8;res=%d", (TUint)this, res));
 	return res;
 	}
 	
@@ -221,12 +223,12 @@ a single 64-bit integer value and returns that value.
 */
 EXPORT_C TInt64 TSqlScalarFullSelectQuery::SelectInt64L(const TDesC8& aSqlStmt)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam, 1, &aSqlStmt));
-
+	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
+	SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTINT64L_ENTRY8, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectInt64L-8;aSqlStmt=%s", (TUint)this, __SQLPRNSTR8(aSqlStmt, des16prnbuf)));
 	TInt64 res;
 	TPtr8 ptr(reinterpret_cast <TUint8*> (&res), sizeof(res));
 	(void)Impl().ExecScalarFullSelectL(aSqlStmt, ESqlInt64, ptr);
+	SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTINT64L_EXIT8, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectInt64L-8;res=%lld", (TUint)this, res));
 	return res;
 	}
 	
@@ -244,12 +246,12 @@ a single real value and returns that value.
 */
 EXPORT_C TReal TSqlScalarFullSelectQuery::SelectRealL(const TDesC8& aSqlStmt)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam, 1, &aSqlStmt));
-	
+	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTREALL_ENTRY8, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectRealL-8;aSqlStmt=%s", (TUint)this, __SQLPRNSTR8(aSqlStmt, des16prnbuf)));
 	TReal res;
 	TPtr8 ptr(reinterpret_cast <TUint8*> (&res), sizeof(res));
 	(void)Impl().ExecScalarFullSelectL(aSqlStmt, ESqlReal, ptr);
+    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTREALL_EXIT8, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectRealL-8", (TUint)this));
 	return res;
 	}
 	
@@ -273,13 +275,13 @@ possible and will return positive value - the character length of the text colum
 */
 EXPORT_C TInt TSqlScalarFullSelectQuery::SelectTextL(const TDesC8& aSqlStmt, TDes& aDest)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam, 1, &aSqlStmt));
-
+	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
+    SQL_TRACE_BORDER(OstTraceExt5(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTTEXTL_ENTRY8, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectTextL-8;aSqlStmt=%s;aDest.Ptr()=0x%X;aDest.Size()=%d;aDest.MaxSize()=%d", (TUint)this, __SQLPRNSTR8(aSqlStmt, des16prnbuf), (TUint)aDest.Ptr(), aDest.Size(), aDest.MaxSize()));
 	TPtr8 ptr(reinterpret_cast <TUint8*> (const_cast <TUint16*> (aDest.Ptr())), aDest.MaxLength() * sizeof(TUint16));
-	TInt err = Impl().ExecScalarFullSelectL(aSqlStmt, ESqlText, ptr);
+	TInt rc = Impl().ExecScalarFullSelectL(aSqlStmt, ESqlText, ptr);
 	aDest.SetLength(ptr.Length() / sizeof(TUint16));
-	return err;
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTTEXTL_EXIT8, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectTextL-8;rc=%d", (TUint)this, rc));
+	return rc;
 	}
 	
 /**
@@ -302,8 +304,9 @@ possible and will return positive value - the character length of the text colum
 */
 EXPORT_C TInt TSqlScalarFullSelectQuery::SelectBinaryL(const TDesC8& aSqlStmt, TDes8& aDest)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam, 1, &aSqlStmt));
-	
-	return Impl().ExecScalarFullSelectL(aSqlStmt, ESqlBinary, aDest);
+	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
+    SQL_TRACE_BORDER(OstTraceExt5(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTBINARYL_ENTRY8, "Entry;0x%X;TSqlScalarFullSelectQuery::SelectBinaryL-8;aSqlStmt=%s;aDest.Ptr()=0x%X;aDest.Size()=%d;aDest.MaxSize()=%d", (TUint)this, __SQLPRNSTR8(aSqlStmt, des16prnbuf), (TUint)aDest.Ptr(), aDest.Size(), aDest.MaxSize()));
+	TInt rc = Impl().ExecScalarFullSelectL(aSqlStmt, ESqlBinary, aDest);
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLSCALARFULLSELECTQUERY_SELECTBINARYL_EXIT8, "Exit;0x%X;TSqlScalarFullSelectQuery::SelectBinaryL-8;rc=%d", (TUint)this, rc));
+	return rc;
 	}

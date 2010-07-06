@@ -19,13 +19,6 @@
 @file
 */
 
-//#define SYMBIAN_INCLUDE_EXECUTABLE_TRACE
-#include <e32utrace.mmh>
-
-#ifdef SYMBIAN_INCLUDE_EXECUTABLE_TRACE
-MACRO			SQLDB_ENABLE_TRACE
-#endif
-
 TARGET			sqldb.dll
 TARGETTYPE		dll
 
@@ -35,12 +28,12 @@ UID				0x1000008d 0x10281E18
 OPTION CW -w noillpragmas
 
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+USERINCLUDE		../traces_SqlDb
 USERINCLUDE		../INC
 USERINCLUDE		../SRC/Client
 USERINCLUDE		../SRC/Client/IPC
 USERINCLUDE		../SRC/Common
 USERINCLUDE		../SRC/Common/IPC
-USERINCLUDE		../SRC/Common/Trace
 USERINCLUDE		../SRC/Security
 //SqlDb includes sqlite3.h header file for the error code macros defined there
 #ifdef SYMBIAN_USE_SQLITE_VERSION_3_6_4
@@ -52,26 +45,30 @@ USERINCLUDE		../SQLite
 OS_LAYER_ESTLIB_SYSTEMINCLUDE
 
 SOURCEPATH		../SRC/Client
-SOURCE			SQLDatabase.cpp SqlDatabaseImpl.cpp SqlStatement.cpp SqlStatementImpl.cpp SqlStream.cpp
+SOURCE			SQLDatabase.cpp 
+SOURCE			SqlDatabaseImpl.cpp 
+SOURCE			SqlStatement.cpp 
+SOURCE			SqlStatementImpl.cpp 
+SOURCE			SqlStream.cpp
 SOURCE			SqlBlob.cpp
+SOURCE			SqlDbSession.cpp 
+SOURCE			SqlStmtSession.cpp 
+SOURCE			SqlResourceTest.cpp 
+SOURCE			SqlScalarFullSelect.cpp 
+SOURCE			SqlResourceProfiler.cpp
 
-SOURCEPATH		../SRC/Common
-SOURCE			SqlUtil.cpp SqlBufFlat.cpp SqlBufIterator.cpp
-
-SOURCEPATH		../SRC/Client
-SOURCE			SqlDbSession.cpp SqlStmtSession.cpp SqlResourceTest.cpp SqlScalarFullSelect.cpp SqlResourceProfiler.cpp
 SOURCEPATH		../SRC/Client/IPC
 SOURCE			IPCBuf.cpp
+
 SOURCEPATH		../SRC/Common
+SOURCE			SqlUtil.cpp 
+SOURCE			SqlBufFlat.cpp 
+SOURCE			SqlBufIterator.cpp
 SOURCE			SqlSrvStartup.cpp
 
 SOURCEPATH		../SRC/Security
-SOURCE			SqlSecurity.cpp SqlSecurityImpl.cpp
-
-#ifdef SYMBIAN_INCLUDE_EXECUTABLE_TRACE
-SOURCEPATH 		../SRC/Common/Trace
-SOURCE 			UTraceSql.cpp
-#endif
+SOURCE			SqlSecurity.cpp 
+SOURCE			SqlSecurityImpl.cpp
 
 LIBRARY			euser.lib efsrv.lib estor.lib
 

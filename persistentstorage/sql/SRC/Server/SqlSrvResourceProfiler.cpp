@@ -13,10 +13,8 @@
 // Description:
 //
 
-#include <e32std.h>
-#include <e32debug.h>
 #include <f32file.h>
-#include "SqlPanic.h"
+#include "SqlAssert.h"
 #include "SqlSrvResourceProfiler.h"
 #include "SqlResourceProfiler.h"
 #include "SqliteSymbian.h"
@@ -140,7 +138,7 @@ void TSqlSrvResourceProfiler::StartL(const RMessage2& aMessage)
 		    {
 			TheSqlSrvProfilerTraceEnabled = ETrue;
 		    TInt len = aMessage.Int1();
-		    __SQLPANIC_CLIENT((TUint)len < 64, aMessage, ESqlPanicBadArgument);
+		    __SQLPANIC_CLIENT2((TUint)len < 64, aMessage, ESqlPanicBadArgument);
 		    if(len > 0)
 		        {
                 TBuf8<64> prmBuf;
@@ -193,7 +191,7 @@ void TSqlSrvResourceProfiler::StartL(const RMessage2& aMessage)
 			err = KErrNotSupported;
 			break;
 		}
-	__SQLLEAVE_IF_ERROR(err);
+	__SQLLEAVE_IF_ERROR2(err);
 	}
 	
 /**
@@ -237,7 +235,7 @@ void TSqlSrvResourceProfiler::StopL(const RMessage2& aMessage)
 			err = KErrNotSupported;
 			break;
 		}
-	__SQLLEAVE_IF_ERROR(err);
+	__SQLLEAVE_IF_ERROR2(err);
 	}
 	
 /**
@@ -278,7 +276,7 @@ void TSqlSrvResourceProfiler::ResetL(const RMessage2& aMessage)
 			err = KErrNotSupported;
 			break;
 		}
-	__SQLLEAVE_IF_ERROR(err);
+	__SQLLEAVE_IF_ERROR2(err);
 	}
 	
 /**
@@ -351,7 +349,7 @@ void TSqlSrvResourceProfiler::QueryL(const RMessage2& aMessage)
 			err = KErrNotSupported;
 			break;
 		}
-	__SQLLEAVE_IF_ERROR(err);
+	__SQLLEAVE_IF_ERROR2(err);
 	aMessage.WriteL(2, ipcBuf);
 	}
 	
@@ -590,7 +588,7 @@ static TInt SqlIpcTraceIdxAndName(TSqlSrvFunction aCode, TPtrC& aIpcCallName)
         default:
             return KErrNotSupported;
         };
-    __SQLASSERT((TUint)rc < KIpcTraceTypeCount || rc == KErrNotFound, ESqlPanicInternalError);
+    __ASSERT_DEBUG((TUint)rc < KIpcTraceTypeCount || rc == KErrNotFound, __SQLPANIC2(ESqlPanicInternalError));
     return rc;
     }
 
@@ -603,7 +601,7 @@ static TInt SqlConvertTicks2Us(TUint32 aStartTicks, TUint32 aEndTicks)
         TInt err = HAL::Get(HAL::EFastCounterFrequency, freq);
         if(err != KErrNone)
             {
-            SqlPanic((TSqlPanic)err);
+            __SQLPANIC2((TSqlPanic)err);
             }
         }
     TInt64 diffTicks = (TInt64)aEndTicks - (TInt64)aStartTicks;
@@ -1011,22 +1009,22 @@ void SqlPrintServerStop()
 
 void TSqlSrvResourceProfiler::StartL(const RMessage2&)
 	{
-	__SQLLEAVE(KErrNotSupported);
+	__SQLLEAVE2(KErrNotSupported);
 	}
 	
 void TSqlSrvResourceProfiler::StopL(const RMessage2&)
 	{
-	__SQLLEAVE(KErrNotSupported);
+	__SQLLEAVE2(KErrNotSupported);
 	}
 	
 void TSqlSrvResourceProfiler::ResetL(const RMessage2&)
 	{
-	__SQLLEAVE(KErrNotSupported);
+	__SQLLEAVE2(KErrNotSupported);
 	}
 	
 void TSqlSrvResourceProfiler::QueryL(const RMessage2&)
 	{
-	__SQLLEAVE(KErrNotSupported);
+	__SQLLEAVE2(KErrNotSupported);
 	}
 	
 #endif//_SQLPROFILER

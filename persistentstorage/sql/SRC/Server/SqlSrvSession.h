@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -135,8 +135,8 @@ private:
 	TBool								iDriveSpaceReserved;	//True if this session reserved drive space
 	TBool								iDriveSpaceInUse;		//True if the client has been given an access to the reserved drive space
 	TDriveNumber 						iDrive;					//the drive number, where the database file is
+	TUint                               iIpcCallCounter;
 #ifdef _SQLPROFILER
-	TUint                               iIpcCounter;                                   
     TSqlSrvIpcTraceData                 iIpcTraceData[KIpcTraceTypeCount];
 #endif
 	};

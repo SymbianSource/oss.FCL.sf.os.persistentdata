@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -510,9 +510,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 	*/
 	
 	// Locals for the test scenarios
-	RApaLsSession ls;
 	RProcess process; 
-	CApaCommandLine* cmdLine;
 	TBitFlags32 flags( 0 ); 	
 	flags.Set( EFeatureSupported);
 	flags.Set( EFeatureModifiable );
@@ -535,14 +533,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 	
 		// This delay is used to allow P&S to complete the initial setting of the 
 		// KSAUidSoftwareInstallKeyValue property to ESASwisInstall before we proceed with 
@@ -666,14 +657,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -723,14 +707,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -779,14 +756,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 			
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -845,14 +815,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -911,14 +874,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -961,14 +917,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1014,14 +963,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1141,14 +1083,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1198,14 +1133,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1239,14 +1167,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 			
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1305,14 +1226,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1376,14 +1290,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1418,14 +1325,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 		// Starting helping exe
 		_LIT(KHelpingExePath, "helping_exe.exe");
 		err = process.Create(KHelpingExePath, _L("1"));
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KHelpingExePath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Wait for helping_exe to finish
 		User::After(600000);
@@ -1509,14 +1409,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1543,14 +1436,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 		// Starting helping exe which is going to call SWIEnd (passing 2 as a parameter to indicate this)
 		_LIT(KHelpingExePath, "helping_exe.exe");
 		err = process.Create(KHelpingExePath, _L("2"));
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KHelpingExePath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		User::After(500000);
 			
@@ -1603,14 +1489,7 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-		User::LeaveIfError(ls.Connect());
-		CleanupClosePushL(ls);
-		cmdLine = CApaCommandLine::NewLC();
-		cmdLine->SetExecutableNameL(KDummySWIPath);
-		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
-		CleanupStack::PopAndDestroy(2);
-		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);

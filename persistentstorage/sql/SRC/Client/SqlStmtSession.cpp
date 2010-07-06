@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -16,6 +16,83 @@
 
 #include <s32mem.h>
 #include "SqlStmtSession.h"		//RSqlStatementSession
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlStmtSessionTraces.h"
+#endif
+#include "SqlTraceDef.h"
+
+/**
+ Sends a request to the SQL server to prepare 16-bit aSqlStmt statement.
+ 
+ Usage of the IPC call arguments:
+ Arg 0: [in/out]        data buffer for the column and parameter count.
+ Arg 1: [out]       statement length in characters
+ Arg 2: [out]       16-bit statement
+ 
+ @param aDbSession A reference to RSqlDbSession instance.
+ @param aSqlStmt 16-bit SQL statement.
+ @param aColumnCount Output parameter. Statement column count.
+ @param aParamCount Output parameter. Statement parameter count.
+ 
+ @return KErrNoMemory, an out of memory condition has occured;
+ KErrArgument, bad argument, for example - the SQL string contains more than one SQL statements.
+ Note that the function may return some database specific errors categorised as 
+ ESqlDbError or other system-wide error codes;
+ KErrNone      The operation has completed successfully. 
+ 
+ @panic SqlDb 7 In _DEBUG mode if the statement handle is 0.
+*/
+TInt RSqlStatementSession::Prepare(RSqlDbSession& aDbSession, const TDesC& aSqlStmt, 
+                                          TInt& aColumnCount, TInt& aParamCount)
+    {
+    iDbSession = &aDbSession;
+    TSqlIpcData data;
+    TPckg<TSqlIpcData> pckg(data);
+    TUint stmtLen = aSqlStmt.Length();
+    iHandle = iDbSession->SendReceive(ESqlSrvStmtPrepare16, TIpcArgs(&pckg, stmtLen, &aSqlStmt));
+    __ASSERT_DEBUG(iHandle != 0, __SQLPANIC(ESqlPanicInternalError));   
+    aColumnCount = static_cast <TInt> (data.iPrm1);
+    aParamCount = static_cast <TInt> (data.iPrm2);
+    SQL_TRACE_SESSION(OstTraceExt2(TRACE_INTERNALS, RSQLSTATEMENTSESSION_PREPARE16, "0x%X;RSqlStatementSession::Prepare-16;iHandle=%d", (TUint)this, iHandle));
+    return iHandle > 0 ? KErrNone : iHandle;
+    }
+
+/**
+Sends a request to the SQL server to prepare 8-bit aSqlStmt statement.
+
+Usage of the IPC call arguments:
+Arg 0: [in/out]     data buffer for the column and parameter count.
+Arg 1: [out]        statement length in characters
+Arg 2: [out]        8-bit statement
+
+@param aDbSession A reference to RSqlDbSession instance.
+@param aSqlStmt 8-bit SQL statement.
+@param aColumnCount Output parameter. Statement column count.
+@param aParamCount Output parameter. Statement parameter count.
+
+@return KErrNoMemory, an out of memory condition has occured;
+        KErrArgument, bad argument, for example - the SQL string contains more than one SQL statements.
+                      Note that the function may return some database specific errors categorised as 
+                      ESqlDbError or other system-wide error codes;
+        KErrNone      The operation has completed successfully. 
+
+@panic SqlDb 7 In _DEBUG mode if the statement handle is 0.
+*/
+TInt RSqlStatementSession::Prepare(RSqlDbSession& aDbSession, const TDesC8& aSqlStmt, 
+                                          TInt& aColumnCount, TInt& aParamCount)
+    {
+    iDbSession = &aDbSession;
+    TSqlIpcData data;
+    TPckg<TSqlIpcData> pckg(data);
+    TUint stmtLen = aSqlStmt.Length();
+    iHandle = iDbSession->SendReceive(ESqlSrvStmtPrepare8, TIpcArgs(&pckg, stmtLen, &aSqlStmt));
+    __ASSERT_DEBUG(iHandle != 0, __SQLPANIC(ESqlPanicInternalError));
+    aColumnCount = static_cast <TInt> (data.iPrm1);
+    aParamCount = static_cast <TInt> (data.iPrm2);
+    SQL_TRACE_SESSION(OstTraceExt2(TRACE_INTERNALS, RSQLSTATEMENTSESSION_PREPARE8, "0x%X;RSqlStatementSession::Prepare-8;iHandle=%d", (TUint)this, iHandle));
+    return iHandle > 0 ? KErrNone : iHandle;
+    }
 
 /**
 Sends a request to the server to close the statement handle.
@@ -23,6 +100,7 @@ Closes the session object.
 */
 void RSqlStatementSession::Close()
 	{
+	SQL_TRACE_SESSION(OstTraceExt2(TRACE_INTERNALS, RSQLSTATEMENTSESSION_CLOSE, "0x%X;RSqlStatementSession::Close;iHandle=%d", (TUint)this, iHandle));
 	if(iDbSession && iHandle > 0)
 		{
 		(void)iDbSession->SendReceive(::MakeMsgCode(ESqlSrvStmtClose, ESqlSrvStatementHandle, iHandle));

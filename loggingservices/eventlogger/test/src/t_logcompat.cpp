@@ -684,6 +684,7 @@ void doTestsL()
 
 void doTestsL()
 	{
+	TestUtils::Initialize(_L("t_logcompat"));
 	TheTest.Start(_L("The LogEng compatibility test cases are compiled only when SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM macro is defined!"));
 	}
 

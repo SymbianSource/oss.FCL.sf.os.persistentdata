@@ -404,8 +404,16 @@ void WriteTest5()
 	TEST2(fbuf.iFileWriteAmount, 0);
 	TEST2(fbuf.iFileSizeCount, 1);
 
-	//Second write operation. The offset is 0.  Data length: 12;
+	//Second write operation. The offset is 0.  Data length: 12, i.e. within the buffer - should have no write to the disk.
 	err = fbuf.Write(0, _L8("ZZXXCCVVBBNN"));
+	TEST2(err, KErrNone); 
+	TEST2(fbuf.iFileWriteCount, 0);
+	TEST2(fbuf.iFileWriteAmount, 0);
+	TEST2(fbuf.iFileSizeCount, 1);
+	
+	//Third write operation. The offet is 18. Data length: 5. The buffer should be written out to the file
+	// after "ab" is appended to the buffer. The new buffe after being emptied should have data "cde".
+	err = fbuf.Write(18, _L8("abcde"));
 	TEST2(err, KErrNone); 
 	TEST2(fbuf.iFileWriteCount, 1);
 	TEST2(fbuf.iFileWriteAmount, 20);
@@ -415,12 +423,12 @@ void WriteTest5()
 	TEST2(err, KErrNone); 
 	TEST2(fbuf.iFileWriteCount, 2);
 	TEST2(fbuf.iFileFlushCount, 1);
-	TEST2(fbuf.iFileWriteAmount, 20 + 12);
+	TEST2(fbuf.iFileWriteAmount, 23);
 	TEST2(fbuf.iFileSizeCount, 1);
 
 	fbuf.Close();
 
-	VerifyFileContent(_L8("ZZXXCCVVBBNN23456789"));
+	VerifyFileContent(_L8("ZZXXCCVVBBNN234567abcde"));
 	
 	(void)TheFs.Delete(KTestFile);
 	}
@@ -1256,6 +1264,79 @@ void ReadOomTest()
 	delete databuf;
 	}
 
+/**
+@SYMTestCaseID          PDS-SQL-CT-4212
+@SYMTestCaseDesc        RFileBuf64::Write() test.
+                        The test performs file write operations using RFileBuf64 class.
+                        Teh test sumilates the write operation at the conditions:
+                        
+                        1. There are 8 pages to be writted to the file.
+                        2. Each page is 16 bytes
+                        3. The size of RFileBuf64 is 4 pages, i.e. 64 bytes.
+                        4. The order of write is not sequential.
+ 
+@SYMTestActions         Write database pages.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority        High
+*/
+void TestSetSizeCounter()
+    {
+    const TInt KPageSize = 16;
+    const TInt KBufSize = 4 * KPageSize;
+    RFileBuf64 fbuf(KBufSize);
+    (void)TheFs.Delete(KTestFile);
+    TInt err = fbuf.Create(TheFs, KTestFile, EFileRead | EFileWrite);
+    TEST2(err, KErrNone); 
+    const TInt KMaxPage = 8;
+    TUint8 fileData[KMaxPage][KPageSize];
+    TPtrC8 pageData[KMaxPage];
+    for(TInt i = 0;i <KMaxPage;++i)
+        {
+        Mem::Fill(fileData[i], KPageSize, TChar('a' + i));
+        const TUint8* p = fileData[i]; 
+        pageData[i].Set(p, KPageSize);
+        }
+    //
+    fbuf.ProfilerReset();
+    //Write the first 4 pages
+    for (TInt ii = 0; ii < 4; ii++)
+        {
+        err = fbuf.Write(ii * KPageSize, pageData[ii]);
+        TEST2(err, KErrNone);
+        }
+    //Write page #2
+    err = fbuf.Write(2 * KPageSize, pageData[2]);
+    TEST2(err, KErrNone);
+    //
+    TEST2(fbuf.iFileWriteCount, 0);
+    TEST2(fbuf.iFileSetSizeCount, 0);
+    //Write pages 5, 4, 6, 7
+    err = fbuf.Write(5 * KPageSize, pageData[5]);
+    TEST2(err, KErrNone);
+    //
+    TEST2(fbuf.iFileWriteCount, 1);
+    TEST2(fbuf.iFileSetSizeCount, 0);
+    //
+    err = fbuf.Write(4 * KPageSize, pageData[4]);
+    TEST2(err, KErrNone);
+    err = fbuf.Write(6 * KPageSize, pageData[6]);
+    TEST2(err, KErrNone);
+    err = fbuf.Write(7 * KPageSize, pageData[7]);
+    TEST2(err, KErrNone);
+    //
+    TEST2(fbuf.iFileWriteCount, 1);
+    TEST2(fbuf.iFileSetSizeCount, 0);
+    //
+    err = fbuf.Flush();
+    TEST2(err, KErrNone);
+    //
+    TEST2(fbuf.iFileWriteCount, 2);
+    TEST2(fbuf.iFileSetSizeCount, 0);
+    //
+    fbuf.Close();
+    (void)TheFs.Delete(KTestFile);
+    }
+
 void DoTests()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:PDS-SQL-UT-4132 RFileBuf64 write test 1"));
@@ -1301,6 +1382,8 @@ void DoTests()
 	OpenFileIoErrTest();
 	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4197 RFileBuf64::Temp() file I/O error simulation test"));
 	OpenFileIoErrTest();
+	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-CT-4212 RFileBuf64::Write() test"));
+	TestSetSizeCounter();
 	}
 
 TInt E32Main()

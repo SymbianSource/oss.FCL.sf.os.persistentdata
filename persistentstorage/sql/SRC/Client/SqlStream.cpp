@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,6 +15,11 @@
 
 #include <sqldb.h>					//RSqlColumnReadStream, RSqlParamWriteStream
 #include "SqlStatementImpl.h"		//CSqlStatementImpl
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlStreamTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////         RSqlColumnReadStream              ////////////////////////////////////
@@ -38,10 +43,9 @@ The function can only be used for text and binary column types.
 */
 EXPORT_C TInt RSqlColumnReadStream::ColumnText(RSqlStatement& aStmt, TInt aColumnIndex)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexIntParam, &aStmt, aColumnIndex));
-	
+	SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLCOLUMNREADSTREAM_COLUMNTEXT_ENTRY, "Entry;0x%X;RSqlColumnReadStream::ColumnText;aStmt=0x%X;aColumnIndex=%d", (TUint)this, (TUint)&aStmt, aColumnIndex));
 	TRAPD(err, Attach(aStmt.Impl().ColumnSourceL(aColumnIndex)));
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLCOLUMNREADSTREAM_COLUMNTEXT_EXIT, "Exit;0x%X;RSqlColumnReadStream::ColumnText;err=%d", (TUint)this, err));
 	return err;
 	}
 	
@@ -63,10 +67,9 @@ The function can only be used for text and binary column types.
 */
 EXPORT_C TInt RSqlColumnReadStream::ColumnBinary(RSqlStatement& aStmt, TInt aColumnIndex)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexIntParam, &aStmt, aColumnIndex));
-	
+    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLCOLUMNREADSTREAM_COLUMNBINARY_ENTRY, "Entry;0x%X;RSqlColumnReadStream::ColumnBinary;aStmt=0x%X;aColumnIndex=%d", (TUint)this, (TUint)&aStmt, aColumnIndex));
 	TRAPD(err, Attach(aStmt.Impl().ColumnSourceL(aColumnIndex)));
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLCOLUMNREADSTREAM_COLUMNBINARY_EXIT, "Exit;0x%X;RSqlColumnReadStream::ColumnBinary;err=%d", (TUint)this, err));
 	return err;
 	}
 
@@ -87,10 +90,9 @@ The function can only be used for text and binary column types.
 */
 EXPORT_C void RSqlColumnReadStream::ColumnTextL(RSqlStatement& aStmt, TInt aColumnIndex)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexIntParam, &aStmt, aColumnIndex));
-	
+    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLCOLUMNREADSTREAM_COLUMNTEXTL_ENTRY, "Entry;0x%X;RSqlColumnReadStream::ColumnTextL;aStmt=0x%X;aColumnIndex=%d", (TUint)this, (TUint)&aStmt, aColumnIndex));
 	Attach(aStmt.Impl().ColumnSourceL(aColumnIndex));
+    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLCOLUMNREADSTREAM_COLUMNTEXTL_EXIT, "Exit;0x%X;RSqlColumnReadStream::ColumnTextL", (TUint)this));
 	}
 	
 /**
@@ -110,10 +112,9 @@ The function can only be used for text and binary column types.
 */
 EXPORT_C void RSqlColumnReadStream::ColumnBinaryL(RSqlStatement& aStmt, TInt aColumnIndex)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexIntParam, &aStmt, aColumnIndex));
-
+    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLCOLUMNREADSTREAM_COLUMNBINARYL_ENTRY, "Entry;0x%X;RSqlColumnReadStream::ColumnBinaryL;aStmt=0x%X;aColumnIndex=%d", (TUint)this, (TUint)&aStmt, aColumnIndex));
 	Attach(aStmt.Impl().ColumnSourceL(aColumnIndex));
+    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLCOLUMNREADSTREAM_COLUMNBINARYL_EXIT, "Exit;0x%X;RSqlColumnReadStream::ColumnBinaryL", (TUint)this));
 	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,10 +142,9 @@ which the parameter is set (RSqlStatement::Next() or RSqlStatement::Exec()).
 */
 EXPORT_C TInt RSqlParamWriteStream::BindText(RSqlStatement& aStmt, TInt aParameterIndex)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexIntParam, &aStmt, aParameterIndex));
-
+    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLPARAMWRITESTREAM_BINDTEXT_ENTRY, "Entry;0x%X;RSqlParamWriteStream::BindText;aStmt=0x%X;aParameterIndex=%d", (TUint)this, (TUint)&aStmt, aParameterIndex));
 	TRAPD(err, Attach(aStmt.Impl().ParamSinkL(ESqlSrvStmtTxtParamSink16, aParameterIndex)));
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLPARAMWRITESTREAM_BINDTEXT_EXIT, "Exit;0x%X;RSqlParamWriteStream::BindText;err=%d", (TUint)this, err));
 	return err;
 	}
 	
@@ -169,10 +169,9 @@ which the parameter is set (RSqlStatement::Next() or RSqlStatement::Exec()).
 */
 EXPORT_C TInt RSqlParamWriteStream::BindBinary(RSqlStatement& aStmt, TInt aParameterIndex)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexIntParam, &aStmt, aParameterIndex));
-
+    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLPARAMWRITESTREAM_BINDBINARY_ENTRY, "Entry;0x%X;RSqlParamWriteStream::BindBinary;aStmt=0x%X;aParameterIndex=%d", (TUint)this, (TUint)&aStmt, aParameterIndex));
 	TRAPD(err, Attach(aStmt.Impl().ParamSinkL(ESqlSrvStmtBinParamSink, aParameterIndex)));
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLPARAMWRITESTREAM_BINDBINARY_EXIT, "Exit;0x%X;RSqlParamWriteStream::BindBinary;err=%d", (TUint)this, err));
 	return err;
 	}
 
@@ -196,10 +195,9 @@ which the parameter is set (RSqlStatement::Next() or RSqlStatement::Exec()).
 */
 EXPORT_C void RSqlParamWriteStream::BindTextL(RSqlStatement& aStmt, TInt aParameterIndex)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexIntParam, &aStmt, aParameterIndex));
-
+    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLPARAMWRITESTREAM_BINDTEXTL_ENTRY, "Entry;0x%X;RSqlParamWriteStream::BindTextL;aStmt=0x%X;aParameterIndex=%d", (TUint)this, (TUint)&aStmt, aParameterIndex));
 	Attach(aStmt.Impl().ParamSinkL(ESqlSrvStmtTxtParamSink16, aParameterIndex));
+    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLPARAMWRITESTREAM_BINDTEXTL_EXIT, "Exit;0x%X;RSqlParamWriteStream::BindTextL", (TUint)this));
 	}
 	
 /**
@@ -222,9 +220,8 @@ which the parameter is set (RSqlStatement::Next() or RSqlStatement::Exec()).
 */
 EXPORT_C void RSqlParamWriteStream::BindBinaryL(RSqlStatement& aStmt, TInt aParameterIndex)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexIntParam, &aStmt, aParameterIndex));
-
+    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLPARAMWRITESTREAM_BINDBINARYL_ENTRY, "Entry;0x%X;RSqlParamWriteStream::BindBinaryL;aStmt=0x%X;aParameterIndex=%d", (TUint)this, (TUint)&aStmt, aParameterIndex));
 	Attach(aStmt.Impl().ParamSinkL(ESqlSrvStmtBinParamSink, aParameterIndex));
+    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLPARAMWRITESTREAM_BINDBINARYL_EXIT, "Exit;0x%X;RSqlParamWriteStream::BindBinaryL", (TUint)this));
 	}
 

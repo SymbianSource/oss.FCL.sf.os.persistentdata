@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -55,7 +55,7 @@ is no memory.
 template <class T> 
 void RDbObjContainer<T>::AllocL()
 	{
-	__SQLASSERT(iFree <= iSize, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iFree <= iSize, __SQLPANIC(ESqlPanicInternalError));
 	if(iFree == iSize)
 		{
 		if(iSize >= KMaxSize)
@@ -87,15 +87,15 @@ The method adds "aObj" pointer to the container.
 template <class T> 
 TInt RDbObjContainer<T>::Add(T* aObj)
 	{
-	__SQLASSERT(aObj != NULL, ESqlPanicBadArgument);
-	__SQLASSERT(iFree <= iSize, ESqlPanicInternalError);
+	__ASSERT_DEBUG(aObj != NULL, __SQLPANIC(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(iFree <= iSize, __SQLPANIC(ESqlPanicInternalError));
 	TInt idx = iFree;
 	if(idx < iSize)
 		{
 		/*RDbObjContainer<T>::*/TEntry& entry = iEntries[idx];
-		__SQLASSERT(!entry.iObj, ESqlPanicInternalError);
+		__ASSERT_DEBUG(!entry.iObj, __SQLPANIC(ESqlPanicInternalError));
 		iFree = entry.iNext;
-		__SQLASSERT(iFree <= iSize, ESqlPanicInternalError);
+		__ASSERT_DEBUG(iFree <= iSize, __SQLPANIC(ESqlPanicInternalError));
 		entry.iObj = aObj;
 		return MakeHandle(idx);
 		}
@@ -135,7 +135,7 @@ The removed object will be destroyed.
 template <class T> 
 void RDbObjContainer<T>::Remove(TInt aHandle)
 	{
-	__SQLASSERT(iFree <= iSize, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iFree <= iSize, __SQLPANIC(ESqlPanicInternalError));
 	if(aHandle > 0)	//It is a handle, sent by the client. It isn't a server's problem if the handle is <= 0.
 		{
 		TInt idx = MakeIndex(aHandle);
@@ -148,7 +148,7 @@ void RDbObjContainer<T>::Remove(TInt aHandle)
 			iFree = idx;
 			}
 		}
-	__SQLASSERT(iFree <= iSize, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iFree <= iSize, __SQLPANIC(ESqlPanicInternalError));
 	}
 
 /**
