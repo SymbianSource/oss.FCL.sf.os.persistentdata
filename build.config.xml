@@ -34,6 +34,12 @@
 					bldFile="&layer_real_source_path;/loggingservices/filelogger/group"
 					mrp="&layer_real_source_path;/loggingservices/filelogger/group/comms-infras_flogger.mrp"
 				/>
+				<unit
+					name="rfilelogger"
+					unitID="sos.rfilelogger"
+					bldFile="&layer_real_source_path;/loggingservices/rfilelogger/group"
+					mrp="&layer_real_source_path;/loggingservices/rfilelogger/group/testtools_utilities.mrp"
+				/>
 			</module>
 
 			<module name="persistentstorage">
@@ -76,6 +82,12 @@
 					bldFile="&layer_real_source_path;/traceservices/commsdebugutility/group"
 					mrp="&layer_real_source_path;/traceservices/commsdebugutility/group/comms-infras_commsdebugutility.mrp"
 				/>
+				<unit
+					name="tracefw"
+					unitID="sos.tracefw"
+					bldFile="&layer_real_source_path;/traceservices/tracefw/group"
+					mrp="&layer_real_source_path;/traceservices/tracefw/ulogger/group/tools_debug_trace.mrp"
+				/>
 			</module>
 		</layer>
 
@@ -107,6 +119,12 @@
 					unitID="sos.filelogger.test"
 					bldFile="&layer_real_source_path;/loggingservices/filelogger/group"
 					mrp="&layer_real_source_path;/loggingservices/filelogger/group/comms-infras_flogger.mrp"
+				/>
+				<unit
+					name="rfilelogger"
+					unitID="sos.rfilelogger.test"
+					bldFile="&layer_real_source_path;/loggingservices/rfilelogger/group"
+					mrp="&layer_real_source_path;/loggingservices/rfilelogger/group/testtools_utilities.mrp"
 				/>
 			</module>
 
@@ -149,6 +167,12 @@
 					unitID="sos.commsdebugutility.test"
 					bldFile="&layer_real_source_path;/traceservices/commsdebugutility/group"
 					mrp="&layer_real_source_path;/traceservices/commsdebugutility/group/comms-infras_commsdebugutility.mrp"
+				/>
+				<unit
+					name="tracefw"
+					unitID="sos.tracefw.test"
+					bldFile="&layer_real_source_path;/traceservices/tracefw/group"
+					mrp="&layer_real_source_path;/traceservices/tracefw/ulogger/group/tools_debug_trace.mrp"
 				/>
 			</module>
 

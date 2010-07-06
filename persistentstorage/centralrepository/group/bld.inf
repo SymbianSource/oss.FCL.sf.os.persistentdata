@@ -41,9 +41,9 @@ PRJ_TESTEXPORTS
 // Stub sis file required by various tests.
 
 #ifdef __SERIES60_
-../test/testexecute/SWI/data/rnd_sis/centrepswiteststub.SIS     z:/system/install/centrepswiteststub.sis
+../test/testexecute/SWI/data/rnd_sis/centrepswiteststub.sis     z:/system/install/centrepswiteststub.sis
 #else
-../test/testexecute/SWI/data/techview_sis/centrepswiteststub.SIS     z:/system/install/centrepswiteststub.sis
+../test/testexecute/SWI/data/techview_sis/centrepswiteststub.sis     z:/system/install/centrepswiteststub.sis
 #endif //__SERIES60_
 
 CentralRepositoryTests.bat                              /epoc32/data/z/system/test/centralrepositorytests.bat
@@ -1451,26 +1451,38 @@ t_cenrep_defects.mmp
 t_cenrep_meta.mmp
 t_cenrep_rfs.mmp
 t_cenrep_back_rest.mmp
-t_cenrep_back_rest_defect.mmp     manual
+#ifdef CENTREP_MW_TESTS
+    t_cenrep_back_rest_defect.mmp       manual
+#endif // CENTREP_MW_TESTS
 t_cenrep_back_rest_delete.mmp
 t_oomcenrepsrv.mmp
 t_processkillprocess.mmp          support
 
 #ifdef SYMBIAN_BAFL_SYSUTIL
-   t_cenrep_fota_tvem1.mmp        manual
-   t_cenrep_fota_tvem2.mmp        manual
-   t_cenrep_fota_tvem3.mmp        manual
-   t_cenrep_fota_txtem1.mmp       manual
-   t_cenrep_fota_txtem2.mmp       manual
-   t_cenrep_fotaUT.mmp            manual
+    #ifdef CENTREP_MW_TESTS
+        t_cenrep_fota_tvem1.mmp         manual
+    #endif // CENTREP_MW_TESTS
 
-   #ifdef __CENTREP_SERVER_PERFTEST__
-      t_cenrep_fota_perf1.mmp     manual
-      t_cenrep_fota_perf2.mmp     manual
-   #endif // __CENTREP_SERVER_PERFTEST__
+    t_cenrep_fota_tvem2.mmp          manual
 
-   t_cenrep_fota_hw_setup.mmp     manual
-   t_cenrep_fota_hw_tests.mmp     manual
+    #ifdef CENTREP_MW_TESTS
+        t_cenrep_fota_tvem3.mmp         manual
+        t_cenrep_fota_txtem1.mmp        manual
+        t_cenrep_fota_txtem2.mmp        manual
+        t_cenrep_fotaUT.mmp             manual
+    #endif // CENTREP_MW_TESTS
+
+    #ifdef __CENTREP_SERVER_PERFTEST__
+        #ifdef CENTREP_MW_TESTS
+            t_cenrep_fota_perf1.mmp     manual
+        #endif // CENTREP_MW_TESTS
+        t_cenrep_fota_perf2.mmp         manual
+    #endif // __CENTREP_SERVER_PERFTEST__
+
+    #ifdef CENTREP_MW_TESTS
+       t_cenrep_fota_hw_setup.mmp       manual
+       t_cenrep_fota_hw_tests.mmp       manual
+    #endif // CENTREP_MW_TESTS
 #endif // SYMBIAN_BAFL_SYSUTIL
 
 

@@ -57,7 +57,7 @@ Reset the iterator to point to the first setting
 */	
 EXPORT_C void CConfigSettingsIter::Reset()
 	{
-	return iImpl->Reset();
+	iImpl->Reset();
 	}
 
 /**

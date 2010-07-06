@@ -13,25 +13,22 @@
 // Description:
 //
 
-TARGET      Te_RFileLoggerSuite.exe
+TARGET      te_rfileloggersuite.exe
 TARGETTYPE  exe
 UID         0x1000007A 0x102089CD
 
-//Please add any change under here.
-SOURCEPATH  ..\src
+SOURCEPATH  ../src
 SOURCE      Te_RFileLoggerSuiteServer.cpp
 SOURCE      Te_RFileLoggerSuiteStepBase.cpp
 SOURCE      addfield_logStep.cpp
 SOURCE      conn_closeStep.cpp
 
-USERINCLUDE ..\src
+USERINCLUDE ../src
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
 LIBRARY     euser.lib
 LIBRARY     testexecuteutils.lib 
 LIBRARY     testexecutelogclient.lib 
-
-//Please add your libraries under here.
-LIBRARY     RFileLoggerclient.lib
+LIBRARY     rfileloggerclient.lib
 
 CAPABILITY ALL -Tcb

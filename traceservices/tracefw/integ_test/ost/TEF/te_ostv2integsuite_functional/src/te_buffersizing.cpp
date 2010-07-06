@@ -136,7 +136,7 @@ TBool CTCMBufferSizingWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
                		}
             	}
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			logger.SetSecondaryFilteringEnabled(EFalse);//C.A. previously:logger.DisableModuleUidFiltering();
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(KGroupId);

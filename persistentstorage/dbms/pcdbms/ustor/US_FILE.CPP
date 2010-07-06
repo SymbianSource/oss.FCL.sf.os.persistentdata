@@ -91,13 +91,11 @@ EXPORT_C void CDbFileStoreDatabase::CreateL(const TDesC& aName, TDbFormat::TCrea
 		{
 	default:
 		__LEAVE(KErrNotSupported);
-//  When the file cache in file server is on, the order of file writing is not guaranteed which could cause data inconsistency in some circumstances, for example, when the power is lost in the middle of data transaction. Therefore, the file write cache is switched off here to maintain the file integrity .      
 	case TDbFormat::ECreate:
-		store=CPermanentFileStore::CreateL(iFs,aName,EFileRead|EFileWrite|EFileWriteDirectIO);
+		store=CPermanentFileStore::CreateL(iFs,aName,EFileRead|EFileWrite);
 		break;
-//  When the file cache in file server is on, the order of file writing is not guaranteed which could cause data inconsistency in some circumstances, for example, when the power is lost in the middle of data transaction. Therefore, the file write cache is switched off here to maintain the file integrity .      
 	case TDbFormat::EReplace:
-		store=CPermanentFileStore::ReplaceL(iFs,aName,EFileRead|EFileWrite|EFileWriteDirectIO);
+		store=CPermanentFileStore::ReplaceL(iFs,aName,EFileRead|EFileWrite);
 		break;
 		};
 	iStore=store;
@@ -140,8 +138,6 @@ EXPORT_C void CDbFileStoreDatabase::OpenL(const TDesC& aName,TDbFormat::TOpen aM
 //
 	iName=aName.AllocL();
 	const TUint mode=aMode==TDbFormat::EReadOnly ? EFileShareReadersOnly : EFileWrite;
-//  When the file cache in file server is on, the order of file writing is not guaranteed which could cause data inconsistency in some circumstances, for example, when the power is lost in the middle of data transaction. Therefore, the file write cache is switched off here to maintain the file integrity .      
-	mode=mode|EFileWriteDirectIO;
 	CFileStore* store=CPermanentFileStore::OpenL(iFs,*iName,mode);
 	iStore=store;
 	CDbStoreDatabase::RestoreL(DatabaseIdL(store->Root()));

@@ -75,7 +75,7 @@ TInt CApiCallTest::DoTestL(const TApiRunConfig& /*aApiRunConfig*/, TApiTestResul
 	return error;
 	}
 
-TInt CApiCallTest::CachedTraceTime(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult)
+TInt CApiCallTest::CachedTraceTimeL(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult)
 	{
 	TInt error = KErrNotSupported;
 	//create a dummy time variable to be used for the baseline measurement	
@@ -85,17 +85,17 @@ TInt CApiCallTest::CachedTraceTime(TApiRunConfig& aApiRunConfig, TApiTestResult&
 	__TEST_LOG("about to carry out cache trace");
 	if(aApiRunConfig.iDoMinExecution) 
 		{
-		CachedTraceBaselineTime(aApiRunConfig, baselinetime);
+		CachedTraceBaselineTimeL(aApiRunConfig, baselinetime);
 		__TEST_LOG("cache baseline");
 		__TEST_LOGNUM(baselinetime);
-		error = CachedTraceTime(aApiRunConfig, aApiTestResult.iMinimumExecutionTime, baselinetime);
+		error = CachedTraceTimeL(aApiRunConfig, aApiTestResult.iMinimumExecutionTime, baselinetime);
 		__TEST_LOG("cache");
 		__TEST_LOGNUM(aApiTestResult.iMinimumExecutionTime);
 		}
 	return error;
 	}
 
-TInt CApiCallTest::NonCachedTraceTime(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult)
+TInt CApiCallTest::NonCachedTraceTimeL(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult)
 	{
 	TInt error = KErrNotSupported;
 	//create a dummy time variable to be used for the baseline measurement	
@@ -103,20 +103,20 @@ TInt CApiCallTest::NonCachedTraceTime(TApiRunConfig& aApiRunConfig, TApiTestResu
 	__TEST_LOG("about to carry out non cache trace");
 	if(aApiRunConfig.iDoTypicalExecution)
 		{
-		NonCachedTraceBaselineTime(aApiRunConfig, baselinetime);
+		NonCachedTraceBaselineTimeL(aApiRunConfig, baselinetime);
 		__TEST_LOG("noncache baseline");
 		__TEST_LOGNUM(baselinetime);
-		error = NonCachedTraceTime(aApiRunConfig, aApiTestResult.iTypicalExecutionTime, baselinetime);
+		error = NonCachedTraceTimeL(aApiRunConfig, aApiTestResult.iTypicalExecutionTime, baselinetime);
 		__TEST_LOG("noncache");
 		__TEST_LOGNUM(aApiTestResult.iTypicalExecutionTime);				
 		}
 	return error;
 	}
 
-TInt CApiCallTest::StackUsage(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult)
+TInt CApiCallTest::StackUsageL(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult)
 	{
 	__TEST_LOG("about to carry out stack usage trace");
-	TInt error = StackUsage(aApiRunConfig, aApiTestResult.iRunResults.iApiStackUsage);
+	TInt error = StackUsageL(aApiRunConfig, aApiTestResult.iRunResults.iApiStackUsage);
 	if(aApiTestResult.iRunResults.iApiStackUsage == KErrNotSupported && !error)
 		error = KErrNotSupported;
 	return error;
@@ -141,7 +141,7 @@ TInt CApiCallTest::FlushTheCache()
 @param aMinimumExecutionBaselineTime is the minimum execution baseline time taken for the commented API call, calculated in nanoseconds
 @return KErrNone if command was prepared correctly and a system wide error code otherwise.
  */
-TInt CApiCallTest::CachedTraceBaselineTime(TApiRunConfig& aApiRunConfig, TInt32& aMinimumExecutionBaselineTime) 
+TInt CApiCallTest::CachedTraceBaselineTimeL(TApiRunConfig& aApiRunConfig, TInt32& aMinimumExecutionBaselineTime) 
 	{
 	//****NB: update this routine to something more maintainable
 	TUptTraceTester timer;
@@ -171,7 +171,7 @@ TInt CApiCallTest::CachedTraceBaselineTime(TApiRunConfig& aApiRunConfig, TInt32&
 @param aMinimumExecutionBaselineTime is the minimum execution baseline time taken for commented API call, calculated in nanoseconds
 @return KErrNone if command was prepared correctly and a system wide error code otherwise.
  */	
-TInt CApiCallTest::CachedTraceTime(TApiRunConfig& aApiRunConfig, TInt32& aMinimumExecutionTime, TInt32& aMinimumExecutionBaselineTime)
+TInt CApiCallTest::CachedTraceTimeL(TApiRunConfig& aApiRunConfig, TInt32& aMinimumExecutionTime, TInt32& aMinimumExecutionBaselineTime)
 	{ 
 	//NB!!! any changes to this routine and you have to update the baseline calculation as well
 	TUptTraceTester timer;
@@ -194,7 +194,7 @@ TInt CApiCallTest::CachedTraceTime(TApiRunConfig& aApiRunConfig, TInt32& aMinimu
 @param aTypicalExecutionBaselineTime is the typical execution baseline time taken for the API call, calculated in nanoseconds
 @return KErrNone if command was prepared correctly and a system wide error code otherwise.
  */	
-TInt CApiCallTest::NonCachedTraceBaselineTime(TApiRunConfig& aApiRunConfig, TInt32& aTypicalExecutionBaselineTime)
+TInt CApiCallTest::NonCachedTraceBaselineTimeL(TApiRunConfig& aApiRunConfig, TInt32& aTypicalExecutionBaselineTime)
 	{
 	//****NB: update this routine to something more maintainable
 	TUptTraceTester timer;
@@ -223,7 +223,7 @@ TInt CApiCallTest::NonCachedTraceBaselineTime(TApiRunConfig& aApiRunConfig, TInt
 @param aTypicalExecutionTime is the typical execution time taken for the API call, calculated in nanoseconds
 @return KErrNone if command was prepared correctly and a system wide error code otherwise.
  */	
-TInt CApiCallTest::NonCachedTraceTime(TApiRunConfig& aApiRunConfig, TInt32& aTypicalExecutionTime, TInt32& aTypicalExecutionBaselineTime)
+TInt CApiCallTest::NonCachedTraceTimeL(TApiRunConfig& aApiRunConfig, TInt32& aTypicalExecutionTime, TInt32& aTypicalExecutionBaselineTime)
 	{
 	
 	TUptTraceTester timer;
@@ -259,7 +259,7 @@ void foo()
  *  
  * @return KErrNone if command was prepared correctly and a system wide error code otherwise.
  */
-TInt CApiCallTest::StackUsage(TApiRunConfig& aApiRunConfig, TInt& aApiStackUsage)
+TInt CApiCallTest::StackUsageL(TApiRunConfig& aApiRunConfig, TInt& aApiStackUsage)
 	{
 	/*
 	PSEUDOCODE 
@@ -311,7 +311,7 @@ TInt CApiCallTest::Test()
 	return err;
 	}
 
-/** This sanity test method is executed in Test() to verify that UPT StackUsage() method in
+/** This sanity test method is executed in Test() to verify that UPT StackUsageL() method in
 this class are stable before any of the stack size performance tests are carried out 
 @return KErrNone if command was prepared correctly and system wide error code otherwise.
  */	

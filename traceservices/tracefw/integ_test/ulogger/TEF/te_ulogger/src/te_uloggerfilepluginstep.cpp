@@ -68,7 +68,7 @@ TVerdict CULoggerFilePluginStep::doTestStepL()
 		RULogger logger;
 		logger.Connect();
 		CClearConfig configIni;
-		configIni.Clear(logger);
+		configIni.ClearL(logger);
 		_LIT8(KTextmedia,"uloggerfileplugin");
 		const TPtrC8 mediaptr(KTextmedia);
 		if(Result==0||Result==-11)	

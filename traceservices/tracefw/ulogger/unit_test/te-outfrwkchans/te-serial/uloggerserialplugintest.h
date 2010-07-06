@@ -39,9 +39,9 @@ public:
 private:
 	// Tests
 	void TestNewL();
-	void TestUnlockResources(); 
-	void TestSettings();
-	void TestWrite(); 
+	void TestUnlockResourcesL(); 
+	void TestSettingsL();
+	void TestWriteL(); 
 	RFs iFileServer;
 	};
 

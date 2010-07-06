@@ -31,7 +31,7 @@ TInt TTraceTester::TimeTraceL(TTraceConfigs& aTraceData, TUint32& aTime, TUint32
 	TUint32 callResults[KNumberOfTraceCallIterations];
 	for(TInt i = 0; i < KNumberOfTraceCallIterations; i++)
 		{
-		error = TimeTraceCall(aTraceData, aTime, aCount);
+		error = TimeTraceCallL(aTraceData, aTime, aCount);
 		callResults[i] = aTime;
 		}
 	TUint32 total = 0;
@@ -42,7 +42,7 @@ TInt TTraceTester::TimeTraceL(TTraceConfigs& aTraceData, TUint32& aTime, TUint32
 	}
 
 
-TInt TTraceTester::TimeTraceCall(TTraceConfigs& aTraceData, TUint32& aTime, TUint32& aCount)
+TInt TTraceTester::TimeTraceCallL(TTraceConfigs& aTraceData, TUint32& aTime, TUint32& aCount)
 	{
 	TInt error = KErrNotSupported;
  	if(TApiCaller::IsKernelTrace(aTraceData.iApiUsed))

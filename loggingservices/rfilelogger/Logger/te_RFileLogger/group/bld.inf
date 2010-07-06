@@ -17,6 +17,7 @@ PRJ_TESTEXPORTS
 ../scripts/te_RFileLoggerSuite.script   z:/testdata/scripts/te_rfileloggersuite.script
 ../testdata/te_RFileLoggersuite.ini     z:/testdata/configs/te_rfileloggersuite.ini
 
+te_RFileLoggersuite.iby                 /epoc32/rom/include/te_rfileloggersuite.iby
 
 PRJ_TESTMMPFILES
 Te_RFileLoggersuite.mmp manual

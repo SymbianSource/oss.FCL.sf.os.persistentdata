@@ -50,7 +50,12 @@ NONSHARABLE_STRUCT(TSqlSrvConfigParams)
 	enum TDbEncoding {EEncNotSet, EEncUtf8, EEncUtf16};//Database encoding: the default value for iDbEncoding is EEncNotSet
 	enum 
 		{
-		KDefaultSoftHeapLimitKb = 1024, 
+#ifdef __WINSCW__
+		KDefaultSoftHeapLimitKb = 1024,
+#else
+		KDefaultSoftHeapLimitKb = 8192,
+#endif	
+
 #ifdef SYSLIBS_TEST	
 		KMinSoftHeapLimitKb = 8, 
 #else

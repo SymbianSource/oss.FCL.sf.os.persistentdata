@@ -20,7 +20,7 @@
 
 #include <testexecute.iby>
 
-file=ABI_DIR\DEBUG_DIR\Te_RFileLoggerSuite.exe          system\bin\te_RFileLoggerSuite.exe
+file=ABI_DIR\DEBUG_DIR\te_rfileloggersuite.exe          system\bin\te_rfileloggersuite.exe
 data=DATAZ_\testdata\configs\te_rfileloggersuite.ini    testdata\configs\te_rfileloggersuite.ini
 data=DATAZ_\testdata\scripts\te_rfileloggersuite.script testdata\Scripts\te_rfileloggersuite.script
 

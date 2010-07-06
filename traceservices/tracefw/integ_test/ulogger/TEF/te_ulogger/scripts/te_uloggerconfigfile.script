@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,7 +13,7 @@
 // Description:
 //
 
-//! @File
+//! @file
 //! @SYMTestSuiteName               	utfv1-api-uloggerv1-configfile-test-suite.script
 //! @SYMScriptTestEnvironment       	TEF
 
@@ -38,7 +38,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerPublicConfigFile01-0001
 //! @SYMTestActions    Compare the settings in the ulogger server with that specified in the test config file in \testdata\configs\configfiletracecontrolconfig.ini
 //! @SYMTestExpectedResults     Verify that the returned settings match those expected (test step returns a test pass if so)
 //! @SYMTestType         CT
-//! @SYMTESTSTATUS   Implemented
+//! @SYMTestStatus   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ     
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerPublicConfigFileTestStep 
@@ -60,7 +60,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerPrivateConfigFile-0001
 //! @SYMTestActions    Having deleted c:\ulogger\uloggerconfig.ini in the public path, now compare the settings in the ulogger server with that specified by default in the private path
 //! @SYMTestExpectedResults     Verify that the returned settings match those expected (test step returns a test pass if so)
 //! @SYMTestType         CT
-//! @SYMTESTSTATUS   Implemented
+//! @SYMTestStatus   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerPrivateConfigFileTestStep 
@@ -82,7 +82,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerPublicConfigFile02-0001
 //! @SYMTestActions    Having reinstated a config file on the public path, now compare the settings in the ulogger server with that specified in the public path
 //! @SYMTestExpectedResults     Verify that the returned settings match those expected (test step returns a test pass if so)
 //! @SYMTestType         CT
-//! @SYMTESTSTATUS   Implemented
+//! @SYMTestStatus   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerPublicConfigFileTestStep 

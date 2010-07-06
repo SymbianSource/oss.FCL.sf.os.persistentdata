@@ -290,14 +290,14 @@ file store object.
 @param aFs Handle to a file server session.
 @param aName The full path name of the file containing the store. 
 @param aFileMode The mode in which the file is to be accessed. The mode is 
-defined by the TFileMode type. It is strongly recommended to set EFileWriteDirectIO
-bit. It is because that When the file cache in file server is on, the
-order of file writing is not guaranteed which could cause data inconsistency in some
-circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+defined by the TFileMode type. 
 @return A pointer to the new permanent file store object.
 @see TFileMode */
-	{return STATIC_CAST(CPermanentFileStore*,CFileStore::OpenL(aFs,aName,aFileMode,KPermanentFileStoreFactoryFunction));}
+	{
+//  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
+//  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
+	return STATIC_CAST(CPermanentFileStore*,CFileStore::OpenL(aFs,aName,aFileMode|EFileWriteDirectIO,KPermanentFileStoreFactoryFunction));
+	}
 inline CPermanentFileStore* CPermanentFileStore::OpenLC(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Opens a file containing a permanent file store, constructs a permanent file 
 store object, and places the pointer onto the cleanup stack.
@@ -305,14 +305,14 @@ store object, and places the pointer onto the cleanup stack.
 @param aFs Handle to a file server session. 
 @param aName The full path name of the file containing the store. 
 @param aFileMode The mode in which the file is to be accessed. The mode is 
-defined by the TFileMode type. It is strongly recommended to set EFileWriteDirectIO
-bit. It is because that When the file cache in file server is on, the
-order of file writing is not guaranteed which could cause data inconsistency in some
-circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+defined by the TFileMode type. 
 @return A pointer to the new permanent file store object.
 @see TFileMode */
-	{return STATIC_CAST(CPermanentFileStore*,CFileStore::OpenLC(aFs,aName,aFileMode,KPermanentFileStoreFactoryFunction));}
+	{
+//  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
+//  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
+	return STATIC_CAST(CPermanentFileStore*,CFileStore::OpenLC(aFs,aName,aFileMode|EFileWriteDirectIO,KPermanentFileStoreFactoryFunction));
+	}
 inline CPermanentFileStore* CPermanentFileStore::CreateL(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Creates a new file and constructs a new permanent file store object to be associated 
 with this file.
@@ -321,14 +321,14 @@ with this file.
 @param aName The full path name of the new file. A file with this name must 
 not already exist, otherwise the function leaves.
 @param aFileMode The mode in which the new file is to be accessed. This mode 
-is defined by the TFileMode type. It is strongly recommended to set EFileWriteDirectIO
-bit. It is because that When the file cache in file server is on, the
-order of file writing is not guaranteed which could cause data inconsistency in some
-circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+is defined by the TFileMode type. 
 @return A pointer to the new permanent file store object.
 @see TFileMode */
-	{return STATIC_CAST(CPermanentFileStore*,CFileStore::CreateL(aFs,aName,aFileMode,&DoNewL));}
+	{
+//  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
+//  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
+	return STATIC_CAST(CPermanentFileStore*,CFileStore::CreateL(aFs,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	}
 inline CPermanentFileStore* CPermanentFileStore::CreateLC(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Creates a new file and constructs a new permanent file store object to be associated 
 with this file, and places the pointer onto the cleanup stack.
@@ -337,14 +337,14 @@ with this file, and places the pointer onto the cleanup stack.
 @param aName The full path name of the new file. A file with this name must 
 not already exist, otherwise the function leaves.
 @param aFileMode The mode in which the new file is to be accessed. This mode 
-is defined by the TFileMode type. It is strongly recommended to set EFileWriteDirectIO
-bit. It is because that when the file cache in file server is on, the
-order of file writing is not guaranteed which could cause data inconsistency in some
-circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+is defined by the TFileMode type. 
 @return A pointer to the new permanent file store object. 
 @see TFileMode */
-	{return STATIC_CAST(CPermanentFileStore*,CFileStore::CreateLC(aFs,aName,aFileMode,&DoNewL));}
+	{
+//  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
+//  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
+	return STATIC_CAST(CPermanentFileStore*,CFileStore::CreateLC(aFs,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	}
 inline CPermanentFileStore* CPermanentFileStore::ReplaceL(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Creates a file, constructs a permanent file store object to be associated with 
 it.
@@ -354,14 +354,14 @@ This file replaces any existing file of the same name.
 @param aFs Handle to a file server session. 
 @param aName The full path name of the file to be replaced.
 @param aFileMode The mode in which the file is to be accessed. The mode is 
-defined by the TFileMode type. It is strongly recommended to set EFileWriteDirectIO
-bit. It is because that when the file cache in file server is on, the
-order of file writing is not guaranteed which could cause data inconsistency in some
-circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+defined by the TFileMode type.
 @return A pointer to the new permanent file store object.
 @see TFileMode */
-	{return STATIC_CAST(CPermanentFileStore*,CFileStore::ReplaceL(aFs,aName,aFileMode,&DoNewL));}
+	{
+//  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
+//  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
+	return STATIC_CAST(CPermanentFileStore*,CFileStore::ReplaceL(aFs,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	}
 inline CPermanentFileStore* CPermanentFileStore::ReplaceLC(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Creates a file, constructs a permanent file store object to be associated with 
 it, and places the pointer onto the cleanup stack.
@@ -371,14 +371,14 @@ This file replaces any existing file of the same name.
 @param aFs Handle to a file server session. 
 @param aName The full path name of the file to be replaced.
 @param aFileMode The mode in which the file is to be accessed. The mode is 
-defined by the TFileMode type. It is strongly recommended to set EFileWriteDirectIO
-bit. It is because that when the file cache in file server is on, the
-order of file writing is not guaranteed which could cause data inconsistency in some
-circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+defined by the TFileMode type.
 @return A pointer to the new permanent file store object. 
 @see TFileMode */
-	{return STATIC_CAST(CPermanentFileStore*,CFileStore::ReplaceLC(aFs,aName,aFileMode,&DoNewL));}
+	{
+//  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
+//  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
+	return STATIC_CAST(CPermanentFileStore*,CFileStore::ReplaceLC(aFs,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	}
 inline CPermanentFileStore* CPermanentFileStore::TempL(RFs& aFs,const TDesC& aPath,TFileName& aName,TUint aFileMode)
 /** Creates a temporary file and constructs a permanent file store object to be 
 associated with it.
@@ -396,7 +396,11 @@ closed.
 defined by the TFileMode type.
 @return A pointer to the new permanent file store object.
 @see TFileMode */
-	{return STATIC_CAST(CPermanentFileStore*,CFileStore::TempL(aFs,aPath,aName,aFileMode,&DoNewL));}
+	{
+//  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
+//  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
+	return STATIC_CAST(CPermanentFileStore*,CFileStore::TempL(aFs,aPath,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	}
 inline CPermanentFileStore* CPermanentFileStore::TempLC(RFs& aFs,const TDesC& aPath,TFileName& aName,TUint aFileMode)
 /** Creates a temporary file, constructs a permanent file store object to be associated 
 with it, and places the pointer onto the cleanup stack.
@@ -411,20 +415,22 @@ closed.
 @param aPath The path where the new file is to be created.
 @param aName On return, contains the full path name of the new file.
 @param aFileMode The mode in which the file is to be accessed. The mode is 
-defined by the TFileMode type. It is strongly recommended to set EFileWriteDirectIO
-bit. It is because that When the file cache in file server is on, the
-order of file writing is not guaranteed which could cause data inconsistency in some
-circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+defined by the TFileMode type. 
 @return A pointer to the new permanent file store object.
 @see TFileMode */
-	{return STATIC_CAST(CPermanentFileStore*,CFileStore::TempLC(aFs,aPath,aName,aFileMode,&DoNewL));}
+	{
+//  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
+//  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
+	return STATIC_CAST(CPermanentFileStore*,CFileStore::TempLC(aFs,aPath,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	}
 inline CPermanentFileStore* CPermanentFileStore::FromL(RFile& aFile)
 /** Constructs a permanent file store object from an already opened file. It is strongly recommended to set EFileWriteDirectIO
-bit when opening the file. It is because that when the file cache in file server is on, the
-order of file writing is not guaranteed which could cause data inconsistency in some
-circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+bit when opening the file. This is because that when the file server write caching is enabled, the
+order of file write operations is not guaranteed. This could cause data inconsistency in some
+circumstances, for example, when the power is lost in the middle of database transaction.
+Therefore, the file write caching should be switched off to maintain integrity.
+   
+
 
 The file must already be open before calling this function.
 
@@ -440,10 +446,10 @@ inline CPermanentFileStore* CPermanentFileStore::FromLC(RFile& aFile)
 the pointer onto the cleanup stack.
 
 The file must already be open before calling this function. It is strongly recommended to set EFileWriteDirectIO
-bit when opening the file. It is because that when the file cache in file server is on, the
-order of file writing is not guaranteed which could cause data inconsistency in some
-circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+bit when opening the file. This is because that when the file server write caching is enabled, the
+order of file write operations is not guaranteed. This could cause data inconsistency in some
+circumstances, for example, when the power is lost in the middle of database transaction.
+Therefore, the file write caching should be switched off to maintain integrity.
 
 Note that ownership of the file passes to the store. The referenced RFile 
 is cleared and is no longer valid.
@@ -456,10 +462,10 @@ inline CPermanentFileStore* CPermanentFileStore::NewL(RFile& aFile)
 
 The file must already be open before calling this function. The existing content 
 of the file is discarded. It is strongly recommended to set EFileWriteDirectIO
-bit when opening the file. It is because that when the file cache in file server is on, the
+bit when opening the file. It is because that when the file write caching in file server is on, the
 order of file writing is not guaranteed which could cause data inconsistency in some
 circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+Therefore, the file write caching should be switched off to maintain the file integrity.
 
 Note that ownership of the file passes to the store. The referenced RFile 
 is cleared and is no longer valid.
@@ -473,10 +479,10 @@ places the pointer onto the cleanup stack.
 
 The file must already be open before calling this function.The existing content 
 of the file is discarded. It is strongly recommended to set EFileWriteDirectIO
-bit when opening the file. It is because that when the file cache in file server is on, the
+bit when opening the file. It is because that when the write caching in file server is on, the
 order of file writing is not guaranteed which could cause data inconsistency in some
 circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write cache should be switched off to maintain the file integrity.
+Therefore, the file write caching should be switched off to maintain the file integrity.
 
 Note that ownership of the file passes to the store. The referenced RFile 
 is cleared and is no longer valid.

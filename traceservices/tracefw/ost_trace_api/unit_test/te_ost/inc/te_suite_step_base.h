@@ -50,7 +50,7 @@ protected:
 	TInt StartLoggingL(TTraceConfigs& aTraceData);
 	TInt StopLogging();
 	void SetLogFilename(const TDesC& aFilename);
-	void DeleteLogFile();
+	void DeleteLogFileL();
 protected:
 	TTraceTester	iTraceTester;
 	TTraceConfigs	iTraceData;

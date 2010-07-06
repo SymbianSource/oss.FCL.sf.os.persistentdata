@@ -13,7 +13,7 @@
       <component id="eventlogger" name="Event Logger" introduced="6.0" purpose="optional">
         <unit bldFile="loggingservices/eventlogger/group" mrp="loggingservices/eventlogger/group/syslibs_logeng.mrp"/>
       </component>
-      <component id="filelogger" name="File Logger" introduced="ER5" purpose="optional">
+      <component id="filelogger" name="File Logger" introduced="ER5" deprecated="^3" purpose="optional">
         <unit bldFile="loggingservices/filelogger/group" mrp="loggingservices/filelogger/group/comms-infras_flogger.mrp"/>
       </component>
       <component id="rfilelogger" name="RFile Logger" deprecated="^3" introduced="9.1" purpose="development">

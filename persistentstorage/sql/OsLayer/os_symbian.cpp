@@ -332,14 +332,13 @@ const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEM
 	// - iBytesTotal  - the total amount of bytes passed to the monitored OS porting layer function (if it is read or write);
 	struct TOsCallProfile
 		{
-		TOsCallProfile(char aType, char aIdentifier[]) :
+		TOsCallProfile(char aType, const TDesC& aIdentifier) :
 			iType(aType),
+			iIdentifier(aIdentifier),
 			iCallCounter(0),
 			iTicksTotal(0),
 			iBytesTotal(0)
 			{
-			iIdentifier[0] = aIdentifier[0];
-			iIdentifier[1] = aIdentifier[1];
 			}
 		void Zero()
 			{
@@ -348,7 +347,7 @@ const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEM
 			iBytesTotal = 0;
 			}
 		char	iType;
-		char	iIdentifier[2];
+		TBuf<32> iIdentifier;
 		TInt	iCallCounter;
 		TInt64	iTicksTotal;
 		TInt64	iBytesTotal;
@@ -358,22 +357,22 @@ const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEM
 	//the function was used on the main database file
 	TOsCallProfile TheOsCallMProfile[EOsOpLast] = 
 		{
-		TOsCallProfile('M', "CL"), TOsCallProfile('M', "RD"), TOsCallProfile('M', "WR"), TOsCallProfile('M', "TR"),
-		TOsCallProfile('M', "SY"), TOsCallProfile('M', "FS"), TOsCallProfile('M', "LK"), TOsCallProfile('M', "UL"),
-		TOsCallProfile('M', "RL"), TOsCallProfile('M', "FC"), TOsCallProfile('M', "SS"), TOsCallProfile('M', "DC"),
-		TOsCallProfile('M', "OP"), TOsCallProfile('M', "DE"), TOsCallProfile('M', "AC"), TOsCallProfile('M', "FN"),
-		TOsCallProfile('M', "RN"), TOsCallProfile('M', "SL"), TOsCallProfile('M', "CT"), TOsCallProfile('M', "LE")
+		TOsCallProfile('M', _L("Close")), TOsCallProfile('M', _L("Read")), TOsCallProfile('M', _L("Write")), TOsCallProfile('M', _L("Truncate")),
+		TOsCallProfile('M', _L("Sync")), TOsCallProfile('M', _L("Size")), TOsCallProfile('M', _L("Lock")), TOsCallProfile('M', _L("Unlock")),
+		TOsCallProfile('M', _L("CheckReservedLock")), TOsCallProfile('M', _L("FileControl")), TOsCallProfile('M', _L("SetSize")), TOsCallProfile('M', _L("DeviceCharacteristics")),
+		TOsCallProfile('M', _L("Open")), TOsCallProfile('M', _L("Delete")), TOsCallProfile('M', _L("Access")), TOsCallProfile('M', _L("FullPath")),
+		TOsCallProfile('M', _L("Randomness")), TOsCallProfile('M', _L("Sleep")), TOsCallProfile('M', _L("CurrentTime")), TOsCallProfile('M', _L("GetLastError"))
 		};
 
 	//An array of TOsCallProfile entries, each entry keeps the profile of a specifc OS porting layer function, when
 	//the function was used on the journal file
 	TOsCallProfile TheOsCallJProfile[EOsOpLast] = 
 		{
-		TOsCallProfile('J', "CL"), TOsCallProfile('J', "RD"), TOsCallProfile('J', "WR"), TOsCallProfile('J', "TR"),
-		TOsCallProfile('J', "SY"), TOsCallProfile('J', "FS"), TOsCallProfile('J', "LK"), TOsCallProfile('J', "UL"),
-		TOsCallProfile('J', "RL"), TOsCallProfile('J', "FC"), TOsCallProfile('J', "SS"), TOsCallProfile('J', "DC"),
-		TOsCallProfile('J', "OP"), TOsCallProfile('J', "DE"), TOsCallProfile('J', "AC"), TOsCallProfile('J', "FN"),
-		TOsCallProfile('J', "RN"), TOsCallProfile('J', "SL"), TOsCallProfile('J', "CT"), TOsCallProfile('J', "LE")
+		TOsCallProfile('J', _L("Close")), TOsCallProfile('J', _L("Read")), TOsCallProfile('J', _L("Write")), TOsCallProfile('J', _L("Truncate")),
+		TOsCallProfile('J', _L("Sync")), TOsCallProfile('J', _L("Size")), TOsCallProfile('J', _L("Lock")), TOsCallProfile('J', _L("Unlock")),
+		TOsCallProfile('J', _L("CheckReservedLock")), TOsCallProfile('J', _L("FileControl")), TOsCallProfile('J', _L("SetSize")), TOsCallProfile('J', _L("DeviceCharacteristics")),
+		TOsCallProfile('J', _L("Open")), TOsCallProfile('J', _L("Delete")), TOsCallProfile('J', _L("Access")), TOsCallProfile('J', _L("FullPath")),
+		TOsCallProfile('J', _L("Randomness")), TOsCallProfile('J', _L("Sleep")), TOsCallProfile('J', _L("CurrentTime")), TOsCallProfile('J', _L("GetLastError"))
 		};
 	
 	//The main class for the OS porting layer call profiles.
@@ -421,8 +420,8 @@ const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEM
 						TPtrC8 fn8(iOptional);
 						fname.Copy(fn8);
 						}
-					//                                           0    1  2 3  4  5  6   7  8   9   10 11
-					RDebug::Print(_L("[SQL-OS]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬%c¬%c%c¬%d¬%d¬%ld¬%d¬%ld¬%ld¬%ld¬%S\n"),
+					//                                           0    1  2  3  4  5   6  7   8   9   10
+					RDebug::Print(_L("[SQL-OS]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬%c¬%S¬%d¬%d¬%ld¬%d¬%ld¬%ld¬%ld¬%S\n"),
 															//[SQL-OS]
 															//Handle
 															//Time from start, microseconds
@@ -431,16 +430,15 @@ const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEM
 															//IPC call name
 					    iHandle,							//sqlite3_file*
 						iOsCallProfileRef.iType, 			//1 - main or journal file
-						iOsCallProfileRef.iIdentifier[0], 	//2 - 1st letter - operation type
-						iOsCallProfileRef.iIdentifier[1],	//3 - 2nd letter - operation type
-						TheOpCounter, 						//4 - Operation counter
-						iOsCallProfileRef.iCallCounter, 	//5 - This call type counter
-						iOffset, 							//6 - File offset
-						iBytes, 							//7 - Data, bytes
-						diffTicks, 							//8 - Ticks
-						iOsCallProfileRef.iBytesTotal, 		//9 - Data total, bytes
-						iOsCallProfileRef.iTicksTotal,		//10- Ticks total
-						&fname);							//11- File name
+						&iOsCallProfileRef.iIdentifier, 	//2 - operation type
+						TheOpCounter, 						//3 - Operation counter
+						iOsCallProfileRef.iCallCounter, 	//4 - This call type counter
+						iOffset, 							//5 - File offset
+						iBytes, 							//6 - Data, bytes
+						diffTicks, 							//7 - Ticks
+						iOsCallProfileRef.iBytesTotal, 		//8 - Data total, bytes
+						iOsCallProfileRef.iTicksTotal,		//9 - Ticks total
+						&fname);							//10- File name
 					}
 				}
 			}

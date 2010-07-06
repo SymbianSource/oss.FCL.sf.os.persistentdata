@@ -382,27 +382,28 @@ void CLogFileControl::WriteXml(const TDesC8 &aDes)
 		aCount[0]=0;
 		TInt posI(0);
 
-// retrive log message:
+        // retrive log message:
 		// Retrive common part of log message:
-		for(TInt i = 1; i<6; i++)
+		TInt i=0;
+		for(i=1; i<6; i++)
 			{
 			SearchBuf.Set(aPtr.Mid(posI));
 			aCount[i]=SearchBuf.Find(KSeperation8)+posI;
 			posI=aCount[i]+3;
 			if(aCount[i]<aCount[i-1])	
-        {
-        delete pBuf1;
-        return; // wrong format string from client
-        }
+                {
+                delete pBuf1;
+                return; // wrong format string from client
+                }
 			}
 		// seperating common log message and extra log fields will be easy for future maintaince.
 		TLogField8* alogField = new TLogField8[6];  // the common part of log message for both 
 								  					// with and without extra log fields
 		if(!alogField) 
-      {
-      delete pBuf1;
-      return; // no memory
-      }
+            {
+            delete pBuf1;
+            return; // no memory
+            }
 
 		TLogField8* extralogField=NULL; // only applied to extra log fields
 
@@ -416,7 +417,7 @@ void CLogFileControl::WriteXml(const TDesC8 &aDes)
 		alogField[5].iLogTag8.Copy(_L8("TEXT"));
 			
 		alogField[0].iLogValue8.Copy(aPtr.Mid(aCount[0],aCount[1]-aCount[0]));
-		for(TInt i=1; i<5; i++)
+		for(i=1; i<5; i++)
 			{
 			alogField[i].iLogValue8.Copy(aPtr.Mid(aCount[i]+3,aCount[i+1]-aCount[i]-3));				
 			}
@@ -428,22 +429,23 @@ void CLogFileControl::WriteXml(const TDesC8 &aDes)
 			alogField[5].iLogValue8.Copy(aPtr.Mid(aCount[5]+3,aDes.Length()-aCount[5]-5));
 			}
 		else
-		{
+            {
 			alogField[5].iLogValue8.Copy(aPtr.Mid(aCount[5]+3,aCount[6]-aCount[5]-5));
 			posI=aCount[6]+45;  //45 is from the length of long string and a tab
 			SearchBuf.Set(aPtr.Mid(posI));
 			aCount[7]=SearchBuf.Find(_L8("\r\n"))+posI;
 			TLex8 lex(aPtr.Mid(posI,aCount[7]-posI));  // get the length
 			TInt err=lex.Val(alength); 
-			if (err)	alength=0; // ignor the extra log fields. Let the log go
+			if (err)
+                alength=0; // ignor the extra log fields. Let the log go
 
 			// Retrive the extra log fields
 			extralogField = new TLogField8[alength];
 			if(!extralogField)
-        {
-        delete pBuf1; 
-        return; // no memory
-        }
+                {
+                delete pBuf1; 
+                return; // no memory
+                }
 			for(TInt i=0; i<alength; i++)
 				{
 				aCount[6]=aCount[7]+2;
@@ -455,65 +457,63 @@ void CLogFileControl::WriteXml(const TDesC8 &aDes)
 				aCount[7]=SearchBuf.Find(_L8("\r\n"))+aCount[6];
 				extralogField[i].iLogValue8.Copy(aPtr.Mid(aCount[6],aCount[7]-aCount[6]));
 				}
-		}
-			
-			// Start to organize an XML format: 			
-			TInt afileSize;
-			_LIT(KLogMutex, "LoggingServerMutex");
-			RMutex mutex;
-			TInt r = mutex.CreateGlobal(KLogMutex);
-			if(r==KErrAlreadyExists)
-				r = mutex.OpenGlobal(KLogMutex);  
-			
-			if(!r)	mutex.Wait();  // if still failed, let logging go 
-									//without bother the mutex
-			  
-			iLogFile.Size(afileSize);
-			if(afileSize<12) // 12 is from charters of "\r\n</LOGFILE>" 
-						//It shoud happened once at the beginning of the file
-						// such as overwrite mode
-				{
-				afileSize=12; // used for lock position
-    			alogbuf.Copy(KxmlHeader);
-				}
-			alogbuf.Append(_L8("\r\n<MESSAGE>\r\n"));
-			for(TInt i=0; i<6; i++)
-				{
-				alogbuf.Append(_L8("  <"));
-				alogbuf.Append(alogField[i].iLogTag8);
-				alogbuf.Append(_L8(">"));
-				alogbuf.Append(alogField[i].iLogValue8);
-				alogbuf.Append(_L8("</"));
-				alogbuf.Append(alogField[i].iLogTag8);
-				alogbuf.Append(_L8(">\r\n"));				
-				}
-			for(TInt i=0; i<alength; i++)  
-				{
-				alogbuf.Append(_L8("  <"));
-				alogbuf.Append(extralogField[i].iLogTag8);
-				alogbuf.Append(_L8(">"));
-				alogbuf.Append(extralogField[i].iLogValue8);
-				alogbuf.Append(_L8("</"));
-				alogbuf.Append(extralogField[i].iLogTag8);
-				alogbuf.Append(_L8(">\r\n"));				
-				}
-			
-    		alogbuf.Append(_L8("</MESSAGE>"));
-    		alogbuf.Append(_L8("\r\n</LOGFILE>"));
-    		
-    		iLogFile.Write(afileSize-12, alogbuf,iStatus);
-    										
-			
-			if(!r)	
-				{
-				mutex.Signal();
-				mutex.Close();				
-				} 
-				
-		if(extralogField) delete[] extralogField;
+            }
+		// Start to organize an XML format:
+		TInt afileSize;
+		_LIT(KLogMutex, "LoggingServerMutex");
+		RMutex mutex;
+		TInt r = mutex.CreateGlobal(KLogMutex);
+		if(r==KErrAlreadyExists)
+			r = mutex.OpenGlobal(KLogMutex);  
+		
+		if(!r)
+            mutex.Wait(); // If still failed, let logging go without bother the mutex.
+		iLogFile.Size(afileSize);
+		if(afileSize<12) // 12 is from charters of "\r\n</LOGFILE>" 
+					//It shoud happened once at the beginning of the file
+					// such as overwrite mode
+            {
+			afileSize=12; // used for lock position
+			alogbuf.Copy(KxmlHeader);
+			}
+		alogbuf.Append(_L8("\r\n<MESSAGE>\r\n"));
+		for(TInt i=0; i<6; i++)
+			{
+			alogbuf.Append(_L8("  <"));
+			alogbuf.Append(alogField[i].iLogTag8);
+			alogbuf.Append(_L8(">"));
+			alogbuf.Append(alogField[i].iLogValue8);
+			alogbuf.Append(_L8("</"));
+			alogbuf.Append(alogField[i].iLogTag8);
+			alogbuf.Append(_L8(">\r\n"));				
+			}
+		for(TInt i=0; i<alength; i++)  
+			{
+			alogbuf.Append(_L8("  <"));
+			alogbuf.Append(extralogField[i].iLogTag8);
+			alogbuf.Append(_L8(">"));
+			alogbuf.Append(extralogField[i].iLogValue8);
+			alogbuf.Append(_L8("</"));
+			alogbuf.Append(extralogField[i].iLogTag8);
+			alogbuf.Append(_L8(">\r\n"));				
+			}
+		
+		alogbuf.Append(_L8("</MESSAGE>"));
+		alogbuf.Append(_L8("\r\n</LOGFILE>"));
+		
+		iLogFile.Write(afileSize-12, alogbuf,iStatus);
+													
+		if(!r)	
+			{
+			mutex.Signal();
+			mutex.Close();				
+			} 
+
+		if(extralogField)
+            delete[] extralogField;
+
 		delete[] alogField;	
 		delete pBuf1;
-
 	}
 
 void CLogFileControl::WriteTxt(const TDesC8 &aDes)

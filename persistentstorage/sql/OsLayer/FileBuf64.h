@@ -36,7 +36,7 @@ Usage notes:
 	- an object of RFileBuf64 type must be defined first, specifying the max size (capacity) of the buffer as a parameter
 	  of the constructor:
 	  
-	  	RFileBuf64 fbuf(<N>);//<N> is the buffer capacity in bytes
+	  	RFileBuf64 fbuf(<N>);//<N> is the minimal buffer capacity in bytes
 	  	
 	- the second step is to initialize the just defined RFileBuf64 object by calling one of the "resource acquisition"
 	  methods: RFileBuf64::Create(), RFileBuf64::Open(), RFileBuf64::Temp() or RFileBuf64::AdoptFromClient().
@@ -141,7 +141,7 @@ class RFileBuf64
 	enum {KDefaultReadAheadSize = 1024};//Default size in bytes of the read-ahead buffer
 	
 public:
-	RFileBuf64(TInt aSize);
+	RFileBuf64(TInt aMinCapacity);
 
 	TInt Create(RFs& aFs, const TDesC& aFileName, TUint aFileMode);
 	TInt Open(RFs& aFs, const TDesC& aFileName, TUint aFileMode);
@@ -171,10 +171,11 @@ private:
 	TInt DoFileWrite1(TInt64 aNewFilePos);
 	TInt DoFileWrite2(TInt64 aNewFilePos = 0LL);
 	void DoDiscardBufferedReadData();
+	TInt DoSetCapacity(TInt aRwDataLength);
 	
 private:
 	//Buffer related
-	const TInt	iCapacity;				//The buffer size. Indicates how much data can be put in.
+	TInt		iCapacity;				//The buffer size. Indicates how much data can be put in.
 	TUint8*		iBase;					//Pointer to the beginning of the buffer.
 	TInt		iLength;				//The length of the data currently held in the buffer.
 	//File related
@@ -186,6 +187,8 @@ private:
 	TInt64		iNextReadFilePos;		//The guessed file position of the next "file read" operation
 	TInt		iNextReadFilePosHits;	//How many times the guessed file position of the "file read" operation was correct
 	TInt		iReadAheadSize;
+	//
+	TBool		iOptimized;				//True if the file buffer capacity has been optimized already
 
 	//Profiler related
 #ifdef _SQLPROFILER
