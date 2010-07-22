@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -321,6 +321,75 @@ template <class BUF> void ScalarFullSelectNegativeTestL()
 	DestroyTestDb(db);
 	}
 
+/**
+@SYMTestCaseID          PDS-SQL-CT-4204
+@SYMTestCaseDesc        TSqlScalarFullSelectQuery - border test.
+@SYMTestPriority        High
+@SYMTestActions         The test checks some border test cases such as:
+						- retrieving NULL column as integer;
+						- retrieving NULL column as 64-bit integer;
+						- retrieving NULL column as TReal;
+						- retrieving column value smaller than KMinTInt, as integer;
+						- retrieving column value bigger than KMaxTInt, as integer;
+@SYMTestExpectedResults Test must not fail
+*/  
+void ScalarFullSelectBorderTest()
+	{
+	(void)RSqlDatabase::Delete(KTestDatabase1);
+	RSqlDatabase db;
+	TInt rc = db.Create(KTestDatabase1);
+	TEST2(rc, KErrNone);
+	rc = db.Exec(_L("CREATE TABLE A(F1 INTEGER NULL, F2 INTEGER NULL, F3 FLOAT NULL, F4 TEXT NULL, F5 BLOB NULL)"));
+	TEST(rc >= 0);
+	
+	TSqlScalarFullSelectQuery q(db);
+
+	//Insert one record. Bigger than KMaxTInt F1 column value. Smaller than KMinTInt F2 column value.
+	rc = db.Exec(_L("INSERT INTO A(F1,F2,F4) VALUES(5000000000,-5000000000,'aljhsfdlgefberveurfgvefkjgs;kjfgs;kjfsd')"));
+	TEST2(rc, 1);
+	//Select NULL column value as int.
+	TInt res = -1;
+	TRAP(rc, res = q.SelectIntL(_L("SELECT F5 FROM A")));
+	TEST2(rc, KErrNone);
+	TEST2(res, 0);
+	//Select NULL column value as int64.
+	res = -1;
+	TRAP(rc, res = q.SelectInt64L(_L("SELECT F5 FROM A")));
+	TEST2(rc, KErrNone);
+	TEST2(res, 0);
+	//Select NULL column value as TReal.
+	TReal res2 = -1.0;
+	TRAP(rc, res2 = q.SelectRealL(_L("SELECT F5 FROM A")));
+	TEST2(rc, KErrNone);
+	TEST(Abs(res2) < 0.000001);
+	//Select NULL column value as text.
+	TBuf<10> text;
+	TRAP(rc, res = q.SelectTextL(_L("SELECT F5 FROM A"), text));
+	TEST2(rc, KErrNone);
+	TEST2(res, 0);
+	TEST2(text.Length(), 0);
+	//Select NULL column value as binary.
+	TBuf8<10> data;
+	TRAP(rc, res = q.SelectBinaryL(_L("SELECT F5 FROM A"), data));
+	TEST2(rc, KErrNone);
+	TEST2(res, 0);
+	TEST2(data.Length(), 0);
+	//Select column value bigger than KMaxTInt, as int.
+	res = -1;
+	TRAP(rc, res = q.SelectIntL(_L("SELECT F1 FROM A")));
+	TEST2(rc, KErrNone);
+	TEST2(res, KMaxTInt);
+	//Select column value smaller than KMinTInt, as int.
+	res = -1;
+	TRAP(rc, res = q.SelectIntL(_L("SELECT F2 FROM A")));
+	TEST2(rc, KErrNone);
+	TEST2(res, KMinTInt);
+
+	db.Close();
+	(void)RSqlDatabase::Delete(KTestDatabase1);
+	}
+	
+
 void DoTestsL()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1809 Scalar fullselect test. 16-bit SQL "));
@@ -334,6 +403,9 @@ void DoTestsL()
 
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1810 Scalar fullselect - negative test. 8-bit SQL "));
 	ScalarFullSelectNegativeTestL< TBuf8<100> >();
+	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4204 Scalar fullselect - border cases "));
+	ScalarFullSelectBorderTest();
 	}
 
 TInt E32Main()

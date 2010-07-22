@@ -15,15 +15,16 @@
 
 #ifdef __FEATMGR_TESTCFG__
 TARGET          test_featmgrserver.exe
-CAPABILITY      AllFiles
+CAPABILITY      AllFiles ProtServ ReadDeviceData
 #else
 TARGET          featmgrserver.exe
+CAPABILITY      ProtServ ReadDeviceData
 #endif // __FEATMGR_TESTCFG__
 
 // Since this is an exe with no alternate implementations,
 // just use same UID for both UID2 and UID3
 UID             0x10205054 0x10205054
-CAPABILITY      ProtServ ReadDeviceData
+
 TARGETTYPE      exe
 VENDORID        0x70000001
 

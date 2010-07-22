@@ -42,9 +42,9 @@ public:
 private:
 	COutputCSVSanityWrapper();
 	void ConstructL();
-	TVerdict	 	TestBaselineCsv();
-	TInt 		ReadCsvFile(const TDesC& aFilename, RBuf8& aBuffer);
-	TInt		CsvFileSize(const TDesC& aFilename, TInt& aSize);
+	TVerdict	 	TestBaselineCsvL();
+	TInt 		ReadCsvFileL(const TDesC& aFilename, RBuf8& aBuffer);
+	TInt		CsvFileSizeL(const TDesC& aFilename, TInt& aSize);
 
 	};
 

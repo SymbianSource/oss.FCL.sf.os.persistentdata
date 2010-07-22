@@ -71,7 +71,7 @@ TBool COutputCSVSanityWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 	
 	if(BlockResult()==EPass)
 		{
-		SetBlockResult(TestBaselineCsv());
+		SetBlockResult(TestBaselineCsvL());
 		}
 	
 	return ETrue;
@@ -79,7 +79,7 @@ TBool COutputCSVSanityWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 
 
 
-TVerdict COutputCSVSanityWrapper::TestBaselineCsv()
+TVerdict COutputCSVSanityWrapper::TestBaselineCsvL()
 	{
 
 	//read a sanity test file
@@ -91,14 +91,14 @@ TVerdict COutputCSVSanityWrapper::TestBaselineCsv()
 	TInt size = 0;
 	//get the size of the reference file
 #ifdef __WINSCW__
-	TInt error = CsvFileSize(KReferenceWinscwCsvFile, size);
+	TInt error = CsvFileSizeL(KReferenceWinscwCsvFile, size);
 #else
-	TInt error = CsvFileSize(KReferenceCsvFile, size);
+	TInt error = CsvFileSizeL(KReferenceCsvFile, size);
 #endif
 	if(error)
 		{
 		SetBlockResult(EFail);
-		INFO_PRINTF2(_L("TestBaselineCsv, KReferenceCsvFile, test failed on with error code %d"), error);
+		INFO_PRINTF2(_L("TestBaselineCsvL, KReferenceCsvFile, test failed on with error code %d"), error);
 		}
 	//Set the size of the RBuf
 	csvReference.Create(size);
@@ -106,32 +106,32 @@ TVerdict COutputCSVSanityWrapper::TestBaselineCsv()
 	//Create csvGenerated
 	CCsvReader csvGenerated;
 	//get the size of the generated file
-	error = CsvFileSize(KApiCSVFile, size);
+	error = CsvFileSizeL(KApiCSVFile, size);
 	if(error)
 		{
 		SetBlockResult(EFail);
-		INFO_PRINTF2(_L("TestBaselineCsv, KApiCSVFile, test failed on with error code %d"), error);
+		INFO_PRINTF2(_L("TestBaselineCsvL, KApiCSVFile, test failed on with error code %d"), error);
 		}
 	//create the RBuf
 	csvGenerated.Create(size);
 	
 	//Read the reference file into the RBuf
 #ifdef __WINSCW__
-	error = ReadCsvFile(KReferenceWinscwCsvFile, csvReference.Buffer());
+	error = ReadCsvFileL(KReferenceWinscwCsvFile, csvReference.Buffer());
 #else
-	error = ReadCsvFile(KReferenceCsvFile, csvReference.Buffer());
+	error = ReadCsvFileL(KReferenceCsvFile, csvReference.Buffer());
 #endif
 	if(error)
 		{
 		SetBlockResult(EFail);
-		INFO_PRINTF2(_L("TestBaselineCsv, ReadCsvFile(KReferenceCsvFile) failed on with error code %d"), error);		
+		INFO_PRINTF2(_L("TestBaselineCsvL, ReadCsvFileL(KReferenceCsvFile) failed on with error code %d"), error);		
 		}
 	//Read the generated file into the RBuf
-	error = ReadCsvFile(KApiCSVFile, csvGenerated.Buffer());
+	error = ReadCsvFileL(KApiCSVFile, csvGenerated.Buffer());
 	if(error)
 		{
 		SetBlockResult(EFail);
-		INFO_PRINTF2(_L("TestBaselineCsv, ReadCsvFile(KApiCSVFile) failed on with error code %d"), error);		
+		INFO_PRINTF2(_L("TestBaselineCsvL, ReadCsvFileL(KApiCSVFile) failed on with error code %d"), error);		
 		}
 
 	//compare the two files
@@ -164,7 +164,7 @@ TVerdict COutputCSVSanityWrapper::TestBaselineCsv()
 	}
 
 
-TInt COutputCSVSanityWrapper::CsvFileSize(const TDesC& aFilename, TInt& aSize)
+TInt COutputCSVSanityWrapper::CsvFileSizeL(const TDesC& aFilename, TInt& aSize)
 	{
 	RFs fsSession;
 	CleanupClosePushL(fsSession);
@@ -189,7 +189,7 @@ TInt COutputCSVSanityWrapper::CsvFileSize(const TDesC& aFilename, TInt& aSize)
  * The caller of the method owns the buffer 
  * Ie. this method allocates the buffer but the caller is responsible for destroying it.
  */
-TInt COutputCSVSanityWrapper::ReadCsvFile(const TDesC& aFilename, RBuf8& aBuffer)
+TInt COutputCSVSanityWrapper::ReadCsvFileL(const TDesC& aFilename, RBuf8& aBuffer)
 	{
 	RFs fsSession;
 	CleanupClosePushL(fsSession);

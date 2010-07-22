@@ -244,7 +244,7 @@ void TSqlDbSysSettings::LoadSecurityPolicyL(CSqlSecurityPolicy& aSecurityPolicyC
 					{
 					__SQLLEAVE(KErrGeneral);//two "default policy" records in the table
 					}
-				StoreDefaultSecurityPolicyL(aSecurityPolicyCon, policy, dbPolicySetFlag);
+				StoreDefaultSecurityPolicy(aSecurityPolicyCon, policy, dbPolicySetFlag);
 				defaultPolicySet = ETrue;
 				break;
 			case KDbObjType:
@@ -891,24 +891,23 @@ Initialises all database security policies not set yet with the default security
 @param aPolicy Default security policy object
 @param aDbPolicySetFlag Bit flag. Keeps information which database security policies are set and which aren't.
 
-@leave See CSqlSecurityPolicy::SetDbPolicy() return values.
 @see CSqlSecurityPolicy::SetDbPolicy()
 */
-void TSqlDbSysSettings::StoreDefaultSecurityPolicyL(CSqlSecurityPolicy& aSecurityPolicyCon, 
-													const TSecurityPolicy& aPolicy, TInt aDbPolicySetFlag)
+void TSqlDbSysSettings::StoreDefaultSecurityPolicy(CSqlSecurityPolicy& aSecurityPolicyCon, 
+												   const TSecurityPolicy& aPolicy, TInt aDbPolicySetFlag)
 	{
 	aSecurityPolicyCon.SetDefaultPolicy(aPolicy);
 	if(!(aDbPolicySetFlag & (1 << RSqlSecurityPolicy::ESchemaPolicy)))
 		{
-		__SQLLEAVE_IF_ERROR(aSecurityPolicyCon.SetDbPolicy(RSqlSecurityPolicy::ESchemaPolicy, aPolicy));
+		aSecurityPolicyCon.SetDbPolicy(RSqlSecurityPolicy::ESchemaPolicy, aPolicy);
 		}
 	if(!(aDbPolicySetFlag & (1 << RSqlSecurityPolicy::EReadPolicy)))
 		{
-		__SQLLEAVE_IF_ERROR(aSecurityPolicyCon.SetDbPolicy(RSqlSecurityPolicy::EReadPolicy, aPolicy));
+		aSecurityPolicyCon.SetDbPolicy(RSqlSecurityPolicy::EReadPolicy, aPolicy);
 		}
 	if(!(aDbPolicySetFlag & (1 << RSqlSecurityPolicy::EWritePolicy)))
 		{
-		__SQLLEAVE_IF_ERROR(aSecurityPolicyCon.SetDbPolicy(RSqlSecurityPolicy::EWritePolicy, aPolicy));
+		aSecurityPolicyCon.SetDbPolicy(RSqlSecurityPolicy::EWritePolicy, aPolicy);
 		}
 	}
 
@@ -936,7 +935,7 @@ void TSqlDbSysSettings::StoreDbSecurityPolicyL(CSqlSecurityPolicy& aSecurityPoli
 		{
 		__SQLLEAVE(KErrGeneral);
 		}
-	__SQLLEAVE_IF_ERROR(aSecurityPolicyCon.SetDbPolicy(static_cast <RSqlSecurityPolicy::TPolicyType> (aPolicyType), aPolicy));
+	aSecurityPolicyCon.SetDbPolicy(static_cast <RSqlSecurityPolicy::TPolicyType> (aPolicyType), aPolicy);
 	aDbPolicySetFlag |= (1 << aPolicyType);
 	}
 

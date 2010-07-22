@@ -48,7 +48,7 @@ The file information is stored in the private data member iCSVFile.
 				ETrue=Append, EFalse=Overwrite
 @return KErrNone if command was prepared correctly and a system wide error code otherwise.
  */
-TInt CUptCsvGenerator::Open(const TDesC& aFileName, const TBool& aAppend)
+TInt CUptCsvGenerator::OpenL(const TDesC& aFileName, const TBool& aAppend)
 	{
 
 	iCsvFileSession.Connect();
@@ -89,7 +89,7 @@ TInt CUptCsvGenerator::Close()
 appends a newline character.
 @return KErrNone if command was prepared correctly and a system wide error code otherwise.
  */
-TInt CUptCsvGenerator::WriteNewLine() 
+TInt CUptCsvGenerator::WriteNewLineL() 
 	{
 	TInt filesize;
 	
@@ -211,7 +211,7 @@ void CUptCsvGenerator::WriteApiNameL(const TInt aApiEnum)
 @param aTestType is the enum identifier for the test in question
 @return KErrNone if command was prepared correctly and a system wide error code otherwise.
  */	
-TInt CUptCsvGenerator::WriteHeader(const TInt& aTestType)
+TInt CUptCsvGenerator::WriteHeaderL(const TInt& aTestType)
 	{
 	RBuf8 buf; 
 	CleanupClosePushL(buf);
@@ -294,7 +294,7 @@ this class are stable before any of the performance tests are carried out
  
 @return KErrNone if command was prepared correctly and system wide error code otherwise.
  */
-TInt CUptCsvGenerator::Test()
+TInt CUptCsvGenerator::TestL()
 	{
 	//define filepaths for the test csv files according to the test platform.
 #ifdef __WINSCW__
@@ -338,11 +338,11 @@ TInt CUptCsvGenerator::Test()
 	TInt appendcount=3;
 	for(TInt i=0; i!=appendcount;i++)
 		{ 
-		Open(KTestFileAppend, ETrue);
+		OpenL(KTestFileAppend, ETrue);
 		WriteL(atestdata1);
-		WriteNewLine();
+		WriteNewLineL();
 		WriteL(atestdata2);
-		WriteNewLine();
+		WriteNewLineL();
 		Close();	
 		}
 
@@ -352,11 +352,11 @@ TInt CUptCsvGenerator::Test()
 	// 0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000
 	for(TInt i=0; i!=appendcount;i++)
 		{
-		Open(KTestFileOverwrite, EFalse);
+		OpenL(KTestFileOverwrite, EFalse);
 		WriteL(atestdata1);
-		WriteNewLine();
+		WriteNewLineL();
 		WriteL(atestdata2);
-		WriteNewLine();
+		WriteNewLineL();
 		Close();	
 		}
 

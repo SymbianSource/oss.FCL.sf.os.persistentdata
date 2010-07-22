@@ -52,11 +52,12 @@ CCheckRecordContentStep::CCheckRecordContentStep()
 	SetTestStepName(KCheckRecordContentStep);
 	
  	SetLogFilename(KLogFilename);
- 	DeleteLogFile();
 	}
 
 TVerdict CCheckRecordContentStep::doTestStepPreambleL()
 	{
+    DeleteLogFileL();
+	
 	if(TestStepResult()==EPass)
 		{
 		//SetTestStepResult(EFail);
@@ -79,7 +80,7 @@ TVerdict CCheckRecordContentStep::doTestStepL()
 		TInt error = KErrNone;
 
 		INFO_PRINTF1(_L("-------- Writing traces --------"));
-		error = WriteTraces();
+		error = WriteTracesL();
 		if(error)
 			{
 			INFO_PRINTF2(_L("ERROR: Error when writing traces, error %i"), error);
@@ -276,7 +277,7 @@ TTraceConfigs* CCheckRecordContentStep::CreateTrace(TTraceApiUsed aApi)
 	return trace;	
 	}
 
-TInt CCheckRecordContentStep::WriteTraces()
+TInt CCheckRecordContentStep::WriteTracesL()
 	{
 	TInt error = KErrNone;
 	TInt lastError = KErrNone;

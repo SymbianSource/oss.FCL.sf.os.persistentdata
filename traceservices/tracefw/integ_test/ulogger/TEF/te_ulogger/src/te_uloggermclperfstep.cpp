@@ -86,7 +86,7 @@ TVerdict CULoggerMCLUserPerfStep::doTestStepL()
 			RULogger logger;
 			logger.Connect();
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(UTracePrimary);
 			RArray<TUint32> setsecondfilter;
@@ -344,7 +344,7 @@ TVerdict CULoggerMCLKernelPerfStep::doTestStepL()
 			RULogger logger;
 			logger.Connect();
 			CClearConfig configIni;	
-			configIni.Clear(logger);		
+			configIni.ClearL(logger);		
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(UTracePrimary);
 			RArray<TUint32> setsecondfilter;

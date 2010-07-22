@@ -179,11 +179,9 @@ void CSqlSecurityPolicy::SetDefaultPolicy(const TSecurityPolicy& aPolicy)
 				   RSqlSecurityPolicy::EReadPolicy, RSqlSecurityPolicy::EWritePolicy.
 @param aPolicy Security policy data used for setting the related database security policy.
 
-@return KErrNone
-
 @panic SqlDb 4 In _DEBUG mode. Invalid policy type.
 */
-TInt CSqlSecurityPolicy::SetDbPolicy(RSqlSecurityPolicy::TPolicyType aPolicyType, const TSecurityPolicy& aPolicy)
+void CSqlSecurityPolicy::SetDbPolicy(RSqlSecurityPolicy::TPolicyType aPolicyType, const TSecurityPolicy& aPolicy)
 	{
 	const TInt KPolicyIndex = CSqlSecurityPolicy::PolicyType2Index(aPolicyType);
 	__SQLASSERT((TUint)KPolicyIndex < EPolicyTypeCount, ESqlPanicBadArgument);
@@ -194,7 +192,6 @@ TInt CSqlSecurityPolicy::SetDbPolicy(RSqlSecurityPolicy::TPolicyType aPolicyType
 	//KPolicyIndex value is tested at the beginning of the function
 	//coverity[overrun-local]
 	item->iPolicy[KPolicyIndex] = aPolicy;
-	return KErrNone;
 	}
 
 /**

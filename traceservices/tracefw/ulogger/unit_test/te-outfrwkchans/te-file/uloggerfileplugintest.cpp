@@ -36,7 +36,7 @@ void CFile0Step::TestNewL()
 	delete fileWriter;
 	}
 /*
- * TestUnlockResources: Test that the CloseOutputPlugin method ???
+ * TestUnlockResourcesL: Test that the CloseOutputPlugin method ???
  *
  * Expected Verdict: PASS/FAIL/PANIC
  *
@@ -45,7 +45,7 @@ void CFile0Step::TestNewL()
  * Description: Retrieve and print some data from an external ini data file
  *
  */
-void CFile0Step::TestUnlockResources()
+void CFile0Step::TestUnlockResourcesL()
 	{
 	CFileWriter* fileWriter = CFileWriter::NewL();
 	INFO_PRINTF1(_L("Invoking CFileWriter::CloseOutputPlugin(). CloseOutputPlugin() is supposed to do nothing."));
@@ -55,7 +55,7 @@ void CFile0Step::TestUnlockResources()
 	}
 
 /*
- * TestSettings: Test that the Settings method ???
+ * TestSettingsL: Test that the Settings method ???
  *
  * Expected Verdict: PASS/FAIL/PANIC
  *
@@ -64,7 +64,7 @@ void CFile0Step::TestUnlockResources()
  * Description: Retrieve and print some data from an external ini data file
  *
  */
-void CFile0Step::TestSettings()
+void CFile0Step::TestSettingsL()
 	{
 	CFileWriter* fileWriter = CFileWriter::NewL();
 	INFO_PRINTF1(_L("Passing empty RPointerArray to CFileWriter::ConfigureOutputPlugin()"));
@@ -75,7 +75,7 @@ void CFile0Step::TestSettings()
 	}
 
 /*
- * TestWrite: Test that the Write method ???
+ * TestWriteL: Test that the Write method ???
  *
  * Expected Verdict: PASS/FAIL/PANIC
  *
@@ -86,7 +86,7 @@ void CFile0Step::TestSettings()
  *
  */
 // The implementation for this is not working correctly! Check this
-void CFile0Step::TestWrite()
+void CFile0Step::TestWriteL()
 	{
 	INFO_PRINTF1(_L("Checking that CFileWriter::Write(const TDesC8&) writes a String correctly to C:\\logs\\log.txt"));
 
@@ -136,9 +136,9 @@ TVerdict CFile0Step::doTestStepL()
 	  if (TestStepResult()==EPass)
 		{
 		TestNewL();
-		TestUnlockResources();
-		TestSettings();
-		TestWrite();
+		TestUnlockResourcesL();
+		TestSettingsL();
+		TestWriteL();
 		
 		if(iErrors == 0)
 			SetTestStepResult(EPass);

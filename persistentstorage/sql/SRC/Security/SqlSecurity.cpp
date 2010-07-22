@@ -105,7 +105,8 @@ EXPORT_C TInt RSqlSecurityPolicy::SetDbPolicy(TPolicyType aPolicyType, const TSe
 	{
 	SQLUTRACE_PROFILER(this);
 	__SQLASSERT_ALWAYS(aPolicyType >= ESchemaPolicy && aPolicyType <= EWritePolicy, ESqlPanicBadArgument);
-	return Impl().SetDbPolicy(aPolicyType, aPolicy);
+	Impl().SetDbPolicy(aPolicyType, aPolicy);
+	return KErrNone;
 	}
 	
 /**

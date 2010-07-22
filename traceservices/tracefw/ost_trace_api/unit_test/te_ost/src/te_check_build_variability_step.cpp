@@ -88,13 +88,13 @@ TVerdict CCheckBuildVariabilityStep::doTestStepL()
 		CheckBuildtimeVariability();
 		if (TestStepResult()==EPass)
 			{//now check that logging occurs properly
-			CheckLoggingVariability();
+			CheckLoggingVariabilityL();
 			}
 		}
 	return TestStepResult();
 	}
 
-TVerdict CCheckBuildVariabilityStep::CheckLoggingVariability()
+TVerdict CCheckBuildVariabilityStep::CheckLoggingVariabilityL()
 	{
 	//test all cases when logging is enabled
 	INFO_PRINTF2(_L("--- Logging enabled, tracing built in %i ---"), iTraceData.iTracingBuiltIn);
@@ -108,7 +108,7 @@ TVerdict CCheckBuildVariabilityStep::CheckLoggingVariability()
 		SetTestStepResult(EFail);
 		return TestStepResult();
 	}
-	TBool passLogging = TestTraces();
+	TBool passLogging = TestTracesL();
 	//test all cases where logging is disabled
 	INFO_PRINTF1(_L("--- Logging disabled ---"));
 	iTraceData.iLoggingEnabled = EFalse;
@@ -120,7 +120,7 @@ TVerdict CCheckBuildVariabilityStep::CheckLoggingVariability()
 		return TestStepResult();
 	}
 
-	TBool passNoLogging = TestTraces();
+	TBool passNoLogging = TestTracesL();
 
 	//if any of the cases failed, fail the test step
 	if((passLogging == EFalse) || (passNoLogging == EFalse))
@@ -130,7 +130,7 @@ TVerdict CCheckBuildVariabilityStep::CheckLoggingVariability()
 	return TestStepResult();
 	}
 
-TBool CCheckBuildVariabilityStep::TestTraces()
+TBool CCheckBuildVariabilityStep::TestTracesL()
 	{
 	TBool allPassed = ETrue;
 	for(TInt i = 1; i <= KAPIMaxNumberOfTraceApis; i++)
@@ -142,7 +142,7 @@ TBool CCheckBuildVariabilityStep::TestTraces()
 			if(i == EContextTClassification)
 				INFO_PRINTF1(_L("-- Testing contexts --"));
 
-			if(DoSendTrace((TTraceApiUsed)i))
+			if(DoSendTraceL((TTraceApiUsed)i))
 				INFO_PRINTF2(_L("Trace %i - ok"), i);
 			else
 				allPassed = EFalse;
@@ -153,7 +153,7 @@ TBool CCheckBuildVariabilityStep::TestTraces()
 	}
 
 
-TBool CCheckBuildVariabilityStep::DoSendTrace(TTraceApiUsed aApiUsed)
+TBool CCheckBuildVariabilityStep::DoSendTraceL(TTraceApiUsed aApiUsed)
 	{
 	iTraceData.iApiUsed = aApiUsed;
 	TInt result = iTraceTester.SendTraceL(iTraceData);

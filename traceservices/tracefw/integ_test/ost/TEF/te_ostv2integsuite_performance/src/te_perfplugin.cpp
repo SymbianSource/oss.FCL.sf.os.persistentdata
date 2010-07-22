@@ -73,7 +73,7 @@ TInt CPluginTestResult::Copy(const CPluginTestResult& aPluginTestResult)
 CPluginTests::CPluginTests()
 	{
 	/*Constructor*/
-	iPluginTestResult = new(ELeave) CPluginTestResult;
+
 	__CREATE_LOG(false);
 	}
 
@@ -102,7 +102,10 @@ CPluginTestResult* CPluginTests::DoTestL(const CPluginRunConfig& aPluginRunConfi
 //const COutputPluginTestResult* COutputPluginTests::DoTestL(const TPtrC8& aPluginName, const TPluginConfiguration& aPluginSetting, const TInt& aTestDataSize, const TInt& aTestIteration)
 	{
 	//TTraceTester tracecall;
-
+	if (iPluginTestResult == NULL)
+        {
+        iPluginTestResult = new(ELeave) CPluginTestResult;   
+        }
 
 	TInt numberOfTraces=aPluginRunConfig.iDataSize/16; //update magic number to a size of (trace)/bytes
 	//do a baseline to remove loop effects for throughput tests?????

@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -279,8 +279,6 @@ static TInt NonSecureChecks(TInt aDbOpType,const char* aDbObjName1, const char* 
 		case SQLITE_DETACH://                Database Name   NULL
 		case SQLITE_REINDEX://				 Index Name      NULL
 		case SQLITE_ANALYZE://				 Table Name      NULL
-		case SQLITE_CREATE_VTABLE:
-		case SQLITE_DROP_VTABLE:
 		case SQLITE_FUNCTION:
 			break;
 		case SQLITE_PRAGMA://                Pragma Name     1st arg or NULL 
@@ -295,7 +293,10 @@ static TInt NonSecureChecks(TInt aDbOpType,const char* aDbObjName1, const char* 
 //      case SQLITE_DROP_TEMP_INDEX://       Index Name      Table Name      
 //      case SQLITE_DROP_TEMP_TABLE://       Table Name      NULL            
 //      case SQLITE_DROP_TEMP_TRIGGER://     Trigger Name    Table Name      
-//      case SQLITE_DROP_TEMP_VIEW://        View Name       NULL            
+//      case SQLITE_DROP_TEMP_VIEW://        View Name       NULL
+//"CREATE VIRTUAL TABLE" and "DROP VIRTUAL TABLE" sql statements are not supported
+//		case SQLITE_CREATE_VTABLE:
+//		case SQLITE_DROP_VTABLE:
 		default:
 			__SQLASSERT(EFalse, ESqlPanicInternalError);
 			break;
@@ -410,10 +411,6 @@ static TInt SecureChecks(const CSqlSecurityPolicy* aSecurityPolicy,TInt aDbOpTyp
 		case SQLITE_REINDEX://				Index Name      NULL
 		case SQLITE_ANALYZE://				Table Name      NULL
 			break;
-		case SQLITE_CREATE_VTABLE:
-		case SQLITE_DROP_VTABLE:
-			__SQLASSERT(EFalse, ESqlPanicInternalError);
-			res = SQLITE_DENY;	
 		//No policy check
 		case SQLITE_FUNCTION:
 			break;
@@ -427,6 +424,9 @@ static TInt SecureChecks(const CSqlSecurityPolicy* aSecurityPolicy,TInt aDbOpTyp
 //      case SQLITE_DROP_TEMP_TABLE://       Table Name      NULL            
 //      case SQLITE_DROP_TEMP_TRIGGER://     Trigger Name    Table Name      
 //      case SQLITE_DROP_TEMP_VIEW://        View Name       NULL            
+//"CREATE VIRTUAL TABLE" and "DROP VIRTUAL TABLE" sql statements are not supported
+//		case SQLITE_CREATE_VTABLE:
+//		case SQLITE_DROP_VTABLE:
 		default:
 			__SQLASSERT(EFalse, ESqlPanicInternalError);
 			break;

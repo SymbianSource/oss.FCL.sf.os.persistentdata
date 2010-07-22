@@ -35,9 +35,9 @@ public:
 //	virtual TVerdict doTestStepPostambleL();
 private:
 	TVerdict CheckBuildtimeVariability();
-	TVerdict CheckLoggingVariability();
-	TBool TestTraces();
-	TBool DoSendTrace(TTraceApiUsed aApiUsed);
+	TVerdict CheckLoggingVariabilityL();
+	TBool TestTracesL();
+	TBool DoSendTraceL(TTraceApiUsed aApiUsed);
 	TBool WasTraceVariabilitySuccessful(TInt aTraceResult);
 	};
 

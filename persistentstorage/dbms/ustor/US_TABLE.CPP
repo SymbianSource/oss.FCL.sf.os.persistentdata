@@ -611,7 +611,9 @@ void CDbStoreTable::CopyToRowL(RDbRow& aRow,const TDesC8& aRecord)
 	TInt size;
 	rec=ReadCardinality(rec,size);
 	size<<=2;
-	if(size < 0)
+	
+	//If such huge allocation is requested(KMaxTInt/2), it is highly likely the file is corrupt
+	if((size < 0) || (size >= KMaxTInt/2))
 		{
 		aRow.SetSize(0);
 		__LEAVE(KErrCorrupt);

@@ -58,17 +58,17 @@ struct TUint96
 
 /**@internalComponent*/
 #define UTRACE_PRIMARY_0(aClassification,aCategory,aContext,aPc,aFormatId)	\
-	((BTrace::TBTrace2)BTrace::OutX) \
-		(UTRACE_HEADER(8,(aClassification),(aCategory),(aContext),(aPc)), (TUint32)(aFormatId))
+    BTrace::OutX \
+        (UTRACE_HEADER(8,(aClassification),(aCategory),(aContext),(aPc)), (TUint32)(aFormatId),0,0)
 
 /**@internalComponent*/
 #define UTRACE_PRIMARY_1(aClassification,aCategory,aContext,aPc,aFormatId, aData1)	\
-	((BTrace::TBTrace3)BTrace::OutX)\
-		(UTRACE_HEADER(12,(aClassification),(aCategory),(aContext),(aPc)),(TUint32)(aFormatId),(TUint32)(aData1))
+    BTrace::OutX \
+        (UTRACE_HEADER(12,(aClassification),(aCategory),(aContext),(aPc)),(TUint32)(aFormatId),(TUint32)(aData1),0)
 
 /**@internalComponent*/
 #define UTRACE_PRIMARY_2(aClassification,aCategory,aContext,aPc,aFormatId,aData1,aData2) \
-	(BTrace::OutX)\
+    BTrace::OutX \
 		(UTRACE_HEADER(16,(aClassification),(aCategory),(aContext),(aPc)),(TUint32)(aFormatId),(TUint32)(aData1),(TUint32)(aData2))
 
 /**@internalComponent
@@ -84,11 +84,11 @@ struct TUint96
 
 /**@internalComponent*/
 #define UTRACE_SECONDARY_0(aClassification,aModuleUid,aCategory,aContext,aPc,aFormatId)	\
-	((BTrace::TBTrace3)BTrace::OutFilteredX)(UTRACE_HEADER(12,(aClassification),(aCategory),(aContext),(aPc)),(TUint32)(aModuleUid),(TUint32)(aFormatId))
+    BTrace::OutFilteredX(UTRACE_HEADER(12,(aClassification),(aCategory),(aContext),(aPc)),(TUint32)(aModuleUid),(TUint32)(aFormatId),0)
 
 /** @internalComponent */
 #define UTRACE_SECONDARY_1(aClassification,aModuleUid,aCategory,aContext,aPc,aFormatId, aData1) \
-	(BTrace::OutFilteredX)(UTRACE_HEADER(16,(aClassification),(aCategory),(aContext),(aPc)),(TUint32)(aModuleUid),(TUint32)(aFormatId),(TUint32)(aData1))
+    BTrace::OutFilteredX(UTRACE_HEADER(16,(aClassification),(aCategory),(aContext),(aPc)),(TUint32)(aModuleUid),(TUint32)(aFormatId),(TUint32)(aData1))
 
 /** @internalComponent 
  * You have to use the ANY macro instead.

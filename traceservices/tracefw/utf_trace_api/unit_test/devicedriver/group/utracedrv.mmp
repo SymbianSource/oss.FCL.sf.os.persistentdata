@@ -24,6 +24,8 @@ UID             0x100000af
 VENDORID        0x70000001
 capability      all
 
+deffile utrace.def
+
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
 userinclude		../inc/

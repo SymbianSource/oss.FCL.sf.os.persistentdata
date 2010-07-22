@@ -97,7 +97,7 @@ EXPORT_C void CDbFileStoreDatabase::CreateL(const TDesC& aName, TDbFormat::TCrea
 		{
 	default:
 		__LEAVE(KErrNotSupported);
-	case TDbFormat::ECreate:
+	case TDbFormat::ECreate:   
 		store=CPermanentFileStore::CreateL(iFs,aName,EFileRead|EFileWrite);
 		break;
 	case TDbFormat::EReplace:
@@ -143,7 +143,7 @@ EXPORT_C void CDbFileStoreDatabase::OpenL(const TDesC& aName,TDbFormat::TOpen aM
 	__ASSERT(!iName);	// check construction phase
 //
 	iName=aName.AllocL();
-	const TUint mode=aMode==TDbFormat::EReadOnly ? EFileShareReadersOnly : EFileWrite;
+	TUint mode=aMode==TDbFormat::EReadOnly ? EFileShareReadersOnly : EFileWrite;
 	CFileStore* store=CPermanentFileStore::OpenL(iFs,*iName,mode);
 	iStore=store;
 	CDbStoreDatabase::RestoreL(DatabaseIdL(store->Root()));

@@ -1,4 +1,4 @@
-// Copyright (c) 1997-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1997-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -423,11 +423,26 @@ or EOverwrite.
 		TBuf8<1600> buf; //Want at least an mtu sized buffer
 		//PG 14/08/2002 - If mode is set to *Raw, Don't change format of client buffer
 		if(aMode == EFileLoggingModeAppendRaw || aMode == EFileLoggingModeOverwriteRaw)
-			buf.Copy(aText);
+            {
+            TPtrC8 ptr8;
+            if (logger.LogSTI()) 
+                {
+                ptr8.Set(aText.Left(KLogBufferSize)); //in LogSTI mode, truncate to KLogBufferSize
+                }
+            else
+                {
+                ptr8.Set(aText.Left(1600)); // truncate to 1600
+                }
+            buf.Copy(ptr8);
+            }
 		else
+            {
 			ret=logger.iFormatter.FormatTextToWritableBuffer(buf,aText);
+            }
 		if (ret==KErrNone)
+            {
 			logger.DoStaticWrite(buf);
+            }
 		}
 	logger.Close();
 	}
@@ -597,11 +612,12 @@ session is already open.
 		n.Copy(aBuf);
 		TFileName logFileName = iLogFile.Name();
 		RDebug::Print(_L("FLG %S %S"),&logFileName,&n);
-		} else 		
-			{
-			TPckg<TLogFile> logFilePckg(iLogFile);
-			iLastError=SendReceive(EWriteLog,TIpcArgs (&logFilePckg, &aBuf));
-			}
+		} 
+	else 		
+		{
+		TPckg<TLogFile> logFilePckg(iLogFile);
+		iLastError=SendReceive(EWriteLog,TIpcArgs (&logFilePckg, &aBuf));
+		}
 	}
 
 void RFileLogger::DoStaticWrite(const TDesC8& aBuf)
@@ -624,10 +640,11 @@ Each line is preceded in the date and time.
  	 	n.Copy(aBuf);
 		TFileName logFileName = iLogFile.Name();
 		RDebug::Print(_L("FLG %S %S"),&logFileName,&n);
- 		} else
- 			{
- 			SendReceive(ECreateWriteAndCloseLog, TIpcArgs( &logFilePckg, &aBuf));		// ignore error
- 			}
+        }
+    else
+        {
+        SendReceive(ECreateWriteAndCloseLog, TIpcArgs( &logFilePckg, &aBuf));       // ignore error
+        }
 	}		
 
 void RFileLogger::DoWriteFormat(TRefByValue<const TDesC16> aFmt, VA_LIST& aList)

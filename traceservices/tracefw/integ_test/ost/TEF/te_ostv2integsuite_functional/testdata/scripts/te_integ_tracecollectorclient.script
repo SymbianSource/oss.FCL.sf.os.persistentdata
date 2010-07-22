@@ -13,7 +13,7 @@
 // Description:
 //
 
-//! @File
+//! @file
 //! @SYMTestSuiteName           te-integ-tracecollectorclient.script
 //! @SYMScriptTestEnvironment   TEF
 
@@ -55,7 +55,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlCompileTimeSele
 //! @SYMTestActions             
 //! @SYMTestExpectedResults     Verify that the errors returned are as expected
 //! @SYMTestType                CT
-//! @SYMTESTSTATUS              Implemented
+//! @SYMTestStatus              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ      
 

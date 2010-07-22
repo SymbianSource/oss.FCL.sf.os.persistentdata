@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -12,7 +12,7 @@
 //
 // Description:
 // SQL security - copying secure test databases to C:
-// Please, ensure that t_sqlenvcreate test is executed before the other sql security tests
+// Please, ensure that t_sqlenvcreate test is executed before the other sql tests
 // 
 //
 
@@ -59,9 +59,19 @@ _LIT(KDb7, "c:\\private\\10281e17\\[98765432]t_invobject.db");
 _LIT(KDb8org, "z:\\private\\10281e17\\[98765432]t_2defaultpolicies.db");
 _LIT(KDb8, "c:\\private\\10281e17\\[98765432]t_2defaultpolicies.db");
 
+_LIT(KPrivateSubDir, "c:\\private\\10281e17\\cfg-TestDir.db\\");
+
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 //Test macros and functions
+static void Check(TInt aValue, TInt aLine)
+	{
+	if(!aValue)
+		{
+		RDebug::Print(_L("*** Line %d\r\n"), aLine);
+		TheTest(EFalse, aLine);
+		}
+	}
 static void Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
@@ -70,6 +80,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 		TheTest(EFalse, aLine);
 		}
 	}
+#define TEST(arg) ::Check((arg), __LINE__)
 #define TEST2(aValue, aExpected) ::Check(aValue, aExpected, __LINE__)
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -82,6 +93,11 @@ void DoRun()
 
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-LEGACY-T_SQLENVCREATE-0001 Copy secure databases from Z: to C: "));
 
+	//Create a subdir in the private datacage. The SQL production code should properly detects
+	//KPrivateSubDir is a directory not a database file
+	err = fs.MkDir(KPrivateSubDir);
+	TEST(err == KErrNone || err == KErrAlreadyExists);
+	
 	err = BaflUtils::CopyFile(fs, KDbZFileName1, KDbCFileName1);
 	TEST2(err, KErrNone);
 	err = fs.SetAtt(KDbCFileName1, 0, KEntryAttReadOnly);

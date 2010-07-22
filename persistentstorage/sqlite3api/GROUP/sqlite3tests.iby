@@ -20,6 +20,8 @@
 
 REM SQLITE3
 
+#include <sqlite3.iby>
+
 #ifndef __STDIOSERVER_EXE__
 #define __STDIOSERVER_EXE__
 file=ABI_DIR\BUILD_DIR\StdioServer.exe			sys\bin\StdioServer.exe
@@ -27,10 +29,10 @@ file=ABI_DIR\BUILD_DIR\StdioServer.exe			sys\bin\StdioServer.exe
 
 #ifndef __TCLSQLITE3_CONFIG_INI__
 #define __TCLSQLITE3_CONFIG_INI__
-data=ZSYSTEM\test\config.ini				system\data\config.ini
+data=DATAZ_\test\config.ini                 system\data\config.ini
 #endif
 
-data=ZSYSTEM\test\sqlite3Tests.bat			\TEST\sqlite3Tests.bat
+data=DATAZ_\test\sqlite3Tests.bat			\TEST\sqlite3Tests.bat
 
 data=ZPRIVATE\10285A82\speed1p.explain		\PRIVATE\10285A82\speed1p.explain
 data=ZPRIVATE\10285A82\speed4p.explain		\PRIVATE\10285A82\speed4p.explain

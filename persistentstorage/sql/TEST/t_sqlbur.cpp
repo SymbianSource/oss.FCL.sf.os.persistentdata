@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -130,8 +130,13 @@ CSqlBurTestHarness::~CSqlBurTestHarness()
 //The SQL server would have the job to get a list of databases owned by
 //the given SID and to determine whether the backup flag is set
 //All databases that satisfy this requirement will be added to the array
-void CSqlBurTestHarness::GetBackUpListL(TSecureId /*aUid*/, RArray<TParse>& aFileList)
+void CSqlBurTestHarness::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
 	{
+	if(aUid.iId == 0)
+		{//Simulates that there are no databases for backup
+		aFileList.Reset();
+		return;
+		}
 	//TheTest.Printf(_L("Getting backup file list for SID=%x\r\n"),aUid);
 	for(TInt i=0;i<KTestDbFileCnt;++i)
 		{
@@ -195,7 +200,7 @@ void TestEnvCreate()
 	}
 
 //Reads the content of the db files and stores the content to a global memory buffer.
-//That buffer content will be sued later for  a verification of the restore process.
+//That buffer content will be used later for verification of the restore process.
 void StoreDbContentToBuf(RFs& aFs)
 	{
 	for(TInt i=0;i<KTestDbFileCnt;++i)
@@ -822,7 +827,95 @@ void LegacyFileFormatTest()
 
 	(void)TheTestHarness->Fs().Delete(KBackupFile2);
 	}
-			
+		
+/**
+@SYMTestCaseID			PDS-SQL-UT-4192
+@SYMTestCaseDesc		SQL Backup&Restore - empty backup file list test.
+						The test checks what will happen if the list with the files for backup is empty.
+						The GetBackupDataSectionL() should immediatelly set the flag parameter to true and do nothing.
+@SYMTestActions			SQL Backup&Restore - empty backup file list test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					DEF145198
+*/
+void EmptyBackupFileListTest()
+	{
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4192 Backup&Restore: empty backup file list"));
+	
+	CSqlBackupClient* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBackupClient::NewL(TheTestHarness));
+	TEST(backupClient != NULL);
+	
+	TRAP(err, backupClient->InitialiseGetProxyBackupDataL(KNullUid, EDriveC));
+	TEST2(err, KErrNone);
+
+	TBuf8<100> buf;
+	TPtr8 ptr((TUint8*)buf.Ptr(), 0, buf.MaxLength());
+	TBool finishedFlag = EFalse;
+	TRAP(err, backupClient->GetBackupDataSectionL(ptr, finishedFlag));
+	delete backupClient;
+	TEST2(err, KErrNone);
+	TEST(finishedFlag);
+	TEST2(buf.Length(), 0);
+	}
+
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4193
+@SYMTestCaseDesc		SQL Backup&Restore - file I/O error simulation test.
+						The test executes a backup, followed by a restore operation 
+						in a file I/O error simulation loop.
+@SYMTestActions			SQL Backup&Restore - file I/O error simulation test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					DEF145198
+*/
+void BackupRestoreFileIoErrTest()
+	{
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4193 Backup: File I/O error simulation test"));
+
+	//Make sure that the database content, just before the backup, will be copied to the test biffers.
+	//The buffers will be used during the restore testing for verification of the database content.
+	StoreDbContentToBuf(TheTestHarness->Fs());
+	
+	for(TInt fsError=KErrNotFound;fsError>=KErrBadName;--fsError)
+		{
+		TheTest.Printf(_L("===Backup&Restore, simulated file system error=%d\r\n"), fsError);
+		
+		TInt err = KErrGeneral;
+		TInt bytesStored = -1;
+		TInt it_cnt1 = 0;
+		for(;err<KErrNone;++it_cnt1)
+			{
+			__UHEAP_MARK;
+			(void)TheTestHarness->Fs().SetErrorCondition(fsError, it_cnt1);
+			TRAP(err, bytesStored = DoBackupL());
+			(void)TheTestHarness->Fs().SetErrorCondition(KErrNone);
+			__UHEAP_MARKEND;
+			}
+		TEST2(err, KErrNone);
+	
+		err = KErrGeneral;
+		TInt bytesRestored = -1;
+		TInt it_cnt2 = 0;
+	    for(;err<KErrNone;++it_cnt2)
+			{
+			__UHEAP_MARK;
+			(void)TheTestHarness->Fs().SetErrorCondition(fsError, it_cnt2);
+			TRAP(err, bytesRestored = DoRestoreL());
+			(void)TheTestHarness->Fs().SetErrorCondition(KErrNone);
+			__UHEAP_MARKEND;
+			}
+		TEST2(err, KErrNone);
+		
+		TEST2(bytesStored, bytesRestored);
+		CompareDbContentWithBuf(TheTestHarness->Fs());
+		
+		TheTest.Printf(_L("Backup&Restore file I/O error simulation test succeeded at backup iteration %d and restore itreration %d\r\n"), it_cnt1 - 1, it_cnt2 - 1);
+		}
+	}
+
+
 void DoMain()
 	{
 	TestEnvCreate();
@@ -837,6 +930,10 @@ void DoMain()
 	FunctionalTest2();
 
 	LegacyFileFormatTest();
+	
+	EmptyBackupFileListTest();
+	
+	BackupRestoreFileIoErrTest();
 
 	TestEnvDestroy();
 	}

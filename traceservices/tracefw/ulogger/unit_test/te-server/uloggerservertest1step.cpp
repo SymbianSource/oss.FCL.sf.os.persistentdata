@@ -78,8 +78,8 @@ TVerdict CUloggerServerTest1Step::doTestStepL()
 		  iErrors += Test15L();//CULoggerServer::GetInstalledPlugins
 		  iMediaCount = 0;
 		  iErrors += Test16L();//CULoggerServer::GetOutputPluginSettingsL
-		  iErrors += Test18L();//CULoggerServer::SetBufferSize
-		  iErrors += Test19L();//CULoggerServer::SetDataNotificationSize
+		  iErrors += Test18L();//CULoggerServer::SetBufferSizeL
+		  iErrors += Test19L();//CULoggerServer::SetDataNotificationSizeL
 		  iErrors += Test20L();//CULoggerServer::GetBufferSize
 		  iErrors += Test21L();// CULoggerServer::GetDataNotificationSize
 		  iErrors += Test22L();//CULoggerServer::SetGlobalSecondaryFilters
@@ -315,7 +315,7 @@ TInt CUloggerServerTest1Step::Test7L()
 	    	aCategory.Append(194);
 	    	
 	    	TInt e = KErrNone;
-	    	e = server->SetActiveFilter(aCategory,EPrimaryFilter);
+	    	e = server->SetActiveFilterL(aCategory,EPrimaryFilter);
 	    	TBuf<128> buf;
 	    	buf.AppendFormat(_L("Code returned from method - %d"), e);
 	    	INFO_PRINTF1(buf);
@@ -340,7 +340,7 @@ TInt CUloggerServerTest1Step::Test8L()
 	    {
 	    	RArray<TUint32> array;
 	    	array.Append(34);
-	    	TInt e = server->SetActiveFilter(array,ESecondaryFilter);
+	    	TInt e = server->SetActiveFilterL(array,ESecondaryFilter);
 	    	TBuf<128> buf;
 	    	buf.AppendFormat(_L("Code returned from method - %d"), e);
 	    	INFO_PRINTF1(buf);
@@ -536,9 +536,9 @@ TInt CUloggerServerTest1Step::Test16L()
 
 
 TInt CUloggerServerTest1Step::Test18L()
-{//CULoggerServer::SetBufferSize
+{//CULoggerServer::SetBufferSizeL
 	TInt errors = 0;
-		INFO_PRINTF1(_L("Testing - CULoggerServer::SetBufferSize method"));
+		INFO_PRINTF1(_L("Testing - CULoggerServer::SetBufferSizeL method"));
 	CULoggerServer *server = NULL;
 	server = CULoggerServer::NewLC(EPriorityBackground);
 	if(server == NULL)
@@ -550,38 +550,38 @@ TInt CUloggerServerTest1Step::Test18L()
 	    {
 	    	TInt e;
 	    	INFO_PRINTF1(_L("testing value: -1"));
-	    	e = server->SetBufferSize(-1);
+	    	e = server->SetBufferSizeL(-1);
 	    	TBuf<128> buf;
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
 
 	    	INFO_PRINTF1(_L("testing value: 0"));
-	    	e = server->SetBufferSize(0);
+	    	e = server->SetBufferSizeL(0);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
 
 	    	INFO_PRINTF1(_L("testing value: 100"));
-	    	e = server->SetBufferSize(100);
+	    	e = server->SetBufferSizeL(100);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
 
 	    	INFO_PRINTF1(_L("testing value: 65535"));
-	    	e = server->SetBufferSize(65535);
+	    	e = server->SetBufferSizeL(65535);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
 
 	    	INFO_PRINTF1(_L("testing value: 65536"));
-	    	e = server->SetBufferSize(65536);
+	    	e = server->SetBufferSizeL(65536);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
     		
     		INFO_PRINTF1(_L("testing value: 165537"));
-	    	e = server->SetBufferSize(165537);
+	    	e = server->SetBufferSizeL(165537);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
@@ -592,9 +592,9 @@ TInt CUloggerServerTest1Step::Test18L()
 
 
 TInt CUloggerServerTest1Step::Test19L()
-{//CULoggerServer::SetDataNotificationSize
+{//CULoggerServer::SetDataNotificationSizeL
 	TInt errors = 0;
-		INFO_PRINTF1(_L("Testing - CULoggerServer::SetDataNotificationSize method"));
+		INFO_PRINTF1(_L("Testing - CULoggerServer::SetDataNotificationSizeL method"));
 	CULoggerServer *server = NULL;
 	server = CULoggerServer::NewLC(EPriorityBackground);
 	if(server == NULL)
@@ -606,44 +606,44 @@ TInt CUloggerServerTest1Step::Test19L()
 	    {
 	    	TInt e;
 	    	INFO_PRINTF1(_L("testing value: -1"));
-	    	e = server->SetDataNotificationSize(-1);
+	    	e = server->SetDataNotificationSizeL(-1);
 	    	TBuf<128> buf;
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
 
 	    	INFO_PRINTF1(_L("testing value: 0"));
-	    	e = server->SetDataNotificationSize(0);
+	    	e = server->SetDataNotificationSizeL(0);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
 
 	    	INFO_PRINTF1(_L("testing value: 100"));
-	    	e = server->SetDataNotificationSize(100);
+	    	e = server->SetDataNotificationSizeL(100);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
 
 	    	INFO_PRINTF1(_L("testing value: 65535"));
-	    	e = server->SetDataNotificationSize(65535);
+	    	e = server->SetDataNotificationSizeL(65535);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
 
 	    	INFO_PRINTF1(_L("testing value: 65536"));
-	    	e = server->SetDataNotificationSize(65536);
+	    	e = server->SetDataNotificationSizeL(65536);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
     		
     		INFO_PRINTF1(_L("testing value: 85536"));
-	    	e = server->SetDataNotificationSize(85536);
+	    	e = server->SetDataNotificationSizeL(85536);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
     		
     		INFO_PRINTF1(_L("testing value: 165538"));
-	    	e = server->SetDataNotificationSize(165538);
+	    	e = server->SetDataNotificationSizeL(165538);
     		buf.AppendFormat(_L("Code returned from method - %d"), e);
     		INFO_PRINTF1(buf);
     		buf.Zero();
@@ -914,10 +914,10 @@ TInt CUloggerServerTest1Step::Test28L()//CULoggerServer::RemoveOutputPluginSetti
 	}
 	
 
-TInt CUloggerServerTest1Step::Test29L()//CULoggerServer::GetInstalledInputPlugins
+TInt CUloggerServerTest1Step::Test29L()//CULoggerServer::GetInstalledInputPluginsL
 	{
 	TInt errors = 0;
-	INFO_PRINTF1(_L("Testing - CULoggerServer::GetInstalledInputPlugins method"));
+	INFO_PRINTF1(_L("Testing - CULoggerServer::GetInstalledInputPluginsL method"));
 	CULoggerServer *server = NULL;
 	server = CULoggerServer::NewLC(EPriorityBackground);
 	if(server == NULL)
@@ -928,7 +928,7 @@ TInt CUloggerServerTest1Step::Test29L()//CULoggerServer::GetInstalledInputPlugin
 	else
 		{
 		RArray<TPtrC8> list;
-    	server->GetInstalledInputPlugins(list);
+    	server->GetInstalledInputPluginsL(list);
     	list.Close();
     	CleanupStack::PopAndDestroy(); //server
 		}

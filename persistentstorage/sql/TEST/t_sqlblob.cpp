@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -1959,6 +1959,92 @@ void BigBlobTestL()
 	CleanupStack::PopAndDestroy(2, blobWrBuf); // buf, blobWrBuf
 	}
 	
+/**
+@SYMTestCaseID          PDS-SQL-CT-4194
+@SYMTestCaseDesc        The test opens a test database, creates a table with a blob column and inserts one record.
+						Then the test uses RSqlBlobWriteStream to modify the blob column content.
+                        MStreamBuf::SeekL() is used to modify the blob data at specific positions.
+                        Then the test uses RSqlBlobReadStream object to read the just written blob data.
+                        MStreamBuf::SeekL() is used to read the column content at specific positions 
+                        (the same positions used during the blob write operation). The read byte values must
+                        match the written byte values.
+@SYMTestPriority        High
+@SYMTestActions         RSqlBlobReadStream and RSqlBlobWriteStream - MStreamBuf::SeekL() test.
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 DEF145028
+*/  
+void StreamSeekTestL()
+	{
+    TInt rc = TheDb1.Exec(_L("CREATE TABLE A(Fld1 INTEGER, Fld2 BLOB)"));
+    TEST(rc >= 0);
+    
+    //Write a record to the database using a blob stream. MStreamBuf::SeekL() is used to modify the content at a specific position.
+    rc = TheDb1.Exec(_L("INSERT INTO A(Fld1, Fld2) VALUES(1, zeroblob(256))"));
+    TEST2(rc, 1);
+    RSqlBlobWriteStream strm1;
+    CleanupClosePushL(strm1);
+    strm1.OpenL(TheDb1, _L("A"), _L("Fld2"));
+    for(TInt i=0;i<256;++i)
+        {
+        strm1 << (TUint8)i;
+        }
+    
+    const TInt KStreamOffset = 10;
+    const TUint8 KByte = 'z';
+    _LIT8(KData, "QWERTYUIOPASDFG");
+    
+    MStreamBuf* strm1buf = strm1.Sink();
+    TEST(strm1buf != NULL);
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamBeginning, 0);
+    strm1buf->WriteL(&KByte, 1);
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamMark, KStreamOffset);
+    strm1buf->WriteL(&KByte, 1);
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamEnd, -KData().Length());
+    strm1buf->WriteL(KData().Ptr(), KData().Length());
+    
+    strm1buf->SeekL(MStreamBuf::EWrite, EStreamEnd, -4 * KStreamOffset);
+    strm1buf->WriteL(&KByte, 1);
+    
+    strm1.CommitL();
+    CleanupStack::PopAndDestroy(&strm1);
+    
+    //Read the record using a blob stream. MStreamBuf::SeekL() is used to read the content at a specific position.
+    RSqlBlobReadStream strm2;
+    CleanupClosePushL(strm2);
+    strm2.OpenL(TheDb1, _L("A"), _L("Fld2"));
+
+    TUint8 byte = 0;
+    MStreamBuf* strm2buf = strm2.Source();
+    TEST(strm1buf != NULL);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamBeginning, 0);
+    rc = strm2buf->ReadL(&byte, 1);
+    TEST2(rc, 1);
+    TEST2(byte, KByte);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamMark, KStreamOffset);
+    rc = strm2buf->ReadL(&byte, 1);
+    TEST2(rc, 1);
+    TEST2(byte, KByte);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamEnd, -KData().Length());
+    TUint8 buf[20];
+    rc = strm2buf->ReadL(buf, KData().Length());
+    TEST2(rc, KData().Length());
+    TPtrC8 bufptr(buf, rc);
+    TEST(bufptr == KData);
+    
+    strm2buf->SeekL(MStreamBuf::ERead, EStreamEnd, -4 * KStreamOffset);
+    rc = strm2buf->ReadL(&byte, 1);
+    TEST2(rc, 1);
+    TEST2(byte, KByte);
+    
+    CleanupStack::PopAndDestroy(&strm2);
+	}
+
 void DoTestsL()
 	{	
 	CreateTestDbs();
@@ -2014,6 +2100,9 @@ void DoTestsL()
 	// Big blob test
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4114: Big blob test"));
 	BigBlobTestL();
+		
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4194: Blob streams. MStreamBuf::SeekL() test"));
+	StreamSeekTestL();
 		
 	DeleteTestDbs();
 	}

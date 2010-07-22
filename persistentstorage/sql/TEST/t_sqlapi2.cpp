@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -978,6 +978,23 @@ void BlobStreamInjectionTest()
 	RSqlBlobReadStream strm6;
 	TRAP(err, strm6.OpenL(TheDb, KNullDesC, KNullDesC, 1, KNullDesC));
 	TEST(err != KErrNone);
+	//Attempt to open a read blob stream, where the blob column name is invalid and contains non-convertible characters.
+    TBuf<3> invName;
+    invName.SetLength(3);
+    invName[0] = TChar(0xD800); 
+    invName[1] = TChar(0xFC00); 
+    invName[2] = TChar(0x0000);
+	RSqlBlobReadStream strm7;
+	TRAP(err, strm7.OpenL(TheDb,  _L("A"), invName, 1, KNullDesC));
+	TEST(err != KErrNone);
+	//Attempt to open a read blob stream, where the table name is invalid and contains non-convertible characters.
+	RSqlBlobReadStream strm8;
+	TRAP(err, strm8.OpenL(TheDb, invName, _L("Data"), 1, KNullDesC));
+	TEST(err != KErrNone);
+	//Attempt to open a read blob stream, where the attached db name is invalid and contains non-convertible characters.
+	RSqlBlobReadStream strm9;
+	TRAP(err, strm9.OpenL(TheDb, _L("A"), _L("Data"), 1, invName));
+	TEST(err != KErrNone);
 	//
 	err = TheDb.Detach(KAttachDb);
 	TEST2(err, KErrNone);
@@ -1697,6 +1714,73 @@ void CompoundSelectStackOverflowTest()
 		}
 	}
 
+/**
+@SYMTestCaseID			PDS-SQL-CT-4198
+@SYMTestCaseDesc		Expired SQL statements test.
+						The test creates a database and opens 2 connections to that database.
+						Connection 2 prepares couple of SELECT and INSERT statements (8-bit and 16-bit).
+						Then connection 1 renames the table used in the already prepared statements.
+						Connection 2 attempts to execute the prepared statements. The execution should fail
+						because the database schema has changed after they were prepared.
+@SYMTestActions			Expired SQL statements test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+@SYMDEF					DEF145236
+*/
+void ExpiredStmtTest()
+	{
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	//Create a database and create db connection 1.
+	TInt err = TheDb.Create(KTestDbName1);
+	TEST2(err, KErrNone);
+	err = TheDb.Exec(_L("CREATE TABLE A(C1 INTEGER)"));
+	TEST(err >= 0);
+	err = TheDb.Exec(_L("INSERT INTO A(C1) VALUES(1)"));
+	TEST2(err, 1);
+	
+	//Create db connection 2 to the same database, as db connection 1.
+	RSqlDatabase db2;
+	err = db2.Open(KTestDbName1);
+	TEST2(err, KErrNone);
+	
+	//Db connection 2. Prepare SELECT and INSERT, 8-bit and 16-bit statements. 
+	RSqlStatement stmt1, stmt2, stmt3, stmt4;
+	err = stmt1.Prepare(db2, _L("SELECT * FROM A"));
+	TEST2(err, KErrNone);
+	err = stmt2.Prepare(db2, _L8("SELECT * FROM A"));
+	TEST2(err, KErrNone);
+	err = stmt3.Prepare(db2, _L("INSERT INTO A(C1) VALUES(2)"));
+	TEST2(err, KErrNone);
+	err = stmt4.Prepare(db2, _L8("INSERT INTO A(C1) VALUES(3)"));
+	TEST2(err, KErrNone);
+	
+	//Modify the A table structure from the other connection
+	//err = TheDb.Exec(_L("ALTER TABLE A ADD C2 INTEGER"));
+	err = TheDb.Exec(_L("ALTER TABLE A RENAME TO B"));
+	TEST(err >= 0);
+	
+	//Try to execute the already prepared statements.
+	err = stmt1.Next();
+	TEST2(err, KSqlErrSchema);
+	err = stmt1.Next();
+	TEST(err != KSqlAtRow);
+	err = stmt2.Next();
+	TEST(err != KSqlAtRow);
+	err = stmt3.Exec();
+	TEST(err < 0);
+	err = stmt4.Exec();
+	TEST(err < 0);
+	//
+	stmt4.Close();
+	stmt3.Close();
+	stmt2.Close();
+	stmt1.Close();
+	db2.Close();
+	TheDb.Close();
+	err = RSqlDatabase::Delete(KTestDbName1);
+	TEST2(err, KErrNone);
+	}
+
 void DoTestsL()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-3512 RSqlStatement::ColumnCount() tests "));
@@ -1735,6 +1819,8 @@ void DoTestsL()
 	ProfilerTest();
 	TheTest.Next( _L(" Compound SELECT, stack overflow test"));
 	CompoundSelectStackOverflowTest();
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4198 Expired statements test"));
+	ExpiredStmtTest();
 	}
 
 TInt E32Main()

@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -36,6 +36,10 @@ _LIT(KDb6, "c:\\private\\10281e17\\[98765432]t_nodefaultpolicy.db");
 _LIT(KDb7, "c:\\private\\10281e17\\[98765432]t_invobject.db");
 _LIT(KDb8, "c:\\private\\10281e17\\[98765432]t_2defaultpolicies.db");
 
+_LIT(KPrivateSubDir, "c:\\private\\10281e17\\cfg-TestDir.db\\");
+
+TParse TheParse;
+
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 //Test macros and functions
@@ -57,6 +61,53 @@ void DoDeleteFile(RFs& aFs, const TDesC& aFilePath)
 	if(err != KErrNone && err != KErrNotFound)
 		{
 		TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &aFilePath);
+		}
+	}
+
+void PrintDiskUsage(RFs& aFs, const TDesC& aPath, TInt aOffset = 0)
+	{
+	_LIT(KSpace, " ");
+	TheTest.Printf(_L("%*.*S%S\r\n"), aOffset, aOffset, &KSpace, &aPath);
+	TFindFile findFile(aFs);
+	CDir* fileNameCol = NULL;
+	TBuf<8> fileNameMask;
+	fileNameMask.Copy(_L("*.*"));
+	TInt err = findFile.FindWildByDir(fileNameMask, aPath, fileNameCol);
+	if(err == KErrNone)
+		{
+		do
+			{
+			const TDesC& file = findFile.File();//"file" variable contains the drive and the path. the file name in "file" is invalid in this case.
+			(void)TheParse.Set(file, NULL, NULL);
+			TPtrC driveName = TheParse.Drive();
+			if(aPath.FindF(driveName) >= 0)
+				{		
+                TInt cnt = fileNameCol->Count();
+                for(TInt i=0;i<cnt;++i)
+                    {
+                    const ::TEntry& entry = (*fileNameCol)[i];
+                    if(!entry.IsDir())
+                        {
+                        TheTest.Printf(_L("%*.*S    %S, size=%d\r\n"), aOffset, aOffset, &KSpace, &entry.iName, entry.iSize);
+                        }
+                    else
+                        {
+                        TBuf<100> path;
+                        path.Copy(aPath);
+                        path.Append(entry.iName);
+                        path.Append(_L("\\"));
+                        PrintDiskUsage(aFs, path, aOffset + 4);
+                        }
+                    }
+				} // if(aPath.FindF(driveName) >= 0)
+			
+			delete fileNameCol;
+			fileNameCol = NULL;
+			} while((err = findFile.FindWild(fileNameCol)) == KErrNone);//Get the next set of files
+		}
+	else
+		{
+		TheTest.Printf(_L("  FindWildByDir() failed with err=%d\r\n"), err);
 		}
 	}
 
@@ -83,6 +134,17 @@ void DoRun()
 	DoDeleteFile(fs, KDb7);
 	DoDeleteFile(fs, KDb8);
 
+	TheTest.Printf(_L("====================================================\r\n"));
+	PrintDiskUsage(fs, _L("c:\\"));
+	TheTest.Printf(_L("====================================================\r\n"));
+	
+	//Remove the created subdir in the private datacage. 
+	err = fs.RmDir(KPrivateSubDir);
+	if(err != KErrNone && err != KErrNotFound)
+		{
+		TheTest.Printf(_L("Error %d deleting \"%S\" directory.\n"), err, &KPrivateSubDir);
+		}
+	
 	fs.Close();
 	}
 

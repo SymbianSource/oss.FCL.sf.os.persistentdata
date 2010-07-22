@@ -66,7 +66,7 @@ TInt TUptTraceTester::TimeTraceL(const TApiRunConfig& aApiRunConfig,  TApiRunRes
 	TUint32 callResults[KNumberOfTraceCallIterations];
 	for(TInt i = 0; i < KNumberOfTraceCallIterations; i++)
 		{
-		error = TimeTraceCall(aApiRunConfig, aApiRunResults);
+		error = TimeTraceCallL(aApiRunConfig, aApiRunResults);
 		callResults[i] = aApiRunResults.iApiTraceTime;
 		}
 	TUint32 total = 0;
@@ -76,7 +76,7 @@ TInt TUptTraceTester::TimeTraceL(const TApiRunConfig& aApiRunConfig,  TApiRunRes
 	return error;
 	}
 
-TInt TUptTraceTester::TimeTraceCall(const TApiRunConfig& aApiRunConfig,  TApiRunResults& aApiRunResults)
+TInt TUptTraceTester::TimeTraceCallL(const TApiRunConfig& aApiRunConfig,  TApiRunResults& aApiRunResults)
 	{
 	TInt error = KErrNone;
  	if(TUptTraceCalls::IsKernelTrace(aApiRunConfig.iApiId))
@@ -91,13 +91,13 @@ TInt TUptTraceTester::TimeTraceCall(const TApiRunConfig& aApiRunConfig,  TApiRun
  		}
  	else
  		{
- 		error = TimeUsersideTraceCalls(aApiRunConfig, aApiRunResults);
+ 		error = TimeUsersideTraceCallsL(aApiRunConfig, aApiRunResults);
  		}
 
  	return error;
 	}
 
-TInt TUptTraceTester::TimeUsersideTraceCalls(const TApiRunConfig& aApiRunConfig,  TApiRunResults& aApiRunResults) //pass the configuration here
+TInt TUptTraceTester::TimeUsersideTraceCallsL(const TApiRunConfig& aApiRunConfig,  TApiRunResults& aApiRunResults) //pass the configuration here
 	{
 		aApiRunResults.iTimeCount = 0;
 		CUptTimer timer;

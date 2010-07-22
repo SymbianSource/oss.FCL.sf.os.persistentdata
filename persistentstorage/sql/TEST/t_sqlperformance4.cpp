@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -17,6 +17,7 @@
 #include <bautils.h>
 #include <sqldb.h>
 #include <hal.h>
+#include "t_sqlcmdlineutil.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -27,11 +28,12 @@ RFs				TheFs;
 _LIT(KCDriveDatabase, "c:[a000017f]t_sqlperformance4.db");
 
 TFileName		TheDbFileName;
-TBuf<256>  		TheCmd;
-TDriveName 		TheDriveName;
-TParse     		TheParse;
+TBuf<200> TheTestTitle;
+TCmdLineParams TheCmdLineParams;
+TBuf8<200> TheSqlConfigString;
 
-_LIT8( KMCSqlConfig, "cache_size=1024; page_size=1024; " );
+_LIT(KUtf8,  "UTF8 ");
+_LIT(KUtf16, "UTF16");
 
 _LIT(KMusicCreateTable, "CREATE TABLE Music("
     L"UniqueId INTEGER PRIMARY KEY,"
@@ -194,14 +196,8 @@ void CreateDatabaseL(const TDesC& aDbName)
  
 	TheTest.Printf(_L("Creating Database %S\n"),  &aDbName);
 		
-	TInt err = TheDbC.Create(aDbName, securityPolicy, &KMCSqlConfig);
-	
-	TBuf<64> tmp;
-	tmp.Copy(KMCSqlConfig);
-	tmp.Append(_L("\n"));
-	
-	TheTest.Printf(tmp);
-	
+	TInt err = TheDbC.Create(aDbName, securityPolicy, &TheSqlConfigString);
+
 	if (KErrAlreadyExists == err)
 		{
 		
@@ -210,7 +206,7 @@ void CreateDatabaseL(const TDesC& aDbName)
         User::LeaveIfError(TheDbC.Delete(aDbName));
 
         // try again
-        err = TheDbC.Create(aDbName, securityPolicy, &KMCSqlConfig);
+        err = TheDbC.Create(aDbName, securityPolicy, &TheSqlConfigString);
 
 		}
 	
@@ -280,7 +276,7 @@ void RunTest()
 	TEST2(sql.Length(), fileLen);
 	
 	//Open main database
-	err = TheDbC.Open(TheDbFileName);
+	err = TheDbC.Open(TheDbFileName, &TheSqlConfigString);
 	TEST2(err, KErrNone);
 	
 	TheTest.Printf(_L("Beginning INSERTS...\n"));
@@ -372,12 +368,12 @@ void RunTest()
 
 void DoTests()
 	{
-	TheTest.Start(_L("@SYMTestCaseID:PDS-SQL-UT-4151; SQL Music Player Db Performance Test"));
+	TheTestTitle.Format(_L("@SYMTestCaseID:PDS-SQL-UT-4151; SQL Music Player Db Performance Test, encoding: \"%S\", page size: %d\r\n"), 
+			TheCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf16 ? &KUtf16 : &KUtf8, TheCmdLineParams.iPageSize);
+	TheTest.Start(TheTestTitle);
 	
 	RunTest();
 	}
-
-//Usage: "t_sqlperformance4 [<drive letter>:]"
 
 TInt E32Main()
 	{
@@ -388,16 +384,10 @@ TInt E32Main()
 
 	__UHEAP_MARK;
 
-	User::CommandLine(TheCmd);
-	TheCmd.TrimAll();
-	if(TheCmd.Length() > 0)
-		{
-		TheDriveName.Copy(TheCmd);
-		}
-	TheParse.Set(TheDriveName, &KCDriveDatabase, 0);
-	const TDesC& dbFilePath = TheParse.FullName();
-	TheDbFileName.Copy(dbFilePath);
-	TheTest.Printf(_L("==Database file name: %S\r\n"), &TheDbFileName);
+	GetCmdLineParamsAndSqlConfigString(TheTest, _L("t_sqlperformance4"), TheCmdLineParams, TheSqlConfigString);
+	PrepareDbName(KCDriveDatabase, TheCmdLineParams.iDriveName, TheDbFileName);
+
+	TheTest.Printf(_L("==Databases: %S\r\n"), &TheDbFileName); 
 	
 	TestEnvInit();
 	

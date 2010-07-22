@@ -45,7 +45,7 @@ static TUint8 TheBinaryColumnData[MAX(KLongColumnSize, KLongParameterSize) * siz
 //"RSqlStatement::Prepare()" OOM test (8-bit SELECT SQL statement)
 void PrepareStmt8L(RSqlDatabase& aDb, RSqlStatement& aStmt)
 	{
-	_LIT8(KSqlString, "SELECT * FROM BBB");
+	_LIT8(KSqlString, "SELECT * FROM BBB WHERE Fld1=? AND Fld4<>?");
 	TInt err = aStmt.Prepare(aDb, KSqlString);
 	User::LeaveIfError(err);
 	}
@@ -53,14 +53,14 @@ void PrepareStmt8L(RSqlDatabase& aDb, RSqlStatement& aStmt)
 //"RSqlStatement::PrepareL()" OOM test (8-bit SELECT SQL statement)
 void PrepareStmt8_2L(RSqlDatabase& aDb, RSqlStatement& aStmt)
 	{
-	_LIT8(KSqlString, "SELECT * FROM BBB");
+	_LIT8(KSqlString, "SELECT * FROM BBB WHERE Fld1=? AND Fld4<>?");
 	aStmt.PrepareL(aDb, KSqlString);
 	}
 
 //"RSqlStatement::Prepare()" OOM test (8-bit SELECT SQL statement), syntax error
 void PrepareBadStmt8L(RSqlDatabase& aDb, RSqlStatement& aStmt)
 	{
-	_LIT8(KSqlString, "SELECT123 * FROM BBB");
+	_LIT8(KSqlString, "SELECT123 * FROM BBB WHERE Fld1=? AND Fld4<>?");
 	TInt err = aStmt.Prepare(aDb, KSqlString);
 	User::LeaveIfError(err);
 	}
@@ -68,16 +68,18 @@ void PrepareBadStmt8L(RSqlDatabase& aDb, RSqlStatement& aStmt)
 //"RSqlStatement::Prepare()" OOM test (8-bit SELECT SQL statement, move next)
 void PrepareMoveStmt8L(RSqlDatabase& aDb, RSqlStatement& aStmt)
 	{
-	_LIT8(KSqlString, "SELECT * FROM BBB");
+	_LIT8(KSqlString, "SELECT * FROM BBB WHERE Fld1=? AND Fld4<>?");
 	TInt err = aStmt.Prepare(aDb, KSqlString);
-	if(err == KErrNone)
-		{
-		err = aStmt.Next();
-		if(err == KSqlAtRow)
-			{
-			err = KErrNone;
-			}
-		}
+    User::LeaveIfError(err);
+    err = aStmt.BindInt(0, 1);
+    User::LeaveIfError(err);
+    err = aStmt.BindText(1, _L("data244weewfn43wr83224iu23ewkjfbrektug4i433b3k45b"));
+    User::LeaveIfError(err);
+    err = aStmt.Next();
+    if(err == KSqlAtRow)
+        {
+        err = KErrNone;
+        }
 	User::LeaveIfError(err);
 	}
 

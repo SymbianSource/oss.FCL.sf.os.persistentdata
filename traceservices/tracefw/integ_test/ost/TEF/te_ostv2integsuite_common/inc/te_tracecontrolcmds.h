@@ -51,7 +51,7 @@ public:
 	TInt StopAndDeleteFile(RULogger& aLogger);
 	TInt Stop(RULogger& aLogger);
 	TInt DeleteFile();
-	void SetFilter(CArrayFixFlat<TUint8>* aFilters);
+	void SetFilterL(CArrayFixFlat<TUint8>* aFilters);
 
 	TInt Test(); 
 private:	

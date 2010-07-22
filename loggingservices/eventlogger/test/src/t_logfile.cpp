@@ -198,7 +198,9 @@ LOCAL_C void TestConstructionL()
 
 	while(!finished)
 		{
-        if(failCount == 4)
+		TheTest.Printf(_L("%d\r\n"), failCount);
+
+        if(failCount > 8)
             {
             TRAP(error, client = CLogClient::NewL(theFs));
             TEST2(error, KErrNone);
@@ -206,8 +208,8 @@ LOCAL_C void TestConstructionL()
             finished = ETrue;
             continue;
             }
-
-		__FILE_FAILNEXT(++failCount);
+		
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 		TRAP(error, client = CLogClient::NewL(theFs));
 
@@ -220,13 +222,13 @@ LOCAL_C void TestConstructionL()
 			}
 		else
 			{
-			TEST2(error, KErrGeneral);
+			TEST2(error, KErrNoMemory);
 			TestUtils::DeleteDatabaseL();
 			}
 		}
 
 	delete client;
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -258,8 +260,7 @@ LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
 	while(!finished)
 		{
 		error = KErrNone;
-
-        if(failCount == 4)
+        if(failCount == 8)
             {
             aClient.AddEventType(*type, active->iStatus);
             active->StartL();
@@ -268,9 +269,11 @@ LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
             finished = ETrue;
             continue;
             }
-		
-		__FILE_FAILNEXT(++failCount);
 
+		TheTest.Printf(_L("%d  \r"), failCount);
+        
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		
 		aClient.AddEventType(*type, active->iStatus);
 	
 		active->StartL();
@@ -283,7 +286,7 @@ LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
 
 		__FILE_RESET;
 
-		if (error == KErrGeneral)
+		if (error == KErrNoMemory)
 			{
 			active->StartL();
 			aClient.GetEventType(*type, active->iStatus);
@@ -301,7 +304,7 @@ LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrAlreadyExists);
 
 	CleanupStack::PopAndDestroy(2); // active, type
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -329,7 +332,8 @@ LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 		aClient.GetEventType(*type, active->iStatus);
 
@@ -340,7 +344,7 @@ LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
 			finished = ETrue;
 		else
 			{
-			TEST2(active->iStatus.Int(), KErrGeneral);
+			TEST2(active->iStatus.Int(), KErrNoMemory);
 			TEST(type->Description() == KNullDesC);
 			}
 
@@ -352,7 +356,7 @@ LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
 	TEST(type->LoggingEnabled());
 
 	CleanupStack::PopAndDestroy(2); // active, type
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -386,7 +390,7 @@ LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 		type->SetDescription(KTestEventDesc2);
 		type->SetLoggingEnabled(EFalse);
 
-        if(failCount == 3)
+        if(failCount == 8)
             {
             aClient.ChangeEventType(*type, active->iStatus);
             active->StartL();
@@ -396,7 +400,8 @@ LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
             continue;
             }
 		
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 		aClient.ChangeEventType(*type, active->iStatus);
 
@@ -410,7 +415,7 @@ LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 
 		__FILE_RESET;
 
-		if (error == KErrGeneral)
+		if (error == KErrNoMemory)
 			{
 			active->StartL();
 			aClient.GetEventType(*type, active->iStatus);
@@ -436,7 +441,7 @@ LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 	TEST(type->LoggingEnabled() == EFalse);
 
 	CleanupStack::PopAndDestroy(2); // type, active
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -467,7 +472,7 @@ LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 		{
 		error = KErrNone;
 
-        if(failCount == 3)
+        if(failCount == 8)
             {
             aClient.DeleteEventType(KTestEventUid, active->iStatus);
             active->StartL();
@@ -477,7 +482,8 @@ LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
             continue;
             }
 		
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 		aClient.DeleteEventType(KTestEventUid, active->iStatus);
 
@@ -491,7 +497,7 @@ LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 
 		__FILE_RESET;
 
-		if (error == KErrGeneral)
+		if (error == KErrNoMemory)
 			{
 			active->StartL();
 			aClient.GetEventType(*type, active->iStatus);
@@ -508,7 +514,7 @@ LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(2); // type, active
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -568,7 +574,7 @@ LOCAL_C void TestAddEventL(CLogClient& aClient)
 		{
 		error = KErrNone;
 
-        if(failCount == 3)
+        if(failCount == 8)
             {
             aClient.AddEvent(*event, active->iStatus);
             active->StartL();
@@ -578,7 +584,8 @@ LOCAL_C void TestAddEventL(CLogClient& aClient)
             continue;
             }
 
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 		aClient.AddEvent(*event, active->iStatus);
 
 		active->StartL();
@@ -591,9 +598,8 @@ LOCAL_C void TestAddEventL(CLogClient& aClient)
 
 		__FILE_RESET;
 
-		if (error == KErrGeneral)
+		if (error == KErrNoMemory)
 			{
-			TEST2(error, KErrGeneral);
 			event->SetId(0);
 
 			active->StartL();
@@ -617,7 +623,7 @@ LOCAL_C void TestAddEventL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrNone);
 
 	CleanupStack::PopAndDestroy(3); // event, active, type
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -646,7 +652,8 @@ LOCAL_C void TestGetEventL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 		aClient.GetEvent(*event, active->iStatus);
 
 		active->StartL();
@@ -655,7 +662,7 @@ LOCAL_C void TestGetEventL(CLogClient& aClient)
 		if (active->iStatus == KErrNone)
 			finished = ETrue;
 		else
-			TEST2(active->iStatus.Int(), KErrGeneral);
+			TEST2(active->iStatus.Int(), KErrNoMemory);
 
 		__FILE_RESET;
 		}
@@ -676,7 +683,7 @@ LOCAL_C void TestGetEventL(CLogClient& aClient)
 	TEST(event->Data() == KTestData1);
 
 	CleanupStack::PopAndDestroy(2); // event, active
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -722,7 +729,7 @@ LOCAL_C void TestChangeEventL(CLogClient& aClient)
 		event->SetLink(KTestLink2);
 		event->SetDataL(KTestData2);
 
-        if(failCount == 3)
+        if(failCount == 14)
             {
             aClient.ChangeEvent(*event, active->iStatus);
             active->StartL();
@@ -732,7 +739,8 @@ LOCAL_C void TestChangeEventL(CLogClient& aClient)
             continue;
             }
 		
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 		aClient.ChangeEvent(*event, active->iStatus);
 
@@ -745,13 +753,13 @@ LOCAL_C void TestChangeEventL(CLogClient& aClient)
 
 		__FILE_RESET;
 
-		if (error == KErrGeneral)
+		if (error == KErrNoMemory)
 			{
 			active->StartL();
 			aClient.GetEvent(*event, active->iStatus);
 			CActiveScheduler::Start();
 			if (active->iStatus != KErrNone) 
-			    TheTest.Printf(_L("error code:%d failcount:%d\n"),active->iStatus.Int(),failCount);
+			    TheTest.Printf(_L("\nerror code:%d failcount:%d\n"),active->iStatus.Int(),failCount);
 			TEST2(active->iStatus.Int(), KErrNone);
 
 			TEST(event->Id() == 0);
@@ -794,7 +802,7 @@ LOCAL_C void TestChangeEventL(CLogClient& aClient)
 	TEST(event->Data() == KTestData2);
 
 	CleanupStack::PopAndDestroy(2); // event, active
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -826,7 +834,7 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 		{
 		error = KErrNone;
 
-        if(failCount == 6)
+        if(failCount == 10)
             {
             aClient.DeleteEvent(0, active->iStatus);
             active->StartL();
@@ -836,7 +844,8 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
             continue;
             }
 		
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 		aClient.DeleteEvent(0, active->iStatus);
 
@@ -850,7 +859,7 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 
 		__FILE_RESET;
 
-		if (error == KErrGeneral)
+		if (error == KErrNoMemory)
 			{
 			active->StartL();
 			aClient.GetEvent(*event, active->iStatus);
@@ -867,7 +876,7 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(2); // event, active
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -897,7 +906,8 @@ LOCAL_C void TestGetConfigL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 		aClient.GetConfig(config, active->iStatus);
 
 		active->StartL();
@@ -906,7 +916,7 @@ LOCAL_C void TestGetConfigL(CLogClient& aClient)
 		if (active->iStatus == KErrNone)
 			finished = ETrue;
 		else
-			TEST2(active->iStatus.Int(), KErrGeneral);
+			TEST2(active->iStatus.Int(), KErrNoMemory);
 
 		__FILE_RESET;
 		}
@@ -916,7 +926,7 @@ LOCAL_C void TestGetConfigL(CLogClient& aClient)
 	TEST(config.iMaxRecentLogSize > 0);
 
 	CleanupStack::PopAndDestroy(); // active
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -956,7 +966,7 @@ LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 		config.iMaxRecentLogSize = KTestMaxRecentLogSize;
 		config.iMaxEventAge = KTestMaxEventAge;
 
-        if(failCount == 4)
+        if(failCount == 11)
             {
             aClient.ChangeConfig(config, active->iStatus);
             active->StartL();
@@ -966,7 +976,8 @@ LOCAL_C void TestChangeConfigL(CLogClient& aClient)
             continue;
             }
 		
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 		aClient.ChangeConfig(config, active->iStatus);
 
@@ -980,7 +991,7 @@ LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 		
 		__FILE_RESET;
 
-		if (error == KErrGeneral)
+		if (error == KErrNoMemory)
 			{
 			active->StartL();
 			aClient.GetConfig(config, active->iStatus);
@@ -1000,7 +1011,7 @@ LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 	TEST(config.iMaxEventAge == KTestMaxEventAge);
 
 	CleanupStack::PopAndDestroy(); // active
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1024,7 +1035,8 @@ LOCAL_C void TestGetStringL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 		error = aClient.GetString(str, R_LOG_DIR_IN);
 
@@ -1037,11 +1049,11 @@ LOCAL_C void TestGetStringL(CLogClient& aClient)
 			}
 		else
 			{
-			TEST2(error, KErrGeneral);
+			TEST2(error, KErrNoMemory);
 			TEST(str.Length() == 0);
 			}
 		}
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1144,7 +1156,8 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient
 
 	while(!finished)
 		{
-		__FILE_FAILNEXT(++failCount);
+		TheTest.Printf(_L("%d  \r"), failCount);
+		__FILE_FAILNEXT(KErrNoMemory, failCount++);
 
 #ifdef SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM	
 		if(aUseSimId)
@@ -1165,7 +1178,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient
 		if (active->iStatus == KErrNone)
 			finished = ETrue;
 		else
-			TEST2(active->iStatus.Int(), KErrGeneral);
+			TEST2(active->iStatus.Int(), KErrNoMemory);
 		}
 
 	active->StartL();
@@ -1206,7 +1219,7 @@ LOCAL_C void TestClearEventLogL(CLogClient& aClient
 	TEST2(active->iStatus.Int(), KErrNotFound);
 
 	CleanupStack::PopAndDestroy(5); // event4, event3, event2, event1, active
-	TheTest.Printf(_L("The test has succeeded at iteration %d\n"), failCount);
+	TheTest.Printf(_L("\r\nThe test has succeeded at iteration %d\n"), failCount);
 	}
 
 void doTestsL()
@@ -1216,7 +1229,7 @@ void doTestsL()
     TheTest.Start(_L("Construction + create db"));
 	TestUtils::DeleteDatabaseL();
 	TestConstructionL(); // Creates database
-    TheTest.Next(_L("Construction + open db"));
+	TheTest.Next(_L("Construction + open db"));
 	TestConstructionL(); // Opens existing database
 	TestUtils::DeleteDatabaseL();
 	theLog.Write(_L8("Test 1 OK\n"));
