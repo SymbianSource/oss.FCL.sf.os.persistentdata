@@ -1604,6 +1604,14 @@ with the reported by the OS API error. The stored error code will be used later 
 	(void)parse.AddDir(KTempFileDir);//this call can't fail
     __FS_CALL(EFsOpFileCreateTemp, 0);
     TInt err = aDbFile.iFileBuf.Temp(osLayerData.iFs, parse.FullName(), parse.FileName(), EFileRead|EFileWrite|EDeleteOnClose);        
+    if(err == KErrPathNotFound)
+        {
+        err = osLayerData.iFs.MkDirAll(parse.DriveAndPath());
+        if(err == KErrNone)
+            {
+            err = aDbFile.iFileBuf.Temp(osLayerData.iFs, parse.FullName(), parse.FileName(), EFileRead|EFileWrite|EDeleteOnClose);
+            }
+        }
     if(err == KErrNone)
         {
         TInt recReadBufSize = -1;

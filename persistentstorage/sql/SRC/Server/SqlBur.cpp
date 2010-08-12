@@ -649,13 +649,11 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 						(void)iInterface->Fs().Delete(bak);
 						TInt err=iInterface->Fs().Rename(db,bak);
 						SQL_TRACE_BUR(OstTraceExt4(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL5, "0x%X;CSqlBackupClient::RestoreBaseDataSectionL;END;bak=%S;db=%S;err=%d", (TUint)this, __SQLPRNSTR(bak), __SQLPRNSTR(db), err));
-						if(err!=KErrNone && err!=KErrNotFound)
+						if(err == KErrNone || err == KErrNotFound)
 							{
-							__SQLLEAVE(err);
+							// now, rename the .rst as .db
+							err = iInterface->Fs().Rename(rst,db);
 							}
-						
-						// now, rename the .rst as .db
-						err = iInterface->Fs().Rename(rst,db);
 						if(err != KErrNone && err2 == KErrNone)
 							{
 							//The idea here is to not report the error immediatelly by calling LeaveIfError().
@@ -665,7 +663,7 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 							}
 						// if we got here, we have a backup of the original database in .db.bak
 						// and the new database in .db
-						}
+						}//end of for(...)
 					__SQLLEAVE_IF_ERROR(err2);
 					
 					// clean up dir

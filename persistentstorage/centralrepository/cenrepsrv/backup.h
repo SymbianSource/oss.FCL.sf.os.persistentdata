@@ -170,6 +170,8 @@ public:
 	TUint GetDataChecksum(TDriveNumber aDrive);
 	void CompleteOwnerIdLookupTableL();
 	
+	void RestoreRepositoryAndListL(TUid repositoryUid, CDirectFileStore* store, TStreamId settingsStreamId, TStreamId deletedSettingsStreamId,TInt& repIndex);
+	
 private:
 	// Usual active object stuff
 	void RunL() ;

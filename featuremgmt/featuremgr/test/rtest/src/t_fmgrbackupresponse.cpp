@@ -126,6 +126,11 @@ void TestBackupResponseL()
         TRequestStatus testStatus;
         CleanupClosePushL( testThread );
         
+        //Needs to ensure server is started before simulating backup operation
+        RFeatureControl rfc;
+        TTEST2( rfc.Connect(), KErrNone ); //This will start the server if not already started
+        rfc.Close();
+        
         simulate->Simulate_CheckRegFileL();
         
         // Simulate a backup

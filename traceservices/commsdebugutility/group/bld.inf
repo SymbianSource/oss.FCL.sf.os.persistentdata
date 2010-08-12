@@ -16,12 +16,12 @@
 
 PRJ_EXPORTS
 
-commsdebugutility.mmh    SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(comms-infras/commsdebugutility.mmh)
+commsdebugutility.mmh    OS_LAYER_PUBLIC_EXPORT_PATH(comms-infras/commsdebugutility.mmh)
 
 ../tools/splitlog.bat	/epoc32/tools/splitlog.bat
 ../tools/extractlog.pl	/epoc32/tools/extractlog.pl
 
-../INC/commsdebugutility.h	SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(comms-infras/commsdebugutility.h)
+../INC/commsdebugutility.h	OS_LAYER_PUBLIC_EXPORT_PATH(comms-infras/commsdebugutility.h)
 
 ../group/commsdebugutility.iby	    /epoc32/rom/include/commsdebugutility.iby
 ../group/commslog.iby				/epoc32/rom/include/commslog.iby

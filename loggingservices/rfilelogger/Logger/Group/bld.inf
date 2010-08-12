@@ -16,8 +16,8 @@
 #include "../te_RFileLogger/group/bld.inf"
 
 PRJ_EXPORTS
-../inc/RFileLogger.h            SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(test/rfilelogger.h)
-../inc/RFileLoggermacro.h       SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(test/rfileloggermacro.h)
+../inc/RFileLogger.h            OS_LAYER_PLATFORM_EXPORT_PATH(test/rfilelogger.h)
+../inc/RFileLoggermacro.h       OS_LAYER_PLATFORM_EXPORT_PATH(test/rfileloggermacro.h)
 RFilelogger.iby                 /epoc32/rom/include/rfilelogger.iby
 
 PRJ_MMPFILES

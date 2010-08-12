@@ -72,6 +72,7 @@ public:
 	inline TLogOperationType Type() const;
 	inline TLogServSessionId SessionId();
 	static TUint QueueOffset();
+	inline void SetMessageCompletion(const TBool aMessageCompletion);
 
 protected:
 	inline RMessage2& Message();
@@ -84,6 +85,7 @@ private:
 	TLogClientServerData iClientServerData;
 	TLogServSessionId iSessionId;
 	TSglQueLink iServerLink;
+	TBool iMessageCompletion;
 	};
 
 

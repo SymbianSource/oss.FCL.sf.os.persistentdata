@@ -14,7 +14,6 @@
 //
 
 
-#include "../performance/group/bld.inf"
 #include "../convtool/group/bld.inf"
 #ifdef CENTREP_MW_TESTS
 	#include "../SWI/group/bld.inf"

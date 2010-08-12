@@ -557,6 +557,16 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 		TESTDIAGNOSTICERROR(err==KErrNone, 
 				_L("RFeatureControl::AddFeature expects KErrNone for KNewUid3; returned value is = %d"),err);
 	
+		// Enable feature
+		err = control.EnableFeature(KNewUid1);
+		TESTDIAGNOSTICERROR(err==KErrNone, 
+		        _L("RFeatureControl::EnableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+		
+		// Disable feature
+		err = control.DisableFeature(KNewUid1);
+		TESTDIAGNOSTICERROR(err==KErrNone, 
+		        _L("RFeatureControl::DisableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+		
 		// Set features
 		err = control.SetFeature(KNewUid1, ETrue, KChangeData);
 		TESTDIAGNOSTICERROR(err==KErrNone, 
@@ -1605,6 +1615,63 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 	process.Close();
 	// Wait before starting the next test
 	User::After(100000);
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	// SCENARIO 18: Successful installation and features manipulation (Enable/Disable without modifying data)
+	// Add Feature with user data -> P&S install -> SWIStart -> Enable/Disable Feature -> 
+	//  -> SWIEnd -> P&S success -> No change to user data
+	////////////////////////////////////////////////////////////////////////////////////////////
+    INFO_PRINTF1(_L("SCENARIO 18: Successful installation and Enable or Disable feature should not modify userdata"));
+    // Launching dummyswi.exe
+    err = process.Create(KDummySWIPath, _L("1"));   // 1 = install success
+    TESTDIAGNOSTICERROR(err==KErrNone,
+               _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
+    if( err==KErrNone )
+        {
+        process.Resume();
+    
+        // Allow P&S to complete initialising
+        User::After(200000);
+        
+        err = control.Open();
+        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::Open failed, returned value is = %d"),err);
+        
+        err = control.AddFeature(entry1);
+        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::AddFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+        
+        err = control.SWIStart();
+        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::SWIStart expects KErrNone; returned value is = %d"),err);
+        
+        // Enable feature
+        err = control.EnableFeature(KNewUid1);
+        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::EnableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+        
+        // Disable feature
+        err = control.DisableFeature(KNewUid1);
+        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::EnableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+        
+        err = control.SWIEnd();
+        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::SWIEnd expects KErrNone; returned value is = %d"),err);
+        
+        // Delay until the P&S property is set to ESASwisStatusSuccess in dummyswi.exe to indicate successful installation
+        User::After(1500000);
+        
+        err = control.FeatureSupported(query1);
+        TESTDIAGNOSTICERROR(err==KErrNone, _L("TFeatureEntry::FeatureData expects 0 for KNewUid1; returned value is = %d"),err);
+        TESTDIAGNOSTICERROR(query1.FeatureData()==KDefaultData1, _L("TFeatureEntry::FeatureData expects non-zero for KNewUid1; returned value is = %d"), err);
+        
+        // Delete KNewUid1
+        err = control.DeleteFeature(KNewUid1);
+        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::DeleteFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+        
+        query1 = TFeatureEntry(KNewUid1);
+        
+        control.Close();
+
+        }
+    process.Close();
+    // Wait before starting the next test
+    User::After(100000);
 	
 
 	return TestStepResult();

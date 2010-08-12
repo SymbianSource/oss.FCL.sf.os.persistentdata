@@ -17,6 +17,8 @@ PRJ_TESTEXPORTS
 te_uloggermclsuite.iby   				        /epoc32/rom/include/te_uloggermclsuite.iby
 
 ../scripts/te_uloggermclsuite.script			z:/testdata/scripts/te_uloggermclsuite.script
+//Test script for platform that doesn't support serial port
+../scripts/te_uloggermclsuite_noserial.script	z:/testdata/scripts/te_uloggermclsuite_noserial.script
 ../scripts/te_uloggermclperfsuite.script		z:/testdata/scripts/te_uloggermclperfsuite.script
 ../scripts/te_uloggersysstart.script   			z:/testdata/scripts/te_uloggersysstart.script
 ../scripts/te_uloggerconfigfile.script   		z:/testdata/scripts/te_uloggerconfigfile.script

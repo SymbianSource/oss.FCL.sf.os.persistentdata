@@ -704,29 +704,23 @@ void CObservable::LoadRepositoryLC(TUid aUid, TBool aFailIfNotFound, CSharedRepo
 	TInt biggestBlock;
 	TInt firstAvail = myHeap.Available(biggestBlock);
 	
-	aRepository = CSharedRepository::NewL(aUid);
+	TRAPD(err, aRepository = CSharedRepository::NewL(aUid));
 #ifdef CACHE_OOM_TESTABILITY
-	if ((aRepository==NULL)&&!iTrapOOMOnOpen)	
+	if ((err!=KErrNone)&&!iTrapOOMOnOpen)	
 		{
-		User::Leave(KErrNoMemory);
+		User::Leave(err);
 		}
 #endif	
-	if ((aRepository==NULL)&&TServerResources::iCacheManager->Enabled())
+	if ((err!=KErrNone)&&TServerResources::iCacheManager->Enabled())
 		{
 		// If cache enabled, try recovery by releasing the cache
 		TServerResources::iCacheManager->FlushCache(EFalse);
 		// retry
 		aRepository = CSharedRepository::NewL(aUid);
+		err = KErrNone;
 		}
-	// If still no memory, return error
-	if (aRepository==NULL)
-		{
-		User::Leave(KErrNoMemory);
-		}
-	else // successfully created the object, so push it into the cleanup stack
-		{
-		CleanupStack::PushL(aRepository);
-		}
+	User::LeaveIfError(err);
+	CleanupStack::PushL(aRepository);
 		
 	// Now that we have enough memory for the object and constructed it properly
 	// we try to load it. We trap all errors, either from leaving functions or error code

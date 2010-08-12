@@ -20,6 +20,7 @@
 #include <sqlite3.h>
 #include <string.h>
 #include <stdio.h>
+#include "sqliteTestUtl.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -40,7 +41,7 @@ enum TPerfTestType
 //The performance test case results are stored in the ThePerfTestResult array.
 static TUint32 ThePerfTestResult[EPerfTestTypeCnt];
 
-static RTest TheTest(_L("t_sqliteperf2 test"));
+const char* const KTestName = "t_sqliteperf2 test";
 
 _LIT(KTestDir,              "c:\\test\\");
 _LIT(KTestDbName,           "c:\\test\\t_sqliteperf2.db");
@@ -173,9 +174,8 @@ static void PrintSqliteErrMsg()
 	if(TheDb)
 		{
 		const char* msg = sqlite3_errmsg(TheDb);
-		TBuf<200> buf;
-		buf.Copy(TPtrC8((const TUint8*)msg));
-		TheTest.Printf(_L("*** SQLite error message: \"%S\"\r\n"), &buf);
+		TestPrintf("*** SQLite error message:");
+		TestPrintf(msg);
 		}
 	}
 
@@ -186,7 +186,7 @@ static void Check(TInt aValue, TInt aLine)
 		{
 		DeleteTestFiles();
 		PrintSqliteErrMsg();
-		TheTest(EFalse, aLine);
+		TestTestLine(EFalse, aLine);
 		}
 	}
 static void Check(TInt aValue, TInt aExpected, TInt aLine)
@@ -196,7 +196,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 		DeleteTestFiles();
 		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		PrintSqliteErrMsg();
-		TheTest(EFalse, aLine);
+		TestTestLine(EFalse, aLine);
 		}
 	}
 #define TEST(arg) ::Check((arg), __LINE__)
@@ -218,7 +218,9 @@ static TInt FcDiff2Us(TUint32 aFastCount)
 static void GetFastCounterFrequency()
 	{
 	TEST2(HAL::Get(HAL::EFastCounterFrequency, TheCounterFreq), KErrNone);
-	TheTest.Printf(_L("Counter frequency=%d\r\n"), TheCounterFreq);
+	TBuf8<32> printString;
+	printString.Format(_L8("Counter frequency=%d\r\n"), TheCounterFreq);
+	TestPrintf((const char*)printString.PtrZ());
 	}
 
 TUint32 FastCounterValue(void)
@@ -238,30 +240,40 @@ void StorePerfTestResult(TPerfTestType aType, TUint32 aStartTicks, TUint32 aEndT
 
 static void PrintPerfTestResults()
 	{
+	TBuf8<256> printString;
+
 	TInt r = FcDiff2Us(ThePerfTestResult[EPerfTestMultiInsert]);
-	TheTest.Printf(_L("###Mutli Insert:  %8dus\r\n"), r);
+	printString.Format(_L8("###Mutli Insert:  %8dus\r\n"), r);
+	TestPrintf((const char*)printString.PtrZ());
 
 	r = FcDiff2Us(ThePerfTestResult[EPerfTestMultiUpdate]);
-	TheTest.Printf(_L("###Mutli Update:  %8dus\r\n"), r);
+	printString.Format(_L8("###Mutli Update:  %8dus\r\n"), r);
+	TestPrintf((const char*)printString.PtrZ());
 
 	r = FcDiff2Us(ThePerfTestResult[EPerfTestMultiSelect]);
-	TheTest.Printf(_L("###Mutli Select:  %8dus\r\n"), r);
+	printString.Format(_L8("###Mutli Select:  %8dus\r\n"), r);
+	TestPrintf((const char*)printString.PtrZ());
 
 	r = FcDiff2Us(ThePerfTestResult[EPerfTestMultiDelete]);
-	TheTest.Printf(_L("###Mutli Delete:  %8dus\r\n"), r);
+	printString.Format(_L8("###Mutli Delete:  %8dus\r\n"), r);
+	TestPrintf((const char*)printString.PtrZ());
 
 
 	r = FcDiff2Us(ThePerfTestResult[EPerfTestSingleInsert]);
-	TheTest.Printf(_L("##Single Insert:  %8dus\r\n"), r);
+	printString.Format(_L8("##Single Insert:  %8dus\r\n"), r);
+	TestPrintf((const char*)printString.PtrZ());
 
 	r = FcDiff2Us(ThePerfTestResult[EPerfTestSingleUpdate]);
-	TheTest.Printf(_L("##Single Update:  %8dus\r\n"), r);
+	printString.Format(_L8("##Single Update:  %8dus\r\n"), r);
+	TestPrintf((const char*)printString.PtrZ());
 
 	r = FcDiff2Us(ThePerfTestResult[EPerfTestSingleSelect]);
-	TheTest.Printf(_L("##Single Select:  %8dus\r\n"), r);
+	printString.Format(_L8("##Single Select:  %8dus\r\n"), r);
+	TestPrintf((const char*)printString.PtrZ());
 
 	r = FcDiff2Us(ThePerfTestResult[EPerfTestSingleDelete]);
-	TheTest.Printf(_L("##Single Delete:  %8dus\r\n"), r);
+	printString.Format(_L8("##Single Delete:  %8dus\r\n"), r);
+	TestPrintf((const char*)printString.PtrZ());
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -277,9 +289,8 @@ static void CreateTestDatabase()
 	(void)TheFs.Delete(KTestDbName);
 
 	const char* ver = sqlite3_libversion();
-	TBuf<20> buf;
-	buf.Copy(TPtrC8((const TUint8*)ver));
-	TheTest.Printf(_L("*** SQLite library version: \"%S\"\r\n"), &buf);
+	TestPrintf("*** SQLite library version:");
+	TestPrintf(ver);
 
 	TInt err = sqlite3_open(KTestDbName8, &TheDb);
 	TEST2(err, SQLITE_OK);
@@ -643,44 +654,44 @@ void SqliteSingleDeleteTest()
 
 static void DoTests()
 	{
-	TheTest.Start(_L("Get fast counter frequency"));
+	TestStart("Get fast counter frequency");
 	GetFastCounterFrequency();
 
-	TheTest.Next( _L("SQLite: Create the test database"));
+	TestNext("SQLite: Create the test database");
 	CreateTestDatabase();
 
-	TBuf<100> msgbuf;
+	TBuf8<100> msgbuf;
 
-	msgbuf.Format(_L("@SYMTestCaseID:PDS-SQLITE3-UT-4030: Insert %d records in a single transaction"), KInsertRecCnt);
-	TheTest.Next(msgbuf);
+	msgbuf.Format(_L8("@SYMTestCaseID:PDS-SQLITE3-UT-4030: Insert %d records in a single transaction"), KInsertRecCnt);
+	TestNext((const char*)msgbuf.PtrZ());
 	SqliteMultiInsertTest();
 
-	msgbuf.Format(_L("@SYMTestCaseID:PDS-SQLITE3-UT-4031: Update %d records in a single transaction"), KUpdateRecCnt);
-	TheTest.Next(msgbuf);
+	msgbuf.Format(_L8("@SYMTestCaseID:PDS-SQLITE3-UT-4031: Update %d records in a single transaction"), KUpdateRecCnt);
+	TestNext((const char*)msgbuf.PtrZ());
 	SqliteMultiUpdateTest();
 
-	msgbuf.Format(_L("@SYMTestCaseID:PDS-SQLITE3-UT-4032: Select %d records"), KSelectRecCnt);
-	TheTest.Next(msgbuf);
+	msgbuf.Format(_L8("@SYMTestCaseID:PDS-SQLITE3-UT-4032: Select %d records"), KSelectRecCnt);
+	TestNext((const char*)msgbuf.PtrZ());
 	SqliteMultiSelectTest();
 
-	msgbuf.Format(_L("@SYMTestCaseID:PDS-SQLITE3-UT-4033: Delete %d records in a single transaction"), KDeleteRecCnt);
-	TheTest.Next(msgbuf);
+	msgbuf.Format(_L8("@SYMTestCaseID:PDS-SQLITE3-UT-4033: Delete %d records in a single transaction"), KDeleteRecCnt);
+	TestNext((const char*)msgbuf.PtrZ());
 	SqliteMultiDeleteTest();
 
-	msgbuf.Format(_L("@SYMTestCaseID:PDS-SQLITE3-UT-4034: Insert a single record"));
-	TheTest.Next(msgbuf);
+	msgbuf.Format(_L8("@SYMTestCaseID:PDS-SQLITE3-UT-4034: Insert a single record"));
+	TestNext((const char*)msgbuf.PtrZ());
 	SqliteSingleInsertTest();
 
-	msgbuf.Format(_L("@SYMTestCaseID:PDS-SQLITE3-UT-4035: Update a single record"));
-	TheTest.Next(msgbuf);
+	msgbuf.Format(_L8("@SYMTestCaseID:PDS-SQLITE3-UT-4035: Update a single record"));
+	TestNext((const char*)msgbuf.PtrZ());
 	SqliteSingleUpdateTest();
 
-	msgbuf.Format(_L("@SYMTestCaseID:PDS-SQLITE3-UT-4036: Select a single record"));
-	TheTest.Next(msgbuf);
+	msgbuf.Format(_L8("@SYMTestCaseID:PDS-SQLITE3-UT-4036: Select a single record"));
+	TestNext((const char*)msgbuf.PtrZ());
 	SqliteSingleSelectTest();
 
-	msgbuf.Format(_L("@SYMTestCaseID:PDS-SQLITE3-UT-4037: Delete a single record"));
-	TheTest.Next(msgbuf);
+	msgbuf.Format(_L8("@SYMTestCaseID:PDS-SQLITE3-UT-4037: Delete a single record"));
+	TestNext((const char*)msgbuf.PtrZ());
 	SqliteSingleDeleteTest();
 
 	(void)TheFs.Delete(KTestDbName);
@@ -690,14 +701,15 @@ static void DoTests()
 
 TInt E32Main()
 	{
-	TheTest.Title();
+	TestOpen(KTestName);
+	TestTitle();
 
 	CTrapCleanup* tc = CTrapCleanup::New();
 
 	__UHEAP_MARK;
 
 	TInt err = TheFs.Connect();
-	TheTest(err == KErrNone);
+	TestTest(err == KErrNone);
 
 	CreateTestDir();
 	DeleteTestFiles();
@@ -707,8 +719,8 @@ TInt E32Main()
 	__UHEAP_MARKEND;
 
 	TheFs.Close();
-	TheTest.End();
-	TheTest.Close();
+	TestEnd();
+	TestClose();
 
 	delete tc;
 

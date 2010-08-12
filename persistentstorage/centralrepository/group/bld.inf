@@ -14,7 +14,7 @@
 //
 
 PRJ_EXPORTS
-../include/centralrepository.h                  SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(centralrepository.h)
+../include/centralrepository.h                  OS_LAYER_PUBLIC_EXPORT_PATH(centralrepository.h)
 #ifndef SYMBIAN_ENABLE_SPLIT_HEADERS 
     #ifdef SYMBIAN_OLD_EXPORT_LOCATION
         ../include/centralrepositoryinternal.h  /epoc32/include/centralrepositoryinternal.h
@@ -40,7 +40,8 @@ cenrepsrv.mmp
 PRJ_TESTEXPORTS
 // Stub sis file required by various tests.
 
-#ifdef __SERIES60_
+//define PDS_FULL_UI_TEST in the rom build command for Full S60 UI build
+#if defined(__SERIES60_) && defined(PDS_FULL_UI_TEST)
 ../test/testexecute/SWI/data/rnd_sis/centrepswiteststub.sis     z:/system/install/centrepswiteststub.sis
 #else
 ../test/testexecute/SWI/data/techview_sis/centrepswiteststub.sis     z:/system/install/centrepswiteststub.sis
@@ -54,7 +55,7 @@ centreptesthelper.iby                                   /epoc32/rom/include/cent
 centreptestdata.iby                                     /epoc32/rom/include/centreptestdata.iby
 
 // For pccenrep tests.
-../pccenrep/include/centralrepository.h                 SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(x86tool/centralrepository.h)
+../pccenrep/include/centralrepository.h                 OS_LAYER_PLATFORM_EXPORT_PATH(x86tool/centralrepository.h)
 
 ../test/testexecute/SWI/data/certstore/swicertstore.dat	z:/resource/versions/swicertstore.dat
 
@@ -176,7 +177,8 @@ centreptestdata.iby                                     /epoc32/rom/include/cent
 ../test/00000003.txt            z:/private/102081e4/00000003.txt
 ../test/00112273.txt            z:/private/10202be9/00112273.txt
 
-#ifdef __SERIES60_
+//define PDS_FULL_UI_TEST in the rom build command for Full S60 UI build
+#if defined(__SERIES60_) && defined(PDS_FULL_UI_TEST)
 ../test/rnd_RF1.sis             z:/private/10202be9/rf1.sis
 ../test/rnd_RF2.sis             z:/private/10202be9/rf2.sis
 ../test/rnd_RF3.sis             z:/private/10202be9/rf3.sis

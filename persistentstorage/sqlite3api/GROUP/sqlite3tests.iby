@@ -430,6 +430,7 @@ data=ZPRIVATE\10285a82\where4.test			\private\10285a82\where4.test
 data=ZPRIVATE\10285a82\where5.test			\private\10285a82\where5.test
 data=ZPRIVATE\10285a82\where6.test			\private\10285a82\where6.test
 data=ZPRIVATE\10285a82\zeroblob.test			\private\10285a82\zeroblob.test
+data=ZPRIVATE\212C3129\t_sqliteapi.txt		\private\212C3129\t_sqliteapi.txt
 
 //The next line to be uncommented if the testing is performed locally. Otherwise tests will fail - 
 //the following file is missing and needed by the timezone server.
@@ -441,6 +442,7 @@ file=ABI_DIR\BUILD_DIR\t_sqlitewsd2.exe		\test\t_sqlitewsd2.exe
 file=ABI_DIR\BUILD_DIR\t_sqliteperf.exe		\test\t_sqliteperf.exe
 file=ABI_DIR\BUILD_DIR\t_sqliteperf2.exe	\test\t_sqliteperf2.exe
 file=ABI_DIR\BUILD_DIR\tclsqlite3.exe		\test\tclsqlite3.exe
+file=ABI_DIR\BUILD_DIR\t_sqlitetclstarter.exe	\test\t_sqlitetclstarter.exe
 file=ABI_DIR\BUILD_DIR\t_sqlitedef.exe		\test\t_sqlitedef.exe
 file=ABI_DIR\BUILD_DIR\t_sqlitedb64.exe		\test\t_sqlitedb64.exe
 

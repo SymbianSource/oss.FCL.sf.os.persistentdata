@@ -163,6 +163,11 @@ TInt CFeatMgrFeatureRegistry::IsFeatureSupported( TFeatureServerEntry& aFeature 
         }
     else
         {
+        TBitFlags32 flags = iFeatureList[index].FeatureFlags();
+        flags.Assign( EFeatureSupported, KFeatureUnsupported );
+        TUint32 data = iFeatureList[index].FeatureData();
+        TFeatureServerEntry entry( aFeature.FeatureUid(), flags, data );
+        aFeature = entry;
         err = KFeatureUnsupported;
         }
 
@@ -269,10 +274,26 @@ TInt CFeatMgrFeatureRegistry::SetFeature( TUid aFeature, TInt aEnable, const TUi
     
     if( iSWIProcessId == aPrcId && iSWICacheFeature )
     	{
-		TBitFlags32 flags(0);
-    	flags.Assign( EFeatureSupported, aEnable );
-    	TFeatureServerEntry entry( aFeature, flags, *aData );    
-	    err = SWICacheCommand(ESWISetFeatAndData, entry);
+        TBitFlags32 flags(0);
+        flags.Assign( EFeatureSupported, aEnable );
+        TUint32 data = 0;
+        if( aData )
+            {
+            data = *aData;
+            }
+
+        TFeatureServerEntry entry( aFeature, flags, data );
+
+        // If aData is not null, we want to change the user data too
+        //  otherwise only change the feature status.
+        if( aData )
+            {
+            err = SWICacheCommand(ESWISetFeatAndData, entry);
+            }
+        else
+            {
+            err = SWICacheCommand(ESWISetFeat, entry);
+            }
     	}
     else 
     	{
@@ -1437,6 +1458,13 @@ void CFeatMgrFeatureRegistry::CommitSWIFeatChanges()
 							EFeatureSupportUntouch,&data);
 				}
 				break;
+            case ESWISetFeat:
+                {
+                SetFeature( iSWICachedOperations[i].iFeatEntry.FeatureUid(),
+                            iSWICachedOperations[i].iFeatEntry.FeatureFlags().Value(),
+                            NULL);
+                }
+                break;
 			default:
 				break;
 				};

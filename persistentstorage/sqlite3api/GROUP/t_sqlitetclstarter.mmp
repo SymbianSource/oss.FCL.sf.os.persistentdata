@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,14 +13,21 @@
 // Description:
 //
 
-#ifndef __TE_PERFTESTSERVER_H__
-#define __TE_PERFTESTSERVER_H__
-#include <test/testexecuteserverbase.h>
-		
-class CPerfTestServer : public CTestServer
-	{
-public:
-	static CPerfTestServer* NewL();
-	virtual CTestStep* CreateTestStep(const TDesC& aStepName);
-	};
-#endif
+TARGET			t_sqlitetclstarter.exe
+TARGETTYPE		EXE
+CAPABILITY		All -Tcb
+
+USERINCLUDE 	.
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+SOURCEPATH		../TEST
+SOURCE			t_sqlitetclstarter.cpp
+
+LIBRARY			euser.lib 
+LIBRARY			efsrv.lib
+LIBRARY			bafl.lib
+
+UID				0 0x1111CCCC
+VENDORID		0x70000001
+
+SMPSAFE

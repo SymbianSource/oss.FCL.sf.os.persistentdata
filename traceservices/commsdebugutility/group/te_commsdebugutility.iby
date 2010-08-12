@@ -25,14 +25,14 @@ file=ABI_DIR\DEBUG_DIR\tlog3.dll				System\bin\tlog3.dll
 file=ABI_DIR\DEBUG_DIR\tlog4.dll				System\bin\tlog4.dll
 
 
-data=EPOCROOT##epoc32\data\z\TestData\Scripts\te_comsdbg.script      testdata\scripts\te_comsdbg.script
-data=EPOCROOT##epoc32\data\z\TestData\Scripts\te_comsdbg_urel.script testdata\scripts\te_comsdbg_urel.script
+data=EPOCROOT##epoc32\data\z\testdata\scripts\te_comsdbg.script      testdata\scripts\te_comsdbg.script
+data=EPOCROOT##epoc32\data\z\testdata\scripts\te_comsdbg_urel.script testdata\scripts\te_comsdbg_urel.script
 
-data=EPOCROOT##epoc32\data\z\TestData\Scripts\te_comsdbg_performance.script	testdata\scripts\te_comsdbg_performance.script
+data=EPOCROOT##epoc32\data\z\testdata\scripts\te_comsdbg_performance.script	testdata\scripts\te_comsdbg_performance.script
 
 
-data=EPOCROOT##epoc32\data\z\TestData\Scripts\te_comsdbg_file.ini      testdata\scripts\te_comsdbg_file.ini
-data=EPOCROOT##epoc32\data\z\TestData\Scripts\te_comsdbg_serial1.ini      testdata\scripts\te_comsdbg_serial1.ini
-data=EPOCROOT##epoc32\data\z\TestData\Scripts\te_comsdbg_serial2.ini      testdata\scripts\te_comsdbg_serial2.ini
+data=EPOCROOT##epoc32\data\z\testdata\scripts\te_comsdbg_file.ini      testdata\scripts\te_comsdbg_file.ini
+data=EPOCROOT##epoc32\data\z\testdata\scripts\te_comsdbg_serial1.ini      testdata\scripts\te_comsdbg_serial1.ini
+data=EPOCROOT##epoc32\data\z\testdata\scripts\te_comsdbg_serial2.ini      testdata\scripts\te_comsdbg_serial2.ini
 
 #endif //__TE_COMMSDEBUGUTILITY_IBY__

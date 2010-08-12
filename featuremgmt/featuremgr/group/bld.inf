@@ -22,13 +22,13 @@ DEFAULT
 
 PRJ_EXPORTS
 
-../inc/featmgr.h                SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featmgr.h)
-../inc/featurecontrol.h         SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featurecontrol.h)
-../inc/featurenotifier.h        SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featurenotifier.h)
-../inc/featurecmn.h             SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featurecmn.h)
-../inc/featdiscovery.h          SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(featdiscovery.h)
-../inc/featureinfoplugin.h      SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featureinfoplugin.h)
-../inc/featureinfoplugin.inl    SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featureinfoplugin.inl)
+../inc/featmgr.h                OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featmgr.h)
+../inc/featurecontrol.h         OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featurecontrol.h)
+../inc/featurenotifier.h        OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featurenotifier.h)
+../inc/featurecmn.h             OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featurecmn.h)
+../inc/featdiscovery.h          OS_LAYER_PUBLIC_EXPORT_PATH(featdiscovery.h)
+../inc/featureinfoplugin.h      OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featureinfoplugin.h)
+../inc/featureinfoplugin.inl    OS_LAYER_PLATFORM_EXPORT_PATH(featmgr/featureinfoplugin.inl)
 #ifdef SYMBIAN_OLD_EXPORT_LOCATION
 ../inc/featurepanics.h          /epoc32/include/featmgr/featurepanics.h
 #endif

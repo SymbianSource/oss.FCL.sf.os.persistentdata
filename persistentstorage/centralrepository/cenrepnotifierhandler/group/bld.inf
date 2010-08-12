@@ -20,7 +20,7 @@ DEFAULT
 
 PRJ_EXPORTS
 
-../inc/cenrepnotifyhandler.h		SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(cenrepnotifyhandler.h)
+../inc/cenrepnotifyhandler.h		OS_LAYER_PUBLIC_EXPORT_PATH(cenrepnotifyhandler.h)
 ../rom/cenrepnotifierhandler.iby	/epoc32/rom/include/cenrepnotifierhandler.iby
 
 PRJ_MMPFILES

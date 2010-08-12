@@ -27,7 +27,7 @@ static RSqlDatabase TheDb2;
 _LIT(KTestDir, "c:\\test\\");
 _LIT(KTestDatabase1, "c:\\test\\t_sqldefect2.db");
 _LIT(KTestDatabaseJournal1, "c:\\test\\t_sqldefect2.db-journal");
-
+_LIT(KServerTempDir, "c:\\private\\10281e17\\temp\\");
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -304,7 +304,6 @@ static TInt KillProcess(const TDesC& aProcessName)
 void DeleteTempFile()
     {   
     _LIT(KSqlSrvName, "sqlsrv.exe");
-    _LIT(KServerTempDir, "c:\\private\\10281e17\\temp\\");
     _LIT(KTempFile1, "TMP00052.$$$");
     _LIT(KTempFile2, "TMP00044.$$$");
     
@@ -381,6 +380,129 @@ void TempFileTest()
     TEST2(err, KErrNone);
 	}
 
+/**
+@SYMTestCaseID          PDS-SQL-CT-4213
+@SYMTestCaseDesc        Tests the ability of the SQL server to store empty strings and retrieve them as 
+						text column values, not NULLs.
+						Change: ou1cimx1#504388. 
+@SYMTestPriority        High
+@SYMTestActions         The test creates a database and a table and stores there empty strings.
+						Then the test retrieves the stored column values and verifies that the column type is
+						"text", not "null".
+@SYMTestExpectedResults Test must not fail
+*/
+void EmptyTextColumnTest()
+	{
+	_LIT8(KEncUtf16, "encoding=\"UTF-16\"");
+	_LIT8(KEncUtf8, "encoding=\"UTF-8\"");
+	TPtrC8 enc[] = {KEncUtf16(), KEncUtf8()};
+	for(TInt i=0;i<(sizeof(enc)/sizeof(enc[0]));++i)
+		{
+		(void)RSqlDatabase::Delete(KTestDatabase1);
+		TInt err = TheDb1.Create(KTestDatabase1, &enc[i]);
+		TEST2(err, KErrNone);
+		//Insert records with empty text column values using RSqlDatabase::Exec()
+	    err = TheDb1.Exec(_L("CREATE TABLE A(ID INTEGER, T TEXT)"));
+	    TEST(err >= 0);
+	    err = TheDb1.Exec(_L("INSERT INTO A VALUES(1, '')"));
+	    TEST2(err, 1);
+	    err = TheDb1.Exec(_L8("INSERT INTO A VALUES(2, '')"));
+	    TEST2(err, 1);
+		//Insert a record with empty text column value using RSqlParamWriteStream
+	    RSqlStatement stmt;
+	    err = stmt.Prepare(TheDb1, _L("INSERT INTO A(ID, T) VALUES(:P1, :P2)"));
+	    TEST2(err, KErrNone);
+		err = stmt.BindInt(0, 3);
+	    TEST2(err, KErrNone);
+	    RSqlParamWriteStream strm;
+	    err = strm.BindText(stmt, 1);
+	    TEST2(err, KErrNone);
+	    TRAP(err, strm.WriteL(KNullDesC));
+	    TEST2(err, KErrNone);
+	    strm.Close();
+	    err = stmt.Exec();
+	    TEST2(err, 1);
+	    stmt.Close();
+		//Insert records with empty text column values using RSqlStatement::Bind()
+	    err = stmt.Prepare(TheDb1, _L("INSERT INTO A(ID, T) VALUES(:P1, :P2)"));
+	    TEST2(err, KErrNone);
+		err = stmt.BindInt(0, 4);
+	    TEST2(err, KErrNone);
+		err = stmt.BindText(1, KNullDesC);
+	    TEST2(err, KErrNone);
+	    err = stmt.Exec();
+	    TEST2(err, 1);
+	    //
+	    err = stmt.Reset();
+	    TEST2(err, KErrNone);
+		err = stmt.BindInt(0, 5);
+	    TEST2(err, KErrNone);
+	    _LIT(KEmptyStr, "");
+		err = stmt.BindText(1, KEmptyStr);
+	    TEST2(err, KErrNone);
+	    err = stmt.Exec();
+	    TEST2(err, 1);
+	    stmt.Close();
+	    //Read the empty text column values
+	    err = stmt.Prepare(TheDb1, _L("SELECT T FROM A"));
+	    TEST2(err, KErrNone);
+	    TInt cnt = 0;
+	    while((err = stmt.Next()) == KSqlAtRow)
+	    	{
+			++cnt;
+			TPtrC val;
+			err = stmt.ColumnText(0, val);
+			TEST2(err, KErrNone);
+			TEST2(val.Length(), 0);
+			TSqlColumnType type = stmt.ColumnType(0);
+			TEST2(type, ESqlText);
+	    	}
+	    stmt.Close();
+	    TEST2(err, KSqlAtEnd);
+	    TEST2(cnt, 5);
+	    //
+	    TheDb1.Close();
+	    err = RSqlDatabase::Delete(KTestDatabase1);
+	    TEST2(err, KErrNone);
+		}
+	}
+
+/**
+@SYMTestCaseID          PDS-SQL-CT-4214
+@SYMTestCaseDesc        Test for the change "After *#7370# Java apps are not preinstalled again" 
+@SYMTestPriority        High
+@SYMTestActions         The test makes sure there are no issues if the temp folder is removed after the server 
+                        has already started. The test performs the following actions - 
+                        1. Delete the 'temp' directory.
+                        2. Create a transaction which creates temp files.
+                        3. Check 'temp' folder exists at the end
+@SYMTestExpectedResults Test must not fail
+*/
+void DeleteTempFolder()
+    {
+    //1. Delete 'temp' folder
+    TInt err = TheFs.RmDir(KServerTempDir);
+    TEST2(err, KErrNone);
+	
+    //2. Create a transaction which creates temp files.
+    (void)RSqlDatabase::Delete(KTestDatabase1);
+    err = TheDb1.Create(KTestDatabase1);
+    TEST2(err, KErrNone);
+    
+    err = TheDb1.Exec(_L("CREATE TABLE t1(x UNIQUE); INSERT INTO t1 VALUES(1)"));
+    TEST(err >= 0);
+    err = TheDb1.Exec(_L("BEGIN; UPDATE t1 SET x = 2; UPDATE t1 SET x = 3; COMMIT"));
+    TEST(err >= 0);
+    
+    TheDb1.Close();
+    err = RSqlDatabase::Delete(KTestDatabase1);
+    TEST2(err, KErrNone);
+    
+    //3. Check 'temp' folder exists
+    err = TheFs.MkDir(KServerTempDir);
+    TEST2(err, KErrAlreadyExists);
+    }	
+	
 void DoTestsL()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4154 DEF143062: SQL, \"CREATE INDEX\" sql crashes SQL server"));
@@ -392,11 +514,17 @@ void DoTestsL()
     TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4156 DEF143150: SQL, strftime() returns incorrect result"));
     DEF143150();
     
-    TheTest.Next(_L(" @SYMTestCaseDesc Temp files created during sql operations are not deleted after rebooting the phone - 1"));
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4210 Temp files created during sql operations are not deleted after rebooting the phone - 1"));
     DeleteTempFile();
     
-    TheTest.Next(_L(" @SYMTestCaseDesc Temp files created during sql operations are not deleted after rebooting the phone - 2"));
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4211 Temp files created during sql operations are not deleted after rebooting the phone - 2"));
     TempFileTest();
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4213 No support to store an empty string in symbian's sqlite."));
+    EmptyTextColumnTest();
+	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4214 After *#7370# Java apps are not preinstalled again"));
+    DeleteTempFolder();
 	}
 
 TInt E32Main()

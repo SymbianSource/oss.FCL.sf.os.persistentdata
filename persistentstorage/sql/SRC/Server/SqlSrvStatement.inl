@@ -87,7 +87,8 @@ inline const TPtrC8 HSqlSrvStmtParamBuf::SetDataL(const TDesC8& aData)
 	__ASSERT_DEBUG(iBufType == HSqlSrvStmtParamBuf::EBufSimpleBind, __SQLPANIC(ESqlPanicInternalError));
 	iBuf->ResizeL(aData.Length());
 	iBuf->Write(0, aData);
-	return iBuf->Ptr(0);
+	//If the size is 0, then return KNullDesC8, where an empty string is hold, not a null one ("" instead of NULL)
+	return iBuf->Size() == 0 ? KNullDesC8() : iBuf->Ptr(0);
 	}
 
 /**
@@ -100,7 +101,8 @@ Returns a 8-bit pointer to the parameter data.
 inline const TPtrC8 HSqlSrvStmtParamBuf::Data() const
 	{
 	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	return iBuf->Ptr(0);
+	//If the size is 0, then return KNullDesC8, where an empty string is hold, not a null one ("" instead of NULL)
+	return iBuf->Size() == 0 ? KNullDesC8() : iBuf->Ptr(0);
 	}
 
 /**

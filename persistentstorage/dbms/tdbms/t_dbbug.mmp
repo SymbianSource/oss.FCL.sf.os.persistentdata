@@ -15,7 +15,7 @@
 
 target 		t_dbbug.exe
 targettype 	exe
-
+capability	All -Tcb
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 userinclude ../inc
 

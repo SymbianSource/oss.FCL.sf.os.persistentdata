@@ -31,6 +31,8 @@ RUN_UTILS DeleteFile T:\fillfile4M.txt
 RUN_UTILS DeleteFile E:\fillfile.txt
 RUN_UTILS DeleteFile E:\fillfile2.txt
 RUN_UTILS DeleteFile E:\fillfile4M.txt
+RUN_UTILS DeleteFile T:\fillDisk*.txt
+RUN_UTILS DeleteFile E:\fillDisk*.txt
 
 
 START_TESTCASE SYSLIB-SQL-CIT-3348
@@ -161,3 +163,5 @@ RUN_UTILS DeleteFile T:\fillfile2.txt
 RUN_UTILS DeleteFile E:\fillfile2.txt
 RUN_UTILS DeleteFile T:\fillfile4M.txt
 RUN_UTILS DeleteFile E:\fillfile4M.txt
+RUN_UTILS DeleteFile T:\fillDisk*.txt
+RUN_UTILS DeleteFile E:\fillDisk*.txt

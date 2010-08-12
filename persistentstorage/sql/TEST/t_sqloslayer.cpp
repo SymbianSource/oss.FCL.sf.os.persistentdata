@@ -53,8 +53,10 @@ TInt TheSqlSrvProfilerFileSync = 0;
 TInt TheSqlSrvProfilerFileSetSize = 0;
 #endif
 
+#ifdef _DEBUG    
 //SQLite panic category.
 _LIT(KSqlitePanicCategory, "Sqlite");
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
 

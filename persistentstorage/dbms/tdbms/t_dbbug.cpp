@@ -345,6 +345,7 @@ public:
 	static const TDesC& Name();
 private:
 	static void WaitForServerExit();
+	static void KillDbmsServer();
 	static TInt Thread(TAny*);
 	};
 
@@ -353,6 +354,41 @@ const TDesC& Defect_COMBBAR_463J5D::Name()
 	_LIT(KName,"COMBBAR_463J5D");
 	return KName;
 	}
+
+void Defect_COMBBAR_463J5D::KillDbmsServer()
+    {
+    _LIT(KDbmsServer,"edbsrv.exe");
+     TFullName name;
+    //RDebug::Print(_L("Find and kill \"%S\" process.\n"), &aProcessName);
+    TBuf<64> pattern(KDbmsServer);
+    TInt length = pattern.Length();
+    pattern += _L("*");
+    TFindProcess procFinder(pattern);
+
+    while (procFinder.Next(name) == KErrNone)
+        {
+        if (name.Length() > length)
+            {//If found name is a string containing aProcessName string.
+            TChar c(name[length]);
+            if (c.IsAlphaDigit() ||
+                c == TChar('_') ||
+                c == TChar('-'))
+                {
+                // If the found name is other valid application name
+                // starting with aProcessName string.
+                //RDebug::Print(_L(":: Process name: \"%S\".\n"), &name);
+                continue;
+                }
+            }
+        RProcess proc;
+        if (proc.Open(name) == KErrNone)
+            {
+            proc.Kill(0);
+            //RDebug::Print(_L("\"%S\" process killed.\n"), &name);
+            }
+        proc.Close();
+        }
+    }
 
 void Defect_COMBBAR_463J5D::WaitForServerExit()
 	{
@@ -392,8 +428,8 @@ TInt Defect_COMBBAR_463J5D::Thread(TAny*)
 void Defect_COMBBAR_463J5D::TestL()
 	{
 	test.Next(_L(" @SYMTestCaseID:SYSLIB-DBMS-CT-0584 "));
-	Print(_S("Wait for the server to exit"));
-	WaitForServerExit();
+	Print(_S("Kill the server if it has started"));
+	KillDbmsServer();
 //
 	Print(_S("Create the launching threads"));
 	RThread t1,t2;

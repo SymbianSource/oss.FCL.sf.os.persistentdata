@@ -65,7 +65,9 @@ PRJ_TESTEXPORTS
 ../data/certstore/swicertstore.dat						z:/resource/swicertstore.dat
 ./swicertstoredat.iby										/epoc32/rom/include/swicertstoredat.iby
 
-#ifdef __SERIES60_
+
+//define PDS_FULL_UI_TEST in the rom build command for Full S60 UI build
+#if defined(__SERIES60_) && defined(PDS_FULL_UI_TEST)
 
 // SP tests...
 ../data/rnd_sis/KS12s.sis                       z:/tef_centralrepository/ks12s.sis

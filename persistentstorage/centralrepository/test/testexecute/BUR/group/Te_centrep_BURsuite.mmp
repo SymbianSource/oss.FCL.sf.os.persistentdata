@@ -32,15 +32,11 @@ USERINCLUDE   ../../../../common/inc
 USERINCLUDE   ../src
 
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
-//SYSTEMINCLUDE /epoc32/include/test
 
 LIBRARY  	euser.lib
 LIBRARY		testexecuteutils.lib 
 LIBRARY		testexecutelogclient.lib 
-
-//LIBRARY		efsrv.lib
 LIBRARY		centralrepository.lib
-//LIBRARY		bafl.lib
 
 CAPABILITY ALL -Tcb
 

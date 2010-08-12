@@ -47,6 +47,8 @@ te_unittestsuite.iby                /epoc32/rom/include/te_unittestsuite.iby
 //to run automated script files at once
 te_automatedsuite.iby               /epoc32/rom/include/te_automatedsuite.iby
 ../scripts/te_automatedsuite.script z:/testdata/scripts/te_automatedsuite.script
+//Test script for platform that doesn't support serial port
+../scripts/te_automatedsuite_noserial.script z:/testdata/scripts/te_automatedsuite_noserial.script
 
 //te_createconfig
 te_createconfig.iby                 /epoc32/rom/include/te_createconfig.iby
