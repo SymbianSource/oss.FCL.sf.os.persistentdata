@@ -269,10 +269,15 @@ TInt CFeatMgrFeatureRegistry::SetFeature( TUid aFeature, TInt aEnable, const TUi
     
     if( iSWIProcessId == aPrcId && iSWICacheFeature )
     	{
-		TBitFlags32 flags(0);
-    	flags.Assign( EFeatureSupported, aEnable );
-    	TFeatureServerEntry entry( aFeature, flags, *aData );    
-	    err = SWICacheCommand(ESWISetFeatAndData, entry);
+        TBitFlags32 flags(0);
+        flags.Assign( EFeatureSupported, aEnable );
+        TUint32 data = 0;
+        if( aData )
+            {
+            data = *aData;
+            }
+        TFeatureServerEntry entry( aFeature, flags, data );    
+        err = SWICacheCommand(ESWISetFeatAndData, entry);
     	}
     else 
     	{

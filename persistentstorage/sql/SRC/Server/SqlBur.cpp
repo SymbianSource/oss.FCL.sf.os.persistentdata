@@ -592,6 +592,7 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 					CDir *dir=NULL;
 					__SQLLEAVE_IF_ERROR(iInterface->Fs().GetDir(KRestoreFilter,KEntryAttNormal,ESortNone,dir));
 					CleanupStack::PushL(dir);
+					TInt err2 = KErrNone;
 					for(TInt a=0;a<dir->Count();++a)
 						{
 						TEntry entry=(*dir)[a];
@@ -607,17 +608,23 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 						//the ".bak" file, if exists, will be deleted first.
 						(void)iInterface->Fs().Delete(bak);
 						TInt err=iInterface->Fs().Rename(db,bak);
-						if(err!=KErrNone && err!=KErrNotFound)
+						if(err == KErrNone || err == KErrNotFound)
 							{
-							__SQLLEAVE(err);
+							// now, rename the .rst as .db
+							err = iInterface->Fs().Rename(rst,db);
 							}
-						
-						// now, rename the .rst as .db
-						__SQLLEAVE_IF_ERROR(iInterface->Fs().Rename(rst,db));
+						if(err != KErrNone && err2 == KErrNone)
+							{
+							//The idea here is to not report the error immediatelly by calling LeaveIfError().
+							//If we leave here, the next database restore may also fail, for example, if the current database is still open by 
+							//its owner. Then "TInt err=iInterface->Fs().Rename(db,bak);" will fail again.
+							err2 = err;
+							}
 						
 						// if we got here, we have a backup of the original database in .db.bak
 						// and the new database in .db
-						}
+						}//end of for(...)
+					__SQLLEAVE_IF_ERROR(err2);
 					
 					// clean up dir
 					//delete dir;

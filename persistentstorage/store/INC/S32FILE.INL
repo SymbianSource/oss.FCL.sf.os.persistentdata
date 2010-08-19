@@ -296,7 +296,13 @@ defined by the TFileMode type.
 	{
 //  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
 //  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
-	return STATIC_CAST(CPermanentFileStore*,CFileStore::OpenL(aFs,aName,aFileMode|EFileWriteDirectIO,KPermanentFileStoreFactoryFunction));
+	
+    if ((aFileMode&EFileWrite) != 0)
+        {
+        aFileMode |= EFileWriteDirectIO;
+        aFileMode &= (~EFileWriteBuffered);
+        }
+    return STATIC_CAST(CPermanentFileStore*,CFileStore::OpenL(aFs,aName,aFileMode,KPermanentFileStoreFactoryFunction));
 	}
 inline CPermanentFileStore* CPermanentFileStore::OpenLC(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Opens a file containing a permanent file store, constructs a permanent file 
@@ -311,7 +317,13 @@ defined by the TFileMode type.
 	{
 //  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
 //  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
-	return STATIC_CAST(CPermanentFileStore*,CFileStore::OpenLC(aFs,aName,aFileMode|EFileWriteDirectIO,KPermanentFileStoreFactoryFunction));
+	
+    if ((aFileMode&EFileWrite) != 0)
+        {
+        aFileMode |= EFileWriteDirectIO;
+        aFileMode &= (~EFileWriteBuffered);
+        }
+    return STATIC_CAST(CPermanentFileStore*,CFileStore::OpenLC(aFs,aName,aFileMode,KPermanentFileStoreFactoryFunction));
 	}
 inline CPermanentFileStore* CPermanentFileStore::CreateL(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Creates a new file and constructs a new permanent file store object to be associated 
@@ -327,7 +339,13 @@ is defined by the TFileMode type.
 	{
 //  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
 //  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
-	return STATIC_CAST(CPermanentFileStore*,CFileStore::CreateL(aFs,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	
+    if ((aFileMode&EFileWrite) != 0)
+        {
+        aFileMode |= EFileWriteDirectIO;
+        aFileMode &= (~EFileWriteBuffered);
+        }
+    return STATIC_CAST(CPermanentFileStore*,CFileStore::CreateL(aFs,aName,aFileMode,&DoNewL));
 	}
 inline CPermanentFileStore* CPermanentFileStore::CreateLC(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Creates a new file and constructs a new permanent file store object to be associated 
@@ -343,7 +361,13 @@ is defined by the TFileMode type.
 	{
 //  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
 //  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
-	return STATIC_CAST(CPermanentFileStore*,CFileStore::CreateLC(aFs,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	
+    if ((aFileMode&EFileWrite) != 0)
+        {
+        aFileMode |= EFileWriteDirectIO;
+        aFileMode &= (~EFileWriteBuffered);
+        }
+    return STATIC_CAST(CPermanentFileStore*,CFileStore::CreateLC(aFs,aName,aFileMode,&DoNewL));
 	}
 inline CPermanentFileStore* CPermanentFileStore::ReplaceL(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Creates a file, constructs a permanent file store object to be associated with 
@@ -360,7 +384,13 @@ defined by the TFileMode type.
 	{
 //  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
 //  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
-	return STATIC_CAST(CPermanentFileStore*,CFileStore::ReplaceL(aFs,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	
+    if ((aFileMode&EFileWrite) != 0)
+        {
+        aFileMode |= EFileWriteDirectIO;
+        aFileMode &= (~EFileWriteBuffered);
+        }
+    return STATIC_CAST(CPermanentFileStore*,CFileStore::ReplaceL(aFs,aName,aFileMode,&DoNewL));
 	}
 inline CPermanentFileStore* CPermanentFileStore::ReplaceLC(RFs& aFs,const TDesC& aName,TUint aFileMode)
 /** Creates a file, constructs a permanent file store object to be associated with 
@@ -377,7 +407,13 @@ defined by the TFileMode type.
 	{
 //  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
 //  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
-	return STATIC_CAST(CPermanentFileStore*,CFileStore::ReplaceLC(aFs,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+    
+    if ((aFileMode&EFileWrite) != 0)
+        {
+        aFileMode |= EFileWriteDirectIO;
+        aFileMode &= (~EFileWriteBuffered);
+        }
+    return STATIC_CAST(CPermanentFileStore*,CFileStore::ReplaceLC(aFs,aName,aFileMode,&DoNewL));
 	}
 inline CPermanentFileStore* CPermanentFileStore::TempL(RFs& aFs,const TDesC& aPath,TFileName& aName,TUint aFileMode)
 /** Creates a temporary file and constructs a permanent file store object to be 
@@ -399,7 +435,13 @@ defined by the TFileMode type.
 	{
 //  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
 //  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
-	return STATIC_CAST(CPermanentFileStore*,CFileStore::TempL(aFs,aPath,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	
+    if ((aFileMode&EFileWrite) != 0)
+        {
+        aFileMode |= EFileWriteDirectIO;
+        aFileMode &= (~EFileWriteBuffered);
+        }
+    return STATIC_CAST(CPermanentFileStore*,CFileStore::TempL(aFs,aPath,aName,aFileMode,&DoNewL));
 	}
 inline CPermanentFileStore* CPermanentFileStore::TempLC(RFs& aFs,const TDesC& aPath,TFileName& aName,TUint aFileMode)
 /** Creates a temporary file, constructs a permanent file store object to be associated 
@@ -421,7 +463,13 @@ defined by the TFileMode type.
 	{
 //  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
 //  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
-	return STATIC_CAST(CPermanentFileStore*,CFileStore::TempLC(aFs,aPath,aName,aFileMode|EFileWriteDirectIO,&DoNewL));
+	
+    if ((aFileMode&EFileWrite) != 0)
+        {
+        aFileMode |= EFileWriteDirectIO;
+        aFileMode &= (~EFileWriteBuffered);
+        }
+    return STATIC_CAST(CPermanentFileStore*,CFileStore::TempLC(aFs,aPath,aName,aFileMode,&DoNewL));
 	}
 inline CPermanentFileStore* CPermanentFileStore::FromL(RFile& aFile)
 /** Constructs a permanent file store object from an already opened file. It is strongly recommended to set EFileWriteDirectIO

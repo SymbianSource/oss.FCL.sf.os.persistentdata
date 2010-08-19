@@ -90,6 +90,7 @@ private:
 	void GetCollationDllNameL();
 	void CacheDbConfigFileNamesL(RFs& aFs, const TDesC& aServerPrivatePath);
 	TInt ReAllocBuf(TInt aNewBufSize);
+	void DeleteTempFilesL(TInt aDriveNumber, const TDesC& aServerPrivatePath)const;
 
 private:
 	TSqlSrvFileData		iFileData;		//Used as a temporary storage for file data (file name, drive, path, secure uid)

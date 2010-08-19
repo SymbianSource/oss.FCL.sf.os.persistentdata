@@ -477,6 +477,27 @@ LOCAL_C void testDef039456L()
 	(void)TheFs.Delete(msvTestPath);
 	}
 
+/**
+@SYMTestCaseID          PDS-STORE-UT-4059
+@SYMTestCaseDesc        Tests for defect No ou1cimx1#422232
+                        The installed help topics are not organized to Application help topics.
+@SYMTestPriority        High
+@SYMTestActions         Tests that the EFileWriteDirectIO is appended only when necessary, also
+                        test that any EFileWriteBuffered is unset (no error occurs when this is
+                        passed in)
+@SYMTestExpectedResults Test must not fail
+@SYMDEF                 ou1cimx1#422232
+*/
+LOCAL_C void testOpenL()
+    {    
+    _LIT(KFileName,"C:\\t_storfperm.dat");
+    
+    test.Next(_L(" @SYMTestCaseID:PDS-STORE-UT-4059 "));
+    CPermanentFileStore* testStore = CPermanentFileStore::ReplaceL(TheFs, KFileName, EFileWrite|EFileWriteBuffered);
+    delete testStore;
+    
+    (void)TheFs.Delete(KFileName);
+    }
 
 //
 // Prepare the test directory.
@@ -566,7 +587,9 @@ GLDEF_C TInt E32Main()
 	test(r==KErrNone);
 	TRAP(r,testDef039456L());
 	test(r==KErrNone);
-
+	TRAP(r,testOpenL());
+	test(r==KErrNone);
+	
 	//deletion of data files must be before call to .End() - DEF047652
 	TDriveUnit drive(static_cast<TUint>(RFs::GetSystemDrive()));	
 	TParse parse;

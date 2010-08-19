@@ -66,6 +66,7 @@ _LIT(KPageSizePragma,	"PRAGMA \"%S\".page_size=%d\x0");
 _LIT(KAutoVacuumPragma,	"PRAGMA \"%S\".auto_vacuum=%d\x0");
 //_LIT(KPersist, "persist");
 //_LIT(KPersistentJournalPragma, "PRAGMA \"%S\".journal_mode=%S\x0");
+_LIT(KJournalSizeLimitPragma, "PRAGMA \"%S\".journal_size_limit=%d\x0");
 ////////////////////////////////////////////////////////
 //"LIKE" - user defined function name
 _LIT8(KStrLikeFuncName,  "LIKE\x0");
@@ -230,6 +231,24 @@ static TInt ExecPragma(sqlite3* aDbHandle, TBool& aAuthorizerDisabled, const TDe
 	TInt err = DbExecStmt16(aDbHandle, pragmaSql);
 	aAuthorizerDisabled = authorizerDisabledState;
 	return err;
+	}
+
+//The journal size limit is set to be at lest 16 pages and no less than 64 Kb.
+static void SetJournalSizeLimitL(sqlite3* aDbHandle, TBool& aAuthorizerDisabled, TInt aPageSize, const TDesC& aDbName = KMainDb16)
+	{
+	__SQLASSERT(aDbHandle != NULL, ESqlPanicBadArgument);
+	if(aPageSize == TSqlSrvConfigParams::KConfigPrmValueNotSet)
+		{
+		__SQLLEAVE_IF_ERROR(DbPageSize(aDbHandle, aDbName, aPageSize));
+		}
+	const TInt KPageMultiplier = 16;
+	const TInt KDefaultJournalSizeLimit = 64 * 1024;
+	const TInt KMaxJournalSizeLimit = 512 * 1024;
+	const TInt KJournalSizeLimit = Min((aPageSize * KPageMultiplier), KMaxJournalSizeLimit);
+	if(KJournalSizeLimit > KDefaultJournalSizeLimit)
+		{
+		__SQLLEAVE_IF_ERROR(::ExecPragma(aDbHandle, aAuthorizerDisabled, KJournalSizeLimitPragma, KJournalSizeLimit));
+		}
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1251,6 +1270,8 @@ void CSqlSrvDatabase::SetConfigL(const TSqlSrvConfigParams& aConfigParams, TBool
 		}
 	
 	const TDesC& logicalDbName = aLogicalDbName.Length() > 0 ? aLogicalDbName : KMainDb16;
+
+	::SetJournalSizeLimitL(iDbHandle, iAuthorizerDisabled, aConfigParams.iPageSize, logicalDbName);
 	
 	//Setting the cache size.
 	//Step 1: Check if aConfigParams.iCacheSize value is set. If it is set, then use it.

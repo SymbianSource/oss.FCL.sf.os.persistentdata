@@ -84,6 +84,9 @@ enum TPanicCodes
 	EPanicFastCounterFreq		=21
 	};
 
+//The SQLite temp files willl be created in this subdir
+_LIT(KTempFileDir, "temp");
+
 //Bit-mask constant. If xOpen()'s "aFlag" parameter contains one of these bits set, then the the file top be
 //opened or created is a journal file.
 const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEMP_JOURNAL | SQLITE_OPEN_SUBJOURNAL | SQLITE_OPEN_MASTER_JOURNAL; 
@@ -421,7 +424,7 @@ const TUint KJournalFileTypeBitMask = SQLITE_OPEN_MAIN_JOURNAL | SQLITE_OPEN_TEM
 						fname.Copy(fn8);
 						}
 					//                                           0    1  2  3  4  5   6  7   8   9   10
-					RDebug::Print(_L("[SQL-OS]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬%c¬%S¬%d¬%d¬%ld¬%d¬%ld¬%ld¬%ld¬%S\n"),
+					RDebug::Print(_L("[SQL-OS]¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬\"%X\"¬%c¬%S¬%d¬%d¬%ld¬%d¬%ld¬%ld¬%ld¬%S\r\n"),
 															//[SQL-OS]
 															//Handle
 															//Time from start, microseconds
@@ -720,7 +723,6 @@ private:
 public:
 	RFs			iFs;		//File session instance.
 	TFileName	iSysPrivDir;//"<system drive>:\" + process's private data path. Initialized in sqlite3SymbianFsOpen().
-							//Used for storing sqlite temporary files.
 	TInt64		iSeed;
 
 private:	
@@ -767,12 +769,13 @@ NONSHARABLE_STRUCT(TDbFile) : public sqlite3_file
 	{
 	inline TDbFile();
 	RFileBuf64	iFileBuf;
-	HBufC*		iFullName;				//Used for the "delete file" operation (RFile64::FullName() makes an IPC call!)
 	TInt		iLockType;				//File lock type
 	TBool		iReadOnly;				//True if the file is read-only
 	TInt		iSectorSize;			//Media sector-size
 	TInt		iDeviceCharacteristics;
 	TSqlFreePageCallback iFreePageCallback;
+	TBool       iIsFileCreated;          //If the file to be created is a temp file, 
+                                       //it will not be created until the data is to be written to.
 #ifdef _SQLPROFILER
 	TBool		iIsJournal;
 #endif	
@@ -814,6 +817,8 @@ public:
 	static int FileControl(sqlite3_file* aDbFile, int aOp, void* aArg);
 	static int SectorSize(sqlite3_file* aDbFile);
 	static int DeviceCharacteristics(sqlite3_file* aDbFile);
+private:
+	static TInt DoCreateTempFile(TDbFile& aDbFile);
 	};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -842,12 +847,13 @@ public:
 	static int Sleep(sqlite3_vfs* aVfs, int aMicrosec);
 	static int CurrentTime(sqlite3_vfs* aVfs, double* aNow);
 	static int GetLastError(sqlite3_vfs *sVfs, int aBufLen, char* aBuf);
+    static TInt DoGetDeviceCharacteristicsAndSectorSize(TDbFile& aDbFile, TInt& aRecReadBufSize);
+
 private:
 	static TInt DoOpenFromHandle(TDbFile& aDbFile, const RMessage2& aMsg, TBool aReadOnly);
 	static inline TInt DoGetVolumeIoParamInfo(RFs& aFs, TInt aDriveNo, TVolumeIOParamInfo& aVolumeInfo);
 	static TInt DoGetDeviceCharacteristics(const TDriveInfo& aDriveInfo, const TVolumeIOParamInfo& aVolumeInfo);
 	static TInt DoGetSectorSize(const TDriveInfo& aDriveInfo, const TVolumeIOParamInfo& aVolumeInfo);
-	static TInt DoGetDeviceCharacteristicsAndSectorSize(TDbFile& aDbFile, TInt& aRecReadBufSize);
 	static TInt DoFileSizeCorruptionCheck(TDbFile& aDbFile, const TDesC& aFname, TInt aFmode);
 	};
 
@@ -1136,6 +1142,13 @@ TInt COsLayerData::DoCreate()
 	TParse parse;
 	(void)parse.Set(driveName, &privateDir, 0);//this call can't fail
 	iSysPrivDir.Copy(parse.DriveAndPath());
+	//Create the temp files directory
+	(void)parse.AddDir(KTempFileDir);//this call can't fail
+	err = iFs.MkDir(parse.DriveAndPath());
+    if(err != KErrNone && err != KErrAlreadyExists)
+    	{
+		return err;
+    	}
 	return KErrNone;
 	}
 
@@ -1446,11 +1459,11 @@ Initializes TDbFile data members with their default values.
 */
 inline TDbFile::TDbFile() :
 	iFileBuf(KFileBufSize),
-	iFullName(0),
 	iLockType(SQLITE_LOCK_NONE),
 	iReadOnly(EFalse),
 	iSectorSize(0),
-	iDeviceCharacteristics(-1)
+	iDeviceCharacteristics(-1),
+	iIsFileCreated(ETrue)
 	{
 #ifdef _SQLPROFILER
 	iIsJournal = EFalse;
@@ -1488,7 +1501,6 @@ static inline TDbFile& DbFile(sqlite3_file* aDbFile)
 SQLite OS porting layer API.
 
 Closes the file referred by aDbFile parameter.
-If aDbFile.iFullName data member is not NULL, then the file will be deleted.
 
 @param aDbFile A pointer to a TDbFile instance, than contains the file handle to be closed.
 
@@ -1503,14 +1515,7 @@ If aDbFile.iFullName data member is not NULL, then the file will be deleted.
 	__OS_CALL(EOsFileClose, 0, 0);
 	__OSTIME_COUNTER(TheOsCallTicks[EOsFileClose], ::OsCallProfile(dbFile.iIsJournal, EOsFileClose), 0, 0, aDbFile, 0);
 	__FS_CALL(EFsOpFileClose, 0);
-	dbFile.iFileBuf.Close();
-	if(dbFile.iFullName)
-		{//"iFullName" will not be NULL only when TVfs::Open() is called with SQLITE_OPEN_DELETEONCLOSE flag.
-		 //That means - SQlite expects the file to be deleted after the file close operation. 
-		__FS_CALL(EFsOpFileDelete, 0);
-		(void)COsLayerData::Instance().iFs.Delete(*dbFile.iFullName);
-		delete dbFile.iFullName;
-		}
+  dbFile.iFileBuf.Close();
 	return SQLITE_OK;
 	}
 
@@ -1573,6 +1578,51 @@ with the reported by the OS API error. The stored error code will be used later 
 	return sqliteErr;
 	}
 
+//Creates a temporary file in "\temp" subdirectory of osLayerData.iSysPrivDir directory.
+//If the function fails, the temp file will be closed and deleted, 
+//the related Symbian OS error will be returned to the caller.
+/* static */TInt TFileIo::DoCreateTempFile(TDbFile& aDbFile)
+    {
+    COsLayerData& osLayerData = COsLayerData::Instance();
+    //TParse2 is used in order to avoid the need of another TFileName stack based variable
+	class TParse2 : public TParse
+		{
+	public:
+		inline TFileName& FileName()
+			{
+			return static_cast <TFileName&> (NameBuf());
+			}
+		};
+	TParse2 parse;
+	(void)parse.Set(osLayerData.iSysPrivDir, 0, 0);//this call can't fail
+	(void)parse.AddDir(KTempFileDir);//this call can't fail
+    __FS_CALL(EFsOpFileCreateTemp, 0);
+    TInt err = aDbFile.iFileBuf.Temp(osLayerData.iFs, parse.FullName(), parse.FileName(), EFileRead|EFileWrite|EDeleteOnClose);        
+    if(err == KErrPathNotFound)
+        {
+        err = osLayerData.iFs.MkDirAll(parse.DriveAndPath());
+        if(err == KErrNone)
+            {
+            err = aDbFile.iFileBuf.Temp(osLayerData.iFs, parse.FullName(), parse.FileName(), EFileRead|EFileWrite|EDeleteOnClose);
+            }
+        }
+    if(err == KErrNone)
+        {
+        TInt recReadBufSize = -1;
+        err = TVfs::DoGetDeviceCharacteristicsAndSectorSize(aDbFile, recReadBufSize);
+        if(err != KErrNone)
+            {
+            aDbFile.iFileBuf.Close();//With EDeleteOnClose flag set, the file will be deleted
+            }
+        else
+            {
+            (void)aDbFile.iFileBuf.SetReadAheadSize(aDbFile.iSectorSize, recReadBufSize);
+            aDbFile.iIsFileCreated = ETrue;
+            }
+        }
+    return err;
+    }
+
 /**
 SQLite OS porting layer API.
 
@@ -1582,6 +1632,8 @@ Writes to the file referred by the aDbFile parameter.
 If the write operation is in the 1st db file page and there is a registered "free pages" callback 
 (TDbFile::iFreePageCallback) and the free pages count is above the defined value,
 then the callback will be called.
+
+If the file to be written to is a temp file, which is not created yet, then the file will be created.
 
 @param aDbFile A pointer to a TDbFile instance, that contains the file handle to be written to.
 @param aData The data to be written to the file. The buffer size must be at least aAmt bytes.
@@ -1604,32 +1656,42 @@ with the reported by the OS API error. The stored error code will be used later 
 	SQLUTRACE_PROFILER(aDbFile);
 	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileWrite, aAmt, aOffset));
 	TDbFile& dbFile = ::DbFile(aDbFile);
-	__OS_CALL(EOsFileWrite, 0, 0);
-    __COUNTER_INCR(TheSqlSrvProfilerFileWrite);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsFileWrite], ::OsCallProfile(dbFile.iIsJournal, EOsFileWrite), aOffset, aAmt, aDbFile, 0);
-	TInt err = KErrAccessDenied;
-	if(!dbFile.iReadOnly)
-		{
-		TPtrC8 ptr((const TUint8*)aData, aAmt);
-		err = dbFile.iFileBuf.Write(aOffset, ptr);
-		}
-	COsLayerData::Instance().SetOsErrorCode(err);
+	TInt err = KErrNone;
+	if(!dbFile.iIsFileCreated)
+	    {//Create a temp file if it has not been created. 
+	    err = TFileIo::DoCreateTempFile(dbFile);
+	    }
+	if(err != KErrNone)
+	    {
+        COsLayerData::Instance().SetOsErrorCode(err);
+        return err == KErrNoMemory ? SQLITE_IOERR_NOMEM : SQLITE_FULL;
+	    }
 	
-	const TInt KFreePageCountOffset = 36;//hard-coded constant. SQLite does not offer anything - a constant or #define.
-	//The checks in the "if" bellow do:
-	// - "err == KErrNone" - check the free page count only after a successful "write";
-	// - "aOffset == 0"    - check the free page count only if the write operation affects the system page (at aOffset = 0);
-	// - "aAmt >= (KFreePageCountOffset + sizeof(int))" - check the free page count only if the amount of bytes to be written
-	//						 is more than the offset of the free page counter (othewrise the free page counter is not affected
-	//						 by this write operation);
-	// - "dbFile.iFreePageCallback.IsValid()" - check the free page count only if there is a valid callback;
-	if(err == KErrNone  && aOffset == 0 && aAmt >= (KFreePageCountOffset + sizeof(int)) && dbFile.iFreePageCallback.IsValid())
-		{
-		const TUint8* ptr = static_cast <const TUint8*> (aData) + KFreePageCountOffset;
-		TInt freePageCount = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
-		dbFile.iFreePageCallback.CheckAndCallback(freePageCount);
-		}
-		
+    __OS_CALL(EOsFileWrite, 0, 0);
+    __COUNTER_INCR(TheSqlSrvProfilerFileWrite);
+    __OSTIME_COUNTER(TheOsCallTicks[EOsFileWrite], ::OsCallProfile(dbFile.iIsJournal, EOsFileWrite), aOffset, aAmt, aDbFile, 0);
+    err = KErrAccessDenied;
+    if(!dbFile.iReadOnly)
+        {
+        TPtrC8 ptr((const TUint8*)aData, aAmt);
+        err = dbFile.iFileBuf.Write(aOffset, ptr);
+        }
+    COsLayerData::Instance().SetOsErrorCode(err);
+    
+    const TInt KFreePageCountOffset = 36;//hard-coded constant. SQLite does not offer anything - a constant or #define.
+    //The checks in the "if" bellow do:
+    // - "err == KErrNone" - check the free page count only after a successful "write";
+    // - "aOffset == 0"    - check the free page count only if the write operation affects the system page (at aOffset = 0);
+    // - "aAmt >= (KFreePageCountOffset + sizeof(int))" - check the free page count only if the amount of bytes to be written
+    //						 is more than the offset of the free page counter (othewrise the free page counter is not affected
+    //						 by this write operation);
+    // - "dbFile.iFreePageCallback.IsValid()" - check the free page count only if there is a valid callback;
+    if(err == KErrNone  && aOffset == 0 && aAmt >= (KFreePageCountOffset + sizeof(int)) && dbFile.iFreePageCallback.IsValid())
+        {
+        const TUint8* ptr = static_cast <const TUint8*> (aData) + KFreePageCountOffset;
+        TInt freePageCount = (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3];
+        dbFile.iFreePageCallback.CheckAndCallback(freePageCount);
+        }
 	return err == KErrNone ? SQLITE_OK : (err == KErrNoMemory ? SQLITE_IOERR_NOMEM : SQLITE_FULL);
 	}
 
@@ -2233,116 +2295,106 @@ with the reported by the OS API error. The stored error code will be used later 
 @see TDbFile
 */
 /* static */ int TVfs::Open(sqlite3_vfs* aVfs, const char* aFileName, sqlite3_file* aDbFile, int aFlags, int* aOutFlags)
-	{
-	SQLUTRACE_PROFILER(aVfs);
-	__OS_CALL(EOsVfsOpen, 0, 0);
-	__OSTIME_COUNTER(TheOsCallTicks[EOsVfsOpen], ::OsCallProfile(EFalse, EOsVfsOpen), 0, 0, aDbFile, aFileName);
-	COsLayerData& osLayerData = COsLayerData::Instance();
-	TFileName fname;
-	if(aFileName && !::ConvertToUnicode(aFileName, fname))
-		{
-		osLayerData.SetOsErrorCode(KErrBadName);
-		return SQLITE_CANTOPEN;	
-		}
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileOpen, aDbFile, &fname));
-	new (aDbFile) TDbFile;
-	TDbFile& dbFile = ::DbFile(aDbFile);
-	TFhStrType fhStrType = aFileName ? ::FhStringProps(aFileName) : ENotFhStr;
-	if(aFileName && (aFlags & SQLITE_OPEN_DELETEONCLOSE))
-		{
-		dbFile.iFullName = fname.Alloc();
-		if(!dbFile.iFullName)
-			{
-			osLayerData.SetOsErrorCode(KErrNoMemory);
-			return SQLITE_IOERR_NOMEM;
-			}
-		}
-	TInt recReadBufSize = -1;
-	TInt err = KErrNone;
-	if(fhStrType == EFhMainDbStr)
-		{//Main db file, open from handle
-		const RMessage2* msg;
-		TBool readOnly;
-		osLayerData.RetrieveAndResetFhData(msg, readOnly);
-		err = msg != NULL ? TVfs::DoOpenFromHandle(dbFile, *msg, readOnly) : KErrGeneral;
-		}
-	else
-		{
-		if(fhStrType == EFhStr)
-			{//Not the main db file. Remove invalid characters in the file name
-			::FhConvertToFileName(fname, osLayerData.iSysPrivDir);//If fname does not have a path, iSysPrivDir will be used
-			}
-		TInt fmode = EFileRead;
-		if(aFlags & SQLITE_OPEN_READWRITE)
-			{
-			fmode |= EFileWrite;
-			}
-		if(aFlags & SQLITE_OPEN_EXCLUSIVE)
-			{
-			fmode |= EFileShareExclusive;
-			}
-		if(!aFileName)	
-			{
-			__FS_CALL(EFsOpFileCreateTemp, 0);
-			err = dbFile.iFileBuf.Temp(osLayerData.iFs, osLayerData.iSysPrivDir, fname, fmode);
-			if(err == KErrNone)
-				{
-				dbFile.iFullName = fname.Alloc();
-				if(!dbFile.iFullName)
-					{
-					err = KErrNoMemory;	
-					}
-				}
-			}
-		else
-			{
-			err = KErrAccessDenied;
-			TInt prevErr = KErrNone;
-			if(aFlags & SQLITE_OPEN_CREATE)
-				{
-				__FS_CALL(EFsOpFileCreate, 0);
-				prevErr = err = dbFile.iFileBuf.Create(osLayerData.iFs, fname, fmode);
-				}
-			if(err != KErrNone && err != KErrNoMemory && err != KErrDiskFull)
-				{
-				__FS_CALL(EFsOpFileOpen, 0);
-				err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
-				
-				if(err == KErrNone && (aFlags & KJournalFileTypeBitMask))
-				    {
+	{   
+    SQLUTRACE_PROFILER(aVfs);
+    __OS_CALL(EOsVfsOpen, 0, 0);
+    __OSTIME_COUNTER(TheOsCallTicks[EOsVfsOpen], ::OsCallProfile(EFalse, EOsVfsOpen), 0, 0, aDbFile, aFileName);
+ 
+    COsLayerData& osLayerData = COsLayerData::Instance();
+    TFhStrType fhStrType = ENotFhStr;
+    new (aDbFile) TDbFile;
+    TDbFile& dbFile = ::DbFile(aDbFile);
+
+    if(!aFileName)
+        {  
+        //It is to create and open a temp file if aFileName is NULL. In this case,
+        //we will defer the file creation util it is needed.  
+    
+        dbFile.pMethods = &TheFileIoApi;
+        dbFile.iIsFileCreated = EFalse;
+        if(aOutFlags)
+            {
+            *aOutFlags = SQLITE_OPEN_READWRITE;
+            }
+        return SQLITE_OK;
+        }  
+    
+    TFileName fname;
+    if(!::ConvertToUnicode(aFileName, fname))
+        {
+        osLayerData.SetOsErrorCode(KErrBadName);
+        return SQLITE_CANTOPEN;	
+        }
+    SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KFileOpen, aDbFile, &fname));
+    fhStrType = ::FhStringProps(aFileName);
+    TInt err = KErrNone;
+    TInt recReadBufSize = -1;
+    if(fhStrType == EFhMainDbStr)
+        {//Main db file, open from handle
+        const RMessage2* msg;
+        TBool readOnly;
+        osLayerData.RetrieveAndResetFhData(msg, readOnly);
+        err = msg != NULL ? TVfs::DoOpenFromHandle(dbFile, *msg, readOnly) : KErrGeneral;
+        }
+    else
+        {
+        if(fhStrType == EFhStr)
+            {//Not the main db file. Remove invalid characters in the file name
+            ::FhConvertToFileName(fname, osLayerData.iSysPrivDir);//If fname does not have a path, iSysPrivDir will be used
+            }
+        TInt fmode = EFileRead;
+        if(aFlags & SQLITE_OPEN_READWRITE)
+            {
+            fmode |= EFileWrite;
+            }
+        if(aFlags & SQLITE_OPEN_EXCLUSIVE)
+            {
+            fmode |= EFileShareExclusive;
+            }
+            err = KErrAccessDenied;
+            TInt prevErr = KErrNone;
+            if(aFlags & SQLITE_OPEN_DELETEONCLOSE)
+                {
+                fmode |= EDeleteOnClose;
+                }
+            if(aFlags & SQLITE_OPEN_CREATE)
+                {
+                __FS_CALL(EFsOpFileCreate, 0);
+                prevErr = err = dbFile.iFileBuf.Create(osLayerData.iFs, fname, fmode);
+                }
+            if(err != KErrNone && err != KErrNoMemory && err != KErrDiskFull)
+                {
+                __FS_CALL(EFsOpFileOpen, 0);
+                err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
+                
+                if(err == KErrNone && (aFlags & KJournalFileTypeBitMask))
+                    {
                     err = TVfs::DoFileSizeCorruptionCheck(dbFile, fname, fmode);
-				    }
-				}
-			if((err != KErrNone && err != KErrNoMemory && err != KErrDiskFull) && (aFlags & SQLITE_OPEN_READWRITE))
-				{
-				aFlags &= ~SQLITE_OPEN_READWRITE;
-				aFlags |= SQLITE_OPEN_READONLY;
-				fmode &= ~EFileWrite;
-				__FS_CALL(EFsOpFileOpen, 0);
-   				err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
-				}
-			if(err != KErrNone && prevErr == KErrAccessDenied)
-				{
-				err = KErrAccessDenied;
-				}
-			}
-		}
-	if(err == KErrNone)
-		{
-		err = TVfs::DoGetDeviceCharacteristicsAndSectorSize(dbFile, recReadBufSize);
-		}
+                    }
+                }
+            if((err != KErrNone && err != KErrNoMemory && err != KErrDiskFull) && (aFlags & SQLITE_OPEN_READWRITE))
+                {
+                aFlags &= ~SQLITE_OPEN_READWRITE;
+                aFlags |= SQLITE_OPEN_READONLY;
+                fmode &= ~EFileWrite;
+                __FS_CALL(EFsOpFileOpen, 0);
+                err = dbFile.iFileBuf.Open(osLayerData.iFs, fname, fmode);
+                }
+            if(err != KErrNone && prevErr == KErrAccessDenied)
+                {
+                err = KErrAccessDenied;
+                }
+        }
+    if(err == KErrNone)
+        {
+        err = TVfs::DoGetDeviceCharacteristicsAndSectorSize(dbFile, recReadBufSize);
+        }	
+ 	
 	osLayerData.SetOsErrorCode(err);
 	if(err != KErrNone)
 		{
 		__FS_CALL(EFsOpFileClose, 0);
 		dbFile.iFileBuf.Close();	
-		delete dbFile.iFullName;
-		dbFile.iFullName = NULL;
-        if(!aFileName && fname.Length() > 0)
-            {//temporary file, the error is not KErrNone. Then delete the file (after a successfull 
-             //temporary file creation there could be a failed memory allocation)
-            (void)osLayerData.iFs.Delete(fname);
-            }
 		}
 	else
 		{

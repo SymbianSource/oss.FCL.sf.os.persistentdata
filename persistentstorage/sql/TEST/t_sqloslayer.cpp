@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -623,16 +623,24 @@ void NegativeTest()
 	User::Free(osFile);
 	}
 
-void VfsOpenTempFileOomTest()
-    {
-    //Delete all temp files in this test private data cage.
+TInt DoDeleteTempFiles()
+	{
     CFileMan* fm = NULL;
     TRAPD(err, fm = CFileMan::NewL(TheFs));
     TEST2(err, KErrNone);
-    TBuf<50> path;
+    TFileName path;
     path.Copy(KPrivateDir);
+    path.Append(_L("temp\\"));
     path.Append(_L("*.$$$"));
     err = fm->Delete(path);
+    delete fm;
+    return err;
+	}
+
+void VfsOpenTempFileOomTest()
+    {
+    //Delete all temp files in this test private data cage.
+	TInt err = DoDeleteTempFiles();
     TEST(err == KErrNone || err == KErrNotFound);
     
     sqlite3_vfs* vfs = sqlite3_vfs_find(NULL);
@@ -653,7 +661,9 @@ void VfsOpenTempFileOomTest()
         err = sqlite3OsOpen(vfs, NULL, osFile, SQLITE_OPEN_READWRITE, &outFlags);
         if(err == SQLITE_OK)
             {
-            err = sqlite3OsClose(osFile);
+			//Since this is a temp file, its creation will be delayed till the first file write operation.
+			err = sqlite3OsWrite(osFile, "1234", 4, 0);
+			(void)sqlite3OsClose(osFile);
             }
         OomPostStep();
         if(err != SQLITE_OK)
@@ -662,15 +672,67 @@ void VfsOpenTempFileOomTest()
             }
         //If the iteration has failed, then no temp file should exist in the test private data cage.
         //If the iteration has succeeded, then sqlite3OsClose() should have deleted the temp file.
-        TInt err2 = fm->Delete(path);
+        TInt err2 = DoDeleteTempFiles();
         TEST2(err2, KErrNotFound);
         }
     TEST2(err, SQLITE_OK);
     TheTest.Printf(_L("\r\n=== TVfs::Open(<temp file>) OOM test succeeded at allcoation %d\r\n"), failingAllocNum);
     
     User::Free(osFile);
-    delete fm;
     }
+
+void VfsOpenTempFileFileIoErrTest()
+	{
+    //Delete all temp files in this test private data cage.
+	TInt err = DoDeleteTempFiles();
+    TEST(err == KErrNone || err == KErrNotFound);
+    
+    sqlite3_vfs* vfs = sqlite3_vfs_find(NULL);
+    TEST(vfs != NULL);
+
+    sqlite3_file* osFile = (sqlite3_file*)User::Alloc(vfs->szOsFile);
+    TEST(osFile != NULL);
+    
+	err = SQLITE_ERROR;
+	TInt cnt = 1;
+	while(err != SQLITE_OK)
+		{
+		TInt processHandleCnt = 0;
+		TInt threadHandleCnt = 0;
+		RThread().HandleCount(processHandleCnt, threadHandleCnt);
+		TInt allocCellsCnt = User::CountAllocCells();
+
+        TheTest.Printf(_L("%d "), cnt);
+		(void)TheFs.SetErrorCondition(KErrGeneral, cnt);
+        int outFlags = 0;
+        err = sqlite3OsOpen(vfs, NULL, osFile, SQLITE_OPEN_READWRITE, &outFlags);
+        if(err == SQLITE_OK)
+            {
+			//Since this is a temp file, its creation will be delayed till the first file write operation.
+			err = sqlite3OsWrite(osFile, "1234", 4, 0);
+			(void)sqlite3OsClose(osFile);
+            }
+		(void)TheFs.SetErrorCondition(KErrNone);
+		if(err != SQLITE_OK)
+			{
+			TInt processHandleCnt2 = 0;
+			TInt threadHandleCnt2 = 0;
+			RThread().HandleCount(processHandleCnt2, threadHandleCnt2);
+			TEST2(processHandleCnt2, processHandleCnt);
+			TEST2(threadHandleCnt2, threadHandleCnt);
+			TInt allocCellsCnt2 = User::CountAllocCells();
+			TEST2(allocCellsCnt2, allocCellsCnt);
+	        ++cnt;
+			}
+        //If the iteration has failed, then no temp file should exist in the test private data cage.
+        //If the iteration has succeeded, then sqlite3OsClose() should have deleted the temp file.
+        TInt err2 = DoDeleteTempFiles();
+        TEST2(err2, KErrNotFound);
+		}
+    TEST2(err, SQLITE_OK);
+    TheTest.Printf(_L("\r\n=== TVfs::Open(<temp file>) file I/O error simulation test succeeded at iteration %d\r\n"), cnt);
+    User::Free(osFile);
+	}
 
 void VfsCreateDeleteOnCloseFileOomTest()
     {
@@ -740,6 +802,8 @@ void DoTests()
 	NegativeTest();
     TheTest.Printf(_L("TVfs::Open(<temp file>) OOM test\r\n"));
     VfsOpenTempFileOomTest();
+    TheTest.Printf(_L("TVfs::Open(<temp file>) file I/O error simulation test\r\n"));
+    VfsOpenTempFileFileIoErrTest();
     TheTest.Printf(_L("TVfs::Open(<'delete on close' file>) OOM test\r\n"));
     VfsCreateDeleteOnCloseFileOomTest();
 	}

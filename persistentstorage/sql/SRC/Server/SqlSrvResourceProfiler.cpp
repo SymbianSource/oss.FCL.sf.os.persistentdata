@@ -78,10 +78,10 @@ TInt TheSqlSrvProfilerFileSetSize = 0;
 static TBool TheSqlSrvProfilerTraceToFile = EFalse;
 
 //"Prepared" and "Executed" SQL statement counters
-static TInt TheSqlSrvProfilerPreparedCnt8;
-static TInt TheSqlSrvProfilerPreparedCnt16;
-static TInt TheSqlSrvProfilerExecutedCnt8;
-static TInt TheSqlSrvProfilerExecutedCnt16;
+static TInt TheSqlSrvProfilerPreparedCnt8 = 0;
+static TInt TheSqlSrvProfilerPreparedCnt16 = 0;
+static TInt TheSqlSrvProfilerExecutedCnt8 = 0;
+static TInt TheSqlSrvProfilerExecutedCnt16 = 0;
 
 ///////////////////////////////// IPC counters ///////////////////////////////////////
 

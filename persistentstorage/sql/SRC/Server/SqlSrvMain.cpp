@@ -314,6 +314,8 @@ void CSqlServer::ConstructL()
 	RFs& fs = sqlite3SymbianFs();
 	TFileName serverPrivatePath;
 	__SQLLEAVE_IF_ERROR(fs.PrivatePath(serverPrivatePath));
+
+	DeleteTempFilesL(sysDrive, serverPrivatePath);
 	//Load config file parameter values (if config file exists) and initialize iFileData.
 	TParse parse;
 	__SQLLEAVE_IF_ERROR(parse.Set(KSqlSrvDefaultConfigFile, &serverPrivatePath, NULL));
@@ -358,8 +360,41 @@ void CSqlServer::ConstructL()
     const TInt KGreatSize = 1024; 
  	__SQLLEAVE_IF_ERROR(ReAllocBuf(KGreatSize));
     #endif //SQLSRV_STARTUP_TEST 	
-#endif //_DEBUG 	
+#endif //_DEBUG 
 	}
+
+/**
+Delete any temp files left the "temp" subdirectory in server's private directory.
+
+The SQLite is configured to use shared page cache. When the shared page cache is enabled,
+those temp files created by SQLite are deleted only when the database gets closed. However,
+if during power down event the client application does not close the database, 
+the temp files will never get deleted.
+This is why the SQL server should deletes all temp files during its start-up.
+
+Note that all errors exept KErrNoMemory are ignored in the function body, becasuse
+the temp files deletion is not a critical operation to prevent the server start up.
+
+@param aDriveNumber A drive number.
+@param aServerPath A server's private path.
+
+*/
+void CSqlServer::DeleteTempFilesL(TInt aDriveNumber, const TDesC& aServerPath)const
+    {
+    _LIT(KTempFileDir, "temp");
+    _LIT(KWildCard, "*.*");
+    TDriveUnit drive(aDriveNumber); 
+    TDriveName driveName = drive.Name();
+    TParse parse;
+    (void)parse.Set(aServerPath, &driveName, 0);//this call can't fail
+    (void)parse.AddDir(KTempFileDir);//this call can't fail
+    TFileName tempfileDir(parse.FullName());
+    (void)parse.Set(KWildCard, &tempfileDir, 0);//this call can't fail
+	RFs& fs = sqlite3SymbianFs();
+	CFileMan* fm = CFileMan::NewL(fs);
+	(void)fm->Delete(parse.FullName());
+	delete fm;
+    }
 
 /**
 Retrieves in iCollationDllName current(default) collation dll name.

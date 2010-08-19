@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -564,7 +564,17 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 		err = control.AddFeature(entry3);
 		TESTDIAGNOSTICERROR(err==KErrNone, 
 				_L("RFeatureControl::AddFeature expects KErrNone for KNewUid3; returned value is = %d"),err);
-	
+        
+		// Enable feature
+        err = control.EnableFeature(KNewUid1);
+        TESTDIAGNOSTICERROR(err==KErrNone, 
+                _L("RFeatureControl::EnableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+        
+        // Disable feature
+        err = control.DisableFeature(KNewUid1);
+        TESTDIAGNOSTICERROR(err==KErrNone, 
+                _L("RFeatureControl::DisableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+        
 		// Set features
 		err = control.SetFeature(KNewUid1, ETrue, KChangeData);
 		TESTDIAGNOSTICERROR(err==KErrNone, 

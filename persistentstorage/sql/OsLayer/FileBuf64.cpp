@@ -256,6 +256,7 @@ Initializes RFileBuf64 data members with their default values.
 */
 RFileBuf64::RFileBuf64(TInt aMinCapacity) :
 	iCapacity(aMinCapacity),
+	iBase(NULL),
 	iReadAheadSize(RFileBuf64::KDefaultReadAheadSize),
 	iOptimized(EFalse)
 	{
@@ -657,9 +658,9 @@ TInt RFileBuf64::Write(TInt64 aFilePos, const TDesC8& aData)
 					iDirty = ETrue;	
 					}
 				else									
-				//Beyond the end of the file and not in the buffer - set file size.
+				//Beyond the end of the file and not in the buffer - write the buffer to the file.
 					{
-					err = DoSetFileSize(aFilePos);
+                    err = DoFileWrite2(aFilePos);
 					}
 				}
 			else										
@@ -673,22 +674,22 @@ TInt RFileBuf64::Write(TInt64 aFilePos, const TDesC8& aData)
 		//4. The new write pos is in the buffer, the data entirely fits in the buffer
 		else
 			{
-			if(iCapacity == iLength)			//The buffer is full. Write the buffer and associate the new file pos
-				{
-				err = DoFileWrite2(aFilePos);
-				}
-			if(err == KErrNone)
-				{
-				TInt amount = Min(len, (iCapacity - (aFilePos - iFilePos)));
-				const TUint8* end = Mem::Copy(iBase + (aFilePos - iFilePos), data, amount);
-				iLength = Max(iLength, (end - iBase));
-				iFileSize = Max(iFileSize, (iFilePos + iLength));
-				len -= amount;
-				data += amount;
-				aFilePos += amount;
-				iDirty = ETrue;	
-				}
-			}
+            if (iFilePos+iCapacity == aFilePos)	//The buffer is full. The new position to write is the end of the buffer.
+                {
+                err = DoFileWrite2(aFilePos);
+                }
+            if(err == KErrNone)
+                {
+                TInt amount = Min(len, (iCapacity - (aFilePos - iFilePos)));
+                const TUint8* end = Mem::Copy(iBase + (aFilePos - iFilePos), data, amount);
+                iLength = Max(iLength, (end - iBase));
+                iFileSize = Max(iFileSize, (iFilePos + iLength));
+                len -= amount;
+                data += amount;
+                aFilePos += amount;
+                iDirty = ETrue;	
+                }
+           }
 		}
 	__FILEBUF64_INVARIANT();
 	return err;
@@ -860,6 +861,10 @@ TInt RFileBuf64::DoFileSize()
 		{
 		DoDiscard();
 		}
+	else
+	    {
+        iRealFileSize = iFileSize;
+	    }
 	__FILEBUF64_INVARIANT();
 	return err;
 	}
@@ -901,6 +906,7 @@ TInt RFileBuf64::DoSetFileSize(TInt64 aFileSize)
 	else
 		{
 		iFileSize = aFileSize;
+		iRealFileSize = aFileSize;
 		}
 	__FILEBUF64_INVARIANT();
 	return err;
@@ -956,12 +962,20 @@ TInt RFileBuf64::DoFileWrite()
 		__FILEBUF64_INVARIANT();
 		return KErrNone;	
 		}
-	TPtrC8 data(iBase, iLength);		
-	TInt err = iFile.Write(iFilePos, data);
+	TPtrC8 data(iBase, iLength);
+	TInt err = KErrNone;
+	if(iFilePos > iRealFileSize )
+	    {
+        err = DoSetFileSize(iFileSize);
+ 	    }
+	if(err == KErrNone)
+	    {
+        err = iFile.Write(iFilePos, data);
+	    }
 	PROFILE_WRITE(iFilePos, iLength, err);
 	if(err == KErrNone)
 		{
-		iFileSize = Max(iFileSize, (iFilePos + iLength));
+		iRealFileSize = iFileSize;
 		}
 	else
 		{
