@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -24,7 +24,9 @@ REM Central Repository Tests that require techview
 // centrep techview test files
 #ifdef SYMBIAN_BAFL_SYSUTIL
 // cenrep test exes
-file=ABI_DIR\BUILD_DIR\t_cenrep_fota_perf1.exe	test\t_cenrep_fota_perf1.exe
+#ifdef CENTREP_MW_TESTS
+	file=ABI_DIR\BUILD_DIR\t_cenrep_fota_perf1.exe	test\t_cenrep_fota_perf1.exe
+#endif // CENTREP_MW_TESTS
 file=ABI_DIR\BUILD_DIR\t_cenrep_fota_perf2.exe	test\t_cenrep_fota_perf2.exe
 
 #ifndef __CENTRALREPOSITORYTECHVIEWRTESTS_IBY__

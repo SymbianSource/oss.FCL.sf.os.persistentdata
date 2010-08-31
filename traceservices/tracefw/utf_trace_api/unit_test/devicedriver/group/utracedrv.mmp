@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,15 +15,18 @@
 // 
 //
 
-
-systeminclude	/epoc32/include/drivers
-systeminclude   /epoc32/include/kernel
-
 #define NO_EKERN_LIB
 #include "kernel/kern_ext.mmh"
 
 target			utrace.ldd
 targettype		ldd
+UID             0x100000af
+VENDORID        0x70000001
+capability      all
+
+deffile utrace.def
+
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
 userinclude		../inc/
 
@@ -32,14 +35,9 @@ source			utracedrv.cpp
 
 library	ekern.lib
 
-UID			 0x100000af
-VENDORID 0x70000001
-
 start wins
 win32_headers
 end
-
-capability		all
 
 MACRO SYMBIAN_TRACE_ENABLE
 

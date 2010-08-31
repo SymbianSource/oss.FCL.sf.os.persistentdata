@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,8 +14,13 @@
 //
 
 #include "SqlCompactTimer.h"
-#include "SqlPanic.h"
+#include "SqlAssert.h"
 #include "SqlCompactEntry.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlCompactTimerTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
 /**
 Creates new CSqlCompactTimer instance.
@@ -26,11 +31,13 @@ Creates new CSqlCompactTimer instance.
 */
 CSqlCompactTimer* CSqlCompactTimer::NewL(TInt aIntervalMs)
 	{
-	__SQLASSERT(aIntervalMs > 0, ESqlPanicBadArgument);
+	SQL_TRACE_COMPACT(OstTrace1(TRACE_INTERNALS, CSQLCOMPACTTIMER_NEWL_ENTRY, "Entry;0;CSqlCompactTimer::NewL;aIntervalMs=%d", aIntervalMs));
+	__ASSERT_DEBUG(aIntervalMs > 0, __SQLPANIC2(ESqlPanicBadArgument));
 	CSqlCompactTimer* self = new (ELeave) CSqlCompactTimer(aIntervalMs);
 	CleanupStack::PushL(self);
 	self->ConstructL();
 	CleanupStack::Pop(self);
+	SQL_TRACE_COMPACT(OstTraceExt2(TRACE_INTERNALS, CSQLCOMPACTTIMER_NEWL_EXIT, "Exit;0x%X;CSqlCompactTimer::NewL;aIntervalMs=%d", (TUint)self, aIntervalMs));
 	return self;
 	}
 
@@ -39,6 +46,7 @@ Destroys the object.
 */
 CSqlCompactTimer::~CSqlCompactTimer()
 	{
+	SQL_TRACE_COMPACT(OstTrace1(TRACE_INTERNALS, CSQLCOMPACTTIMER_CSQLCOMPACTTIMER2, "0x%X;CSqlCompactTimer::~CSqlCompactTimer", (TUint)this));
 	Cancel();
 	}
 
@@ -65,6 +73,7 @@ Adds a database entry, that requires a background compaction, to the queue.
 */
 void CSqlCompactTimer::Queue(CSqlCompactEntry& aEntry)
 	{
+	SQL_TRACE_COMPACT(OstTraceExt3(TRACE_INTERNALS, CSQLCOMPACTTIMER_QUEUE, "0x%X;CSqlCompactTimer::Queue;aEntry=0x%X;Name=%S", (TUint)this, (TUint)&aEntry,__SQLPRNSTR(aEntry.FullName())));
 	SQLCOMPACTTIMER_INVARIANT();
 	iQueue.AddFirst(aEntry);
 	if(!IsActive())
@@ -83,6 +92,7 @@ Removes the specified database entry from the queue.
 */
 void CSqlCompactTimer::DeQueue(CSqlCompactEntry& aEntry)
 	{
+	SQL_TRACE_COMPACT(OstTraceExt2(TRACE_INTERNALS, CSQLCOMPACTTIMER_DEQUEUE, "0x%X;CSqlCompactTimer::DeQueue;aEntry=0x%X", (TUint)this, (TUint)&aEntry));
 	SQLCOMPACTTIMER_INVARIANT();
 	iQueue.Remove(aEntry);
 	if(iQueue.IsEmpty())
@@ -104,7 +114,7 @@ CSqlCompactTimer::CSqlCompactTimer(TInt aIntervalMs) :
 	iIntervalMicroSec(aIntervalMs * 1000),
 	iQueue(_FOFF(CSqlCompactEntry, iLink))
 	{
-	__SQLASSERT(aIntervalMs > 0, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aIntervalMs > 0, __SQLPANIC(ESqlPanicBadArgument));
 	}
 
 /**
@@ -128,10 +138,12 @@ the compaction has been completed), the timer will be reactivated.
 */
 void CSqlCompactTimer::RunL()
 	{
+	SQL_TRACE_COMPACT(OstTrace1(TRACE_INTERNALS, CSQLCOMPACTTIMER_RUNL, "0x%X;CSqlCompactTimer::RunL", (TUint)this));
 	SQLCOMPACTTIMER_INVARIANT();
-	__SQLASSERT_ALWAYS(!iQueue.IsEmpty(), ESqlPanicInternalError);	
+	__ASSERT_ALWAYS(!iQueue.IsEmpty(), __SQLPANIC(ESqlPanicInternalError));	
 	CSqlCompactEntry* entry = iQueue.Last();
-	__SQLASSERT(entry, ESqlPanicInternalError);	
+	SQL_TRACE_COMPACT(OstTraceExt4(TRACE_INTERNALS, CSQLCOMPACTTIMER_RUNL2, "0x%X;CSqlCompactTimer::RunL;Compact;entry=0x%X;Name=%S;iQueue.IsEmpty()=%d", (TUint)this, (TUint)entry,__SQLPRNSTR(entry->FullName()), (TInt)iQueue.IsEmpty()));
+	__ASSERT_DEBUG(entry, __SQLPANIC(ESqlPanicInternalError));	
 	(void)entry->Compact();
 	if(!iQueue.IsEmpty())
 		{
@@ -146,11 +158,11 @@ CSqlCompactTimer invariant.
 */
 void CSqlCompactTimer::Invariant() const
 	{
-	__SQLASSERT(iIntervalMicroSec > 0, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iIntervalMicroSec > 0, __SQLPANIC(ESqlPanicInternalError));
 	if(!iQueue.IsEmpty())
 		{
 		CSqlCompactEntry* entry = iQueue.Last();
-		__SQLASSERT(entry != NULL, ESqlPanicInternalError);
+		__ASSERT_DEBUG(entry != NULL, __SQLPANIC(ESqlPanicInternalError));
 		}
 	}
 #endif//_DEBUG

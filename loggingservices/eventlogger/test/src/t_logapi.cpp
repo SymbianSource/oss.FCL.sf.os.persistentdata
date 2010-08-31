@@ -780,17 +780,24 @@ LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	_LIT(KExecutableFileName,		"t_logapi_helper.exe");
 	_LIT(KCommandParameters,		"c:\\private\\10202be9\\;c:\\private\\10202be9\\101f401d.txt;3");
 	RProcess process;
+	TRequestStatus processWaitStatus;
 	TInt r = process.Create(KExecutableFileName, KCommandParameters); 
+	TEST(r == KErrNone);
+	process.Logon(processWaitStatus);
 	process.Resume();
-	process.Close();	 
-	User::After(1000);
+	User::WaitForRequest(processWaitStatus);
+	TEST(processWaitStatus.Int() == KErrNone);
+	process.Close();
 	
 	 //copy the repository file to the folder 10202be9
 	_LIT(KCommandParameters1,		"z:\\test\\101f401d_TEST.txt;c:\\private\\10202be9\\101f401d.txt;0");
 	r = process.Create(KExecutableFileName, KCommandParameters1); 
+	TEST(r == KErrNone);
+	process.Logon(processWaitStatus);
 	process.Resume();
-	process.Close();	 
-	User::After(1000);
+	User::WaitForRequest(processWaitStatus);
+	TEST(processWaitStatus.Int() == KErrNone);
+	process.Close();
 	
 	TestUtils::DeleteDatabaseL();
 	
@@ -830,9 +837,13 @@ LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	//delete the repository file c:\\private\\10202be9\\101f401d.txt.
 	_LIT(KCommandParameters2,		"c:\\private\\10202be9\\101f401d.txt;private\\10202be9\101f401d.txt;2");
 	r = process.Create(KExecutableFileName, KCommandParameters2); 
+	TEST(r == KErrNone);
+	process.Logon(processWaitStatus);
 	process.Resume();
-	process.Close();	 
-	User::After(1000);
+	User::WaitForRequest(processWaitStatus);
+	TEST(processWaitStatus.Int() == KErrNone);
+	process.Close();
+
 	theLog.Write(_L8("Deleting the Log engine database... \n"));	
 	TestUtils::DeleteDatabaseL();
 	TheTest.Next(_L("Delay of 2 min, the necessary time to central repository to unload its cache... "));	

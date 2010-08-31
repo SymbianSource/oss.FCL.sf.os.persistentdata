@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -21,7 +21,7 @@
 */
 #if (!defined TE_OSTV2TRACETESTWRAPPER_H)
 #define TE_OSTV2TRACETESTWRAPPER_H
-#include <datawrapper.h>
+#include <test/datawrapper.h>
 #include "te_ostv2integsuite_basewrapper.h"
 #include <e32base.h>
 #include <e32math.h>
@@ -46,6 +46,7 @@ private:
 	TInt CheckResults(const TDesC& aLogFilename);
 	void TestDuplicatesL();
 	void TestOstDebugOnlyWrapL();
+	void TestOstCompileTimeMacroL();
 	TInt OpenUlogger(RULogger& aLogger);
 	};
 

@@ -24,7 +24,7 @@
 
 #if (!defined __TE_ULOGGERCLIENT_SERVER_H__)
 #define __TE_ULOGGERCLIENT_SERVER_H__
-#include <testexecuteserverbase.h>
+#include <test/testexecuteserverbase.h>
 
 
 class CTestUloggerClientApi : public CTestServer

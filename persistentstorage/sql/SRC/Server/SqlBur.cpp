@@ -15,7 +15,13 @@
 
 #include "SqlBur.h"
 #include "SqlAssert.h"
-#include "SqlPanic.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlBurTraces.h"
+#endif
+#include "SqlTraceDef.h"
+
+#define UNUSED_ARG(arg) arg = arg
 
 //Extracts and returns 32-bit integer from aNumBuf buffer.
 static TUint32 GetNumUint32L(const TDesC& aNumBuf)
@@ -23,7 +29,7 @@ static TUint32 GetNumUint32L(const TDesC& aNumBuf)
 	TLex lex(aNumBuf);
 	lex.SkipSpace();
 	TUint32 num = 0xFFFFFFFF;
-	__SQLLEAVE_IF_ERROR(lex.Val(num, EHex));
+	__SQLLEAVE_IF_ERROR2(lex.Val(num, EHex));
 	return num;
 	}
 
@@ -33,7 +39,7 @@ static TInt64 GetNumInt64L(const TDesC& aNumBuf)
 	TLex lex(aNumBuf);
 	lex.SkipSpace();
 	TInt64 num = -1;
-	__SQLLEAVE_IF_ERROR(lex.Val(num, EHex));
+	__SQLLEAVE_IF_ERROR2(lex.Val(num, EHex));
 	return num;
 	}
 
@@ -57,6 +63,7 @@ CSqlBackupClient* CSqlBackupClient::NewLC(MSqlSrvBurInterface *aInterface)
 	CSqlBackupClient *self=(CSqlBackupClient *)new(ELeave) CSqlBackupClient(aInterface);
 	CleanupStack::PushL(self);
 	self->ConstructL();
+	SQL_TRACE_BUR(OstTrace1(TRACE_INTERNALS, CSQLBACKUPCLIENT_NEWLC, "0x%X;CSqlBackupClient::NewLC", (TUint)self));
 	return self;
 	}
 
@@ -86,6 +93,8 @@ CSqlBackupClient::CSqlBackupClient(MSqlSrvBurInterface *aInterface)
 */
 CSqlBackupClient::~CSqlBackupClient()
 	{
+	SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_CSQLBACKUPCLIENT2, "0x%X;CSqlBackupClient::~CSqlBackupClient;iFile.SubSessionHandle()=0x%X", (TUint)this, (TUint)iFile.SubSessionHandle()));
+	
 	// cancel outstanding requests
 	Cancel();
 	
@@ -130,8 +139,10 @@ void CSqlBackupClient::DoCancel()
 	@return a flag indicating whether we actioned the error
 	@param the error unused
 */
-TInt CSqlBackupClient::RunError(TInt /* aError */)
+TInt CSqlBackupClient::RunError(TInt aError)
 	{
+	UNUSED_ARG(aError);
+	SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_RUNERROR, "0x%X;CSqlBackupClient::RunError;aError=%d", (TUint)this, aError));
 	// just satisfy it that we did something!
 	return KErrNone;
 	}
@@ -149,6 +160,7 @@ void CSqlBackupClient::StartL()
 */	
 void CSqlBackupClient::NotifyChange()
 	{
+	SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_NOTIFYCHANGE, "0x%X;CSqlBackupClient::NotifyChange;iBurProperty.Handle()=0x%X", (TUint)this, (TUint)iBurProperty.Handle()));
 	iBurProperty.Subscribe(iStatus);
 	SetActive();
 	}
@@ -161,10 +173,17 @@ void CSqlBackupClient::NotifyChange()
 */
 void CSqlBackupClient::TestBurStatusL()
 	{
+	SQL_TRACE_BUR(OstTrace1(TRACE_INTERNALS, CSQLBACKUPCLIENT_TESTBURSTATUSL_ENTRY, "Entry;0x%X;CSqlBackupClient::TestBurStatusL", (TUint)this));
 	TInt status;
-	if(iBurProperty.Get(status)!=KErrNotFound)
+	__SQLTRACE_BURVAR(TInt err = KErrNone);
+	if((__SQLTRACE_BUREXPR(err =) iBurProperty.Get(status)) != KErrNotFound)
 		{
 		status&=KBURPartTypeMask;
+#ifdef _SQL_RDEBUG_PRINT
+		SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_TESTBURSTATUSL1, "0x%X;CSqlBackupClient::TestBurStatusL;status=%d", (TUint)this, status));
+#else
+		SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_TESTBURSTATUSL2, "0x%X;CSqlBackupClient::TestBurStatusL;status=%{TBURPartType}", (TUint)this, status));
+#endif	    
 		switch(status)
 			{
 			case EBURUnset: // same as EBURNormal
@@ -184,9 +203,10 @@ void CSqlBackupClient::TestBurStatusL()
 				iActiveBackupClient->ConfirmReadyForBURL(KErrNone);
 				break;
 			default:
-				return;
+				break;
 			}
 		}
+	SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_TESTBURSTATUSL_EXIT, "Exit;0x%X;CSqlBackupClient::TestBurStatusL;iProperty.Get() err=%d", (TUint)this, err));
 	}
 
 /** Called when BUE notifies a BUR event
@@ -209,10 +229,12 @@ void CSqlBackupClient::RunL()
 	@return an arbitrary number
 	@param TDrive unused
 */
-TUint CSqlBackupClient::GetExpectedDataSize(TDriveNumber /* aDrive */)
+TUint CSqlBackupClient::GetExpectedDataSize(TDriveNumber aDrive)
 	{
+	UNUSED_ARG(aDrive);
 	// we have no idea at this point - we even don't know who is to be backed up yet
 	const TUint KArbitraryNumber = 1024;
+	SQL_TRACE_BUR(OstTraceExt3(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETEXPECTEDDATASIZE, "0x%X;CSqlBackupClient::GetExpectedDataSize;aDrive=%d;rc=%u", (TUint)this, (TInt)aDrive, KArbitraryNumber));
 	return KArbitraryNumber;
 	}
 
@@ -227,11 +249,13 @@ TUint CSqlBackupClient::GetExpectedDataSize(TDriveNumber /* aDrive */)
 */
 void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFlag)
 	{
+	SQL_TRACE_BUR(OstTraceExt3(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETBACKUPDATASECTIONL0, "0x%X;CSqlBackupClient::GetBackupDataSectionL;iState=%d;iFileIndex=%d", (TUint)this, (TInt)iState, iFileIndex));
 	// don't assume they set it to false
 	aFinishedFlag=EFalse;
 	// any files to backup
 	if(iFileList.Count()==0)
 		{
+		SQL_TRACE_BUR(OstTrace1(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETBACKUPDATASECTIONL1, "0x%X;CSqlBackupClient::GetBackupDataSectionL;file count is 0", (TUint)this));
 		// nothing to backup - just return the finished flag
 		aFinishedFlag=ETrue;
 		// clear down the list
@@ -239,7 +263,7 @@ void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFla
 		// iFileList closed in dtor
 		return;
 		}
-	
+
 	// run the state machine
 	for(TInt bufFreeSpace=aBuffer.MaxSize()-aBuffer.Size(); bufFreeSpace>0; bufFreeSpace=aBuffer.MaxSize()-aBuffer.Size())
 		{
@@ -249,6 +273,7 @@ void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFla
 				{
 				if(iFileIndex>=iFileList.Count())
 					{
+					SQL_TRACE_BUR(OstTrace1(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETBACKUPDATASECTIONL2, "0x%X;CSqlBackupClient::GetBackupDataSectionL;all files processed", (TUint)this));
 					// all files have been processed - send the finished flag
 					aFinishedFlag=ETrue;
 					// clear down the filelist
@@ -257,6 +282,8 @@ void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFla
 					}
 				// open the database file to send
 				TInt rc=iFile.Open(	iInterface->Fs(), iFileList[iFileIndex].FullName(), EFileRead | EFileShareExclusive);
+				__SQLTRACE_BUREXPR(TPtrC fname = iFileList[iFileIndex].FullName());
+				SQL_TRACE_BUR(OstTraceExt5(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETBACKUPDATASECTIONL3, "0x%X;CSqlBackupClient::GetBackupDataSectionL;BEGIN;fname=%S;iFileIndex=%d;iFile.SubSessionHandle()=0x%X;rc=%d", (TUint)this, __SQLPRNSTR(fname), iFileIndex, (TUint)iFile.SubSessionHandle(), rc));
 				if(KErrNone!=rc)
 					{
 					// there's nothing we can do if we can't open the file so we just skip it
@@ -290,6 +317,7 @@ void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFla
 					fileSize,					// %16lx
 					fileName.Length(),			// %8x
 					&fileName);					// %S
+				SQL_TRACE_BUR(OstTraceExt4(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETBACKUPDATASECTIONL5, "0x%X;CSqlBackupClient::GetBackupDataSectionL;fileName=%S;hdrPtr=|%S|;fileSize=%lld", (TUint)this, __SQLPRNSTR(fileName), __SQLPRNSTR(iBuffer), fileSize));
 				
 				// we need it to look like an 8bit buffer
 				TPtr8 hdrPtr8((TUint8*)iBuffer.Ptr(), iBuffer.Size(), iBuffer.Size());
@@ -357,6 +385,7 @@ void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFla
 				}
 			case EBackupEndOfFile:
 				{
+				SQL_TRACE_BUR(OstTraceExt3(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETBACKUPDATASECTIONL4, "0x%X;CSqlBackupClient::GetBackupDataSectionL;END;iFile.SubSessionHandle()=0x%X;iFileIndex=%d", (TUint)this, (TUint)iFile.SubSessionHandle(), iFileIndex));
 				iFile.Close();
 				++iFileIndex; // move on to next file
 				iState = EBackupNoFileOpen; // go round again
@@ -374,8 +403,10 @@ void CSqlBackupClient::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFla
 	Nothing to do here except tell the server
 	@param TDrive the drive that is being restored (unused)
 */
-void CSqlBackupClient::RestoreComplete(TDriveNumber /* aDrive */)
+void CSqlBackupClient::RestoreComplete(TDriveNumber aDrive)
 	{
+	UNUSED_ARG(aDrive);
+	SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTORECOMPLETE, "0x%X;CSqlBackupClient::RestoreComplete;aDrive=%d", (TUint)this, (TInt)aDrive));
 	}
 
 /** This is called to let us know that the given SID is to be backed up
@@ -387,8 +418,10 @@ void CSqlBackupClient::RestoreComplete(TDriveNumber /* aDrive */)
 	@param TDriveNumber the drive to be backed up (unused)
 	@leave
 */
-void CSqlBackupClient::InitialiseGetProxyBackupDataL(TSecureId aSid, TDriveNumber /*aDrive*/)
+void CSqlBackupClient::InitialiseGetProxyBackupDataL(TSecureId aSid, TDriveNumber aDrive)
 	{
+	UNUSED_ARG(aDrive);
+	SQL_TRACE_BUR(OstTraceExt3(TRACE_INTERNALS, CSQLBACKUPCLIENT_INITIALIZEGETPROXYBACKUPDATAL, "0x%X;CSqlBackupClient::InitialiseGetProxyBackupDataL;aSid=0x%X;aDrive=%d", (TUint)this, (TUint)aSid.iId, (TInt)aDrive));
 	// get the list of database files to back up - this is provided by the SQL server
 	GetBackupListL(aSid);
 	// this is the index of the file being processed - point to the beginning
@@ -404,8 +437,10 @@ void CSqlBackupClient::InitialiseGetProxyBackupDataL(TSecureId aSid, TDriveNumbe
 	@param TDriveNumber the drive to restore (unused)
 	@leave
 */
-void CSqlBackupClient::InitialiseRestoreProxyBaseDataL(TSecureId aSid, TDriveNumber /* aDrive */)
+void CSqlBackupClient::InitialiseRestoreProxyBaseDataL(TSecureId aSid, TDriveNumber aDrive)
 	{
+	UNUSED_ARG(aDrive);
+	SQL_TRACE_BUR(OstTraceExt3(TRACE_INTERNALS, CSQLBACKUPCLIENT_INITIALIZERESTOREPROXYBASEDATAL, "0x%X;CSqlBackupClient::InitialiseRestoreProxyBaseDataL;aSid=0x%X;aDrive=%d", (TUint)this, (TUint)aSid.iId, (TInt)aDrive));
 	iBuffer.Zero();
 	// this is the first state of the restore state machine
 	iState=ERestoreExpectChecksum;
@@ -426,6 +461,7 @@ Attention!!! This function won't work properly if aInBuffer parameter contains o
 */
 void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishedFlag)
 	{
+	SQL_TRACE_BUR(OstTraceExt4(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL0, "0x%X;CSqlBackupClient::RestoreBaseDataSectionL;iState=%d;aInBuffer.Length()=%d;aFinishedFlag=%d", (TUint)this, (TInt)iState, aInBuffer.Length(), (TInt)aFinishedFlag));
 	// used to walk the buffer
 	// got a new buffer - because each time this method is called, we have a
 	// fresh chunk of data
@@ -526,6 +562,7 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 					iState = ERestoreExpectFileNameSize;
 					iBuffer.Zero();
 					}
+				SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL1, "0x%X;CSqlBackupClient::RestoreBaseDataSectionL;iFileSize=%lld", (TUint)this, iFileSize));
 				break;
 				}
 			case ERestoreExpectFileNameSize: // the size of the file name to restore
@@ -543,6 +580,7 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 			case ERestoreExpectFileName:  // the name of the file to restore
 				{
 				CopyBufData(aInBuffer, inBufferPos, iBuffer, iFileNameSize);
+				SQL_TRACE_BUR(OstTraceExt4(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL2, "0x%X;CSqlBackupClient::RestoreBaseDataSectionL;BEGIN;iBuffer=%S;iBuffer.Length()=%d;iFileNameSize=%d", (TUint)this, __SQLPRNSTR(iBuffer), iBuffer.Length(), iFileNameSize));
 				if(iBuffer.Length() == iFileNameSize)
 					{
 					iState = ERestoreExpectData;
@@ -552,6 +590,7 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 					// once all the temp files are created, then they are renamed to the
 					// real file names in one fell swoop
 					__SQLLEAVE_IF_ERROR(iFile.Replace(iInterface->Fs(), iBuffer, EFileWrite | EFileShareExclusive));
+					SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL3, "0x%X;CSqlBackupClient::RestoreBaseDataSectionL;iFile.SubSessionHandle()=0x%X", (TUint)this, (TUint)iFile.SubSessionHandle()));
 					iBuffer.Zero();
 					}
 				break;
@@ -574,8 +613,9 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 				TUint32 cksum = CheckSumL(iFile) & KMaxTUint32;
 				
 				// done with the file now - has to follow checksum cos it
-				// expects an open file
-                __SQLLEAVE_IF_ERROR(iFile.Flush());
+				// expects ann open file
+				SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL4, "0x%X;CSqlBackupClient::RestoreBaseDataSectionL;END;iFile.SubSessionHandle()=0x%X", (TUint)this, (TUint)iFile.SubSessionHandle()));
+			    __SQLLEAVE_IF_ERROR(iFile.Flush());
 				iFile.Close();
 
                 // validate that the checksum matches
@@ -608,6 +648,7 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 						//the ".bak" file, if exists, will be deleted first.
 						(void)iInterface->Fs().Delete(bak);
 						TInt err=iInterface->Fs().Rename(db,bak);
+						SQL_TRACE_BUR(OstTraceExt4(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL5, "0x%X;CSqlBackupClient::RestoreBaseDataSectionL;END;bak=%S;db=%S;err=%d", (TUint)this, __SQLPRNSTR(bak), __SQLPRNSTR(db), err));
 						if(err == KErrNone || err == KErrNotFound)
 							{
 							// now, rename the .rst as .db
@@ -620,7 +661,6 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 							//its owner. Then "TInt err=iInterface->Fs().Rename(db,bak);" will fail again.
 							err2 = err;
 							}
-						
 						// if we got here, we have a backup of the original database in .db.bak
 						// and the new database in .db
 						}//end of for(...)
@@ -637,6 +677,7 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 					// files that belong together and not bits of old and new
 					__SQLLEAVE_IF_ERROR(iInterface->Fs().GetDir(KBackupFilter,KEntryAttNormal,ESortNone,dir));
 					CleanupStack::PushL(dir);
+					SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL6, "0x%X;CSqlBackupClient::RestoreBaseDataSectionL;bak files count=%d", (TUint)this, dir->Count()));
 					for(TInt a1=0;a1<dir->Count();++a1)
 						{
 						TEntry entry=(*dir)[a1];
@@ -675,6 +716,7 @@ void CSqlBackupClient::TerminateMultiStageOperation()
 	// rename all the .bak files to .db
 	CDir *dir=NULL;
 	TInt rc=iInterface->Fs().GetDir(KBackupFilter,KEntryAttNormal,ESortNone,dir);
+	SQL_TRACE_BUR(OstTraceExt3(TRACE_INTERNALS, CSQLBACKUPCLIENT_TERMINATEMULTISTAGEOPERATION1, "0x%X;CSqlBackupClient::TerminateMultiStageOperation;Fs().GetDir() err=%d;file count=%d", (TUint)this, rc, rc == KErrNone ? dir->Count() : 0));
 	if(KErrNone!=rc)
 		{
 		// can't get a file list - can't do anything
@@ -695,7 +737,7 @@ void CSqlBackupClient::TerminateMultiStageOperation()
 		//and continue with the next file.
 		if(KErrNone != rc)
 		    {
-		    RDebug::Print(_L(" *** CSqlBackupClient::TerminateMultiStageOperation(), file \"%S\", err=%d\r\n"), &db, rc);
+			SQL_TRACE_BUR(OstTraceExt4(TRACE_INTERNALS, CSQLBACKUPCLIENT_TERMINATEMULTISTAGEOPERATION2, "0x%X;CSqlBackupClient::TerminateMultiStageOperation;Fs().Rename() err=%d;bak=%S;db=%S", (TUint)this, rc, __SQLPRNSTR(bak), __SQLPRNSTR(db)));
 		    }
 		// backup restored ok
 		}
@@ -783,6 +825,7 @@ void CSqlBackupClient::ReceiveSnapshotDataL(TDriveNumber /* aDrive */, TDesC8& /
 */
 void CSqlBackupClient::GetBackupListL(TSecureId aSid)
 	{
+	SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETBACKUPLISTL, "0x%X;CSqlBackupClient::GetBackupListL;aSid=0x%X", (TUint)this, (TUint)aSid.iId));
 	// we own the array - the SQL server just populates it
 	iInterface->GetBackUpListL(aSid,iFileList);
 	}
@@ -843,9 +886,9 @@ TUint64 CSqlBackupClient::CheckSumL(const RFile64& aOpenFile) const
 //
 void CSqlBackupClient::CopyBufData(const TDesC8& aInBuf, TInt& aInBufReadPos, TDes& aOutBuf, TInt aDataLen)
 	{
-	__SQLASSERT(aInBufReadPos >= 0, ESqlPanicBadArgument);
-    __SQLASSERT(aDataLen > 0, ESqlPanicBadArgument);
-    __SQLASSERT(!(aInBuf.Length() & 0x01), ESqlPanicInternalError);
+    __ASSERT_DEBUG(aInBufReadPos >= 0, __SQLPANIC(ESqlPanicBadArgument));
+    __ASSERT_DEBUG(aDataLen > 0, __SQLPANIC(ESqlPanicBadArgument));
+    __ASSERT_DEBUG(!(aInBuf.Length() & 0x01), __SQLPANIC(ESqlPanicInternalError));
 	
 	TInt needed = (aDataLen - aOutBuf.Length()) << K8to16bitShift;
 	TInt available = aInBuf.Size() - aInBufReadPos;

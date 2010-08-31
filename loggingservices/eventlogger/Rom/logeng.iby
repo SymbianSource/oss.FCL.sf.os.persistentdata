@@ -23,16 +23,16 @@
 REM The Log Engine
 
 #ifndef NO_LOG_ENGINE_IN_ROM
-file=ABI_DIR\BUILD_DIR\LogWrap.dll	System\Libs\LogWrap.dll
-file=ABI_DIR\BUILD_DIR\LogCli.dll	System\Libs\LogCli.dll
-file=ABI_DIR\BUILD_DIR\LogCntModel.dll	System\Libs\LogCntModel.dll
-file=ABI_DIR\BUILD_DIR\LogServ.exe	System\Programs\LogServ.exe
+file=ABI_DIR\BUILD_DIR\logwrap.dll	System\Libs\LogWrap.dll
+file=ABI_DIR\BUILD_DIR\logcli.dll	System\Libs\LogCli.dll
+file=ABI_DIR\BUILD_DIR\logcntmodel.dll	System\Libs\LogCntModel.dll
+file=ABI_DIR\BUILD_DIR\logserv.exe	System\Programs\LogServ.exe
 
 data=ZPRIVATE\101f401d\backup_registration.xml private\101f401d\backup_registration.xml
 
 #include "logeng.hby"
 #else
-file=ABI_DIR\BUILD_DIR\LogStub.dll	System\Libs\LogWrap.dll
+file=ABI_DIR\BUILD_DIR\logstub.dll	System\Libs\LogWrap.dll
 #endif
 
 #endif

@@ -21,7 +21,7 @@
 
 PRJ_EXPORTS
 
-../SQLite/sqlite3.h	SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(stdapis/sqlite3.h)
+../SQLite/sqlite3.h	OS_LAYER_PUBLIC_EXPORT_PATH(stdapis/sqlite3.h)
 ../GROUP/sqlite3.iby	/epoc32/rom/include/sqlite3.iby
 ../GROUP/SQLite3_stub.SIS	/epoc32/data/z/system/install/sqlite3_stub.sis
 
@@ -441,6 +441,7 @@ PRJ_TESTEXPORTS
 ../TEST/TclScript/where5.test			z:/private/10285a82/where5.test
 ../TEST/TclScript/where6.test			z:/private/10285a82/where6.test
 ../TEST/TclScript/zeroblob.test			z:/private/10285a82/zeroblob.test
+../TEST/t_sqliteapi.txt				z:/private/212C3129/t_sqliteapi.txt
 
 PRJ_TESTMMPFILES
 
@@ -448,6 +449,7 @@ PRJ_TESTMMPFILES
 //tcl.dll is a test library used by the TCL tests
 ../TEST/TCL/group/tcl84.mmp support
 ../GROUP/tclsqlite3.mmp manual
+../GROUP/t_sqlitetclstarter.mmp manual
 #endif
 ../GROUP/t_sqliteapi.mmp
 ../GROUP/t_sqlitewsd.mmp

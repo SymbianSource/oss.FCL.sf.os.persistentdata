@@ -102,7 +102,7 @@ TBool CPerformanceSanityWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 		
 	if(BlockResult()==EPass)
 		{
-		SetBlockResult(TestTimer());
+		SetBlockResult(TestTimerL());
 		}
 	
 	//run this no matter if its failed or not..., just to get some statistics out.
@@ -110,14 +110,14 @@ TBool CPerformanceSanityWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 	//temporarily tagged out this test as it is causing a test timeout
 	//can be reinstated as soon as the device driver has been fully implemented
 	
-	//SanityTestTimedUtrace();
+	//SanityTestTimedUtraceL();
 	
 
 	return ETrue;
 	}
 
 
-TVerdict CPerformanceSanityWrapper::TestTimer()
+TVerdict CPerformanceSanityWrapper::TestTimerL()
 	{
 	INFO_PRINTF1(_L("Testing User side timer functions"));	
 	TBool passed = EFalse;
@@ -128,7 +128,7 @@ TVerdict CPerformanceSanityWrapper::TestTimer()
 	//test CUptTimer class 
 	TTestTimer timer;
 	TUint32 userTime = 0;
-	passed = timer.TestUserTimer(userTime);	 
+	passed = timer.TestUserTimerL(userTime);	 
 
 	INFO_PRINTF1(_L("Testing User side timer functions #2"));	
 	if(!passed)	
@@ -186,16 +186,16 @@ TVerdict CPerformanceSanityWrapper::TestTimer()
 	return BlockResult();
 	}
 
-TBool CPerformanceSanityWrapper::SanityTestTimedUtrace()
+TBool CPerformanceSanityWrapper::SanityTestTimedUtraceL()
 	{
 	TTestTimer timer;
 	TUint32 userSanityTime = 0;
 	TUint32 userSanityLongTime = 0;
 	TUint32 userUtraceTime = 0;
 	
-	timer.TestUserTimer(userSanityTime);
-	timer.TestUserLongTimer(userSanityLongTime);
-	timer.TestUTraceUserTimer(userUtraceTime);
+	timer.TestUserTimerL(userSanityTime);
+	timer.TestUserLongTimerL(userSanityLongTime);
+	timer.TestUTraceUserTimerL(userUtraceTime);
 
 	TUint32 kernelSanityTime = 0;
 //	TUint32 kernelSanityLongTime = 0;
@@ -226,8 +226,8 @@ TBool CPerformanceSanityWrapper::SanityTestTimedUtrace()
 		//I want to find out what the variation is, is it static 0.5us, or is it 10% variable, or what?
 		for(TInt i = 0; i < iters; i++)
 			{
-			timer.TestUserTimer(user[i]);
-			timer.TestUserLongTimer(ulong[i]);
+			timer.TestUserTimerL(user[i]);
+			timer.TestUserLongTimerL(ulong[i]);
 			utracedriver.SanityTestTimer(kernel[i]);
 			//utracedriver.SanityTestLongTimer(klong[i]);
 			}

@@ -81,8 +81,8 @@ NONSHARABLE_CLASS(RSqlStatementSession)
 	{
 public:	
 	inline RSqlStatementSession();
-	inline TInt Prepare(RSqlDbSession& aDbSession, const TDesC& aSqlStmt, TInt& aColumnCount, TInt& aParamCount);
-	inline TInt Prepare(RSqlDbSession& aDbSession, const TDesC8& aSqlStmt, TInt& aColumnCount, TInt& aParamCount);
+	TInt Prepare(RSqlDbSession& aDbSession, const TDesC& aSqlStmt, TInt& aColumnCount, TInt& aParamCount);
+	TInt Prepare(RSqlDbSession& aDbSession, const TDesC8& aSqlStmt, TInt& aColumnCount, TInt& aParamCount);
 	void Close();
 	
 	inline TInt Reset();

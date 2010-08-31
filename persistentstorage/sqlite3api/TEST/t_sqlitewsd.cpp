@@ -19,13 +19,14 @@
 #include <e32math.h>
 #include <sqlite3.h>
 #include "t_sqlitewsd.h"
+#include "sqliteTestUtl.h"
 
 #include <spawn.h>
 #include <sys/wait.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-static RTest	TheTest(_L("t_sqlitewsd test"));
+const char* const KTestName = "t_sqlitewsd";
 static RFs		TheFs;
 
 static pid_t	TheKSqliteWsdProc2Pid = 0;
@@ -62,7 +63,7 @@ void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DestroyTestEnv();
-		TheTest(EFalse, aLine);
+		TestTestLine(EFalse, aLine);
 		}
 	}
 	
@@ -79,7 +80,7 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 			RDebug::Print(_L("*** SQLITE error msg: \"%S\".\r\n"), &msgBuf);
 			}
 		DestroyTestEnv();
-		TheTest(EFalse, aLine);
+		TestTestLine(EFalse, aLine);
 		}
 	}
 
@@ -182,14 +183,14 @@ void DoVerify()
 */
 static void DoWsdTests()
 	{
-	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQLITE3-UT-4026 Create the test database "));
+	TestStart(" @SYMTestCaseID:SYSLIB-SQLITE3-UT-4026 Create the test database ");
 	CreateDb();
-	TheTest.Next(_L("Run the second process: t_sqlitewsd2"));
+	TestNext("Run the second process: t_sqlitewsd2");
 	RunSqliteWsd2();
-	TheTest.Next(_L("Insert the records"));
+	TestNext("Insert the records");
 	DoInserts(KWsdProc1Id, KWsdProc1RecId1, KWsdProc1RecId2);
 	DestroySqliteWsd2();
-	TheTest.Next(_L("Verify the inserted records"));
+	TestNext("Verify the inserted records");
 	DoVerify();
 	}
 
@@ -197,7 +198,8 @@ static void DoWsdTests()
 
 TInt E32Main()
 	{
-	TheTest.Title();
+	TestOpen(KTestName);
+	TestTitle();
 	
 	CTrapCleanup* tc = CTrapCleanup::New();
 	
@@ -209,8 +211,8 @@ TInt E32Main()
 	
 	__UHEAP_MARKEND;
 	
-	TheTest.End();
-	TheTest.Close();
+	TestEnd();
+	TestClose();
 	
 	delete tc;
 	

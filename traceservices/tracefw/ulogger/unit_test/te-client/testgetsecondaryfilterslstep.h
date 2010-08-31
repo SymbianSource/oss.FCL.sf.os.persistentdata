@@ -23,7 +23,7 @@
 */
 #if (!defined __TESTGETSECONDARYFILTERSL_STEP_H__)
 #define __TESTGETSECONDARYFILTERSL_STEP_H__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include "te_uloggerclientsuitestepbase.h"
 
 class CTestGetSecondaryFiltersLStep : public CTestUloggerClientApiStepBase

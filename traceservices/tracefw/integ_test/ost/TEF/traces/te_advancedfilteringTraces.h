@@ -1,4 +1,4 @@
-// Created by TraceCompiler 1.3.1
+// Created by TraceCompiler 2.1.4
 // DO NOT EDIT, CHANGES WILL BE LOST
 
 #ifndef __TE_ADVANCEDFILTERINGTRACES_H__

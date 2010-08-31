@@ -21,7 +21,7 @@
 
 /**
 String lengths
-@publishedPartner
+@publishedAll
 @released
 */
 const TInt KLogMaxRemotePartyLength = 64;
@@ -34,7 +34,7 @@ const TInt KLogMaxNumberLength = 100;
 
 /**
 Limits
-@publishedPartner
+@publishedAll
 @released
 */
    

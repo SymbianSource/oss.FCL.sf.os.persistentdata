@@ -83,6 +83,7 @@ PRJ_TESTEXPORTS
 
 //iby files for the test components
 featmgr_techview_test.iby                                       /epoc32/rom/include/featmgr_techview_test.iby
+featmgr_techview_rtest.iby                                      /epoc32/rom/include/featmgr_techview_rtest.iby
 featmgr_textshell_test.iby                                      /epoc32/rom/include/featmgr_textshell_test.iby
 ../tef/tef_efm_configured/group/efm_configured_testserver.iby   /epoc32/rom/include/efm_configured_testserver.iby
 ../tef/tef_efm_normal/group/efm_normal_testserver.iby 			/epoc32/rom/include/efm_normal_testserver.iby

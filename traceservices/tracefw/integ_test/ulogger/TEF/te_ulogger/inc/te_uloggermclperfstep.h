@@ -23,7 +23,7 @@
 */
 #if (!defined __TE_ULOGGERMCLPERFSTEP_H__)
 #define __TE_ULOGGERMCLPERFSTEP_H__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include "te_uloggermclsuitestepbase.h"
 #include "te_utracecmds.h"
 #include "te_utracekernelcmds.h"

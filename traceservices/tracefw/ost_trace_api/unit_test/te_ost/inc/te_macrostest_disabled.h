@@ -26,7 +26,7 @@
 #ifndef __TE_MACROSTEST_DISABLED_H__
 #define __TE_MACROSTEST_DISABLED_H__
 
-#include <TestExecuteStepBase.h>
+#include <test/testexecutestepbase.h>
 #include "te_macrostest.h"
 
 _LIT(KOstMacrosDisabledStep, "COstMacrosDisabledStep");

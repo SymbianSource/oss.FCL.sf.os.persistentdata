@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,7 +13,7 @@
 // Description:
 //
 
-//! @File
+//! @file
 //! @SYMTestSuiteName           te_perf_outputcsvsanity.script
 //! @SYMScriptTestEnvironment   TEF
 
@@ -35,7 +35,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlOPTOutputSanity
 //! @SYMTestActions             Compares a baseline.csv file included in the reference subfolder of the integration tests with that output from a default performance test ru n and return a fail if any of the column elements>10% from that expected. All elements compared and reported back with associated discrepancy
 //! @SYMTestExpectedResults     Verify that there has not been any significant change in the performance figures from previous runs.
 //! @SYMTestType                UT
-//! @SYMTESTSTATUS              Implemented
+//! @SYMTestStatus              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12115 12122 12761
     START_TEST_BLOCK    100     te_ostv2integsuite_enabled              \testdata\configs\te_perf_outputcsvsanity.ini

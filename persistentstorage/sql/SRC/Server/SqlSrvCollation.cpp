@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -16,7 +16,7 @@
 //
 
 #include "SqlSrvCollation.h"
-#include "SqlPanic.h"
+#include "SqlAssert.h"
 #include "SqlUtil.h"
 #include "sqlite3.h"
 #include "SqliteSymbian.h"		//sqlite3SymbianLastOsError()
@@ -155,7 +155,7 @@ Initializes TSqlCollationUtil data members.
 TSqlCollationUtil::TSqlCollationUtil(sqlite3* aDbHandle) :
 	iDbHandle(aDbHandle)
 	{
-	__SQLASSERT(iDbHandle != NULL, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicBadArgument));
 	}
 
 /**
@@ -194,7 +194,7 @@ In this case SQL server will use CompareC3 collation to compare Col1 values when
 */
 void TSqlCollationUtil::InstallCollationsL()
 	{
-	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
+	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
 	(void)sqlite3SymbianLastOsError();//clear last OS error
 	//Register user defined collations
 	for(TInt i=0;i<KCollationMethodCount;++i)
@@ -224,6 +224,6 @@ TInt TSqlCollationUtil::CollationCount() const
 */
 TPtrC TSqlCollationUtil::CollationName(TInt aIndex) const
 	{
-	__SQLASSERT((TUint)aIndex < KCollationMethodCount, ESqlPanicBadArgument);
+	__ASSERT_DEBUG((TUint)aIndex < KCollationMethodCount, __SQLPANIC(ESqlPanicBadArgument));
 	return TPtrC(KCollationMethodName[aIndex]);
 	}

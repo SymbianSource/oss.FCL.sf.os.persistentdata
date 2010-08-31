@@ -22,9 +22,10 @@
 
 #if (!defined TE_ULOGGER_MCL_STEP_BASE)
 #define TE_ULOGGER_MCL_STEP_BASE
-#include <datawrapper.h>
+#include <test/datawrapper.h>
 #include <hal.h>
 #include <opensystemtrace.h>
+
 #include "te_tracerecord.h"
 #include "te_dataparameters.h"
 #include "te_parser.h"

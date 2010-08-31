@@ -21,7 +21,7 @@
 */
 #ifndef TE_USER_STEP_H_
 #define TE_USER_STEP_H_
-#include <TestExecuteStepBase.h>
+#include <test/testexecutestepbase.h>
 #include "te_suite_step_base.h"
 
 
@@ -35,9 +35,9 @@ public:
 //	virtual TVerdict doTestStepPostambleL();
 private:
 	TVerdict CheckBuildtimeVariability();
-	TVerdict CheckLoggingVariability();
-	TBool TestTraces();
-	TBool DoSendTrace(TTraceApiUsed aApiUsed);
+	TVerdict CheckLoggingVariabilityL();
+	TBool TestTracesL();
+	TBool DoSendTraceL(TTraceApiUsed aApiUsed);
 	TBool WasTraceVariabilitySuccessful(TInt aTraceResult);
 	};
 

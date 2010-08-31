@@ -385,6 +385,15 @@ void CRepositoryBackupClient::RestoreComplete(TDriveNumber /* aDrive */)
 	}
 
 
+void CRepositoryBackupClient::RestoreRepositoryAndListL(TUid repositoryUid, CDirectFileStore* store, TStreamId settingsStreamId, TStreamId deletedSettingsStreamId, TInt& repIndex)
+    {
+    // Add the restored repository to the restored repositories list.
+    // Pass its changed-keys list to further restoring functions to add entries for post-restoration notification.
+    repIndex = AddRestoredRepositoryL(repositoryUid);
+    iRepository->RestoreRepositoryContentsL(*store, settingsStreamId, deletedSettingsStreamId, *iRestoredRepositoriesArray[repIndex]);
+    iRepository->CommitChangesL();
+    }
+
 	
 //
 // CRepositoryBackupClient::RestoreCompleteL
@@ -418,7 +427,6 @@ void CRepositoryBackupClient::RestoreCompleteL()
 
 		User::Leave(KErrCorrupt);
 		}		
-
 
 
 	// Get the root stream and attempt to read a backup file header from it
@@ -462,8 +470,8 @@ void CRepositoryBackupClient::RestoreCompleteL()
 	
 	// Iterate through index and attempt restore of each repository stream
 	// we find in it.
-	restoreStreamIndex->Reset() ;	
-	TUid repositoryUid ;
+	restoreStreamIndex->Reset();	
+	TUid repositoryUid;
 	TStreamId settingsStreamId(KNullStreamIdValue);
 	TStreamId deletedSettingsStreamId(KNullStreamIdValue);
 	TStreamId installedSettingsStreamId(KNullStreamIdValue);
@@ -472,12 +480,10 @@ void CRepositoryBackupClient::RestoreCompleteL()
 		{
 		iRepository->OpenL(repositoryUid, *iNotifier, EFalse);
 		iRepository->FailAllTransactions();
-		// Add the restored repository to the restored repositories list.
-		// Pass its changed-keys list to further restoring functions to add entries for post-restoration notification.
-		TInt repIndex = AddRestoredRepositoryL(repositoryUid);
-		iRepository->RestoreRepositoryContentsL(*store, settingsStreamId, deletedSettingsStreamId, *iRestoredRepositoriesArray[repIndex]);
-		iRepository->CommitChangesL();
+		TInt repIndex;
+		TRAPD(err, RestoreRepositoryAndListL(repositoryUid, store, settingsStreamId, deletedSettingsStreamId, repIndex));
 		iRepository->Close();
+	    User::LeaveIfError(err);
 		// If the backup contains an installed repository containing default values for the settings, read them in
 		if (installedSettingsStreamId != KNullStreamId)
 			{

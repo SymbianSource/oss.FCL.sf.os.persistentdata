@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -19,24 +19,22 @@ UID             0x1000007A 0x101a7785
 
 #undef 			SYMBIAN_INCLUDE_SYSTEM_TRACE
 //#undef 		SYMBIAN_INCLUDE_EXECUTABLE_TRACE
-#include    		<platform/opensystemtrace.mmh>
+#include    	<platform/opensystemtrace.mmh>
+
 MACRO			TE_SYSTEM_TRACE_DISABLED
 //MACRO 		TE_SYSTEM_SHOULD_BE_ENABLED
 //MACRO 		TE_EXECUTABLE_SHOULD_BE_ENABLED
 MACRO			EXECUTABLE_DEFAULT_MODULEUID=6666
 MACRO 			TE_MODULE_UID=0x101a7785
 
-
-SYSTEMINCLUDE 		\epoc32\include
-SYSTEMINCLUDE 		\epoc32\include\test
-SYSTEMINCLUDE 		\epoc32\include\platform
+OS_LAYER_SYSTEMINCLUDE
 
 USERINCLUDE			..\inc
 USERINCLUDE 		../../devicedriver/inc/
 USERINCLUDE 		../../lauterbach_perf_tester/inc/
 
 SOURCEPATH  		..\src
-SOURCE             		te_suite_server.cpp
+SOURCE             	te_suite_server.cpp
 SOURCE				te_suite_step_base.cpp 
 SOURCE				te_check_build_variability_step.cpp
 SOURCE				te_check_record_content_step.cpp 
@@ -53,7 +51,6 @@ SOURCE				te_macrostest_disabled.cpp
 SOURCE				te_pc.s
 #endif
 SOURCE				te_usertimer.cpp
-
 
 LIBRARY		euser.lib
 LIBRARY		testexecuteutils.lib 

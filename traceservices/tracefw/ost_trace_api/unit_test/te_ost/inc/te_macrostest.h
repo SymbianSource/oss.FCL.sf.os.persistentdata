@@ -26,7 +26,7 @@
 #ifndef __TE_MACROSTEST_H__
 #define __TE_MACROSTEST_H__
 
-#include <TestExecuteStepBase.h>
+#include <test/testexecutestepbase.h>
 #include "te_suite_step_base.h"
 
 _LIT(KOstMacrosEnabledStep, "COstMacrosEnabledStep");

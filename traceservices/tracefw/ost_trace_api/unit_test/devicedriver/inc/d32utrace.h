@@ -28,6 +28,7 @@
 #endif
 #include <e32cmn.h>
 #include <e32ver.h>
+
 #include "te_tracerecord.h"
 
 //needs to be the filename of the driver

@@ -480,7 +480,7 @@ void CLogAddEvent::OpenContactsL()
 	//Sometimes, after a sequence of OpenContactsL()/CloseContacts() calls the Contacts server crashes
 	//and OpenContactsL() leaves with error -15. In order to avoid that the following delay has been added.
 	//(something related to Contacts server state machine)
-    User::After(100);
+    User::After(1000);
 	// Attempt to open DB
 	TRAPD(err,iContactPlugin->OpenContactsL());
 	if(KErrNone!=err)

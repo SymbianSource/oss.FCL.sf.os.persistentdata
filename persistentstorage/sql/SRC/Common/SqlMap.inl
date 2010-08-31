@@ -142,7 +142,7 @@ void RSqlMap<KEY, DATA, REFCNTR, DESTRUCTOR>::Remove(const KEY& aKey)
 			}
 		return;
 		}
-	__SQLASSERT(EFalse, ESqlPanicInternalError);
+	__ASSERT_DEBUG(EFalse, __SQLPANIC(ESqlPanicInternalError));
 	}
 
 /**

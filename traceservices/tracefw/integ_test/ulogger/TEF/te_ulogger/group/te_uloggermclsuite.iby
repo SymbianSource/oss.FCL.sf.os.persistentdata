@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -18,10 +18,11 @@
 #include<te_uloggermcl.iby>
 #include<testexecute.iby>
 
-file=ABI_DIR\BUILD_DIR\te_uloggermclsuite.exe		sys\bin\te_uloggermclsuite.exe
-data=EPOCROOT##Epoc32\winscw\c\TestData\scripts\te_uloggermclsuite.script TestData\Scripts\te_uloggermclsuite.script
-data=EPOCROOT##Epoc32\winscw\c\TestData\scripts\te_uloggermclperfsuite.script TestData\Scripts\te_uloggermclperfsuite.script
-data=EPOCROOT##Epoc32\winscw\c\TestData\scripts\te_uloggersysstart.script TestData\Scripts\te_uloggersysstart.script
-data=EPOCROOT##Epoc32\winscw\c\TestData\scripts\te_uloggerconfigfile.script TestData\Scripts\te_uloggerconfigfile.script
+file=ABI_DIR\BUILD_DIR\te_uloggermclsuite.exe               sys\bin\te_uloggermclsuite.exe
+data=DATAZ_\TestData\scripts\te_uloggermclsuite.script      TestData\Scripts\te_uloggermclsuite.script
+data=DATAZ_\TestData\scripts\te_uloggermclsuite_noserial.script      TestData\Scripts\te_uloggermclsuite_noserial.script
+data=DATAZ_\TestData\scripts\te_uloggermclperfsuite.script  TestData\Scripts\te_uloggermclperfsuite.script
+data=DATAZ_\TestData\scripts\te_uloggersysstart.script      TestData\Scripts\te_uloggersysstart.script
+data=DATAZ_\TestData\scripts\te_uloggerconfigfile.script    TestData\Scripts\te_uloggerconfigfile.script
 
 #endif

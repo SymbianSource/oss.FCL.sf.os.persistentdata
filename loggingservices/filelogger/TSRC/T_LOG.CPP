@@ -1,4 +1,4 @@
-// Copyright (c) 1997-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1997-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -64,40 +64,15 @@ LOCAL_C void TestWaitForShutDown()
 
 LOCAL_C TInt DeleteFolder(const TDesC& aFolder)
 	{
-
-	TUint temp;
-	_LIT(KLogDir,"c:\\Logs\\");
-	TInt ret=fs.Att(KLogDir,temp);
-	if (ret==KErrPathNotFound)
-		return KErrNone;
-	else
-		{
-		TInt exists=fs.Att(aFolder,temp);
-		if (exists==KErrPathNotFound)
-			return KErrNone;
-		
-		if (exists!=KErrNotFound)
-			{
-			TFileName file1=aFolder;
-			file1.Append(KTestLogFileName1);
-			ret=fs.Delete(file1);
-			if (ret!=KErrNone && ret!=KErrNotFound)
-				return ret;
-			TFileName file2=aFolder;
-			file2.Append(KTestLogFileName1);
-			ret=fs.Delete(file2);
-			if (ret!=KErrNone && ret!=KErrNotFound)
-				return ret;
-			}
-
-		CFileMan* fileman=NULL;
-		TRAP(ret,fileman=CFileMan::NewL(fs));
-		TFileName folder;
-		folder.Copy(aFolder.Left(aFolder.Length()-1));
-		ret=fileman->RmDir(folder);
-		delete fileman;
-		return ret;
-		}
+    CFileMan* fileman=NULL;
+    TRAPD(ret,fileman=CFileMan::NewL(fs));
+    ret=fileman->RmDir(aFolder);
+    delete fileman;
+    if (ret==KErrPathNotFound || ret==KErrNotFound)
+        {
+        return KErrNone;
+        }
+    return ret;
 	}
 
 LOCAL_C void CreateFolderL(const TDesC& aFolder)

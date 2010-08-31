@@ -23,7 +23,7 @@
 */
 #if (!defined __TE_ULOGGERBUFFERMODESTEP_H__)
 #define __TE_ULOGGERBUFFERMODESTEP_H__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include "te_uloggermclsuitestepbase.h"
 #include <e32base.h>
 #include <e32math.h>

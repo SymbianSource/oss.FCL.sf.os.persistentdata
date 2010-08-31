@@ -9,7 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
-// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
+// NTT DOCOMO, INC - Fix for defect 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //

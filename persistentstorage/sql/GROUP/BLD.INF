@@ -23,7 +23,7 @@ PRJ_PLATFORMS
 
 PRJ_EXPORTS
 
-../INC/SqlDb.h SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(sqldb.h)
+../INC/SqlDb.h OS_LAYER_PUBLIC_EXPORT_PATH(sqldb.h)
 #ifndef SYMBIAN_ENABLE_SPLIT_HEADERS
 #ifdef SYMBIAN_OLD_EXPORT_LOCATION
 ../INC/SqlResourceTester.h /epoc32/include/sqlresourcetester.h

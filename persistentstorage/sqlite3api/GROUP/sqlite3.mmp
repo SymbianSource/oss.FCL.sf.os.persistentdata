@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -19,13 +19,7 @@
  @file
 */
 
-//#define SYMBIAN_INCLUDE_EXECUTABLE_TRACE
-#include <e32utrace.mmh>
 #include "sqlite3_macro.mmh"
-
-#ifdef SYMBIAN_INCLUDE_EXECUTABLE_TRACE
-MACRO			SQLITE_ENABLE_TRACE
-#endif
 
 TARGET		sqlite3.dll
 TARGETTYPE	dll
@@ -78,6 +72,7 @@ OPTION GCC -w
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+userinclude		../traces_sqlite3
 userinclude		../SQLite
 userinclude		../OsLayer
 OS_LAYER_LIBC_SYSTEMINCLUDE
@@ -146,13 +141,11 @@ SOURCE		where.c
 SOURCEPATH	../OsLayer
 SOURCE		FileBuf64.cpp
 SOURCE		os_symbian_mt.cpp
+SOURCE		SqliteUtil.cpp
 #ifdef WINSCW
 SOURCE		os_symbian_emul.cpp
 #else
 SOURCE		os_symbian_hrdw.cpp
-#endif
-#ifdef SYMBIAN_INCLUDE_EXECUTABLE_TRACE
-SOURCE 		UTraceSqlite.cpp
 #endif
 
 LIBRARY		euser.lib 

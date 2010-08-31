@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,58 +13,13 @@
 // Description:
 //
 #include "FileBuf64.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "FileBuf64Traces.h"
+#endif
+#include "SqliteTraceDef.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////        PROFILER       ////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef _SQLPROFILER
-
-#define PROFILE_READ(pos,amount) \
-	do \
-		{ \
-		++iFileReadCount; iFileReadAmount += (amount); \
-        RDebug::Print(_L(" -- FRead    this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileReadCount,  pos, amount, iFileReadAmount); \
-		} while(0)
-	
-#define PROFILE_WRITE(pos,amount) \
-	do \
-		{ \
-		++iFileWriteCount; iFileWriteAmount += (amount); \
-		RDebug::Print(_L(" -- FWrite   this=%X, Cnt=%d, Pos=%ld, Amt=%d, Ttl=%ld\r\n"), (TUint32)this, iFileWriteCount, pos, amount, iFileWriteAmount); \
-		} while(0)
-
-#define PROFILE_SIZE() \
-	do \
-		{ \
-		++iFileSizeCount; \
-		RDebug::Print(_L(" -- FSize    this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSizeCount); \
-		} while(0)
-
-#define PROFILE_SETSIZE() \
-	do \
-		{ \
-		++iFileSetSizeCount; \
-		RDebug::Print(_L(" -- FSetSize this=%X, Cnt=%d\r\n"), (TUint32)this, iFileSetSizeCount); \
-		} while(0)
-
-#define PROFILE_FLUSH()	\
-	do \
-		{ \
-		++iFileFlushCount; \
-		RDebug::Print(_L(" -- FFlush   this=%X, Cnt=%d\r\n"), (TUint32)this, iFileFlushCount); \
-		} while(0)
-
-#else
-
-#define PROFILE_READ(pos,amount)	void(0)
-#define PROFILE_WRITE(pos,amount)	void(0)
-
-#define PROFILE_SIZE()			void(0)
-#define PROFILE_SETSIZE()		void(0)
-#define PROFILE_FLUSH()			void(0)
-
-#endif//_SQLPROFILER
 
 /**
 This constant is used for initializing the RFileBuf64::iFileSize data member and means that
@@ -82,89 +37,16 @@ indicating that the "guessed" file read offset is invalid and should not be used
 static const TInt KNextReadFilePosNotSet = -1;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////        ASSERTS & INVARIANT      //////////////////////////////////////////////////////////
+///////////////////////////        FBUF INVARIANT      ///////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef _DEBUG
 
 #define __FILEBUF64_INVARIANT() Invariant()
 
-/**
-String literal used in _DEBUG mode for indicating that the reported panic happened inside the RFileBuf64 implementation.
-
-@see TFileBufPanic64
-@internalComponent
-*/
-_LIT(KPanicCategory, "FBuf64");
-
-/**
-Set of numeric constants used together with the KPanicCategory string literal in _DEBUG mode for providing more detailed
-information about the reason of the panic.
-
-@see KPanicCategory
-@internalComponent
-*/
-enum TFileBufPanic64
-	{
-	EFBufPanicCapacity = 1,				//1
-	EFBufPanicNullBuf,
-	EFBufPanicBufLen,
-	EFBufPanicFilePos,
-	EFBufPanicFileSize,					//5
-	EFBufPanicFileHandle,
-	EFBufPanicFsHandle,
-	EFBufPanicMsgHandle,
-	EFBufPanicMsgIndex,
-	EFBufPanicFileNameLen,				//10
-	EFBufPanicNullThis,
-	EFBufPanicDirty,
-	EFBufPanicNextReadFilePos,
-	EFBufPanicNextReadFilePosHits,
-	EFBufPanicFileBlockSize,			//15
-	};
-
-/**
-Helper function used in the implementation of the __FBUF64_ASSERT() macro.
-In case if the expression in __FBUF64_ASSERT() macro evaluates to false, 
-PanicFileBuf64() will use the supplied aLine and aPanicCode arguments together with the KPanicCategory string literal
-to prepare and print out a line (including the time of the panic) to the default log. The calling thread will be panic'ed
-after that.
-
-@see TFileBufPanic64
-@see KPanicCategory
-@internalComponent
-*/
-static void PanicFileBuf64(TInt aLine, TFileBufPanic64 aPanicCode)
-	{
-	TTime time;
-	time.HomeTime();
-	TDateTime dt = time.DateTime();
-	TBuf<16> tbuf;
-	tbuf.Format(_L("%02d:%02d:%02d.%06d"), dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond());
-	
-	TBuf<64> buf;
-	_LIT(KFormat,"**%S:RFileBuf64 panic %d, at line(%d)");
-	buf.Format(KFormat, &tbuf, aPanicCode, aLine);
-	RDebug::Print(buf);
-	User::Panic(KPanicCategory, aPanicCode);
-	}
-
-/**
-This macro should be used when there is a need to panic the client/server if "expr" condition is not satisfied.
-Works in only in debug mode. In release mode evaluates to nothing.
-
-@see TFileBufPanic64
-@see KPanicCategory
-@see PanicFileBuf64()
-@internalComponent
-*/
-#define __FBUF64_ASSERT(expr, panicCode)	(void)(!(expr) ? ::PanicFileBuf64(__LINE__, panicCode) : void(0))
-
 #else //_DEBUG
 
 #define __FILEBUF64_INVARIANT() void(0)
-
-#define __FBUF64_ASSERT(expr, panicCode) 	void(0)
 
 #endif//_DEBUG
 
@@ -177,13 +59,15 @@ Initializes RFileBuf64 data members with their default values.
 
 @param aSize Max file buffer size (capacity) in bytes.
 
-@panic FBuf64 1 In _DEBUG mode - aSize is 0 or negative.
+@panic Sqlite3 1 In _DEBUG mode - aSize is 0 or negative.
 */
 RFileBuf64::RFileBuf64(TInt aSize) :
 	iCapacity(aSize),
+	iBase(NULL),
 	iReadAheadSize(RFileBuf64::KDefaultReadAheadSize)
 	{
-	__FBUF64_ASSERT(aSize > 0, EFBufPanicCapacity);
+	SQLITE_TRACE_FBUF(OstTraceExt3(TRACE_INTERNALS, RFILEBUF64_RFILEBUF64, "FBuf;0x%X;RFileBuf64::RFileBuf64;aSize=%d;iReadAheadSize=%d", (TUint)this, aSize, iReadAheadSize));
+	__ASSERT_DEBUG(aSize > 0, __SQLITEPANIC(EFBufPanicCapacity));
 	}
 
 /**
@@ -202,20 +86,22 @@ If the resulting path does not exist, then the operation cannot proceed and the 
 @see TFileMode
 @see RFile64::Create()
 
-@panic FBuf64  7 In _DEBUG mode - Invalid aFs object (null file session handle).
-@panic FBuf64 10 In _DEBUG mode - Invalid file name length (zero file name length).
+@panic Sqlite3  7 In _DEBUG mode - Invalid aFs object (null file session handle).
+@panic Sqlite3 10 In _DEBUG mode - Invalid file name length (zero file name length).
 */
 TInt RFileBuf64::Create(RFs& aFs, const TDesC& aFileName, TUint aFileMode)
 	{
-	__FBUF64_ASSERT(aFs.Handle() != 0, EFBufPanicFsHandle);
-	__FBUF64_ASSERT(aFileName.Length() > 0, EFBufPanicFileNameLen);
+	__ASSERT_DEBUG(aFs.Handle() != 0, __SQLITEPANIC(EFBufPanicFsHandle));
+	__ASSERT_DEBUG(aFileName.Length() > 0, __SQLITEPANIC(EFBufPanicFileNameLen));
 	
-    TInt err = DoPreInit();
-    if(err == KErrNone)
-        {
-        err = iFile.Create(aFs, aFileName, aFileMode);
-        }
-    return DoPostInit(err);
+	TInt err = DoPreInit();
+	if(err == KErrNone)
+	    {
+	    err = iFile.Create(aFs, aFileName, aFileMode);
+	    }
+	SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_CREATE, "FBuf;0x%X;RFileBuf64::Create;aFs.Handle()=0x%X;aFileName=%S;iFile.SubSessionHandle()=0x%X;err=%d", (TUint)this, (TUint)aFs.Handle(), __SQLITEPRNSTR(aFileName), (TUint)iFile.SubSessionHandle(), err));
+	DoPostInit(err);
+	return err;
 	}
 
 /**
@@ -233,20 +119,22 @@ If the file does not already exist, an error is returned.
 @see TFileMode
 @see RFile64::Open()
 
-@panic FBuf64  7 In _DEBUG mode - Invalid aFs object (null file session handle).
-@panic FBuf64 10 In _DEBUG mode - Invalid file name length (zero file name length).
+@panic Sqlite3  7 In _DEBUG mode - Invalid aFs object (null file session handle).
+@panic Sqlite3 10 In _DEBUG mode - Invalid file name length (zero file name length).
 */
 TInt RFileBuf64::Open(RFs& aFs, const TDesC& aFileName, TUint aFileMode)
 	{
-	__FBUF64_ASSERT(aFs.Handle() != 0, EFBufPanicFsHandle);
-	__FBUF64_ASSERT(aFileName.Length() > 0, EFBufPanicFileNameLen);
-    
+	__ASSERT_DEBUG(aFs.Handle() != 0, __SQLITEPANIC(EFBufPanicFsHandle));
+	__ASSERT_DEBUG(aFileName.Length() > 0, __SQLITEPANIC(EFBufPanicFileNameLen));
+	
     TInt err = DoPreInit();
     if(err == KErrNone)
         {
         err = iFile.Open(aFs, aFileName, aFileMode);
         }
-    return DoPostInit(err);
+	SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_OPEN, "FBuf;0x%X;RFileBuf64::Open;aFs.Handle()=0x%X;aFileName=%S;iFile.SubSessionHandle()=0x%X;err=%d", (TUint)this, (TUint)aFs.Handle(), __SQLITEPRNSTR(aFileName), (TUint)iFile.SubSessionHandle(), err));
+    DoPostInit(err);
+	return err;
 	}
 
 /**
@@ -266,18 +154,20 @@ RFileBuf64 public interface.
 @see TFileMode
 @see RFile64::Temp()
 
-@panic FBuf64  7 In _DEBUG mode - Invalid aFs object (null file session handle).
+@panic Sqlite3  7 In _DEBUG mode - Invalid aFs object (null file session handle).
 */
 TInt RFileBuf64::Temp(RFs& aFs, const TDesC& aPath, TFileName& aFileName, TUint aFileMode)
 	{
-	__FBUF64_ASSERT(aFs.Handle() != 0, EFBufPanicFsHandle);
-    
+	__ASSERT_DEBUG(aFs.Handle() != 0, __SQLITEPANIC(EFBufPanicFsHandle));
+	
     TInt err = DoPreInit();
     if(err == KErrNone)
         {
         err = iFile.Temp(aFs, aPath, aFileName, aFileMode);
         }
-    return DoPostInit(err);
+	SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_TEMP, "FBuf;0x%X;RFileBuf64::Temp;aFs.Handle()=0x%X;aFileName=%S;iFile.SubSessionHandle()=0x%X;err=%d", (TUint)this, (TUint)aFs.Handle(), __SQLITEPRNSTR(aFileName), (TUint)iFile.SubSessionHandle(), err));
+    DoPostInit(err);
+	return err;
 	}
 
 /**
@@ -290,6 +180,7 @@ be written to the file and if the operation fails, the caller will be notified w
 */
 void RFileBuf64::Close()
 	{
+	SQLITE_TRACE_FBUF(OstTraceExt2(TRACE_INTERNALS, RFILEBUF64_CLOSE, "FBuf;0x%X;RFileBuf64::Close;iFile.SubSessionHandle()=0x%X", (TUint)this, (TUint)iFile.SubSessionHandle()));
 	if(iFile.SubSessionHandle() != 0 && iBase != 0)
 		{
 		(void)DoFileWrite2();
@@ -321,14 +212,15 @@ Rule 2: If rule#1 is not applicable then the same checks, as in rule#1, are perf
 TInt RFileBuf64::SetReadAheadSize(TInt aBlockSize, TInt aReadRecBufSize)
 	{
 	__FILEBUF64_INVARIANT();
-	if(aReadRecBufSize > 0 && (aReadRecBufSize & (aReadRecBufSize - 1)) == 0 && aReadRecBufSize > RFileBuf64::KDefaultReadAheadSize)
+	if((aReadRecBufSize & (aReadRecBufSize - 1)) == 0 && aReadRecBufSize > RFileBuf64::KDefaultReadAheadSize)
 		{
 		iReadAheadSize = aReadRecBufSize > iCapacity ? iCapacity : aReadRecBufSize;
 		}
-	else if(aBlockSize > 0 && (aBlockSize & (aBlockSize - 1)) == 0 && aBlockSize > RFileBuf64::KDefaultReadAheadSize)
+	else if((aBlockSize & (aBlockSize - 1)) == 0 && aBlockSize > RFileBuf64::KDefaultReadAheadSize)
 		{
 		iReadAheadSize = aBlockSize > iCapacity ? iCapacity : aBlockSize;
 		}
+	SQLITE_TRACE_FBUF(OstTraceExt4(TRACE_INTERNALS, RFILEBUF64_SETREADAHEADSIZE, "FBuf;0x%X;RFileBuf64::SetReadAheadSize;aBlockSize=%d;aReadRecBufSize=%d;iReadAheadSize=%d", (TUint)this, aBlockSize, aReadRecBufSize, iReadAheadSize));
 	__FILEBUF64_INVARIANT();
 	return iReadAheadSize;
 	}
@@ -347,14 +239,14 @@ If the data to be read is in the buffer, then the data will be taken from the bu
             
 @return KErrNone if successful, otherwise one of the other system-wide error  codes.
 
-@panic FBuf64  4 In _DEBUG mode - negative aFilePos value.
+@panic Sqlite3  4 In _DEBUG mode - negative aFilePos value.
 See RFileBuf64::Invariant() for other possible panics that may occur when this method is called.
 
 @see RFileBuf64::Invariant()
 */
 TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 	{
-	__FBUF64_ASSERT(aFilePos >= 0, EFBufPanicFilePos);
+	__ASSERT_DEBUG(aFilePos >= 0, __SQLITEPANIC(EFBufPanicFilePos));
 	__FILEBUF64_INVARIANT();
 	aDes.SetLength(0);
 	//1. The output buffer max len is 0
@@ -374,14 +266,14 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 	TInt len = aDes.MaxLength();
 	if(len > iCapacity)
 		{
-		if((aFilePos + len) > iFilePos && !(aFilePos >= (iFilePos + iLength)))
+		if((aFilePos + len) > iFilePos && aFilePos < (iFilePos + iLength))
 			{//Write the pending data if the iDirty flag is set, otherwise preserve the buffer content.
 			err = DoFileWrite1(aFilePos);
 			}
 		if(err == KErrNone)
 			{
 			err = iFile.Read(aFilePos, aDes);
-			PROFILE_READ(aFilePos, aDes.Size());
+			SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_READ1, "FBuf;0x%X;RFileBuf64::Read;TooBigRq;iFileSize=%lld;aFilePos=%lld;len=%d;err=%d", (TUint)this, iFileSize, aFilePos, len, err));
 			}
 		__FILEBUF64_INVARIANT();
 		return err;
@@ -412,7 +304,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 				iNextReadFilePosHits = 0;
 				TPtr8 ptr2(outptr, len);
 				err = iFile.Read(aFilePos, ptr2);
-				PROFILE_READ(aFilePos, ptr2.Size());
+				SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_READ2, "FBuf;0x%X;RFileBuf64::Read;Read;iFileSize=%lld;aFilePos=%lld;len=%d;err=%d", (TUint)this, iFileSize, aFilePos, len, err));
 				if(err == KErrNone)
 					{
 					iNextReadFilePos = aFilePos + len;
@@ -436,7 +328,7 @@ TInt RFileBuf64::Read(TInt64 aFilePos, TDes8& aDes)
 				}
 			TPtr8 ptr(iBase, Min(iCapacity, (len + readahead)));
 			err = iFile.Read(aFilePos, ptr);
-			PROFILE_READ(aFilePos, ptr.Size());
+			SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_READ3, "FBuf;0x%X;RFileBuf64::Read;ReadAhead;iFileSize=%lld;aFilePos=%lld;len=%d;err=%d", (TUint)this, iFileSize, aFilePos, ptr.MaxLength(), err));
 			if(err == KErrNone)
 				{
 				iFilePos = aFilePos;
@@ -472,14 +364,14 @@ If certain conditions are met, the data will be stored in the buffer - no call t
 
 @return KErrNone if successful, otherwise one of the other system-wide error  codes.
 
-@panic FBuf64  4 In _DEBUG mode - negative aFilePos value.
+@panic Sqlite3  4 In _DEBUG mode - negative aFilePos value.
 See RFileBuf64::Invariant() for other possible panics that may occur when this method is called.
 
 @see RFileBuf64::Invariant()
 */
 TInt RFileBuf64::Write(TInt64 aFilePos, const TDesC8& aData)
 	{
-	__FBUF64_ASSERT(aFilePos >= 0, EFBufPanicFilePos);
+	__ASSERT_DEBUG(aFilePos >= 0, __SQLITEPANIC(EFBufPanicFilePos));
 	__FILEBUF64_INVARIANT();
 	if(aData.Length() == 0)
 		{
@@ -608,14 +500,14 @@ Note:
 
 @return KErrNone if successful, otherwise one of the other system-wide error codes.
 
-@panic FBuf64  5 In _DEBUG mode - negative aFileSize value.
+@panic Sqlite3  5 In _DEBUG mode - negative aFileSize value.
 See RFileBuf64::Invariant() for other possible panics that may occur when this method is called.
 
 @see RFileBuf64::Invariant()
 */
 TInt RFileBuf64::SetSize(TInt64 aFileSize)
 	{
-	__FBUF64_ASSERT(aFileSize >= 0, EFBufPanicFileSize);
+	__ASSERT_DEBUG(aFileSize >= 0, __SQLITEPANIC(EFBufPanicFileSize));
 	__FILEBUF64_INVARIANT();
 	return DoSetFileSize(aFileSize);
 	}
@@ -634,7 +526,9 @@ Locks a region within the file as defined by a range of bytes.
 TInt RFileBuf64::Lock(TInt64 aFilePos, TInt64 aLength) const
 	{
 	__FILEBUF64_INVARIANT();
-	return iFile.Lock(aFilePos, aLength);
+	TInt err = iFile.Lock(aFilePos, aLength);
+	SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_LOCK, "FBuf;0x%X;RFileBuf64::Lock;iFileSize=%lld;aFilePos=%lld;aLength=%lld;err=%d", (TUint)this, iFileSize, aFilePos, aLength, err));
+	return err;
 	}
 	
 /**
@@ -650,7 +544,9 @@ Unlocks a region within the file as defined by a range of bytes.
 TInt RFileBuf64::UnLock(TInt64 aFilePos, TInt64 aLength) const
 	{
 	__FILEBUF64_INVARIANT();
-	return iFile.UnLock(aFilePos, aLength);
+	TInt err = iFile.UnLock(aFilePos, aLength);
+	SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_UNLOCK, "FBuf;0x%X;RFileBuf64::UnLock;iFileSize=%lld;aFilePos=%lld;aLength=%lld;err=%d", (TUint)this, iFileSize, aFilePos, aLength, err));
+	return err;
 	}
 
 /**
@@ -699,7 +595,9 @@ See RFileBuf64::Invariant() for possible panics that may occur when this method 
 TInt RFileBuf64::Drive(TInt& aDriveNumber, TDriveInfo& aDriveInfo) const
 	{
 	__FILEBUF64_INVARIANT();
-	return iFile.Drive(aDriveNumber, aDriveInfo);
+	TInt err = iFile.Drive(aDriveNumber, aDriveInfo);
+	SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_DRIVE, "FBuf;0x%X;RFileBuf64::Drive;aDriveNumber=%d;driveAtt=0x%X;mediaAtt=0x%X;err=%d", (TUint)this, aDriveNumber, (TUint)aDriveInfo.iDriveAtt, (TUint)aDriveInfo.iMediaAtt, err));
+	return err;
 	}
 
 /**
@@ -720,20 +618,16 @@ TInt RFileBuf64::DoPreInit()
 /**
 Performs post-initialization of the RFileBuf64 object.   
 If aInitErr is not KErrNone, then the buffer memory will be released.
-The function returns the aInitErr value to the caller. 
 
 @param aInitErr The result of the performed before the call RFileBuf64 initialization.
- 
-@return KErrNone if successful, otherwise one of the other system-wide error codes.
 */
-TInt RFileBuf64::DoPostInit(TInt aInitErr)
+void RFileBuf64::DoPostInit(TInt aInitErr)
     {
     if(aInitErr != KErrNone)
         {
         User::Free(iBase);
         iBase = 0;
         }
-    return aInitErr;
     }
 
 /**
@@ -768,8 +662,8 @@ TInt RFileBuf64::DoFileSize()
 		__FILEBUF64_INVARIANT();
 		return KErrNone;
 		}
-	PROFILE_SIZE();
 	TInt err = iFile.Size(iFileSize);
+	SQLITE_TRACE_FBUF(OstTraceExt3(TRACE_INTERNALS, RFILEBUF64_DOFILESIZE, "FBuf;0x%X;RFileBuf64::DoFileSize;iFileSize=%lld;err=%d", (TUint)this, iFileSize, err));
 	if(err != KErrNone)
 		{
 		DoDiscard();
@@ -787,14 +681,14 @@ before the "set file size" operation, if certain conditions are met.
 
 @return KErrNone if successful, otherwise one of the other system-wide error codes.
 
-@panic FBuf64  5 In _DEBUG mode - negative aFileSize value.
+@panic Sqlite3  5 In _DEBUG mode - negative aFileSize value.
 See RFileBuf64::Invariant() for other possible panics that may occur when this method is called.
 
 @see RFileBuf64::Invariant()
 */
 TInt RFileBuf64::DoSetFileSize(TInt64 aFileSize)
 	{
-	__FBUF64_ASSERT(aFileSize >= 0, EFBufPanicFileSize);
+	__ASSERT_DEBUG(aFileSize >= 0, __SQLITEPANIC(EFBufPanicFileSize));
 	__FILEBUF64_INVARIANT();
 	if(aFileSize < iFilePos)
 		{
@@ -806,8 +700,8 @@ TInt RFileBuf64::DoSetFileSize(TInt64 aFileSize)
 		{
 		iLength = aFileSize - iFilePos;
 		}
-	PROFILE_SETSIZE();
 	TInt err = iFile.SetSize(aFileSize);
+	SQLITE_TRACE_FBUF(OstTraceExt4(TRACE_INTERNALS, RFILEBUF64_DOSETFILESIZE, "FBuf;0x%X;RFileBuf64::DoSetFileSize;iFileSize=%lld;aFileSize=%lld;err=%d", (TUint)this, iFileSize, aFileSize, err));
 	if(err != KErrNone)
 		{
 		DoDiscard();
@@ -838,8 +732,8 @@ TInt RFileBuf64::DoFileFlush()
 		__FILEBUF64_INVARIANT();
 		return err;	
 		}
-	PROFILE_FLUSH();
 	err = iFile.Flush();
+	SQLITE_TRACE_FBUF(OstTraceExt3(TRACE_INTERNALS, RFILEBUF64_DOFILEFLUSH, "FBuf;0x%X;RFileBuf64::DoFileFlush;iFileSize=%lld;err=%d", (TUint)this, iFileSize, err));
 	if(err != KErrNone)
 		{
 		DoDiscard();
@@ -870,9 +764,9 @@ TInt RFileBuf64::DoFileWrite()
 		__FILEBUF64_INVARIANT();
 		return KErrNone;	
 		}
-	PROFILE_WRITE(iFilePos, iLength);
 	TPtrC8 data(iBase, iLength);		
 	TInt err = iFile.Write(iFilePos, data);
+	SQLITE_TRACE_FBUF(OstTraceExt5(TRACE_INTERNALS, RFILEBUF64_DOFILEWRITE, "FBuf;0x%X;RFileBuf64::DoFileWrite;iFileSize=%lld;iFilePos=%lld;iLength=%d;err=%d", (TUint)this, iFileSize, iFilePos, iLength, err));
 	if(err == KErrNone)
 		{
 		iFileSize = Max(iFileSize, (iFilePos + iLength));
@@ -902,7 +796,7 @@ The function resets the iDirty flag.
 
 See RFileBuf64::Invariant() for other possible panics that may occur when this method is called.
 				   
-@panic FBuf64  4 In _DEBUG mode - negative aNewFilePos value.
+@panic Sqlite3  4 In _DEBUG mode - negative aNewFilePos value.
 
 @see RFileBuf64::Read()
 @see RFileBuf64::DoFileWrite()
@@ -911,7 +805,7 @@ See RFileBuf64::Invariant() for other possible panics that may occur when this m
 */
 TInt RFileBuf64::DoFileWrite1(TInt64 aNewFilePos)
 	{
-	__FBUF64_ASSERT(aNewFilePos >= 0, EFBufPanicFilePos);
+	__ASSERT_DEBUG(aNewFilePos >= 0, __SQLITEPANIC(EFBufPanicFilePos));
 	__FILEBUF64_INVARIANT();
 	TInt err = KErrNone;
 	if(iDirty)
@@ -949,7 +843,7 @@ The difference between RFileBuf64::DoFileWrite1() and RFileBuf64::DoFileWrite2()
 
 See RFileBuf64::Invariant() for other possible panics that may occur when this method is called.
 				   
-@panic FBuf64  4 In _DEBUG mode - negative aNewFilePos value.
+@panic Sqlite3  4 In _DEBUG mode - negative aNewFilePos value.
 
 @see RFileBuf64::Write()
 @see RFileBuf64::DoFileWrite()
@@ -958,7 +852,7 @@ See RFileBuf64::Invariant() for other possible panics that may occur when this m
 */
 TInt RFileBuf64::DoFileWrite2(TInt64 aNewFilePos)
 	{
-	__FBUF64_ASSERT(aNewFilePos >= 0, EFBufPanicFilePos);
+	__ASSERT_DEBUG(aNewFilePos >= 0, __SQLITEPANIC(EFBufPanicFilePos));
 	__FILEBUF64_INVARIANT();
 	TInt err = KErrNone;
 	if(iDirty)
@@ -1009,29 +903,29 @@ void RFileBuf64::DoDiscardBufferedReadData()
 RFileBuf64 invariant. Called in _DEBUG mode at the beginning and before the end of every RFileBuf64 method
 (except the init/destroy methods).
 
-@panic FBuf64  11 In _DEBUG mode - null "this" pointer.
-@panic FBuf64   1 In _DEBUG mode - negative iCapacity value.
-@panic FBuf64   2 In _DEBUG mode - the buffer pointer is null (possible the buffer is not allocated or already destroyed).
-@panic FBuf64   3 In _DEBUG mode - invalid iLength value (negative or bigger than iCapacity).
-@panic FBuf64   4 In _DEBUG mode - negative iFilePos value.
-@panic FBuf64   5 In _DEBUG mode - set but negative iFileSize value.
-@panic FBuf64   6 In _DEBUG mode - null file handle (the RFile64 object is not created or already destroyed).
-@panic FBuf64  13 In _DEBUG mode - set but negative iNextReadFilePos value.
-@panic FBuf64  14 In _DEBUG mode - negative iNextReadFilePosHits value.
-@panic FBuf64  15 In _DEBUG mode - iReadAheadSize is negative or is not power of two.
+@panic Sqlite3  11 In _DEBUG mode - null "this" pointer.
+@panic Sqlite3   1 In _DEBUG mode - negative iCapacity value.
+@panic Sqlite3   2 In _DEBUG mode - the buffer pointer is null (possible the buffer is not allocated or already destroyed).
+@panic Sqlite3   3 In _DEBUG mode - invalid iLength value (negative or bigger than iCapacity).
+@panic Sqlite3   4 In _DEBUG mode - negative iFilePos value.
+@panic Sqlite3   5 In _DEBUG mode - set but negative iFileSize value.
+@panic Sqlite3   6 In _DEBUG mode - null file handle (the RFile64 object is not created or already destroyed).
+@panic Sqlite3  13 In _DEBUG mode - set but negative iNextReadFilePos value.
+@panic Sqlite3  14 In _DEBUG mode - negative iNextReadFilePosHits value.
+@panic Sqlite3  15 In _DEBUG mode - iReadAheadSize is negative or is not power of two.
 */
 void RFileBuf64::Invariant() const
 	{
-	__FBUF64_ASSERT(this != 0, EFBufPanicNullThis);
-	__FBUF64_ASSERT(iCapacity > 0, EFBufPanicCapacity);
-	__FBUF64_ASSERT(iBase != 0, EFBufPanicNullBuf);
-	__FBUF64_ASSERT(iLength >= 0 && iLength <= iCapacity, EFBufPanicBufLen);
-	__FBUF64_ASSERT(iFilePos >= 0, EFBufPanicFilePos);
-	__FBUF64_ASSERT(iFileSize == KFileSizeNotSet || iFileSize >= 0, EFBufPanicFileSize);
-	__FBUF64_ASSERT(iFile.SubSessionHandle() != 0, EFBufPanicFileHandle);
-	__FBUF64_ASSERT(iNextReadFilePos == KNextReadFilePosNotSet || iNextReadFilePos >= 0, EFBufPanicNextReadFilePos);
-	__FBUF64_ASSERT(iNextReadFilePosHits >= 0, EFBufPanicNextReadFilePosHits);
-	__FBUF64_ASSERT(iReadAheadSize > 0 && (iReadAheadSize & (iReadAheadSize - 1)) == 0, EFBufPanicFileBlockSize);
+	__ASSERT_DEBUG(this != 0, __SQLITEPANIC(EFBufPanicNullThis));
+	__ASSERT_DEBUG(iCapacity > 0, __SQLITEPANIC(EFBufPanicCapacity));
+	__ASSERT_DEBUG(iBase != 0, __SQLITEPANIC(EFBufPanicNullBuf));
+	__ASSERT_DEBUG(iLength >= 0 && iLength <= iCapacity, __SQLITEPANIC(EFBufPanicBufLen));
+	__ASSERT_DEBUG(iFilePos >= 0, __SQLITEPANIC(EFBufPanicFilePos));
+	__ASSERT_DEBUG(iFileSize == KFileSizeNotSet || iFileSize >= 0, __SQLITEPANIC(EFBufPanicFileSize));
+	__ASSERT_DEBUG(iFile.SubSessionHandle() != 0, __SQLITEPANIC(EFBufPanicFileHandle));
+	__ASSERT_DEBUG(iNextReadFilePos == KNextReadFilePosNotSet || iNextReadFilePos >= 0, __SQLITEPANIC(EFBufPanicNextReadFilePos));
+	__ASSERT_DEBUG(iNextReadFilePosHits >= 0, __SQLITEPANIC(EFBufPanicNextReadFilePosHits));
+	__ASSERT_DEBUG(iReadAheadSize > 0 && (iReadAheadSize & (iReadAheadSize - 1)) == 0, __SQLITEPANIC(EFBufPanicFileBlockSize));
 	}
 	
 #endif

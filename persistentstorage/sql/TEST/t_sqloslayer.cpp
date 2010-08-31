@@ -27,6 +27,7 @@ extern "C" {
 #ifdef __cplusplus
 }  /* End of the 'extern "C"' block */
 #endif
+#include "SqliteUtil.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -50,6 +51,11 @@ TInt TheSqlSrvProfilerFileRead = 0;
 TInt TheSqlSrvProfilerFileWrite = 0;
 TInt TheSqlSrvProfilerFileSync = 0;
 TInt TheSqlSrvProfilerFileSetSize = 0;
+#endif
+
+#ifdef _DEBUG    
+//SQLite panic category.
+_LIT(KSqlitePanicCategory, "Sqlite");
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -773,6 +779,71 @@ void VfsCreateDeleteOnCloseFileOomTest()
     User::Free(osFile);
     }
 
+///////////////////////////////////////////////////////////////////////////////////////
+
+//Panic thread function. 
+//It will cast aData parameter to a TFunctor pointer and call it.
+//The expectation is that the called function will panic and kill the panic thread.
+TInt ThreadFunc(void* aData)
+	{
+	CTrapCleanup* tc = CTrapCleanup::New();
+	TEST(tc != NULL);
+	
+	User::SetJustInTime(EFalse);	// disable debugger panic handling
+	
+	TFunctor* obj = reinterpret_cast<TFunctor*> (aData);
+	TEST(obj != NULL);
+	(*obj)();//call the panic function
+	
+	delete tc;
+	
+	return KErrNone;		
+	}
+
+//Panic test.
+//PanicTest function will create a new thread - panic thread, giving it a pointer to the function which has to
+//be executed and the expectation is that the function will panic and kill the panic thread.
+//PanicTest function will check the panic thread exit code, exit category and the panic code.
+void PanicTest(TFunctor& aFunctor, TExitType aExpectedExitType, const TDesC& aExpectedCategory, TInt aExpectedPanicCode)
+	{
+	RThread thread;
+	_LIT(KThreadName,"OsLayerPanicThread");
+	TEST2(thread.Create(KThreadName, &ThreadFunc, 0x2000, 0x1000, 0x10000, (void*)&aFunctor, EOwnerThread), KErrNone);
+	
+	TRequestStatus status;
+	thread.Logon(status);
+	TEST2(status.Int(), KRequestPending);
+	thread.Resume();
+	User::WaitForRequest(status);
+	User::SetJustInTime(ETrue);	// enable debugger panic handling
+
+	TEST2(thread.ExitType(), aExpectedExitType);
+	TEST(thread.ExitCategory() == aExpectedCategory);
+	TEST2(thread.ExitReason(), aExpectedPanicCode);
+	
+	CLOSE_AND_WAIT(thread);
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////     Panic test functions    /////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef _DEBUG    
+
+//Panic when calling COsLayerData::Create() is called and the OS layer data has been already created.
+class TOsLayerDataDuplicated : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		(void)sqlite3SymbianLibInit();//This should crash the thread in debug mode (because the Os layer
+		                              //data was created already in TestEnvInit()).
+		}
+	};
+static TOsLayerDataDuplicated TheOsLayerDataDuplicated;
+
+#endif //_DEBUG
+
 /**
 @SYMTestCaseID			SYSLIB-SQL-CT-1650
 @SYMTestCaseDesc		SQL, OS porting layer tests.
@@ -806,6 +877,10 @@ void DoTests()
     VfsOpenTempFileFileIoErrTest();
     TheTest.Printf(_L("TVfs::Open(<'delete on close' file>) OOM test\r\n"));
     VfsCreateDeleteOnCloseFileOomTest();
+#ifdef _DEBUG    
+	TheTest.Printf(_L("'An attempt to create the OS layer data again' panic\r\n"));
+	PanicTest(TheOsLayerDataDuplicated, EExitPanic, KSqlitePanicCategory, ESqliteOsPanicOsLayerDataExists);
+#endif //_DEBUG	
 	}
 
 TInt E32Main()

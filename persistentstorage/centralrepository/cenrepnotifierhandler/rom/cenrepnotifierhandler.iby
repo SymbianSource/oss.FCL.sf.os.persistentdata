@@ -18,7 +18,7 @@
 #define __CENREPNOTIFHANDLER_IBY__
 
 //file content
-file=ABI_DIR\BUILD_DIR\CENREPNOTIFHANDLER.DLL	System\Libs\CENREPNOTIFHANDLER.DLL
+file=ABI_DIR\BUILD_DIR\cenrepnotifhandler.dll	System\Libs\CENREPNOTIFHANDLER.DLL
 
 #endif
 

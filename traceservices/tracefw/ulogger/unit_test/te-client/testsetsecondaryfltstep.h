@@ -23,7 +23,7 @@
 */
 #if (!defined __TESTSETSECONDARYFLT_STEP_H__)
 #define __TESTSETSECONDARYFLT_STEP_H__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include "te_uloggerclientsuitestepbase.h"
 
 class CTestSetSecondaryFltStep : public CTestUloggerClientApiStepBase

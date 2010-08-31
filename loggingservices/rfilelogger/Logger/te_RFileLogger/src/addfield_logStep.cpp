@@ -21,7 +21,6 @@
 #include "addfield_logStep.h"
 #include "Te_RFileLoggerSuiteDefs.h"
 
-_LIT(K16BitText,"This is a short line of 16 Bit Text");
 _LIT(K16BitFormatText,"logger string int = %d,  string = %S");
 _LIT(K16BitString,"The String16");
 

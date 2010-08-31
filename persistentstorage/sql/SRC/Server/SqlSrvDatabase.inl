@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -144,7 +144,7 @@ inline void CSqlSrvDatabase::SetIsolationLevelL(RSqlDatabase::TIsolationLevel aL
 */
 inline sqlite3* CSqlSrvDatabase::RawDbHandle() const
 	{
-	__SQLASSERT(iDbHandle != NULL, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInternalError));
 	return iDbHandle;	
 	}
 
@@ -224,7 +224,7 @@ This function is used when a new database is created.
 */
 inline void CSqlSrvDatabase::StoreSettingsL(const TDesC& aCollationDllName, TInt aDbConfigFileVersion, TSqlCompactionMode aCompactionMode)
 	{
-	__SQLASSERT(aCompactionMode == ESqlCompactionManual || aCompactionMode == ESqlCompactionBackground || aCompactionMode == ESqlCompactionAuto, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aCompactionMode == ESqlCompactionManual || aCompactionMode == ESqlCompactionBackground || aCompactionMode == ESqlCompactionAuto, __SQLPANIC(ESqlPanicBadArgument));
 #if !defined(__SQL_DISABLE_SYMBIAN_SETTINGS_TABLE__)		
 	TSqlDbSysSettings dbSettings(iDbHandle);
 	dbSettings.StoreSettingsL(KMainDb16, aCollationDllName, aDbConfigFileVersion, aCompactionMode);

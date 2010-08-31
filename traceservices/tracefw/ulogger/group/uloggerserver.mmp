@@ -15,26 +15,29 @@
 // 
 //
 
-/**
- @file
-*/
-
 target			uloggerserver.exe
 targettype		exe
 uid				0x1000008d 0x10273881
 CAPABILITY 		CommDD NetworkControl LocalServices ProtServ NetworkServices
 
+OS_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE     ../inc
+USERINCLUDE     ../../common_utils/lightlogger/inc
+USERINCLUDE     ../src/pluginframework
 
 SOURCEPATH		../src/uloggerserver
 SOURCE			uloggerserver.cpp 
 SOURCE			uloggersrvsession.cpp 
 SOURCE			uloggerwatcher.cpp
 
-
-USERINCLUDE		../inc
-USERINCLUDE 	../../common_utils/lightlogger/inc
-USERINCLUDE		../src/pluginframework
-OS_LAYER_SYSTEMINCLUDE_SYMBIAN
-
-LIBRARY			euser.lib estor.lib bafl.lib hal.lib efsrv.lib ecom.lib
-LIBRARY			btracec.lib uloggerpluginframework.lib uloggersysconfig.lib uloggercommand.lib
+LIBRARY			euser.lib 
+LIBRARY         estor.lib 
+LIBRARY         bafl.lib 
+LIBRARY         hal.lib 
+LIBRARY         efsrv.lib 
+LIBRARY         ecom.lib
+LIBRARY			btracec.lib 
+LIBRARY         uloggerpluginframework.lib 
+LIBRARY         uloggersysconfig.lib 
+LIBRARY         uloggercommand.lib

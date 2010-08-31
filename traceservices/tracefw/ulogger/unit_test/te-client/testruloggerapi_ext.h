@@ -23,7 +23,7 @@
 */
 #if (!defined __TESTRULOGGERAPI_EXT_H__)
 #define __TESTRULOGGERAPI_EXT_H__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include "te_uloggerclientsuitestepbase.h"
 #include <uloggerclient.h>
 using namespace Ulogger;

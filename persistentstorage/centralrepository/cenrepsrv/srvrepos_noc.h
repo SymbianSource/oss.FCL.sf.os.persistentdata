@@ -107,8 +107,8 @@ public:
 
 	TInt CheckPermissions(RSettingPointerArray& aSettings, const TClientRequest& aMessage, const char* aDiagnostic,TBool aReadPolicy,TUint32& aErrId);
 	
-	TInt CheckAccessPolicyBeforeMoving(const TClientRequest& aMessage, const TServerSetting& aSourceSetting, TUint32 aSourceKey, 
-							const TServerSetting& aTargetSetting, TUint32 aTargetKey, TUint32& aErrorKey);
+	TInt CheckAccessPolicyBeforeMoving(const TClientRequest& aMessage, const TServerSetting* aSourceSetting, TUint32 aSourceKey, 
+							const TServerSetting* aTargetSetting, TUint32 aTargetKey, TUint32& aErrorKey);
 								
 	TInt CheckMovePermissions(const RSettingPointerArray& aSourceSettings,const TClientRequest& aMessage,TUint aSourceToTarget,TUint32& aErrorKey)
 		{
@@ -121,7 +121,7 @@ public:
 			TUint32 targetKey = sourceKey ^ aSourceToTarget;
 			TServerSetting* targetSetting = GetSetting(targetKey);
 		
-			error = CheckAccessPolicyBeforeMoving(aMessage, *sourceSetting, sourceKey, *targetSetting, targetKey, aErrorKey);		
+			error = CheckAccessPolicyBeforeMoving(aMessage, sourceSetting, sourceKey, targetSetting, targetKey, aErrorKey);		
 			}
 		return error;
 		}

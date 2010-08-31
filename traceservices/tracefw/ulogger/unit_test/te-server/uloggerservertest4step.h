@@ -23,7 +23,7 @@
 */
 #if (!defined __ULOGGERSERVERTEST4_STEP_H__)
 #define __ULOGGERSERVERTEST4_STEP_H__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include "te_uloggerservertestsuitestepbase.h"
 #include "pluginallocator.h"
 #include "inputframework.h"

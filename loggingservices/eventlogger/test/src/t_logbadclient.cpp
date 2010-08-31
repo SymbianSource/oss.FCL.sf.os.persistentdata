@@ -213,6 +213,50 @@ TInt ThreadFunc1(void* aData)
 	return KErrNone;		
 	}
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Thread function to detect a crash in the server.
+//The server should run for the duration of the test.
+// return KErrAbort: If failure to start server
+// return KErrServerTerminated: If server process is terminated 
+
+TInt ServerWatcherFunc(TAny* /*aData*/)
+	{
+	__UHEAP_MARK;
+
+	_LIT(KLogEngServerName,"LogServ*");
+
+	TInt err;
+
+	// Start the server if not already running
+	RLogSession sess;
+	err = sess.Connect();
+	if (err != KErrNone)
+		return KErrAbort;
+	sess.Close();
+
+	TFindProcess findProcess(KLogEngServerName);
+	TFullName result;
+	if ( findProcess.Next(result) != KErrNone )
+		return KErrAbort;
+	
+	RProcess server;
+	if( server.Open(findProcess, EOwnerProcess) != KErrNone)
+		return KErrAbort;
+
+	TRequestStatus status;
+	server.Logon(status);	
+ 	User::WaitForRequest(status);
+	
+	server.Close();
+	
+	__UHEAP_MARKEND;
+
+	return KErrServerTerminated;
+	}
+
+
 /**
 @SYMTestCaseID			PDS-LOGENG-UT-4045
 @SYMTestCaseDesc		In a loop, where the loop iterations are less than KTestIterCount (5000 at the moment), 
@@ -227,6 +271,13 @@ TInt ThreadFunc1(void* aData)
 */	
 void BadClientTest()
 	{
+	// Start a thread to watch the server process
+	RThread serverWatcher;
+	TInt err = serverWatcher.Create(_L("ServerWatcher"), &ServerWatcherFunc, 0x2000, 0x1000, 0x10000, NULL, EOwnerProcess);
+	TRequestStatus serverStatus;
+	serverWatcher.Logon(serverStatus);
+	serverWatcher.Resume();
+
 	TThreadData* p = new TThreadData;
 	TEST(p != NULL);
 	TThreadData& data = *p;
@@ -243,7 +294,7 @@ void BadClientTest()
 		User::After(200000);
 		_LIT(KTestThreadName, "TLBCThr");
 		RThread thread;
-		TInt err = thread.Create(KTestThreadName, &ThreadFunc1, 0x2000, 0x1000, 0x10000, &data, EOwnerProcess);
+		err = thread.Create(KTestThreadName, &ThreadFunc1, 0x2000, 0x1000, 0x10000, &data, EOwnerProcess);
 		if(err == KErrAlreadyExists)
 			{
 			TheTest.Printf(_L("##Iteration %d. Function %d. Thread \"%S\" already exists!\r\n"), data.iIteration, data.iFunction, &KTestThreadName);
@@ -274,7 +325,15 @@ void BadClientTest()
 		thread.Logon(status);
 		TEST2(status.Int(), KRequestPending);
 		thread.Resume();
-		User::WaitForRequest(status);
+		User::WaitForRequest(status, serverStatus);
+
+		// If the Server has crashed then we must fail		
+		if (serverStatus != KRequestPending) 
+			{
+			TheTest.Printf(_L("##Iteration=%d, Function=%d, Status1=%d, Status2=%d\r\n"), data.iIteration, data.iFunction, status.Int(), serverStatus.Int());
+			break;
+			}
+
 		TExitType exitType = thread.ExitType();
 		TInt exitReason = thread.ExitReason();
 		thread.Close();
@@ -310,6 +369,13 @@ void BadClientTest()
 			}
 		}//for
 	delete p;
+
+
+	// Check to see if the server crashed and not detected by client
+	TEST(serverStatus.Int() == KRequestPending);
+	serverWatcher.Kill(KErrCancel);
+	serverWatcher.Close();
+		
 	}
 
 /**

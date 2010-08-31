@@ -317,9 +317,13 @@ TBool CFeatMgrServer::LoadPluginsL()
     TBool ret( EFalse );
 
     // Use ECom to read information about existing interface implementations
-    _LIT8( KEmptyString, "" );
+#ifndef EXTENDED_FEATURE_MANAGER_TEST
+    _LIT8( KResolverString, "" );
+#else
+    _LIT8( KResolverString, "efmtestplugin" ); //In test server we only want test plugins.
+#endif
     TEComResolverParams resolverParams;
-    resolverParams.SetDataType (KEmptyString);
+    resolverParams.SetDataType (KResolverString);
     resolverParams.SetWildcardMatch (ETrue);
 
     TCleanupItem cleanupItem( ResetAndDestroyArray, &implInfoArray );
@@ -327,9 +331,8 @@ TBool CFeatMgrServer::LoadPluginsL()
     
     TIMESTAMP( "CFeatMgrServer::LoadPluginsL - ListImplementationsL start: " )
     REComSession::ListImplementationsL( KFeatureInfoPluginInterfaceUid,
-#ifndef EXTENDED_FEATURE_MANAGER_TEST                                         
                                         resolverParams,
-
+#ifndef EXTENDED_FEATURE_MANAGER_TEST                                         
                                         KRomOnlyResolverUid, 
 #endif                                        
                                         implInfoArray);

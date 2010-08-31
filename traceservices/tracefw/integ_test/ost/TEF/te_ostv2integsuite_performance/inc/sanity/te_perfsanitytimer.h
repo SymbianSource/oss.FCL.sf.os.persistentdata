@@ -43,17 +43,17 @@ enum TTestMethodType
 	};
 	
 public:
-	TBool	TestUserTimer(TUint32& aTestTime);
-	TBool	TestUserLongTimer(TUint32& aTestTime);
-	TBool	TestKernelTimer(TUint32& aTestTime);
-	TBool	TestKernelLongTimer(TUint32& aTestTime);
-	TBool	TestUTraceUserTimer(TUint32& aTestTime);
-	TBool	TestUTraceKernelTimer(TUint32& aTestTime);
+	TBool	TestUserTimerL(TUint32& aTestTime);
+	TBool	TestUserLongTimerL(TUint32& aTestTime);
+	TBool	TestKernelTimerL(TUint32& aTestTime);
+	TBool	TestKernelLongTimerL(TUint32& aTestTime);
+	TBool	TestUTraceUserTimerL(TUint32& aTestTime);
+	TBool	TestUTraceKernelTimerL(TUint32& aTestTime);
 	TUint32 Count(){return iCount;}
 private:
 	TBool	VerifyTime(TUint32 aTime);
 	TBool	DoTestUTraceTimer(const TInt aApi, TUint32& aTestTime);
-	TBool	DoTestTrace(const TTestMethodType aMethod, TUint32& aTestTime);
+	TBool	DoTestTraceL(const TTestMethodType aMethod, TUint32& aTestTime);
 private:
 	#ifndef __KERNEL_MODE__
 	CUptTimer		iTimer;

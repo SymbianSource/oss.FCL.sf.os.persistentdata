@@ -903,7 +903,7 @@ TInt CPermanentStoreCollector::ExtentL(TInt aStream)
 		}
 	return ::ExtentL(Host(),iMark,Coord().Base(),aStream);
 	}
-	
+
 /* relocate a stream into [iFree, aExtent)
 
 During compaction, for each string which is to be moved from position A1 to B1, the sequence of operations is:
@@ -942,15 +942,14 @@ Based on the knowledge above, it is strongly recommended to set EFileWriteDirect
 when writing to the file.
 */
 void CPermanentStoreCollector::RelocateStreamL(const CPermanentStoreCollector::TEntry& aReloc, TInt aExtent)
-
 	{
 	if (Coord().Accessed())	// must have exclusive access to relocate the stream
 		__LEAVE(KErrInUse);
 //
 	TInt end=RelocateL(aReloc.entry.ref,aReloc.len,aReloc.entry.handle == KHandleTocBase ? EFrameDescriptive16 : EFrameData16, aExtent);
-	//Step 1
+	//Step 1, 4,....
 	Coord().RelocateL(aReloc.entry.handle, iFree);
-	// Step 2 & 3
+	// Step 2 & 3, 5 & 6,...
 	iCoordGen=Coord().Generation();	// changed by relocation
 	iFree = end;
 	}

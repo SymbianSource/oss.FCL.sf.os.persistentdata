@@ -24,7 +24,7 @@
 
 #if (!defined __TE_ULOGGERSERVERTEST_STEP_BASE__)
 #define __TE_ULOGGERSERVERTEST_STEP_BASE__
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 // Please add your include here if you have 
 
 /****************************************************************************

@@ -90,7 +90,7 @@ GLDEF_C TInt E32Main()
 		{
 		return KErrNoMemory;
 		}
-	TRAPD(err,MainL());
+	TRAP_IGNORE(MainL());
 	delete cleanup;
 	__UHEAP_MARKEND;
 	return KErrNone;

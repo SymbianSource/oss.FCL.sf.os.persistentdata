@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,7 +14,7 @@
 //
 
 
-//! @File
+//! @file
 //! @SYMTestSuiteName               	utfv1-api-uloggerv1-sysstart-test-suite.script
 //! @SYMScriptTestEnvironment       	TEF
 
@@ -34,7 +34,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerSysStartLogging-0001
 //! @SYMTestActions    Compile a rom with uloggersysstart.exe compiled into startup sequence and uncomment #define systart in ULoggerAPILoggingTestStep. Run test step.
 //! @SYMTestExpectedResults     Verify that the output log contains btrace output from bott sequence as well as trace points enabled in ULoggerAPILoggingTestStep
 //! @SYMTestType         CT
-//! @SYMTESTSTATUS   Implemented
+//! @SYMTestStatus   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ  
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerAPILoggingTestStep 

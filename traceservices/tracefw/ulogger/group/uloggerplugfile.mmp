@@ -15,26 +15,23 @@
 // 
 //
 
-/**
- @file 
-*/
-
 TARGET uloggerfileplugin.dll
 TARGETTYPE PLUGIN
 UID  0x10009D8D 0x10273886
 VENDORID 0x70000001 
 CAPABILITY CommDD NetworkControl LocalServices ProtServ NetworkServices
 
+OS_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE ../inc
 
 SOURCEPATH ../src/outfrwkchans/file
-SOURCE uloggerfileplugin.cpp
-
-USERINCLUDE	../inc
-OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+SOURCE     uloggerfileplugin.cpp
 
 start RESOURCE 10273886.rss
 TARGET uloggerfileplugin.rsc
 end
 
-
-LIBRARY	euser.lib efsrv.lib ecom.lib
+LIBRARY	euser.lib 
+LIBRARY efsrv.lib 
+LIBRARY ecom.lib

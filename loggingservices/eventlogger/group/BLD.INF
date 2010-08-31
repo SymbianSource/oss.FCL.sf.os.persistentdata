@@ -21,29 +21,29 @@
 
 PRJ_EXPORTS
 
-../LogWrap/inc/LOGWRAP.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logwrap.h)
-../LogWrap/inc/LOGWRAPCONST.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logwrapconst.h)
-../LogWrap/inc/LOGWRAPLIMITS.H SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(logwraplimits.h)
-../LogWrap/inc/LOGWRAP.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logwrap.inl)
-../LogWrap/inc/LOGWRAP.HRH /epoc32/include/logwrap.hrh
-../LogWrap/inc/LOGFILTERANDEVENTCONSTANTS.HRH /epoc32/include/logfilterandeventconstants.hrh
-../LogWrap/inc/LOGENG.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logeng.h)
-../LogWrap/inc/LOGENGDURATIONS.H SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(logengdurations.h)
-../LogWrap/inc/LOGENGEVENTS.H SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(logengevents.h)
-../LogWrap/inc/LOGSMSPDUDATA.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logsmspdudata.h)
-../LogCli/inc/LOGCLI.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logcli.h)
-../LogCli/inc/LOGCLI.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logcli.inl)
-../LogCli/inc/LOGVIEW.H SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logview.h)
-../LogCli/inc/LOGVIEW.INL SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logview.inl)
-../LogCli/inc/LogViewChangeObserver.h SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logviewchangeobserver.h)
-../LogCli/inc/LogClientChangeObserver.h SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(logclientchangeobserver.h)
+../LogWrap/inc/LOGWRAP.H OS_LAYER_PUBLIC_EXPORT_PATH(logwrap.h)
+../LogWrap/inc/LOGWRAPCONST.H OS_LAYER_PUBLIC_EXPORT_PATH(logwrapconst.h)
+../LogWrap/inc/LOGWRAPLIMITS.H OS_LAYER_PUBLIC_EXPORT_PATH(logwraplimits.h)
+../LogWrap/inc/LOGWRAP.INL OS_LAYER_PUBLIC_EXPORT_PATH(logwrap.inl)
+../LogWrap/inc/LOGWRAP.HRH OS_LAYER_PUBLIC_EXPORT_PATH(logwrap.hrh)
+../LogWrap/inc/LOGFILTERANDEVENTCONSTANTS.HRH OS_LAYER_PUBLIC_EXPORT_PATH(logfilterandeventconstants.hrh)
+../LogWrap/inc/LOGENG.H OS_LAYER_PUBLIC_EXPORT_PATH(logeng.h)
+../LogWrap/inc/LOGENGDURATIONS.H OS_LAYER_PLATFORM_EXPORT_PATH(logengdurations.h)
+../LogWrap/inc/LOGENGEVENTS.H OS_LAYER_PLATFORM_EXPORT_PATH(logengevents.h)
+../LogWrap/inc/LOGSMSPDUDATA.H OS_LAYER_PUBLIC_EXPORT_PATH(logsmspdudata.h)
+../LogCli/inc/LOGCLI.H OS_LAYER_PUBLIC_EXPORT_PATH(logcli.h)
+../LogCli/inc/LOGCLI.INL OS_LAYER_PUBLIC_EXPORT_PATH(logcli.inl)
+../LogCli/inc/LOGVIEW.H OS_LAYER_PUBLIC_EXPORT_PATH(logview.h)
+../LogCli/inc/LOGVIEW.INL OS_LAYER_PUBLIC_EXPORT_PATH(logview.inl)
+../LogCli/inc/LogViewChangeObserver.h OS_LAYER_PUBLIC_EXPORT_PATH(logviewchangeobserver.h)
+../LogCli/inc/LogClientChangeObserver.h OS_LAYER_PUBLIC_EXPORT_PATH(logclientchangeobserver.h)
 
 
 ../Rom/logeng.iby /epoc32/rom/include/logeng.iby
 ../Rom/logeng.hby /epoc32/rom/include/logeng.hby
 
-../logcntmodel/inc/logcntmodel.h SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(logcntmodel.h)
-../logcntmodel/inc/logcntdef.h SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(logcntdef.h)
+../logcntmodel/inc/logcntmodel.h OS_LAYER_PLATFORM_EXPORT_PATH(logcntmodel.h)
+../logcntmodel/inc/logcntdef.h OS_LAYER_PLATFORM_EXPORT_PATH(logcntdef.h)
 
 backup_registration.xml z:/private/101f401d/backup_registration.xml
 

@@ -23,12 +23,6 @@ REM SQLTESTS
 #include <charconv.iby>
 #include <sql.iby>
 
-//Include the following to enable the ulogger server and the client tool. 
-//This is used to perform tracing using the UTF2
-
-//#include <uloggerclttool.iby>
-//#include <ulogger.iby>
-
 data=DATAZ_\test\sqlTests.bat                            \test\sqltests.bat
 
 data=DATAZ_\test\contacts_schema_to_vendors.sql          \test\contacts_schema_to_vendors.sql

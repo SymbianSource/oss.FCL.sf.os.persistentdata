@@ -135,8 +135,8 @@ private:
 	TBool								iDriveSpaceReserved;	//True if this session reserved drive space
 	TBool								iDriveSpaceInUse;		//True if the client has been given an access to the reserved drive space
 	TDriveNumber 						iDrive;					//the drive number, where the database file is
+	TUint                               iIpcCallCounter;
 #ifdef _SQLPROFILER
-	TUint                               iIpcCounter;                                   
     TSqlSrvIpcTraceData                 iIpcTraceData[KIpcTraceTypeCount];
 #endif
 	};

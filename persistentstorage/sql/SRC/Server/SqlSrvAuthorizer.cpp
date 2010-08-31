@@ -154,7 +154,7 @@ const TUint8 KTableNameArgIndex[] =
 //The function returns the argument number where the table name is.
 inline TInt DbOp2TableNameArgIndex(TInt aDbOpType)
 	{
-	__SQLASSERT(aDbOpType > 0 && aDbOpType <= SQLITE_FUNCTION, ESqlPanicInternalError);
+	__ASSERT_DEBUG(aDbOpType > 0 && aDbOpType <= SQLITE_FUNCTION, __SQLPANIC2(ESqlPanicInternalError));
 	return KTableNameArgIndex[aDbOpType];
 	}
 
@@ -165,12 +165,12 @@ inline const char* DbOp2TableName(TInt aDbOpType, const char* aDbObjName1, const
 	TInt pos = DbOp2TableNameArgIndex(aDbOpType);
 	if(pos == 2)
 		{
-		__SQLASSERT(aDbObjName2 != NULL, ESqlPanicInternalError);
+		__ASSERT_DEBUG(aDbObjName2 != NULL, __SQLPANIC2(ESqlPanicInternalError));
 		return aDbObjName2;
 		}
 	else if(pos == 1)
 		{
-		__SQLASSERT(aDbObjName1 != NULL, ESqlPanicInternalError);
+		__ASSERT_DEBUG(aDbObjName1 != NULL, __SQLPANIC2(ESqlPanicInternalError));
 		return aDbObjName1;
 		}
 	return NULL;//Some database operations do not use table name
@@ -182,7 +182,7 @@ inline const char* DbOp2DbName(TInt aDbOpType, const char* aDbObjName1, const ch
 	{
 	if(aDbOpType == SQLITE_DETACH || aDbOpType == SQLITE_ALTER_TABLE)
 		{
-		__SQLASSERT(aDbObjName1 != NULL, ESqlPanicInternalError);
+		__ASSERT_DEBUG(aDbObjName1 != NULL, __SQLPANIC2(ESqlPanicInternalError));
 		return aDbObjName1;
 		}
 	return aDbName;//It may be NULL for some database operations
@@ -298,7 +298,7 @@ static TInt NonSecureChecks(TInt aDbOpType,const char* aDbObjName1, const char* 
 //		case SQLITE_CREATE_VTABLE:
 //		case SQLITE_DROP_VTABLE:
 		default:
-			__SQLASSERT(EFalse, ESqlPanicInternalError);
+			__ASSERT_DEBUG(EFalse, __SQLPANIC2(ESqlPanicInternalError));
 			break;
 			}
 	return res;
@@ -428,7 +428,7 @@ static TInt SecureChecks(const CSqlSecurityPolicy* aSecurityPolicy,TInt aDbOpTyp
 //		case SQLITE_CREATE_VTABLE:
 //		case SQLITE_DROP_VTABLE:
 		default:
-			__SQLASSERT(EFalse, ESqlPanicInternalError);
+			__ASSERT_DEBUG(EFalse, __SQLPANIC2(ESqlPanicInternalError));
 			break;
 		}
 	return res;
@@ -503,9 +503,9 @@ TInt CSqlSrvDatabase::AuthorizeCallback(void* aDb, TInt aDbOpType,
 										const char* aDbName, const char* aTrgOrViewName)
 	{
 	UNUSED_ARG(aTrgOrViewName);
- 	__SQLASSERT(aDb != NULL, ESqlPanicBadArgument);
+ 	__ASSERT_DEBUG(aDb != NULL, __SQLPANIC2(ESqlPanicBadArgument));
 	
-#ifdef _NOTIFY
+#ifdef _SQL_AUTHORIZER_TRACE_ENABLED
     enum TDbOpType {EOpCreateIndex = 1, EOpCreateTable, EOpCreateTempIndex, EOpCreateTempTable, 
         EOpCreateTempTrigger, EOpCreateTempView, EOpCreateTrigger, EOpCreateView, EOpDelete, EOpDropIndex, 
         EOpDropTable, EOpDropTempIndex, EOpDropTempTable, EOpDropTempTrigger, EOpDropTempView, EOpDropTrigger,
@@ -513,7 +513,7 @@ TInt CSqlSrvDatabase::AuthorizeCallback(void* aDb, TInt aDbOpType,
 		EOpAlterTable, EOpReindex, EOpAnalyze, EOpCreateVTable, EOpDropVTable, EOpFunctionCall};
 	TDbOpType dbOpType = static_cast <TDbOpType> (aDbOpType);//can be seen now in the debugger
 	::PrintAuthorizerArguments(dbOpType, aDbObjName1, aDbObjName2, aDbName, aTrgOrViewName);
-#endif//_NOTIFY
+#endif
 
 	CSqlSrvDatabase& db = *static_cast <CSqlSrvDatabase*> (aDb);
 

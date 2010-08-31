@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -1292,49 +1292,53 @@ void PrintDiskUsage(const TDesC& aPath, TInt aOffset = 0)
 	{
 	_LIT(KSpace, " ");
 	TheTest.Printf(_L("%*.*S%S\r\n"), aOffset, aOffset, &KSpace, &aPath);
-	TFindFile findFile(TheFs);
+	TFindFile* findFile = new TFindFile(TheFs);//TFindFile has TParse data member. 
+											   //Since this function is called recoursively, on some platforms
+											   //the test might crash - "stack overflow" problem.
+	TEST(findFile != NULL);
 	CDir* fileNameCol = NULL;
 	TBuf<8> fileNameMask;
 	fileNameMask.Copy(_L("*.*"));
-	TInt err = findFile.FindWildByDir(fileNameMask, aPath, fileNameCol);
+	TInt err = findFile->FindWildByDir(fileNameMask, aPath, fileNameCol);
 	if(err == KErrNone)
 		{
 		do
 			{
-			const TDesC& file = findFile.File();//"file" variable contains the drive and the path. the file name in "file" is invalid in this case.
+			const TDesC& file = findFile->File();//"file" variable contains the drive and the path. the file name in "file" is invalid in this case.
 			(void)TheParse.Set(file, NULL, NULL);
 			TPtrC driveName = TheParse.Drive();
-			if(aPath.FindF(driveName) < 0)
-				{
-				goto cont;
-				}
+			if(aPath.FindF(driveName) >= 0)
+				{		
+                TInt cnt = fileNameCol->Count();
+                for(TInt i=0;i<cnt;++i)
+                    {
+                    const ::TEntry& entry = (*fileNameCol)[i];
+                    if(!entry.IsDir())
+                        {
+                        TheTest.Printf(_L("%*.*S    %S, size=%d\r\n"), aOffset, aOffset, &KSpace, &entry.iName, entry.iSize);
+                        }
+                    else
+                        {
+						TFileName* path = new TFileName;//allocated in heap to prevent "stack overflow" prolem
+						TEST(path != NULL);
+						path->Copy(aPath);
+						path->Append(entry.iName);
+						path->Append(_L("\\"));
+                        PrintDiskUsage(*path, aOffset + 4);
+                        delete path;
+                        }
+                    }
+				} // if(aPath.FindF(driveName) >= 0)
 			
-			TInt cnt = fileNameCol->Count();
-			for(TInt i=0;i<cnt;++i)
-				{
-				const ::TEntry& entry = (*fileNameCol)[i];
-				if(!entry.IsDir())
-					{
-					TheTest.Printf(_L("%*.*S    %S, size=%d\r\n"), aOffset, aOffset, &KSpace, &entry.iName, entry.iSize);
-					}
-				else
-					{
-					TBuf<100> path;
-					path.Copy(aPath);
-					path.Append(entry.iName);
-					path.Append(_L("\\"));
-					PrintDiskUsage(path, aOffset + 4);
-					}
-				}
-cont:			
 			delete fileNameCol;
 			fileNameCol = NULL;
-			} while((err = findFile.FindWild(fileNameCol)) == KErrNone);//Get the next set of files
+			} while((err = findFile->FindWild(fileNameCol)) == KErrNone);//Get the next set of files
 		}
 	else
 		{
 		TheTest.Printf(_L("  FindWildByDir() failed with err=%d\r\n"), err);
 		}
+	delete findFile;
 	}
 
 void DoTestL()
@@ -1401,7 +1405,7 @@ TInt E32Main()
 	DeleteFile(TheTestFileName);
 	TEST2(err, KErrNone);
 
-	TheTest.Printf(_L("====================================================\r\n"));
+	TheTest.Printf(_L("====================== Disk usage ==================\r\n"));
 	PrintDiskUsage(_L("c:\\"));
 	TheTest.Printf(_L("====================================================\r\n"));
 	

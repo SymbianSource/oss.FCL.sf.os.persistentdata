@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,11 +15,6 @@
 
 #ifndef __SQLPANIC_H__
 #define __SQLPANIC_H__
-
-#include "SqlAssert.h"
-
-//Forward declarations
-class RMessage2;
 
 /**
 TSqlPanic contains panic codes which may used by the SQL component (SqlDb.dll and SqlSrv.exe).
@@ -44,27 +39,4 @@ enum TSqlPanic
 	ESqlPanicBadDescriptor		=  13
 	};
 
-/**
-This function panics the thread where it is called from with aPanicCode panic code.
-
-@param aPanicCode Panic code
-
-@internalComponent
-*/
-void SqlPanic(TSqlPanic aPanicCode);
-
-/**
-This function is used inside the SQL server to panic the calling client.
-
-@param aMessage The message which processing causes the panic.
-@param aPanicCode Panic code
-
-@leave KSqlLeavePanic
-
-@return KErrNone
-
-@internalComponent
-*/
-TInt SqlPanicClientL(const RMessage2& aMessage, TSqlPanic aPanicCode);
-	
 #endif //__SQLPANIC_H__

@@ -15,7 +15,7 @@
 
 #include <sqldb.h>				//TSqlResourceTester
 #include "SqlResourceTest.h"	//TSqlResourceTestData
-#include "SqlPanic.h"			//__SQLASSERT, ESqlPanicInternalError
+#include "SqlAssert.h"			//ESqlPanicInternalError
 #include "SqlDbSession.h"		//RSqlDbSession
 #include "SqlResourceTester.h"		//TSqlResourceTester
 
@@ -102,7 +102,7 @@ The function has a meaningfull implementation only in _DEBUG mode.
 */
 TInt TSqlResourceTestData::Set(TSqlSrvFunction aFunction, TInt aAllocFailType, TInt aRate)
 	{
-	__SQLASSERT(!iRqPending, ESqlPanicMisuse);
+	__ASSERT_DEBUG(!iRqPending, __SQLPANIC(ESqlPanicMisuse));
 	if(iDbSession)	
 		{
 		return iDbSession->SendReceive(aFunction, TIpcArgs(aAllocFailType, aRate));

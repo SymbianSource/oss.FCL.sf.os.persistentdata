@@ -25,6 +25,7 @@ OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
 SOURCEPATH		../TEST
 SOURCE t_sqlitedef.cpp
+SOURCE sqliteTestUtl.cpp
 
 LIBRARY euser.lib
 LIBRARY sqlite3.lib 

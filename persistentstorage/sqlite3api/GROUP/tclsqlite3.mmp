@@ -20,7 +20,7 @@
 /**
  @file
 */
-#include <e32utrace.mmh>
+
 #include "tclsqlite3_macro.mmh"
 
 TARGET		tclsqlite3.exe
@@ -73,6 +73,7 @@ OPTION GCC -w
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+USERINCLUDE		../traces_sqlite3
 USERINCLUDE		../SQLite
 USERINCLUDE		../OsLayer
 OS_LAYER_LIBC_SYSTEMINCLUDE
@@ -171,6 +172,7 @@ SOURCE		test_thread.c
 SOURCEPATH	../OsLayer
 SOURCE		FileBuf64.cpp
 SOURCE		os_symbian_mt.cpp
+SOURCE		SqliteUtil.cpp
 #ifdef WINSCW
 SOURCE		os_symbian_emul.cpp
 #else

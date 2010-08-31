@@ -24,7 +24,7 @@
 
 #if (!defined __TE_FILE_SERVER_H__)
 #define __TE_FILE_SERVER_H__
-#include <testexecuteserverbase.h>
+#include <test/testexecuteserverbase.h>
 
 
 class CTe_fileSuite : public CTestServer

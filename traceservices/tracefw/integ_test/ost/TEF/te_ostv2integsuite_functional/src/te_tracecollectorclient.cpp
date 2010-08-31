@@ -103,7 +103,7 @@ TBool CTCMGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
                }
  		    }
 		CClearConfig configIni;
-		configIni.Clear(logger);
+		configIni.ClearL(logger);
 		INFO_PRINTF2(_L("connect err %d"), result);
 		result=logger.SetPrimaryFiltersEnabled(*setfilter,ETrue);//C.A. previously:result=logger.EnableClassifications(*setfilter);
 
@@ -320,7 +320,7 @@ TBool CTCMGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 
 		//  **************   Block end ****************
 
-		configIni.Clear(logger);
+		configIni.ClearL(logger);
 		logger.Close();
 		if(setfilter)
 			delete setfilter;
@@ -414,7 +414,7 @@ TBool CTCMComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aComman
 		 	    }
 
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			result = logger.SetSecondaryFiltersEnabled(setfilter,ETrue);//C.A. previously:result = logger.EnableModuleUids(setfilter);
 			INFO_PRINTF2(_L("Secondary filter has been set with single filter, %d, check log"), setfilter[0]);
 			INFO_PRINTF2(_L("code: %d"), result);
@@ -600,7 +600,7 @@ TBool CTCMComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aComman
 					}
 				}
 				INFO_PRINTF1(_L("Now call clear config to check removing multiple second filters performance"));
-				configIni.Clear(logger);
+				configIni.ClearL(logger);
 				INFO_PRINTF1(_L("after clear config- multiple second filters performance"));
 
 				if(result==1)
@@ -694,7 +694,7 @@ TBool CTCMLoggingWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 #endif
 #ifndef SysStartTest
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 #endif
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(22);
 			setprimfilter->AppendL(KGroupId);
@@ -993,7 +993,7 @@ TBool CTCMLoggingWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 		{
 			INFO_PRINTF1(_L("Now do some multiple type logging testing."));
 			//CClearConfig configIni;
-			//configIni.Clear(logger);
+			//configIni.ClearL(logger);
 
 			if(result==0)
 			{
@@ -1205,7 +1205,7 @@ TBool CTCMLoggingWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 						multsetprimfilter=NULL;
 					}
 				}
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			}
 			else
 				INFO_PRINTF1(_L("adding file as output plugin failed"));
@@ -1310,7 +1310,7 @@ TBool CTCMKernelLoggingWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
                }
             }
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(KGroupId);
 			RArray<TUint32> setsecondfilter;
@@ -1580,7 +1580,7 @@ TBool CTCMKernelLoggingWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 			else
 					SetBlockResult(EFail);
 			INFO_PRINTF1(_L("Multiple logging to file with kernel side tracing has been tested - check output log. It should contain four lines of tracing of type, (sec,prim), (sec+2, prim), (sec, prim+2), (sec+2, prim+2)"));
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 		}
 		if(setprimfilter)
 		{
@@ -1668,7 +1668,7 @@ TBool CTCMPrintfLoggingWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
                    }
 		 	    }
 			CClearConfig configIni;
-			configIni.Clear(logger);
+			configIni.ClearL(logger);
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(KGroupId);
 			RArray<TUint32> setsecondfilter;
@@ -1885,7 +1885,7 @@ TBool CTCMKernelPrintfLoggingWrapper::DoCommandL(	const TTEFFunction& /*aCommand
                }
 		    }
 
-		configIni.Clear(logger);
+		configIni.ClearL(logger);
 		CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 		setprimfilter->AppendL(KGroupId);
 		RArray<TUint32> setsecondfilter;
@@ -1977,7 +1977,7 @@ TBool CTCMKernelPrintfLoggingWrapper::DoCommandL(	const TTEFFunction& /*aCommand
 			SetBlockResult(EFail);
 		INFO_PRINTF1(_L("Simple printf logging to file has been tested with kernel side tracing- check output log"));
 
-		configIni.Clear(logger);
+		configIni.ClearL(logger);
 
 		if(setprimfilter)
 			{

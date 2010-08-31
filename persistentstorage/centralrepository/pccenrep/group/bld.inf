@@ -18,7 +18,7 @@ DEFAULT TOOLS2
 
 
 PRJ_EXPORTS
-../include/centralrepository.h	 SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(x86tool/centralrepository.h)
+../include/centralrepository.h	 OS_LAYER_PLATFORM_EXPORT_PATH(x86tool/centralrepository.h)
 
 
 PRJ_TESTEXPORTS

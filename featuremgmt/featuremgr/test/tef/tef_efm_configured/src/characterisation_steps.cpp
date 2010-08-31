@@ -27,22 +27,16 @@
 #include "characterisation_steps.h"
 #include "efm_teststepbase.h"
 
+
+TBool SkipPerformanceTest = EFalse;
+const TInt KPlatSimUid = 0x20029a73; //0x20029a73 will be changed soon once PlatSim get its own uid.
+
 // This is the base class for some of our characterisation tests.
 // Creates an RFeatureControl object, finds out what the fast counter
 // frequency is and gets the timeout for this test.
 TVerdict CCharacteriseBaseStep :: doTestStepPreambleL()
 	{
-	// First find out the granularity of the system clock..
-	HAL::Get(HALData::EFastCounterFrequency, icountfreq);
-	INFO_PRINTF2(_L("Counts per sec=%d"), icountfreq);
-	icountperusec = icountfreq/1000000.0;
-	INFO_PRINTF2(_L("Counts per usec=%f"), icountperusec);
 
-	TInt err = icontrol.Open();
-	TESTDIAGNOSTICERROR(err==KErrNone,
-		_L("RFeatureControl::Open failed: error = %d"), err);
-	if(err) { return TestStepResult(); }
-	CleanupClosePushL(icontrol);
 
 	// Get the timeout from the .ini file. The name of the timeout entry
 	// varies depending on what type of build we have.
@@ -68,6 +62,10 @@ TVerdict CCharacteriseBaseStep :: doTestStepPreambleL()
 	   case HAL::EMachineUid_NE1_TB:
 	   		timeoutini.Append(_L("_NE1"));
 	   		break;
+	   case KPlatSimUid:
+            ERR_PRINTF1(_L("Not running performance test in PlatSim"));
+            SkipPerformanceTest = ETrue; //Skip performance test on PlatSim
+            break;
 	   //add any new hardware IDs here		
 	   default:
 	   		break;
@@ -78,21 +76,37 @@ TVerdict CCharacteriseBaseStep :: doTestStepPreambleL()
 #else
 	timeoutini.Append(_L("_UREL"));
 #endif
-
-	// Get the timeout, which is measured in microseconds.
-	if( !GetIntFromConfig(ConfigSection(), timeoutini, itimeout ) )
-		{
-		ERR_PRINTF2(_L("Can't find '%S' in .ini file"),
-						&timeoutini );
-		CleanupStack::PopAndDestroy(&icontrol);
-		SetTestStepResult(EFail);
-		return TestStepResult();
-		}
+    if (!SkipPerformanceTest)
+        {
+        // First find out the granularity of the system clock..
+        HAL::Get(HALData::EFastCounterFrequency, icountfreq);
+        INFO_PRINTF2(_L("Counts per sec=%d"), icountfreq);
+        icountperusec = icountfreq/1000000.0;
+        INFO_PRINTF2(_L("Counts per usec=%f"), icountperusec);
+        TInt err = icontrol.Open();
+        TESTDIAGNOSTICERROR(err==KErrNone,
+            _L("RFeatureControl::Open failed: error = %d"), err);
+        if(err) { return TestStepResult(); }
+        CleanupClosePushL(icontrol);
+        // Get the timeout, which is measured in microseconds.
+        if( !GetIntFromConfig(ConfigSection(), timeoutini, itimeout ) )
+            {
+            ERR_PRINTF2(_L("Can't find '%S' in .ini file"),
+                            &timeoutini );
+            CleanupStack::PopAndDestroy(&icontrol);
+            SetTestStepResult(EFail);
+            return TestStepResult();
+            }
+        }
 	return TestStepResult();
 	}
 
 TVerdict CCharacteriseBaseStep :: doTestStepPostambleL()
 	{
+    if (SkipPerformanceTest)
+		{
+        return TestStepResult();
+		}
 	CleanupStack::PopAndDestroy(&icontrol);
 	return TestStepResult();
 	}
@@ -104,6 +118,10 @@ CCharacteriseSupportedStep :: CCharacteriseSupportedStep()
 
 TVerdict CCharacteriseSupportedStep::doTestStepL()
 	{
+    if (SkipPerformanceTest)
+		{
+		return TestStepResult();
+		}
 	// The base class 'CCharacteriseBaseStep' has already opened the
 	// RFeatureControl object and read in the timeout number.
 
@@ -171,6 +189,10 @@ CCharacteriseSupportedArrayStep :: CCharacteriseSupportedArrayStep()
 
 TVerdict CCharacteriseSupportedArrayStep::doTestStepL()
 	{
+    if (SkipPerformanceTest)
+		{
+		return TestStepResult();
+		}
 	// Find out how many features we're going to attempt to read..
 	TInt nfeats, minuid, expsup;
 	if(!GetIntFromConfig(ConfigSection(), _L("NumFeaturesToRead"), nfeats) ||

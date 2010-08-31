@@ -467,7 +467,7 @@ LOCAL_C void RunTestL(TInt aTestExecutionTime = 0)
 		for (TInt ii=0;;++ii)
 			{
 			TheTest.Printf(_L("Opening %d\r"),ii);
-			TRAPD(r,store=CFileStore::OpenL(TheFs,KTestDatabase,EFileRead|EFileWrite));
+			TRAPD(r,store=CFileStore::OpenL(TheFs,KTestDatabase,EFileRead|EFileWrite|EFileWriteDirectIO));
 			if (r==KErrNone)
 				break;
 			TEST2(r, KErrInUse);
@@ -515,7 +515,7 @@ static void RunVerify()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-DBMS-CT-0636 Open store "));
 	CFileStore* store=NULL;
-	TRAPD(r,store=CFileStore::OpenL(TheFs,KTestDatabase,EFileRead|EFileWrite));
+	TRAPD(r,store=CFileStore::OpenL(TheFs,KTestDatabase,EFileRead|EFileWrite|EFileWriteDirectIO));
 	TEST2 (r,KErrNone);
 	TheTest.Next(_L("Verify"));
 	NewCount=-1;

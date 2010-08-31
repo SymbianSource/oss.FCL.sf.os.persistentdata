@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,9 +15,14 @@
 
 #include <s32mem.h>
 #include "SqlDb.h"
-#include "SqlPanic.h"
+#include "SqlAssert.h"
 #include "SqlDatabaseImpl.h"
 #include "IPCBuf.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlBlobTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
 // The maximum time (100 milliseconds) that a block of data is allowed to take to be read/written by TSqlBlob.
 // If the time taken is longer than this value then the next block size used will be less
@@ -103,7 +108,7 @@ static void DoReadInBlocksL(RSqlBlobReadStream& aStrm, TDes8& aDestBuffer, TInt 
 	
 		// Update how much data is still to be read, and the buffer pointer
 		remainingDataSize -= blockSize;
-		__SQLASSERT(remainingDataSize >= 0, ESqlPanicInternalError);
+		__ASSERT_DEBUG(remainingDataSize >= 0, __SQLPANIC2(ESqlPanicInternalError));
 		ptr.Set((TUint8*)(ptr.Ptr() + blockSize), 0, remainingDataSize);
 		}	
 	aDestBuffer.SetLength(aBlobSize);
@@ -132,7 +137,7 @@ static void DoWriteInBlocksL(RSqlBlobWriteStream& aStrm, const TDesC8& aData, TI
 	
 		// Update how much data is still to be written
 		remainingDataSize -= blockSize;
-		__SQLASSERT(remainingDataSize >= 0, ESqlPanicInternalError);
+		__ASSERT_DEBUG(remainingDataSize >= 0, __SQLPANIC2(ESqlPanicInternalError));
 		}	
 	aStrm.CommitL();	
 	}
@@ -171,7 +176,7 @@ static void ReadL(RSqlDatabase& aDb,
 	TInt blobSize = strm.SizeL(); // size of the blob, in bytes
 	if(blobSize > aBuffer.MaxSize())
 		{
-		__SQLLEAVE(KErrOverflow);
+		__SQLLEAVE2(KErrOverflow);
 		}	
 	DoReadInBlocksL(strm, aBuffer, blobSize);
 	CleanupStack::PopAndDestroy(); // strm
@@ -192,7 +197,7 @@ static void WriteL(RSqlDatabase& aDb,
 	TInt blobSize = strm.SizeL(); // size of the blob, in bytes
 	if(dataSize > blobSize)
 		{
-		__SQLLEAVE(KErrEof);
+		__SQLLEAVE2(KErrEof);
 		}	
 	if(dataSize > 0)
 		{
@@ -236,14 +241,12 @@ Gives access to a blob as a read-only stream of bytes.
 EXPORT_C void RSqlBlobReadStream::OpenL(RSqlDatabase& aDb, const TDesC& aTableName, const TDesC& aColumnName, 
 										TInt64 aRowId, const TDesC& aDbName)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KRSqlBlobParam16, &aDb, &aTableName, 
-			&aColumnName, aRowId, &aDbName));
-	
+	SQL_TRACE_BORDER(OstTraceExt5(TRACE_BORDER, RSQLBLOBREADSTREAM_OPENL_ENTRY, "Entry;0;RSqlBlobReadStream::OpenL;aDb=0x%X;aTableName=%S;aColumnName=%S;aDbName=%S;aRowId=%lld", (TUint)&aDb, __SQLPRNSTR(aTableName), __SQLPRNSTR(aColumnName), __SQLPRNSTR(aDbName), aRowId));
 	HBufC8* ipcPrmBuf = ::PrepareIpcParamBufLC(aTableName, aColumnName, aRowId, ETrue, aDbName);
 	MStreamBuf* strm = ::CreateIpcStreamL(aDb.Impl().Session(), ipcPrmBuf->Des());
 	Attach(strm);
 	CleanupStack::PopAndDestroy(ipcPrmBuf);	
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLBLOBREADSTREAM_OPENL_EXIT, "Exit;0x%x;RSqlBlobReadStream::OpenL;strm=0x%X", (TUint)this, (TUint)strm));
 	}
 	
 /**
@@ -259,11 +262,12 @@ Returns the size of the blob object, in bytes.
 */
 EXPORT_C TInt RSqlBlobReadStream::SizeL()
 	{
-	SQLUTRACE_PROFILER(this);
-	
+    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLBLOBREADSTREAM_SIZEL_ENTRY, "Entry;0x%X;RSqlBlobReadStream::SizeL;", (TUint)this));
 	MStreamBuf* src = Source();
-	__SQLASSERT_ALWAYS(src != NULL, ESqlPanicInvalidObj);
-	return src->SizeL();
+	__ASSERT_ALWAYS(src != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	TInt size = src->SizeL();
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLBLOBREADSTREAM_SIZEL_EXIT, "Exit;0x%X;RSqlBlobReadStream::SizeL;size=%d", (TUint)this, size));
+	return size;
 	}
 
 /**
@@ -299,14 +303,12 @@ Gives access to a blob as a writeable stream of bytes.
 EXPORT_C void RSqlBlobWriteStream::OpenL(RSqlDatabase& aDb, const TDesC& aTableName, const TDesC& aColumnName, 
 										 TInt64 aRowId, const TDesC& aDbName)
 	{
-	SQLUTRACE_PROFILER(this);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KRSqlBlobParam16, &aDb, &aTableName, 
-			&aColumnName, aRowId, &aDbName));
-	
+    SQL_TRACE_BORDER(OstTraceExt5(TRACE_BORDER, RSQLBLOBWRITESTREAM_OPENL_ENTRY, "Entry;0;RSqlBlobWriteStream::OpenL;aDb=0x%X;aTableName=%S;aColumnName=%S;aDbName=%S;aRowId=%lld", (TUint)&aDb, __SQLPRNSTR(aTableName), __SQLPRNSTR(aColumnName), __SQLPRNSTR(aDbName), aRowId));
 	HBufC8* ipcPrmBuf = ::PrepareIpcParamBufLC(aTableName, aColumnName, aRowId, EFalse, aDbName);
 	MStreamBuf* strm = ::CreateIpcStreamL(aDb.Impl().Session(), ipcPrmBuf->Des());
 	Attach(strm);
 	CleanupStack::PopAndDestroy(ipcPrmBuf);		
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLBLOBWRITESTREAM_OPENL_EXIT, "Exit;0x%x;RSqlBlobWriteStream::OpenL;strm=0x%X", (TUint)this, (TUint)strm));
 	}
 
 /**
@@ -322,11 +324,12 @@ Returns the size of the blob object, in bytes.
 */
 EXPORT_C TInt RSqlBlobWriteStream::SizeL()
 	{
-	SQLUTRACE_PROFILER(this);
-
+    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLBLOBWRITESTREAM_SIZEL_ENTRY, "Entry;0x%X;RSqlBlobWriteStream::SizeL;", (TUint)this));
 	MStreamBuf* sink = Sink();
-	__SQLASSERT_ALWAYS(sink != NULL, ESqlPanicInvalidObj);
-	return sink->SizeL();
+	__ASSERT_ALWAYS(sink != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	TInt size =  sink->SizeL();
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLBLOBWRITESTREAM_SIZEL_EXIT, "Exit;0x%X;RSqlBlobWriteStream::SizeL;size=%d", (TUint)this, size));
+    return size;
 	}
 
 /**
@@ -367,11 +370,10 @@ EXPORT_C HBufC8* TSqlBlob::GetLC(RSqlDatabase& aDb,
 					     		 TInt64 aRowId,
 					     		 const TDesC& aDbName)
 	{
-	SQLUTRACE_PROFILER(0);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KRSqlBlobParam16, &aDb, &aTableName, 
-			&aColumnName, aRowId, &aDbName));
-	
-	return ReadLC(aDb, aTableName, aColumnName, aRowId, aDbName);
+    SQL_TRACE_BORDER(OstTraceExt5(TRACE_BORDER, TSQLBLOB_GETLC_ENTRY, "Entry;0;TSqlBlob::GetLC;aDb=0x%X;aTableName=%S;aColumnName=%S;aDbName=%S;aRowId=%lld", (TUint)&aDb, __SQLPRNSTR(aTableName), __SQLPRNSTR(aColumnName), __SQLPRNSTR(aDbName), aRowId));
+	HBufC8* res = ReadLC(aDb, aTableName, aColumnName, aRowId, aDbName);
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLBLOB_GETLC_EXIT, "Exit;0;TSqlBlob::GetLC;res=0x%X;res->Size()=%d", (TUint)res, res->Des().Size()));
+	return res;
 	}
 	
 /**
@@ -412,11 +414,9 @@ EXPORT_C TInt TSqlBlob::Get(RSqlDatabase& aDb,
 					 		TInt64 aRowId,
 					 	    const TDesC& aDbName)
 	{
-	SQLUTRACE_PROFILER(0);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KRSqlBlobParam16, &aDb, &aTableName, 
-			&aColumnName, aRowId, &aDbName));
-	
+    SQL_TRACE_BORDER(OstTraceExt5(TRACE_BORDER, TSQLBLOB_GET_ENTRY, "Entry;0;TSqlBlob::Get;aDb=0x%X;aTableName=%S;aColumnName=%S;aDbName=%S;aRowId=%lld", (TUint)&aDb, __SQLPRNSTR(aTableName), __SQLPRNSTR(aColumnName), __SQLPRNSTR(aDbName), aRowId));
 	TRAPD(err, ReadL(aDb, aTableName, aColumnName, aBuffer, aRowId, aDbName));
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLBLOB_GET_EXIT, "Exit;0;TSqlBlob::Get;aBuffer.Ptr()=0x%X;aBuffer.Size()=%d", (TUint)aBuffer.Ptr(), aBuffer.Size()));
 	return err;	
 	}
 
@@ -458,10 +458,9 @@ EXPORT_C void TSqlBlob::SetL(RSqlDatabase& aDb,
 					  		 TInt64 aRowId,
 					  		 const TDesC& aDbName)
 	{
-	SQLUTRACE_PROFILER(0);
-	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KRSqlBlobParam16, &aDb, &aTableName, 
-			&aColumnName, aRowId, &aDbName));
-	
+    SQL_TRACE_BORDER(OstTraceExt5(TRACE_BORDER, TSQLBLOB_SET_ENTRY, "Entry;0;TSqlBlob::Set;aDb=0x%X;aTableName=%S;aColumnName=%S;aDbName=%S;aRowId=%lld", (TUint)&aDb, __SQLPRNSTR(aTableName), __SQLPRNSTR(aColumnName), __SQLPRNSTR(aDbName), aRowId));
+    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, TSQLBLOB_SET_ENTRYEXT, "EntryExt;0;TSqlBlob::Set;aData.Ptr=0x%X;aData.Size()=%d", (TUint)aData.Ptr(), aData.Size()));
 	WriteL(aDb, aTableName, aColumnName, aData,	aRowId, aDbName);
+    SQL_TRACE_BORDER(OstTrace0(TRACE_BORDER, TSQLBLOB_SET_EXIT, "Exit;0;TSqlBlob::Set"));
 	}
 

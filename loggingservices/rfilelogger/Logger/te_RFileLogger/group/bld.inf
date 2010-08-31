@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,19 +14,10 @@
 //
 
 PRJ_TESTEXPORTS
-../scripts/te_RFileLoggerSuite.script		/epoc32/release/wins/udeb/z/testdata/scripts/te_rfileloggersuite.script
-../scripts/te_RFileLoggerSuite.script		/epoc32/release/wins/urel/z/testdata/scripts/te_rfileloggersuite.script
-../scripts/te_RFileLoggerSuite.script		/epoc32/release/winscw/udeb/z/testdata/scripts/te_rfileloggersuite.script
-../scripts/te_RFileLoggerSuite.script		/epoc32/release/winscw/urel/z/testdata/scripts/te_rfileloggersuite.script
+../scripts/te_RFileLoggerSuite.script   z:/testdata/scripts/te_rfileloggersuite.script
+../testdata/te_RFileLoggersuite.ini     z:/testdata/configs/te_rfileloggersuite.ini
 
-../testdata/te_RFileLoggersuite.ini	/epoc32/release/wins/udeb/z/testdata/configs/te_rfileloggersuite.ini
-../testdata/te_RFileLoggersuite.ini	/epoc32/release/wins/urel/z/testdata/configs/te_rfileloggersuite.ini
-../testdata/te_RFileLoggersuite.ini	/epoc32/release/winscw/udeb/z/testdata/configs/te_rfileloggersuite.ini
-../testdata/te_RFileLoggersuite.ini	/epoc32/release/winscw/urel/z/testdata/configs/te_rfileloggersuite.ini
-
-
-./te_RFileLoggersuite.iby   		/epoc32/rom/include/te_rfileloggersuite.iby
-
+te_RFileLoggersuite.iby                 /epoc32/rom/include/te_rfileloggersuite.iby
 
 PRJ_TESTMMPFILES
-Te_RFileLoggersuite.mmp
+Te_RFileLoggersuite.mmp manual

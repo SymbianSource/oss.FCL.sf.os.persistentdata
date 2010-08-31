@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,67 +13,18 @@
 // Description:
 //
 
-/**
- @file bld.inf
- @internalTechnology
-*/
-PRJ_PLATFORMS
-
-
-PRJ_EXPORTS
-
 PRJ_TESTEXPORTS
+te_uloggermclsuite.iby   				        /epoc32/rom/include/te_uloggermclsuite.iby
 
-//to c:
-../scripts/te_uloggermclsuite.script			/epoc32/winscw/c/testdata/scripts/te_uloggermclsuite.script
-../scripts/te_uloggermclperfsuite.script		/epoc32/winscw/c/testdata/scripts/te_uloggermclperfsuite.script
-../scripts/te_uloggersysstart.script   			/epoc32/winscw/c/testdata/scripts/te_uloggersysstart.script
-../scripts/te_uloggerconfigfile.script   		/epoc32/winscw/c/testdata/scripts/te_uloggerconfigfile.script
-../scripts/te_uloggerconfigfile_winscw.script   /epoc32/winscw/c/testdata/scripts/te_uloggerconfigfile_winscw.script
-./configfileuloggerconfig.ini 					/epoc32/winscw/c/ulogger/configfileuloggerconfig.ini
-//to z:
-../scripts/te_uloggermclsuite.script			/epoc32/release/winscw/udeb/z/testdata/scripts/te_uloggermclsuite.script
-../scripts/te_uloggermclperfsuite.script		/epoc32/release/winscw/udeb/z/testdata/scripts/te_uloggermclperfsuite.script
-../scripts/te_uloggersysstart.script   			/epoc32/release/winscw/udeb/z/testdata/scripts/te_uloggersysstart.script
-../scripts/te_uloggerconfigfile.script   		/epoc32/release/winscw/udeb/z/testdata/scripts/te_uloggerconfigfile.script
-../scripts/te_uloggerconfigfile_winscw.script  	/epoc32/release/winscw/udeb/z/testdata/scripts/te_uloggerconfigfile_winscw.script
-./configfileuloggerconfig.ini 					/epoc32/release/winscw/udeb/z/ulogger/configfileuloggerconfig.ini
+../scripts/te_uloggermclsuite.script			z:/testdata/scripts/te_uloggermclsuite.script
+//Test script for platform that doesn't support serial port
+../scripts/te_uloggermclsuite_noserial.script	z:/testdata/scripts/te_uloggermclsuite_noserial.script
+../scripts/te_uloggermclperfsuite.script		z:/testdata/scripts/te_uloggermclperfsuite.script
+../scripts/te_uloggersysstart.script   			z:/testdata/scripts/te_uloggersysstart.script
+../scripts/te_uloggerconfigfile.script   		z:/testdata/scripts/te_uloggerconfigfile.script
+../scripts/te_uloggerconfigfile_winscw.script  	z:/testdata/scripts/te_uloggerconfigfile_winscw.script
 
-./te_uloggermclsuite.iby   				/epoc32/rom/include/te_uloggermclsuite.iby
-
-#ifdef SYMBIAN_OLD_EXPORT_LOCATION
-#endif
-#ifdef SYMBIAN_OLD_EXPORT_LOCATION
-../inc/te_setfilterparameters.h   /epoc32/include/ulogger_integrationtest/te_setfilterparameters.h
-#endif
-../inc/te_setfilterparameters.h   /epoc32/rom/include/ulogger_integrationtest/te_setfilterparameters.h
-#ifdef SYMBIAN_OLD_EXPORT_LOCATION
-../inc/te_utracecmds.h   /epoc32/include/ulogger_integrationtest/te_utracecmds.h
-#endif
-../inc/te_utracecmds.h   /epoc32/rom/include/ulogger_integrationtest/te_utracecmds.h
-#ifdef SYMBIAN_OLD_EXPORT_LOCATION
-../src/te_utracecmds.cpp   /epoc32/include/ulogger_integrationtest/te_utracecmds.cpp
-#endif
-../src/te_utracecmds.cpp  /epoc32/rom/include/ulogger_integrationtest/te_utracecmds.cpp
-#ifdef SYMBIAN_OLD_EXPORT_LOCATION
-../inc/te_utracekernelcmds.h   /epoc32/include/ulogger_integrationtest/te_utracekernelcmds.h
-#endif
-../inc/te_utracekernelcmds.h   /epoc32/rom/include/ulogger_integrationtest/te_utracekernelcmds.h
-#ifdef SYMBIAN_OLD_EXPORT_LOCATION
-../src/te_utracekernelcmds.cpp   /epoc32/include/ulogger_integrationtest/te_utracekernelcmds.cpp
-#endif
-../src/te_utracekernelcmds.cpp  /epoc32/rom/include/ulogger_integrationtest/te_utracekernelcmds.cpp
-#ifdef SYMBIAN_OLD_EXPORT_LOCATION
-../inc/te_uloggermclsuitedefs.h  /epoc32/include/ulogger_integrationtest/te_uloggermclsuitedefs.h
-#endif
-../inc/te_uloggermclsuitedefs.h  /epoc32/rom/include/ulogger_integrationtest/te_uloggermclsuitedefs.h
-#ifdef SYMBIAN_OLD_EXPORT_LOCATION
-../src/te_uloggermclsuitedefs.cpp  /epoc32/include/ulogger_integrationtest/te_uloggermclsuitedefs.cpp 
-#endif
-../src/te_uloggermclsuitedefs.cpp  /epoc32/rom/include/ulogger_integrationtest/te_uloggermclsuitedefs.cpp
-
-PRJ_MMPFILES
+configfileuloggerconfig.ini 					z:/ulogger/configfileuloggerconfig.ini
 
 PRJ_TESTMMPFILES
-
-te_uloggermclsuite.mmp
+te_uloggermclsuite.mmp manual

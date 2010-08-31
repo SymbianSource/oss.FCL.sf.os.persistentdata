@@ -85,10 +85,10 @@ void CUptResults::WriteUptResultsL(const TDesC& aFileName, const TBool& aAppend,
 	
 	//create a csvgenerator class
 	CUptCsvGenerator csvgenerator;
-	csvgenerator.Open(aFileName,aAppend); 
+	csvgenerator.OpenL(aFileName,aAppend); 
 	
 	//call writeheader to write the relevent test column header for the csv file, 
-	csvgenerator.WriteHeader(aTestType);
+	csvgenerator.WriteHeaderL(aTestType);
 	
 	if(aTestType==0)
 		{
@@ -125,7 +125,7 @@ void CUptResults::WriteUptResultsL(const TDesC& aFileName, const TBool& aAppend,
 		//	__TEST_LOGNUM(iApiTest.Count());
 
 		//call write newline to write a new line in preparation for the next test object
-		csvgenerator.WriteNewLine();
+		csvgenerator.WriteNewLineL();
 		
 		//clear out the RArray object in preparation for the next test result object
 		testdataarray.Reset(); 
@@ -161,7 +161,7 @@ void CUptResults::WriteUptResultsL(const TDesC& aFileName, const TBool& aAppend,
 		
 
 		//call write newline to write a new line in preparation for the next test object
-		csvgenerator.WriteNewLine();
+		csvgenerator.WriteNewLineL();
 		
 		//clear out the RArray objects in preparation for the next test result object
 		initialpluginarray.Reset();

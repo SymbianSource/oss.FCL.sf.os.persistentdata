@@ -12,6 +12,7 @@
 //
 // Description:
 //
+#include <e32utrace.mmh>
 
 TARGET			t_sqlsecurity6.exe
 TARGETTYPE		EXE

@@ -17,9 +17,9 @@ PRJ_PLATFORMS
 DEFAULT
 
 PRJ_EXPORTS
-../inc/featreg.h SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(featreg.h)
-../inc/featreg.inl SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(featreg.inl)
-../inc/featregpan.h SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(featregpan.h)
+../inc/featreg.h OS_LAYER_PLATFORM_EXPORT_PATH(featreg.h)
+../inc/featreg.inl OS_LAYER_PLATFORM_EXPORT_PATH(featreg.inl)
+../inc/featregpan.h OS_LAYER_PLATFORM_EXPORT_PATH(featregpan.h)
 ./featreg.iby /epoc32/rom/include/featreg.iby
 
 PRJ_MMPFILES

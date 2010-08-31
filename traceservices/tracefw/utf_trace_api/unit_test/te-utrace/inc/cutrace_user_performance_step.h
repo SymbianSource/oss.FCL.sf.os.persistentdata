@@ -24,7 +24,7 @@
 */
 #ifndef CUTRACE_PERFORMANCE_STEP_H_
 #define CUTRACE_PERFORMANCE_STEP_H_
-#include <testexecutestepbase.h>
+#include <test/testexecutestepbase.h>
 #include "te_utracesuitestepbase.h"
 
 

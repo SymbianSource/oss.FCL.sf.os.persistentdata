@@ -60,7 +60,7 @@ public:
 	void Start();
 	~CCentRepSWIWatcher();
 	void HandleSWIEventL(TInt swiProperty);
-    void FindChangedEntriesL(TBool aStartup=EFalse);		
+    void FindChangedEntriesL(TBool aStartup=EFalse);
 	//From CActive
 protected:	
 	void RunL();
@@ -72,11 +72,11 @@ private:
 	void ConstructL();
 	
 	void ReadInstallDirL(RPointerArray<CInstallEntry>& aEntryArray);
-
 	
 	void SaveInstallDirL();
 	void GetInstallDirL();
 	void ReadAndInternalizeInstallDirL(const TDesC& aInstallDirFilePath);
+	void HandleFileChangesL(TBool aStartup);
 	
 	static TBool MatchEntries(const CInstallEntry &aSource, const CInstallEntry &aTarget);
 

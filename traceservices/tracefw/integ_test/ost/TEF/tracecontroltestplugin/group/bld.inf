@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,18 +13,11 @@
 // Description:
 //
 
-/**
- @file bld.inf
- @internalTechnology
-*/
 PRJ_PLATFORMS
 DEFAULT
 
-PRJ_EXPORTS
-
 PRJ_TESTEXPORTS
-//iby's
-te_tracecontrol_testplugin.iby   									/epoc32/rom/include/te_tracecontrol_testplugin.iby
+te_tracecontrol_testplugin.iby              /epoc32/rom/include/te_tracecontrol_testplugin.iby
 
 PRJ_TESTMMPFILES
-te_tracecontrol_testplugin.mmp
+te_tracecontrol_testplugin.mmp manual

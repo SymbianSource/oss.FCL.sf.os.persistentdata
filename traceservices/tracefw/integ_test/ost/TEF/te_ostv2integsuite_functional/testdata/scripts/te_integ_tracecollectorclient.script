@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,7 +13,7 @@
 // Description:
 //
 
-//! @File
+//! @file
 //! @SYMTestSuiteName           te-integ-tracecollectorclient.script
 //! @SYMScriptTestEnvironment   TEF
 
@@ -46,5 +46,24 @@ START_TEST_BLOCK    20000       te_ostv2integsuite_enabled              \testdat
     COMMAND                     OstTraceTestWrapper                     TestOstDebugOnlyWrap
 END_TEST_BLOCK
 
+
+
+START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlCompileTimeSelector-0001
+//! @SYMTestCaseID              DT-DEBUG-TRACE-OSTv2-TraceControlCompileTimeSelector-0001
+//! @SYMTestCaseDesc            Test DEBUG only compile time selector using OST_TRACE_CATEGORY_DEBUG
+//! @SYMTestPriority            Critical
+//! @SYMTestActions             
+//! @SYMTestExpectedResults     Verify that the errors returned are as expected
+//! @SYMTestType                CT
+//! @SYMTestStatus              Implemented
+//! @SYMPREQ                    PREQ2390
+//! @SYMREQ      
+
+PRINT Run OstTrace with OST_TRACE_CATEGORY_DEBUG compile time Macro               
+START_TEST_BLOCK    20000       te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
+    CREATE_OBJECT               OstTraceTestWrapper                     OstTraceTestWrapper
+    COMMAND                     OstTraceTestWrapper                     TestOstCompileTimeMacro
+END_TEST_BLOCK
+END_TESTCASE                    DT-DEBUG-TRACE-OSTv2-TraceControlCompileTimeSelector-0001
 
 

@@ -15,6 +15,7 @@
 
 #include <e32std.h>
 #include <ecom/implementationproxy.h>
+
 #include "uloggerserialplugin.h"
 
 #if defined(__LIGHTLOGGER_ENABLED)

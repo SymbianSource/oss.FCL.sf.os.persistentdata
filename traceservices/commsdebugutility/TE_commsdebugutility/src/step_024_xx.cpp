@@ -1,4 +1,4 @@
-// Copyright (c) 2003-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2003-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -75,8 +75,10 @@ TVerdict CFloggerTest024_01::doTestStepL( )
 	INFO_PRINTF1(_L("Step 024.01 called "));
 	if ( executeStepL() == KErrNone  )
 		SetTestStepResult(EPass);
+
 	else
 		SetTestStepResult(EFail);
+
 	
 	return TestStepResult();
 	}
@@ -286,8 +288,10 @@ TVerdict CFloggerTest024_02::doTestStepL( )
 	{
 	if ( executeStepL() == KErrNone  )
 		SetTestStepResult(EPass);
+
 	else
 		SetTestStepResult(EFail);
+
 	
 	return TestStepResult();
 	}
@@ -407,8 +411,10 @@ TVerdict CFloggerTest024_03::doTestStepL( )
 	{
 	if ( executeStepL() == KErrNone  )
 		SetTestStepResult(EPass);
+
 	else
 		SetTestStepResult(EFail);
+
 	
 	return TestStepResult();
 	}
@@ -558,8 +564,10 @@ TVerdict CFloggerTest024_04::doTestStepL( )
 	{
 	if ( executeStepL() == KErrNone  )
 		SetTestStepResult(EPass);
+
 	else
 		SetTestStepResult(EFail);
+
 	
 	return TestStepResult();
 	}
@@ -671,8 +679,10 @@ TVerdict CFloggerTest024_05::doTestStepL( )
 	{
 	if ( executeStepL() == KErrNone  )
 		SetTestStepResult(EPass);
+
 	else
 		SetTestStepResult(EFail);
+
 	
 	return TestStepResult();
 	}
@@ -782,8 +792,10 @@ TVerdict CFloggerTest024_06::doTestStepL( )
 	{
 	if ( executeStepL() == KErrNone  )
 		SetTestStepResult(EPass);
+
 	else
 		SetTestStepResult(EFail);
+
 	
 	return TestStepResult();
 	}
@@ -902,8 +914,10 @@ TVerdict CFloggerTest024_07::doTestStepL( )
 	INFO_PRINTF1(_L("Step 027.13 called "));
 	if ( executeStepL() == KErrNone  )
 		SetTestStepResult(EPass);
+
 	else
 		SetTestStepResult(EFail);
+
 	INFO_PRINTF1(_L("leaving Step 027.13"));
 	User::After(KTimeForDisplay);
 
@@ -1067,8 +1081,10 @@ TVerdict CFloggerTest024_08::doTestStepL( )
 	{
 	if ( executeStepL() == KErrNone  )
 		SetTestStepResult(EPass);
+
 	else
 		SetTestStepResult(EFail);
+
 	User::After(KTimeForDisplay);
 
 	
@@ -1127,9 +1143,7 @@ TInt CFloggerTest024_08::executeStepL()
 	
 		User::SetHomeTime(time);
 		TTime currentMicrosecs;
-		TTimeIntervalDays newDate;
 		currentMicrosecs.HomeTime();
-		newDate = currentMicrosecs.DaysFrom(TTime(0));
 
 		RFileLogger ::Write(KStdSubsysTag16, KStdCompTag16,EFileLoggingModeAppend, KTestMessage);
 		User::After(KTimeToLog);

@@ -63,7 +63,10 @@ RTest TheTest(_L("t_sqlood test"));
 
 #endif
 
-const TInt KTestRecordsCount = 350;
+_LIT8(KDatabasePageSizeConfig, "page_size=1024");
+
+const TInt KMaxTestRecordsCount = 350;
+TInt TestRecordsCount = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -202,24 +205,78 @@ void CreateLargeFile()
 	RDebug::Print(_L("CreateLargeFile: free space after = %ld\r\n"), diskSpace);
 	}
 
+
+// Number of bytes in the default journal header size.
+const TInt KJournalHeaderSize = 0x200;
+
+// Number of bytes added to each database page in the journal.
+const TInt KJournalPageOverhead = 8; 
+
+// The default amount of reserved space provided by the ReserveDriveSpace API
+const TInt KReserveDriveSpaceAmount = 64*1024;
+
 //Creates and fills with some records a test database
 void CreateAndFillTestDatabase(RSqlDatabase& aDb)
 	{
-	TInt err = aDb.Create(KTestDatabase);
+	TInt err = aDb.Create(KTestDatabase, &KDatabasePageSizeConfig);
 	TEST2(err, KErrNone);
 	err = aDb.Exec(_L("CREATE TABLE A(Id INTEGER, Data TEXT)"));
 	TEST(err >= 0);
-	err = aDb.Exec(_L("BEGIN TRANSACTION"));
-	TEST(err >= 0);
-	for(TInt i=0;i<KTestRecordsCount;++i)
+
+	//
+	// Find the page size of the database on this media
+	//
+	TBuf<200> sql;
+	sql.Copy(_L("PRAGMA page_size"));
+	TSqlScalarFullSelectQuery q(aDb);
+	TInt pageSize = 0;
+	TRAP(err, pageSize = q.SelectIntL(sql););
+	//RDebug::Print(_L("Error %d Page Size %d"),err,pageSize);
+	TEST2(err, KErrNone);
+	TEST(pageSize > 0);
+	//RDebug::Print(_L("Page Size %d"),pageSize);
+	
+	//
+	// Find the sector size of this media
+	//
+	TDriveInfo driveInfo;
+	err = TheFs.Drive(driveInfo, KTestDrive);
+	TEST2(err, KErrNone);
+	TVolumeIOParamInfo volumeInfo;
+	err = TheFs.VolumeIOParam(KTestDrive, volumeInfo);
+	TEST2(err, KErrNone);
+	TInt sectorSize = volumeInfo.iBlockSize;
+	//RDebug::Print(_L("Sector Size %d"),sectorSize);	
+
+	TInt journalHeaderSize = Max(sectorSize, KJournalHeaderSize);
+	//RDebug::Print(_L("Journal Header Size %d"),journalHeaderSize);
+
+	//
+	// Keep adding to database until it is a size such that all the data can still be deleted within the reserved disk space size. 
+	// Do this piece-wise not in a transaction.
+	//
+	TInt i;
+	for(i=0;i<KMaxTestRecordsCount;++i)
 		{
-		TBuf<200> sql;
 		sql.Format(_L("INSERT INTO A(Id, Data) VALUES(%d, 'A0123456789B0123456789C0123456789D0123456789E0123456789F0123456789G0123456789H0123456789')"), i + 1);
 		err = aDb.Exec(sql);
 		TEST2(err, 1);
+
+		TInt size = aDb.Size();
+		TInt numberOfPages = size/pageSize;
+		TInt predictedJournalSize = journalHeaderSize + numberOfPages * (pageSize + KJournalPageOverhead);
+		//RDebug::Print(_L("Size %d, Pages %d, predictedJournalSize %d"),size, numberOfPages, predictedJournalSize);
+		
+		// Will another page take us over the limit ?
+		if ((predictedJournalSize + (pageSize + KJournalPageOverhead)) >= (KReserveDriveSpaceAmount))
+			{
+			break;
+			}
 		}
-	err = aDb.Exec(_L("COMMIT TRANSACTION"));
-	TEST(err >= 0);
+	TestRecordsCount = i + 1;
+	
+	//RDebug::Print(_L("TestRecordsCount %d"),TestRecordsCount);
+	
 	}
 
 //Tries to delete test database records
@@ -227,7 +284,7 @@ TInt DeleteTestRecords(RSqlDatabase& aDb)
 	{
 	TInt err = aDb.Exec(_L("BEGIN TRANSACTION"));
 	TEST(err >= 0);
-	for(TInt i=0;i<KTestRecordsCount;++i)
+	for(TInt i=0;i<TestRecordsCount;++i)
 		{
 		TBuf<100> sql;
 		sql.Format(_L("DELETE FROM A WHERE Id = %d"), i + 1);
@@ -250,7 +307,7 @@ TInt DeleteTestRecords(RSqlDatabase& aDb)
 void SimpleCallsTest()
 	{
 	RSqlDatabase db, db2;
-	TInt err = db.Create(KTestDatabase);
+	TInt err = db.Create(KTestDatabase, &KDatabasePageSizeConfig);
 	TEST2(err, KErrNone);
 
 	err = db2.Open(KTestDatabase);

@@ -20,10 +20,10 @@
 #include <e32math.h>
 #include <sqlite3.h>
 
-#include "e32des16.h"
+#include "sqliteTestUtl.h"
 
+const char* const KTestName = "t_sqlitedef";
 
-static RTest TheTest(_L("t_sqlitedef"));
 static RFs	TheFs;
 
 static sqlite3* TheDb = NULL;
@@ -46,15 +46,15 @@ static void DeleteFile(const char* aFileName)
 static void CreateTestEnv()
     {
 	TInt err = TheFs.Connect();
-	TheTest(err == KErrNone);
+	TestTestLine(err == KErrNone, __LINE__);
 	
 	err = TheFs.ShareAuto();
-	TheTest(err == KErrNone);
+	TestTestLine(err == KErrNone,__LINE__);
 
     TFileName testDir;
     testDir.Copy(TPtrC8((const TUint8*)KTestDir));
 	err = TheFs.MkDir(testDir);
-	TheTest(err == KErrNone || err == KErrAlreadyExists);
+	TestTestLine(err == KErrNone || err == KErrAlreadyExists, __LINE__);
 	
 	TFileName fname;
 	fname.Copy(TPtrC8((const TUint8*)KTestDb));
@@ -110,7 +110,7 @@ static void Check(TInt aValue, TInt aLine)
 		{
 		PrintErrMsg();
 		DestroyTestEnv();
-		TheTest(EFalse, aLine);
+		TestTestLine(EFalse, aLine);
 		}
 	}
 static void Check(TInt aValue, TInt aExpected, TInt aLine)
@@ -120,7 +120,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 		PrintErrMsg();
 		DestroyTestEnv();
 		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
-		TheTest(EFalse, aLine);
+		TestTestLine(EFalse, aLine);
 		}
 	}
 #define TEST(arg) ::Check((arg), __LINE__)
@@ -420,8 +420,18 @@ void DEF143151()
     DeleteFile(KTestDb);
     
     dtstr1.Format(_L("%04d-%02d-%02d,%02d:%02d:%02d"), dt.Year(), dt.Month() + 1, dt.Day() + 1, dt.Hour(), dt.Minute(), dt.Second());
-    TheTest.Printf(_L("Universal date&time=\"%S\"\n"), &dtstr1);
-    TheTest.Printf(_L("SQLite    date&time=\"%S\"\n"), &dtstr2);
+
+    // For the C-Style printout
+    _LIT8(KUniversalTimeText,"Universal date&time=");
+    _LIT8(KSQLiteTimeText,   "SQLite    date&time=");
+    TBuf8<96> dtstr1print;
+    TBuf8<96> dtstr2print;
+    dtstr1print.Copy(dtstr1);
+    dtstr2print.Copy(dtstr2);
+    dtstr1print.Insert(0,KUniversalTimeText);
+    dtstr2print.Insert(0,KSQLiteTimeText);
+    TestPrintf((const char*)(dtstr1print.PtrZ()));
+    TestPrintf((const char*)(dtstr2print.PtrZ()));
     
     //Comapare and fail if dates are not equal (+- 1 second)
     TLex lex;
@@ -465,19 +475,19 @@ void DEF143151()
 
 void DoTest()
 	{
-	TheTest.Start(_L("@SYMTestCaseID:PDS-SQLITE3-UT-4029: SQLite file handle test"));
+	TestStart("@SYMTestCaseID:PDS-SQLITE3-UT-4029: SQLite file handle test");
 	FileHandleTest();
 	
-	TheTest.Next(_L("@SYMTestCaseID:PDS-SQLITE3-CT-4028: DEF121506 test"));
+	TestNext("@SYMTestCaseID:PDS-SQLITE3-CT-4028: DEF121506 test");
 	DEF121506();
 
-	TheTest.Next(_L("@SYMTestCaseID:PDS-SQLITE3-CT-4046: DEF140020 test"));
+	TestNext("@SYMTestCaseID:PDS-SQLITE3-CT-4046: DEF140020 test");
 	DEF140020();
 
-    TheTest.Next(_L("@SYMTestCaseID:PDS-SQLITE3-CT-4047: SQLITE, \"CREATE INDEX\" sql crashes the SQLite library"));
+    TestNext("@SYMTestCaseID:PDS-SQLITE3-CT-4047: SQLITE, \"CREATE INDEX\" sql crashes the SQLite library");
     DEF143066();
 
-    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4048 DEF143151: SQLite, strftime() returns incorrect result"));
+    TestNext(" @SYMTestCaseID:SYSLIB-SQL-CT-4048 DEF143151: SQLite, strftime() returns incorrect result");
     DEF143151();
 	}
 
@@ -485,7 +495,8 @@ void DoTest()
 
 TInt E32Main()
 	{
-	TheTest.Title();
+	TestOpen(KTestName);
+	TestTitle();
 	CTrapCleanup* tc = CTrapCleanup::New();
 
 	__UHEAP_MARK;
@@ -496,8 +507,8 @@ TInt E32Main()
 	
 	__UHEAP_MARKEND;
 
-	TheTest.End();	
-	TheTest.Close();
+	TestEnd();	
+	TestClose();
 	delete tc;
 	User::Heap().Check();
 	return KErrNone;

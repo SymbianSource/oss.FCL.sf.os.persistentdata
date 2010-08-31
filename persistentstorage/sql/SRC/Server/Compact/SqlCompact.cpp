@@ -13,11 +13,16 @@
 // Description:
 //
 
-#include "SqlPanic.h"
+#include "SqlAssert.h"
 #include "SqlCompact.h"
 #include "SqlCompactEntry.h"
 #include "SqlCompactTimer.h"
 #include "SqlUtil.h"
+#include "OstTraceDefinitions.h"
+#ifdef OST_TRACE_COMPILER_IN_USE
+#include "SqlCompactTraces.h"
+#endif
+#include "SqlTraceDef.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,8 +43,8 @@ CSqlCompactSettings invariant.
 */
 void TSqlCompactSettings::Invariant() const
 	{
-	__SQLASSERT(iStepLength > 0, ESqlPanicInternalError);
-	__SQLASSERT(iFreePageThresholdKb >= 0, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iStepLength > 0, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(iFreePageThresholdKb >= 0, __SQLPANIC(ESqlPanicInternalError));
 	}
 #endif//_DEBUG
 
@@ -72,8 +77,8 @@ Creates a new CSqlCompactor instance.
 */
 CSqlCompactor* CSqlCompactor::NewL(TSqlCompactConnFactoryL aConnFactoryL, TInt aCompactStepInterval)
 	{
-	__SQLASSERT(aConnFactoryL != NULL, ESqlPanicBadArgument);
-	__SQLASSERT(aCompactStepInterval > 0, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aConnFactoryL != NULL, __SQLPANIC2(ESqlPanicBadArgument));
+	__ASSERT_DEBUG(aCompactStepInterval > 0, __SQLPANIC2(ESqlPanicBadArgument));
 	CSqlCompactor* self = new (ELeave) CSqlCompactor(aConnFactoryL);
 	CleanupStack::PushL(self);
 	self->ConstructL(aCompactStepInterval);
@@ -89,7 +94,7 @@ CSqlCompactor::~CSqlCompactor()
 	{
 	for(TInt idx=iEntries.Count()-1;idx>=0;--idx)
 		{
-		__SQLASSERT(iEntries[idx] != NULL, ESqlPanicInternalError);
+		__ASSERT_DEBUG(iEntries[idx] != NULL, __SQLPANIC(ESqlPanicInternalError));
 		while(iEntries[idx]->Release() != 0)
 			{
 			}
@@ -134,12 +139,13 @@ will be incremented.
 */
 void CSqlCompactor::AddEntryL(const TDesC& aFullName, const TSqlCompactSettings& aSettings)
 	{
-	__SQLASSERT(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, __SQLPANIC(ESqlPanicBadArgument));
 	SQLCOMPACTOR_INVARIANT();
 	CSqlCompactEntry* entry = NULL;
 	TInt idx = iEntries.FindInOrder(aFullName, &CSqlCompactor::Search);
 	if(idx == KErrNotFound)
 		{
+		SQL_TRACE_COMPACT(OstTraceExt4(TRACE_INTERNALS, CSQLCOMPACTOR_ADDENTRYL1, "0x%X;CSqlCompactor::AddEntryL;New entry;aFullName=%S;iStepLength=%d;iFreePageThreashold=%d", (TUint)this, __SQLPRNSTR(aFullName), aSettings.iStepLength, aSettings.iFreePageThresholdKb));
 		entry = CSqlCompactEntry::NewLC(aFullName, iConnFactoryL, aSettings, *iTimer);
 		TLinearOrder<CSqlCompactEntry> order(&CSqlCompactor::Compare);
 		__SQLLEAVE_IF_ERROR(iEntries.InsertInOrder(entry, order));
@@ -147,8 +153,9 @@ void CSqlCompactor::AddEntryL(const TDesC& aFullName, const TSqlCompactSettings&
 		}
 	else
 		{
+		SQL_TRACE_COMPACT(OstTraceExt4(TRACE_INTERNALS, CSQLCOMPACTOR_ADDENTRYL2, "0x%X;CSqlCompactor::AddEntryL;Reuse entry;aFullName=%S;iStepLength=%d;iFreePageThreashold=%d", (TUint)this, __SQLPRNSTR(aFullName), aSettings.iStepLength, aSettings.iFreePageThresholdKb));
 		entry = iEntries[idx];
-		__SQLASSERT(entry != NULL, ESqlPanicInternalError);
+		__ASSERT_DEBUG(entry != NULL, __SQLPANIC(ESqlPanicInternalError));
 		(void)entry->AddRef();
 		}
 	SQLCOMPACTOR_INVARIANT();
@@ -163,13 +170,14 @@ the database connection - closed.
 */
 void CSqlCompactor::ReleaseEntry(const TDesC& aFullName)
 	{
+	SQL_TRACE_COMPACT(OstTraceExt2(TRACE_INTERNALS, CSQLCOMPACTOR_RELEASEENTRY1, "0x%X;CSqlCompactor::ReleaseEntry;aFullName=%S", (TUint)this, __SQLPRNSTR(aFullName)));
 	SQLCOMPACTOR_INVARIANT();
 	TInt idx = iEntries.FindInOrder(aFullName, &CSqlCompactor::Search);
-	__SQLASSERT(idx >= 0, ESqlPanicInternalError);
+	__ASSERT_DEBUG(idx >= 0, __SQLPANIC(ESqlPanicInternalError));
 	if(idx >= 0)
 		{
 		CSqlCompactEntry* entry = iEntries[idx];
-		__SQLASSERT(entry != NULL, ESqlPanicInternalError);
+		__ASSERT_DEBUG(entry != NULL, __SQLPANIC(ESqlPanicInternalError));
 		if(entry)
 			{
 			if(entry->Release() == 0)
@@ -199,7 +207,7 @@ CSqlCompactor::CSqlCompactor(TSqlCompactConnFactoryL aConnFactoryL) :
 	iConnFactoryL(aConnFactoryL),
 	iEntries(KEntriesGranularity)
 	{
-	__SQLASSERT(aConnFactoryL != NULL, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aConnFactoryL != NULL, __SQLPANIC(ESqlPanicBadArgument));
 	}
 
 /**
@@ -211,7 +219,7 @@ Initializes the created CSqlCompactor instance.
 */
 void CSqlCompactor::ConstructL(TInt aCompactStepInterval)
 	{
-	__SQLASSERT(aCompactStepInterval > 0, ESqlPanicBadArgument);
+	__ASSERT_DEBUG(aCompactStepInterval > 0, __SQLPANIC(ESqlPanicBadArgument));
 	iTimer = CSqlCompactTimer::NewL(aCompactStepInterval);
 	}
 
@@ -223,11 +231,11 @@ Static method used internally for performing a search in the container using dat
 */
 /* static */TInt CSqlCompactor::Search(const TDesC* aFullName, const CSqlCompactEntry& aEntry)
 	{
-	__SQLASSERT(&aEntry != NULL, ESqlPanicInternalError);
-	__SQLASSERT(aFullName != NULL, ESqlPanicInternalError);
+	__ASSERT_DEBUG(&aEntry != NULL, __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aFullName != NULL, __SQLPANIC2(ESqlPanicInternalError));
 	const TDesC& fullName = *aFullName;
-	__SQLASSERT(fullName.Length() > 0 && fullName.Length() <= KMaxFileName, ESqlPanicInternalError);
-	__SQLASSERT(aEntry.FullName().Length() > 0 && aEntry.FullName().Length() <= KMaxFileName, ESqlPanicInternalError);
+	__ASSERT_DEBUG(fullName.Length() > 0 && fullName.Length() <= KMaxFileName, __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aEntry.FullName().Length() > 0 && aEntry.FullName().Length() <= KMaxFileName, __SQLPANIC2(ESqlPanicInternalError));
 	return fullName.CompareF(aEntry.FullName());
 	}
 
@@ -236,10 +244,10 @@ Static method used internally for performing a search in the container using a C
 */
 /* static */TInt CSqlCompactor::Compare(const CSqlCompactEntry& aLeft, const CSqlCompactEntry& aRight)
 	{
-	__SQLASSERT(&aLeft != NULL, ESqlPanicInternalError);
-	__SQLASSERT(&aRight != NULL, ESqlPanicInternalError);
-	__SQLASSERT(aLeft.FullName().Length() > 0 && aLeft.FullName().Length() <= KMaxFileName, ESqlPanicInternalError);
-	__SQLASSERT(aRight.FullName().Length() > 0 && aRight.FullName().Length() <= KMaxFileName, ESqlPanicInternalError);
+	__ASSERT_DEBUG(&aLeft != NULL, __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(&aRight != NULL, __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aLeft.FullName().Length() > 0 && aLeft.FullName().Length() <= KMaxFileName, __SQLPANIC2(ESqlPanicInternalError));
+	__ASSERT_DEBUG(aRight.FullName().Length() > 0 && aRight.FullName().Length() <= KMaxFileName, __SQLPANIC2(ESqlPanicInternalError));
 	return aLeft.FullName().CompareF(aRight.FullName());
 	}
 
@@ -249,12 +257,12 @@ CSqlCompactor invariant.
 */
 void CSqlCompactor::Invariant() const
 	{
-	__SQLASSERT(iConnFactoryL != NULL, ESqlPanicInternalError);
-	__SQLASSERT(iTimer != NULL, ESqlPanicInternalError);
+	__ASSERT_DEBUG(iConnFactoryL != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__ASSERT_DEBUG(iTimer != NULL, __SQLPANIC(ESqlPanicInternalError));
 	iTimer->Invariant();
 	for(TInt idx=iEntries.Count()-1;idx>=0;--idx)
 		{
-		__SQLASSERT(iEntries[idx] != NULL, ESqlPanicInternalError);
+		__ASSERT_DEBUG(iEntries[idx] != NULL, __SQLPANIC(ESqlPanicInternalError));
 		iEntries[idx]->Invariant();
 		}
 	}

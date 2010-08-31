@@ -21,16 +21,16 @@ WINSCW
 TOOLS2
 
 PRJ_EXPORTS
-../inc/descriptors.h            SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/descriptors.h)
-../inc/directfilestore.h        SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/directfilestore.h)
-../inc/storewritestream.h       SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/storewritestream.h)
-../inc/storereadstream.h        SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/storereadstream.h)
-../inc/storeexception.h         SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/storeexception.h)
-../inc/pcstoredef.h             SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/pcstoredef.h)
-../inc/streamid.h               SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/streamid.h)
-../inc/uid.h                    SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/uid.h)
-../inc/pcstore.h                SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/pcstore.h)
-../inc/checkeduid.h             SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/checkeduid.h)
+../inc/descriptors.h            OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/descriptors.h)
+../inc/directfilestore.h        OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/directfilestore.h)
+../inc/storewritestream.h       OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/storewritestream.h)
+../inc/storereadstream.h        OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/storereadstream.h)
+../inc/storeexception.h         OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/storeexception.h)
+../inc/pcstoredef.h             OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/pcstoredef.h)
+../inc/streamid.h               OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/streamid.h)
+../inc/uid.h                    OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/uid.h)
+../inc/pcstore.h                OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/pcstore.h)
+../inc/checkeduid.h             OS_LAYER_PUBLIC_EXPORT_PATH(pcstore/checkeduid.h)
 
 PRJ_MMPFILES
 #ifdef TOOLS2

@@ -20,7 +20,8 @@
 #ifndef __ULOGGERFILEPLUGINTEST_H__
 #define __ULOGGERFILEPLUGINTEST_H__
 
-#include <tefunit.h>
+#include <test/tefunit.h>
+
 #include "uloggerfileplugin.h"
 #include "te_filesuitestepbase.h"
 
@@ -37,9 +38,9 @@ CFile0Step();
 private:
 	// Tests
 	void TestNewL();
-	void TestUnlockResources(); 
-	void TestSettings();
-	void TestWrite(); 
+	void TestUnlockResourcesL(); 
+	void TestSettingsL();
+	void TestWriteL(); 
 	RFs iFileServer;
 	};
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -25,7 +25,7 @@ UID 0 0x102081E4
 target t_cenrep_back_rest_delete.exe
 targettype exe
 
-MW_LAYER_SYSTEMINCLUDE_SYMBIAN
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 OS_LAYER_LIBC_SYSTEMINCLUDE
 
 USERINCLUDE ../cenrepsrv ../common/inc

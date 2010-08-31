@@ -32,12 +32,25 @@ void CServerRepository::OpenL(TUid aUid, MObserver& aObserver, TBool aFailIfNotF
 	{
 	iNotifier = &aObserver;
 	
-	iRepository = TServerResources::iObserver->AccessL(aUid, aFailIfNotFound);
-	//store uid
-	iUid = aUid;	
-
-	TServerResources::iObserver->AddObserverL(aUid, this);
+	TServerResources::iObserver->iObservers.ReserveL(1);
+	
 	TServerResources::iObserver->AddSharedRepositoryInfoL(aUid);
+	
+	TRAPD( err, iRepository = TServerResources::iObserver->AccessL(aUid, aFailIfNotFound) );
+	
+	//store uid
+	iUid = aUid;
+	
+	if (err == KErrNone)
+	    {
+        TRAP( err, TServerResources::iObserver->AddObserverL(aUid, this) );
+	    }
+	    
+	if (err != KErrNone)
+        {
+        TServerResources::iObserver->RemoveSharedRepositoryInfo(aUid);
+        User::Leave(err);
+        }
 	}
 
 void CServerRepository::Close()
@@ -398,6 +411,7 @@ void CServerRepository::ProcessPersistsRepositoriesL(TPersistedRepActions aRomFl
 					  {
 					  if(err == KErrNoMemory)
 					    {
+                        repository->Close();
 					    User::LeaveNoMemory();
 					    }
 				      else
@@ -652,21 +666,27 @@ void CServerRepository::HandleSWIUpdateL(TUid aUid, TTime aModified, CSessionNot
 			
 		// Create install rep for merging
  		CSharedRepository *installRep = 0;
- 		TServerResources::iObserver->LoadRepositoryLC(aUid, ETrue, installRep, CIniFileIn::EInstallOnly);
+ 		TRAPD( err, TServerResources::iObserver->LoadRepositoryLC(aUid, ETrue, installRep, CIniFileIn::EInstallOnly); CleanupStack::Pop(installRep) );
 	
-		// Perform merge
-		iRepository->HandleUpdateMergeL(aModified, *installRep);
-						
-		CleanupStack::PopAndDestroy(installRep);
-		Close();
+		if (err == KErrNone)
+            {
+            // Perform merge
+            TRAP( err, iRepository->HandleUpdateMergeL(aModified, *installRep) );
+            }
+        if (installRep!=NULL)
+            {
+            delete installRep;
+            }
+        Close();
+        User::LeaveIfError(err);
 		}
 	else	// No ROM or persists
 		{
 		// Create install rep for persisting
 		OpenL(aUid, aNotifier);
-	
-		iRepository->CommitChangesL();
-		Close();
+		TRAPD(err, iRepository->CommitChangesL());
+	    Close();
+	    User::LeaveIfError(err);
 		}
 	}
 
@@ -698,13 +718,19 @@ void CServerRepository::HandleSWIDeleteL(TUid aUid, CSessionNotifier &aNotifier)
 		
 		// Create ROM rep for merging
 	 	CSharedRepository *romRep = 0;
-		TServerResources::iObserver->LoadRepositoryLC(aUid, ETrue, romRep, CIniFileIn::ERomOnly);
+		TRAPD( err, TServerResources::iObserver->LoadRepositoryLC(aUid, ETrue, romRep, CIniFileIn::ERomOnly); CleanupStack::Pop(romRep) );
 
-		// Perform merge
-		iRepository->HandleDeleteMergeL(*romRep);
-		
-		CleanupStack::PopAndDestroy(romRep);
+		if (err == KErrNone)
+		    {
+            // Perform merge
+            TRAP( err, iRepository->HandleDeleteMergeL(*romRep) );
+		    }
+		if (romRep!=NULL)
+		    {
+            delete romRep;
+		    }
 		Close();
+		User::LeaveIfError(err);
 		}
 	else											// No ROM file, this is a complete uninstall
 		{		
@@ -988,24 +1014,24 @@ void CServerRepository::BackupInstallRepositoryL(TUid aUid, CStreamStore& aStore
 	iRepository = NULL;
 	}
 
-TInt CServerRepository::CheckAccessPolicyBeforeMoving(const TClientRequest& aMessage, const TServerSetting& aSourceSetting, 
-				TUint32 aSourceKey, const TServerSetting& aTargetSetting, TUint32 aTargetKey, TUint32& aErrorKey)
+TInt CServerRepository::CheckAccessPolicyBeforeMoving(const TClientRequest& aMessage, const TServerSetting* aSourceSetting, 
+				TUint32 aSourceKey, const TServerSetting* aTargetSetting, TUint32 aTargetKey, TUint32& aErrorKey)
 	{
 	TInt error = KErrNone;
 	
-	if (&aTargetSetting && !aTargetSetting.IsDeleted())
+	if (aTargetSetting && !aTargetSetting->IsDeleted())
 		{
 		error=KErrAlreadyExists;
 		aErrorKey=aTargetKey;
 		}
 
-	if (!aMessage.CheckPolicy(GetReadAccessPolicy(aSourceSetting),
+	if (!aMessage.CheckPolicy(GetReadAccessPolicy(*aSourceSetting),
 		__PLATSEC_DIAGNOSTIC_STRING("CenRep: CServerRepository::MoveL - Attempt made to read a setting")))
 		{
 		error = KErrPermissionDenied;
 		aErrorKey = aSourceKey;
 		}
-	else if (!aMessage.CheckPolicy(GetWriteAccessPolicy(aSourceSetting),
+	else if (!aMessage.CheckPolicy(GetWriteAccessPolicy(*aSourceSetting),
 		__PLATSEC_DIAGNOSTIC_STRING("CenRep: CServerRepository::MoveL - Attempt made to delete a setting")))
 		{
 		error = KErrPermissionDenied;
@@ -1014,7 +1040,7 @@ TInt CServerRepository::CheckAccessPolicyBeforeMoving(const TClientRequest& aMes
 	else if (error == KErrAlreadyExists)
 		{
 		// set error to KErrPermissionDenied in preference to KErrAlreadyExists
-		if (!aMessage.CheckPolicy(GetWriteAccessPolicy(aTargetSetting),
+		if (!aMessage.CheckPolicy(GetWriteAccessPolicy(*aTargetSetting),
 			__PLATSEC_DIAGNOSTIC_STRING("CenRep: CServerRepository::MoveL - Attempt made to create a setting")))
 			{
 			error = KErrPermissionDenied;

@@ -508,7 +508,9 @@ extern int errno;
 #if defined(_sgi) || defined(__sgi) || (defined(__APPLE__) && defined(__DYNAMIC__))
 #   define environ _environ
 #endif
+#ifndef __SYMBIAN32__  // added to prevent RVCT warnings on armv5
 extern char **environ;
+#endif
 
 /*
  * At present (12/91) not all stdlib.h implementations declare strtod.
@@ -517,8 +519,9 @@ extern char **environ;
  * an int.  There's no ANSI prototype for it because there would end
  * up being too many conflicts with slightly-different prototypes.
  */
-
+#ifndef __SYMBIAN32__  // added to prevent RVCT warnings on armv5
 extern double strtod();
+#endif
 
 /*
  * There is no platform-specific panic routine for Unix in the Tcl internals.

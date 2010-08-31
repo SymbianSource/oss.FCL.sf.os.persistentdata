@@ -65,50 +65,91 @@ PRJ_TESTEXPORTS
 ../data/certstore/swicertstore.dat						z:/resource/swicertstore.dat
 ./swicertstoredat.iby										/epoc32/rom/include/swicertstoredat.iby
 
+
+//define PDS_FULL_UI_TEST in the rom build command for Full S60 UI build
+#if defined(__SERIES60_) && defined(PDS_FULL_UI_TEST)
+
 // SP tests...
-../data/KS12s.sis						z:/tef_centralrepository/ks12s.sis
-../data/KS14s.sis						z:/tef_centralrepository/ks14s.sis
-../data/KS2s.sis						z:/tef_centralrepository/ks2s.sis
-../data/KS22s.sis						z:/tef_centralrepository/ks22s.sis
-../data/KS3s.sis						z:/tef_centralrepository/ks3s.sis
-../data/KS4s.sis						z:/tef_centralrepository/ks4s.sis
-../data/KS41s.sis						z:/tef_centralrepository/ks41s.sis
-../data/KS51s.sis						z:/tef_centralrepository/ks51s.sis
-../data/KS62s.sis						z:/tef_centralrepository/ks62s.sis
+../data/rnd_sis/KS12s.sis                       z:/tef_centralrepository/ks12s.sis
+../data/rnd_sis/KS14s.sis                       z:/tef_centralrepository/ks14s.sis
+../data/rnd_sis/KS2s.sis                        z:/tef_centralrepository/ks2s.sis
+../data/rnd_sis/KS22s.sis                       z:/tef_centralrepository/ks22s.sis
+../data/rnd_sis/KS3s.sis                        z:/tef_centralrepository/ks3s.sis
+../data/rnd_sis/KS4s.sis                        z:/tef_centralrepository/ks4s.sis
+../data/rnd_sis/KS41s.sis                       z:/tef_centralrepository/ks41s.sis
+../data/rnd_sis/KS51s.sis                       z:/tef_centralrepository/ks51s.sis
+../data/rnd_sis/KS62s.sis                       z:/tef_centralrepository/ks62s.sis
 
 // PU tests...
-../data/KP12s.sis						z:/tef_centralrepository/kp12s.sis
-../data/KP14s.sis						z:/tef_centralrepository/kp14s.sis
-../data/KPS14s.sis						z:/tef_centralrepository/kps14s.sis
-../data/KP2s.sis						z:/tef_centralrepository/kp2s.sis
-../data/KP22s.sis						z:/tef_centralrepository/kp22s.sis
-../data/KP23s.sis						z:/tef_centralrepository/kp23s.sis
-../data/KP3s.sis						z:/tef_centralrepository/kp3s.sis
-../data/KP4s.sis						z:/tef_centralrepository/kp4s.sis
-../data/KP41s.sis						z:/tef_centralrepository/kp41s.sis
-../data/KPS4s.sis						z:/tef_centralrepository/kps4s.sis
-../data/KP62s.sis						z:/tef_centralrepository/kp62s.sis
-../data/KPS64s.sis						z:/tef_centralrepository/kps64s.sis
+../data/rnd_sis/KP12s.sis                       z:/tef_centralrepository/kp12s.sis
+../data/rnd_sis/KP14s.sis                       z:/tef_centralrepository/kp14s.sis
+../data/rnd_sis/KPS14s.sis                      z:/tef_centralrepository/kps14s.sis
+../data/rnd_sis/KP2s.sis                        z:/tef_centralrepository/kp2s.sis
+../data/rnd_sis/KP22s.sis                       z:/tef_centralrepository/kp22s.sis
+../data/rnd_sis/KP23s.sis                       z:/tef_centralrepository/kp23s.sis
+../data/rnd_sis/KP3s.sis                        z:/tef_centralrepository/kp3s.sis
+../data/rnd_sis/KP4s.sis                        z:/tef_centralrepository/kp4s.sis
+../data/rnd_sis/KP41s.sis                       z:/tef_centralrepository/kp41s.sis
+../data/rnd_sis/KPS4s.sis                       z:/tef_centralrepository/kps4s.sis
+../data/rnd_sis/KP62s.sis                       z:/tef_centralrepository/kp62s.sis
+../data/rnd_sis/KPS64s.sis                      z:/tef_centralrepository/kps64s.sis
 
 // SWI-BUR tests...
-../data/APPXs.sis						z:/tef_centralrepository/appxs.sis
+../data/rnd_sis/APPXs.sis                       z:/tef_centralrepository/appxs.sis
 
 // SWI-APP tests
-../data/APPYs.sis						z:/tef_centralrepository/appys.sis
-
-../data/KSYs.sis						z:/tef_centralrepository/ksys.sis
-
-../data/APPY1s.sis						z:/tef_centralrepository/appy1s.sis
-
-../data/KSY1s.sis						z:/tef_centralrepository/ksy1s.sis
-
-../data/APPY2s.sis						z:/tef_centralrepository/appy2s.sis
-
-../data/KSY2s.sis						z:/tef_centralrepository/ksy2s.sis
-
+../data/rnd_sis/APPYs.sis                       z:/tef_centralrepository/appys.sis
+../data/rnd_sis/KSYs.sis                        z:/tef_centralrepository/ksys.sis
+../data/rnd_sis/APPY1s.sis                      z:/tef_centralrepository/appy1s.sis
+../data/rnd_sis/KSY1s.sis                       z:/tef_centralrepository/ksy1s.sis
+../data/rnd_sis/APPY2s.sis                      z:/tef_centralrepository/appy2s.sis
+../data/rnd_sis/KSY2s.sis                       z:/tef_centralrepository/ksy2s.sis
 
 // SWI defect tests...
-../data/KSDs.sis						z:/tef_centralrepository/ksds.sis
+../data/rnd_sis/KSDs.sis                        z:/tef_centralrepository/ksds.sis
+
+#else
+
+// SP tests...
+../data/techview_sis/KS12s.sis                      z:/tef_centralrepository/ks12s.sis
+../data/techview_sis/KS14s.sis                      z:/tef_centralrepository/ks14s.sis
+../data/techview_sis/KS2s.sis                       z:/tef_centralrepository/ks2s.sis
+../data/techview_sis/KS22s.sis                      z:/tef_centralrepository/ks22s.sis
+../data/techview_sis/KS3s.sis                       z:/tef_centralrepository/ks3s.sis
+../data/techview_sis/KS4s.sis                       z:/tef_centralrepository/ks4s.sis
+../data/techview_sis/KS41s.sis                      z:/tef_centralrepository/ks41s.sis
+../data/techview_sis/KS51s.sis                      z:/tef_centralrepository/ks51s.sis
+../data/techview_sis/KS62s.sis                      z:/tef_centralrepository/ks62s.sis
+
+// PU tests...
+../data/techview_sis/KP12s.sis                      z:/tef_centralrepository/kp12s.sis
+../data/techview_sis/KP14s.sis                      z:/tef_centralrepository/kp14s.sis
+../data/techview_sis/KPS14s.sis                     z:/tef_centralrepository/kps14s.sis
+../data/techview_sis/KP2s.sis                       z:/tef_centralrepository/kp2s.sis
+../data/techview_sis/KP22s.sis                      z:/tef_centralrepository/kp22s.sis
+../data/techview_sis/KP23s.sis                      z:/tef_centralrepository/kp23s.sis
+../data/techview_sis/KP3s.sis                       z:/tef_centralrepository/kp3s.sis
+../data/techview_sis/KP4s.sis                       z:/tef_centralrepository/kp4s.sis
+../data/techview_sis/KP41s.sis                      z:/tef_centralrepository/kp41s.sis
+../data/techview_sis/KPS4s.sis                      z:/tef_centralrepository/kps4s.sis
+../data/techview_sis/KP62s.sis                      z:/tef_centralrepository/kp62s.sis
+../data/techview_sis/KPS64s.sis                     z:/tef_centralrepository/kps64s.sis
+
+// SWI-BUR tests...
+../data/techview_sis/APPXs.sis                      z:/tef_centralrepository/appxs.sis
+
+// SWI-APP tests
+../data/techview_sis/APPYs.sis                      z:/tef_centralrepository/appys.sis
+../data/techview_sis/KSYs.sis                       z:/tef_centralrepository/ksys.sis
+../data/techview_sis/APPY1s.sis                     z:/tef_centralrepository/appy1s.sis
+../data/techview_sis/KSY1s.sis                      z:/tef_centralrepository/ksy1s.sis
+../data/techview_sis/APPY2s.sis                     z:/tef_centralrepository/appy2s.sis
+../data/techview_sis/KSY2s.sis                      z:/tef_centralrepository/ksy2s.sis
+
+// SWI defect tests...
+../data/techview_sis/KSDs.sis                       z:/tef_centralrepository/ksds.sis
+
+#endif //__SERIES60_
 
 PRJ_TESTMMPFILES
 // TestExecute test binaries

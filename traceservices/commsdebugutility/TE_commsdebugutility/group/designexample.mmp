@@ -25,7 +25,7 @@ SMPSAFE
 USERINCLUDE ../inc
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
-#include        "comms-infras/commsdebugutility.mmh"
+#include        "../group/commsdebugutility.mmh"
 SOURCEPATH      ../src
 SOURCE          designexample.cpp
 

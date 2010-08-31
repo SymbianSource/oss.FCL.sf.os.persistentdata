@@ -29,7 +29,8 @@ CLogServOperationBase::CLogServOperationBase(MLogServTaskInterface& aTaskInterfa
 	iPackage(aPackage), 
 	iMessage(aMessage),
 	iClientServerData(aClientServerData),
-	iSessionId(aSessionId)
+	iSessionId(aSessionId),
+	iMessageCompletion(ETrue)
 	{
 	// Queue this operations
 	OperationManager().OMOperationQueueAdd(*this);
@@ -63,8 +64,12 @@ CLogServOperationBase::TCompletionStatus CLogServOperationBase::CompleteProcessi
 //
 void CLogServOperationBase::Complete(TInt aCompletionCode)
 	{
-	__ASSERT_ALWAYS(iMessage != RMessage2(), Panic(ELogNoOutstandingAsyncRequest));
-	iMessage.Complete(aCompletionCode);
+	__ASSERT_ALWAYS(! iMessage.IsNull(), Panic(ELogNoOutstandingAsyncRequest));
+	
+	if (iMessageCompletion)
+	  {
+	  iMessage.Complete(aCompletionCode);
+	  }
 
 	// Unnecessary?
 	iMessage = RMessage2();

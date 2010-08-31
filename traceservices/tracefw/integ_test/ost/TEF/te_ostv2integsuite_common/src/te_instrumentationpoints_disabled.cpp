@@ -32,7 +32,7 @@
 #include "te_perfstackinfo.h"
 #include "te_dataparameters.h"
 #include "sanity/te_perfsanityhelpers.h"
-
+#include "te_ctor.h"
 
 
 
@@ -661,7 +661,7 @@ TInt TUptTraceCalls::DoSendTraceL(const TApiRunConfig& aApiRunConfig, TApiRunRes
         {
         __MARK_INITIAL_STACK(aApiRunConfig.iDoStack, stackbase, before);
         OstTraceFunctionEntry0( TEST_OSTTraceFunctionalityEntry0 );
-        logged = ETrue;
+        logged = EFalse;
         __RETURN_STACK_SIZE(aApiRunConfig.iDoStack, stackbase, before,  aApiRunResults.iApiStackUsage); 
         }
     break;
@@ -684,6 +684,26 @@ TInt TUptTraceCalls::DoSendTraceL(const TApiRunConfig& aApiRunConfig, TApiRunRes
         OstTraceFunctionEntryExt( TEST_OSTTraceFunctionalityExt, (const TAny*)&KData1 );
         logged = EFalse;
         __RETURN_STACK_SIZE(aApiRunConfig.iDoStack, stackbase, before,  aApiRunResults.iApiStackUsage); 
+        }
+    break;
+    
+    case EOstTraceFunctionEntryExtCtorInitList:
+        {        
+        __MARK_INITIAL_STACK(aApiRunConfig.iDoStack, stackbase, before);
+        TTestCtor       testCtorA( 1, 2 );
+        logged = EFalse;
+        __RETURN_STACK_SIZE(aApiRunConfig.iDoStack, stackbase, before,  aApiRunResults.iApiStackUsage); 
+
+        }
+    break;
+    
+    case EOstTraceFunctionEntryExtCtorNoInitList:
+        {        
+        __MARK_INITIAL_STACK(aApiRunConfig.iDoStack, stackbase, before);
+        TTestCtor       testCtorB( 3 );
+        logged = EFalse;
+        __RETURN_STACK_SIZE(aApiRunConfig.iDoStack, stackbase, before,  aApiRunResults.iApiStackUsage); 
+
         }
     break;
     
@@ -750,7 +770,7 @@ TInt TUptTraceCalls::DoSendTraceL(const TApiRunConfig& aApiRunConfig, TApiRunRes
         {
         __MARK_INITIAL_STACK(aApiRunConfig.iDoStack, stackbase, before);
         OstTraceState0( TEST_OSTTRACESTATE0, "Test State Name", "Test State Value" );
-        logged = ETrue;
+        logged = EFalse;
         __RETURN_STACK_SIZE(aApiRunConfig.iDoStack, stackbase, before,  aApiRunResults.iApiStackUsage); 
         }
     break;
@@ -761,7 +781,7 @@ TInt TUptTraceCalls::DoSendTraceL(const TApiRunConfig& aApiRunConfig, TApiRunRes
         
         __MARK_INITIAL_STACK(aApiRunConfig.iDoStack, stackbase, before);
         OstTraceState1( TEST_OSTTRACESTATE1,  "Test State Name", "Test State Value", KData1 );
-        logged = ETrue;
+        logged = EFalse;
         __RETURN_STACK_SIZE(aApiRunConfig.iDoStack, stackbase, before,  aApiRunResults.iApiStackUsage); 
 
         }
