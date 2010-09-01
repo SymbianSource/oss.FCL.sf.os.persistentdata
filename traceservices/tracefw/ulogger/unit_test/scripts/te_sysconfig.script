@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,7 +13,7 @@
 // Description:
 //
 
-//! @file
+//! @File
 //! @SYMTestSuiteName               	uloggerv1-sysconfig-unit-test-suite.script
 //! @SYMScriptTestEnvironment       	TEF
 
@@ -38,7 +38,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-UloggerSysCfgSetGetChannelsPlugins-0001
 //! @SYMTestActions    Call Set/Get/Activate configuration methods for channels and plugins
 //! @SYMTestExpectedResults      error returns as expected
 //! @SYMTestType         UT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ
 RUN_TEST_STEP 100 Te_SysCfg SysCfgTeststep1
@@ -51,7 +51,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-UloggerSysCfgGetSectionsRemovePlugins-0001
 //! @SYMTestActions    Call Set/Get/Remove configuration methods for sections and plugins
 //! @SYMTestExpectedResults      error returns as expected
 //! @SYMTestType         UT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ
 RUN_TEST_STEP 100 Te_SysCfg SysCfgTeststep2
@@ -64,7 +64,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-UloggerSysCfgFiltersBuffer-0001
 //! @SYMTestActions    Call Set/Get/Remove configuration methods for filters and buffer
 //! @SYMTestExpectedResults      error returns as expected
 //! @SYMTestType         UT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ
 RUN_TEST_STEP 100 Te_SysCfg SysCfgTeststep3
@@ -77,7 +77,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-UloggerSysCfgErrorCases-0001
 //! @SYMTestActions    Call AddPlugin, RemoveChannel with various error cases
 //! @SYMTestExpectedResults      error returns as expected
 //! @SYMTestType         UT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ
 RUN_TEST_STEP 100 Te_SysCfg SysCfgTeststep4

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -18,22 +18,24 @@ TARGETTYPE  		exe
 UID             	0x1000007A 0x10287240
 
 //#undef			SYMBIAN_INCLUDE_EXECUTABLE_TRACE
-#include    		<platform/opensystemtrace.mmh>
-
+#include    			<platform/opensystemtrace.mmh>
 MACRO 				TE_TRACE_DISABLED
 MACRO 				TE_SYSTEM_SHOULD_BE_ENABLED
 //MACRO 			TE_EXECUTABLE_SHOULD_BE_ENABLED
 MACRO 				EXECUTABLE_DEFAULT_MODULEUID=6666
 MACRO 				TE_MODULE_UID=0x10287240
 
-OS_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE		\epoc32\include
+SYSTEMINCLUDE 		\epoc32\include\test
+SYSTEMINCLUDE 		\epoc32\include\platform
 
-USERINCLUDE			../inc
+USERINCLUDE			..\inc
 USERINCLUDE 		../../devicedriver/inc/
 USERINCLUDE 		../../lauterbach_perf_tester/inc/
 
-SOURCEPATH  		../src
-SOURCE              te_suite_server.cpp
+
+SOURCEPATH  		..\src
+SOURCE              		te_suite_server.cpp
 SOURCE				te_suite_step_base.cpp 
 SOURCE				te_check_build_variability_step.cpp
 SOURCE				te_check_record_content_step.cpp 
@@ -50,6 +52,7 @@ SOURCE				te_macrostest.cpp
 SOURCE				te_macrostest_disabled.cpp
 SOURCE				te_usertimer.cpp
 
+
 LIBRARY		euser.lib
 LIBRARY		testexecuteutils.lib 
 LIBRARY		testexecutelogclient.lib 
@@ -58,6 +61,8 @@ LIBRARY		hal.lib
 LIBRARY		btracec.lib 
 LIBRARY		uloggerclient.lib
 LIBRARY		te_ost_lauterbach.lib
+
+
 
 always_build_as_arm
 OPTION ARMCC --interleave

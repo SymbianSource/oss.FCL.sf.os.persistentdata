@@ -21,7 +21,7 @@
 */
 #if (!defined TE_OUTPUTSANITYTEST_H)
 #define TE_OUTPUTSANITYTEST_H
-#include <test/datawrapper.h>
+#include <datawrapper.h>
 #include "te_ostv2integsuite_basewrapper.h"
 #include <e32base.h>
 #include <e32math.h>
@@ -42,9 +42,9 @@ public:
 private:
 	COutputCSVSanityWrapper();
 	void ConstructL();
-	TVerdict	 	TestBaselineCsvL();
-	TInt 		ReadCsvFileL(const TDesC& aFilename, RBuf8& aBuffer);
-	TInt		CsvFileSizeL(const TDesC& aFilename, TInt& aSize);
+	TVerdict	 	TestBaselineCsv();
+	TInt 		ReadCsvFile(const TDesC& aFilename, RBuf8& aBuffer);
+	TInt		CsvFileSize(const TDesC& aFilename, TInt& aSize);
 
 	};
 

@@ -12,7 +12,7 @@
 //
 // Description:
 //
-#include <e32utrace.mmh>
+
 TARGET			t_sqloom5.exe
 TARGETTYPE		EXE
 CAPABILITY      ProtServ AllFiles
@@ -35,15 +35,13 @@ USERINCLUDE 	.
 USERINCLUDE 	../INC
 USERINCLUDE 	../SRC/Common
 USERINCLUDE 	../SRC/Common/IPC
+USERINCLUDE 	../SRC/Common/Trace
 USERINCLUDE 	../SRC/Server
 USERINCLUDE 	../SRC/Server/Compact
 USERINCLUDE 	../SRC/Server/IPC
 USERINCLUDE 	../SRC/Security
 USERINCLUDE 	../SQLite
 USERINCLUDE 	../OsLayer
-USERINCLUDE 	../traces_SqlDb
-USERINCLUDE 	../traces_SqlSrv
-
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 OS_LAYER_ESTLIB_SYSTEMINCLUDE
 

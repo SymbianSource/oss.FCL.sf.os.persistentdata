@@ -45,7 +45,7 @@ private:
 	CULoggerSession(RThread& aClient, CULoggerServer& aServer);
 	void ConstructL();
 
-	void SendIntegerL(const RMessage2& aMessage, TUint32 aInt);
+	void SendInteger(const RMessage2& aMessage, TUint32 aInt);
 	//void PanicClient(TInt aPanic) const;
 
 	//data

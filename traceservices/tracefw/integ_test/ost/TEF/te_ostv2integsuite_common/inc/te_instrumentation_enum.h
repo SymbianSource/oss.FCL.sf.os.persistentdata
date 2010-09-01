@@ -90,38 +90,36 @@ enum TUPTApiUsed
     EOstTraceFunctionEntry0,
     EOstTraceFunctionEntry1,
     EOstTraceFunctionEntryExt,
-    EOstTraceFunctionEntryExtCtorInitList,//40
-    EOstTraceFunctionEntryExtCtorNoInitList,
-    EOstTraceFunctionExit0,
+    EOstTraceFunctionExit0,//40
     EOstTraceFunctionExit1,
     EOstTraceFunctionExitExt,
-    EOstTraceEventStart0,//45
+    EOstTraceEventStart0,
     EOstTraceEventStart1,
-    EOstTraceState0,
+    EOstTraceState0,//45
     EOstTraceState1,
     EOstTraceEventStop,
-    EOstTraceData96,//50
+    EOstTraceData96,
     EOstTraceData1000,
-    EUptIsTraceActive,
+    EUptIsTraceActive,//50
 
 //kernel side
 	//printf
 	EUptKernelPrintfchar,
 	EUptKernelPrintfTRefByValueTDesC8, 
-	EUptKernelPrintfDesc8_big,//55
+	EUptKernelPrintfDesc8_big,
 	EUptKernelPrintfDesc8_huge,
 	//trace
-	EUptKernelTrace,
+	EUptKernelTrace,//55
 	EUptKernelTraceTUint32,
 	EUptKernelTraceTUint32TUint32,
-	EUptKernelTraceTAnySmallStruct,//60
+	EUptKernelTraceTAnySmallStruct,
 	EUptKernelTraceTAnyBigStruct,
-	EUptKernelTraceTAnyHugeStruct,
+	EUptKernelTraceTAnyHugeStruct,//60
 	EUptKernelTraceTemplatedSmallStruct,
 	EUptKernelTraceTemplatedBigStruct,
-	EUptKernelTraceTemplatedHugeStruct,//65
+	EUptKernelTraceTemplatedHugeStruct,
 	EUptKernelIsTraceActive,
-	EUptKernelTraceDesc8_big,
+	EUptKernelTraceDesc8_big,//65
 	EUptKernelTraceDesc8_huge, 
 
 
@@ -134,22 +132,22 @@ enum TUPTApiUsed
 	 * Stackbase: 400 byte
 	 */
 	UPTTraceTest,
-	UPTKernelTraceTest,//70
+	UPTKernelTraceTest,
 	UPTKernelNegativeFunctionalityTest,
-	UPTKernelMultipleFunctionalityTest,
+	UPTKernelMultipleFunctionalityTest,//70
 //btrace
 	BTraceFiltered4,//equivalent of EUptTrace
 	BTraceFiltered8,// equivalent of EUptTraceTUint32
-	BTraceFiltered12,//75 // equivalent of EUptTraceTUint32TUint32
+	BTraceFiltered12,// equivalent of EUptTraceTUint32TUint32
 	BTraceFilteredBig,//equivalent of EUptTraceTemplatedHugeStruct
-	BTrace0,
+	BTrace0,//75
 	BTrace4,
 	BTrace8,
-	BTrace12,//80
+	BTrace12,
 
 //baseline
 	UPTBaseline,
-	UPTKernelBaseline,
+	UPTKernelBaseline,//80
 
 //foo definitions
 	UPTFooUserTime,

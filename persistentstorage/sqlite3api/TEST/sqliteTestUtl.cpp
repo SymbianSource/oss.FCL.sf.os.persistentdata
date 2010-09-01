@@ -21,65 +21,40 @@
 static TBuf8<500> TheBuf8;
 static TBuf16<500> TheBuf16;
 
-static RTest* TheTest;
+static RTest TheTest(_L("t_sqliteapi test"));
 
-extern "C" void TestOpen(const char* title)
+extern "C" void TestTitle(void)
 	{
-	TPtrC8 p((const unsigned char*)title);
-	TheBuf16.Copy(p);
-	TheTest = new RTest(TheBuf16);
-	}
-
-extern "C" void TestTitle()
-	{
-	TheTest->Title();
+	TheTest.Title();
 	}
 
 extern "C" void TestStart(const char* title)
 	{
 	TPtrC8 p((const unsigned char*)title);
 	TheBuf16.Copy(p);
-	TheTest->Start(TheBuf16);
+	TheTest.Start(TheBuf16);
 	}
 
 extern "C" void TestNext(const char* title)
 	{
 	TPtrC8 p((const unsigned char*)title);
 	TheBuf16.Copy(p);
-	TheTest->Next(TheBuf16);
+	TheTest.Next(TheBuf16);
 	}
 
 extern "C" void TestClose(void)
 	{
-	TheTest->Close();
-	delete TheTest;	
+	TheTest.Close();	
 	}
 
 extern "C" void TestEnd(void)
 	{
-	TheTest->End();	
+	TheTest.End();	
 	}
 
 extern "C" void TestAbort(int aLine)
 	{
-	TheTest->operator()(0, aLine);	
-	}
-
-extern "C" void TestTestLine(int aResult, int aLine)
-	{
-	TheTest->operator()(aResult, aLine);
-	}
-
-extern "C" void TestTest(int aResult)
-	{
-	TheTest->operator()(aResult);
-	}
-
-extern "C" void TestPrintf(const char* title)
-	{
-	TPtrC8 p((const unsigned char*)title);
-	TheBuf16.Copy(p);
-	TheTest->Printf(TheBuf16);
+	TheTest(0, aLine);	
 	}
 
 extern "C" void TestHeapMark(void)
@@ -140,9 +115,9 @@ extern "C" void CreatePrivateDir(void)
 	{
 	RFs TheFs;
 	TInt err = TheFs.Connect();
-	TheTest->operator()(err == KErrNone);
+	TheTest(err == KErrNone);
 	err = TheFs.CreatePrivatePath(EDriveC);
 	TheFs.Close();
-	TheTest->operator()(err == KErrNone || err == KErrAlreadyExists);
+	TheTest(err == KErrNone || err == KErrAlreadyExists);
 	}
 	

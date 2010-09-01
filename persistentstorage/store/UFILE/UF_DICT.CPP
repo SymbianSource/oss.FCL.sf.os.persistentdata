@@ -154,7 +154,7 @@ void CDictionaryFileStore::ConstructL(RFs& aFs,const TDesC& aName,TUid aFileId)
 	for (TInt wait=KLockoutLimit;;)
 		{
 		RFile file;
-        //  When the file server write caching is enabled, the order of file write operations is not guaranteed.
+		//  When the file server write caching is enabled, the order of file write operations is not guaranteed.
         // This could cause data inconsistency in some circumstances,for example, when the power is lost in the 
         // middle of a database transaction.Therefore, the file write caching is disabled for this file to maintain integrity.
 
@@ -179,11 +179,11 @@ void CDictionaryFileStore::ConstructL(RFs& aFs,const TDesC& aName,TUid aFileId)
 					}
 				if (r==KErrCorrupt)
 					{
-				// silently replace the entire file if it is corrupt
-				//  When the file server write caching is enabled, the order of file write operations is not guaranteed.
-				// This could cause data inconsistency in some circumstances,for example, when the power is lost in the 
-				// middle of a database transaction.Therefore, the file write caching is disabled for this file to maintain integrity.
-				//   
+					// silently replace the entire file if it is corrupt
+					//  When the file server write caching is enabled, the order of file write operations is not guaranteed.
+					// This could cause data inconsistency in some circumstances,for example, when the power is lost in the 
+					// middle of a database transaction.Therefore, the file write caching is disabled for this file to maintain integrity.
+
 					r=file.Replace(aFs,aName,EFileShareExclusive|EFileWrite|EFileWriteDirectIO);
 					if (r==KErrInUse)
 						break;  // try again later...
@@ -205,9 +205,10 @@ void CDictionaryFileStore::ConstructL(RFs& aFs,const TDesC& aName,TUid aFileId)
 			return;
 			}
 		case KErrNotFound:
-            //  When the file server write caching is enabled, the order of file write operations is not guaranteed.
-            // This could cause data inconsistency in some circumstances,for example, when the power is lost in the 
-            // middle of a database transaction.Therefore, the file write caching is disabled for this file to maintain integrity.
+			//  When the file server write caching is enabled, the order of file write operations is not guaranteed.
+			// This could cause data inconsistency in some circumstances,for example, when the power is lost in the 
+			// middle of a database transaction.Therefore, the file write caching is disabled for this file to maintain integrity.
+
 			r=file.Create(aFs,aName,EFileShareExclusive|EFileWrite|EFileWriteDirectIO);
 			if (r==KErrNone)
 				{

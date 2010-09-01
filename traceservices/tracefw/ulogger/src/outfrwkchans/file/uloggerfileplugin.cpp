@@ -15,8 +15,8 @@
 
 #include <e32std.h>
 #include <ecom/implementationproxy.h>
-
 #include "uloggerfileplugin.h"
+
 
 namespace Ulogger
 {

@@ -53,7 +53,7 @@ public:
 
 private:
 	CPluginAllocator();
-	TInt CreateChannelsL(const TPtrC8& aOutputPluginName, const TPtrC8& aInputPluginName);
+	TInt CreateChannels(const TPtrC8& aOutputPluginName, const TPtrC8& aInputPluginName);
 
 private:
 	CPlugin     *iOutputPluginBase; //output plugin instance

@@ -161,8 +161,7 @@ void CFeatMgrStressTest::DoThreadActionL()
 	{
 	TThreadId id = RThread().Id();
 	TUid uid = {id.Id()};
-	uid.iUid += 0x1001000;
-
+	uid.iUid += 500;
 	// Create the thread info instance that would hold the results for the tests below
 	TThreadTestInfo info;
 	info.iId = uid.iUid;
@@ -510,7 +509,9 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 	*/
 	
 	// Locals for the test scenarios
+	RApaLsSession ls;
 	RProcess process; 
+	CApaCommandLine* cmdLine;
 	TBitFlags32 flags( 0 ); 	
 	flags.Set( EFeatureSupported);
 	flags.Set( EFeatureModifiable );
@@ -533,7 +534,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 	
 		// This delay is used to allow P&S to complete the initial setting of the 
 		// KSAUidSoftwareInstallKeyValue property to ESASwisInstall before we proceed with 
@@ -556,17 +564,17 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 		err = control.AddFeature(entry3);
 		TESTDIAGNOSTICERROR(err==KErrNone, 
 				_L("RFeatureControl::AddFeature expects KErrNone for KNewUid3; returned value is = %d"),err);
-	
+        
 		// Enable feature
-		err = control.EnableFeature(KNewUid1);
-		TESTDIAGNOSTICERROR(err==KErrNone, 
-		        _L("RFeatureControl::EnableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
-		
-		// Disable feature
-		err = control.DisableFeature(KNewUid1);
-		TESTDIAGNOSTICERROR(err==KErrNone, 
-		        _L("RFeatureControl::DisableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
-		
+        err = control.EnableFeature(KNewUid1);
+        TESTDIAGNOSTICERROR(err==KErrNone, 
+                _L("RFeatureControl::EnableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+        
+        // Disable feature
+        err = control.DisableFeature(KNewUid1);
+        TESTDIAGNOSTICERROR(err==KErrNone, 
+                _L("RFeatureControl::DisableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
+        
 		// Set features
 		err = control.SetFeature(KNewUid1, ETrue, KChangeData);
 		TESTDIAGNOSTICERROR(err==KErrNone, 
@@ -667,7 +675,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -717,7 +732,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -766,7 +788,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 			
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -825,7 +854,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -884,7 +920,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -927,7 +970,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -973,7 +1023,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1093,7 +1150,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1143,7 +1207,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1177,7 +1248,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 			
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1236,7 +1314,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1300,7 +1385,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1335,7 +1427,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 		// Starting helping exe
 		_LIT(KHelpingExePath, "helping_exe.exe");
 		err = process.Create(KHelpingExePath, _L("1"));
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KHelpingExePath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Wait for helping_exe to finish
 		User::After(600000);
@@ -1419,7 +1518,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1446,7 +1552,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 		// Starting helping exe which is going to call SWIEnd (passing 2 as a parameter to indicate this)
 		_LIT(KHelpingExePath, "helping_exe.exe");
 		err = process.Create(KHelpingExePath, _L("2"));
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KHelpingExePath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		User::After(500000);
 			
@@ -1499,7 +1612,14 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(process);
 		process.Resume();
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;
 		
 		// Allow P&S to complete initialising
 		User::After(200000);
@@ -1615,63 +1735,6 @@ TVerdict CFeatmgrStartEndInstall::doTestStepL()
 	process.Close();
 	// Wait before starting the next test
 	User::After(100000);
-	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	// SCENARIO 18: Successful installation and features manipulation (Enable/Disable without modifying data)
-	// Add Feature with user data -> P&S install -> SWIStart -> Enable/Disable Feature -> 
-	//  -> SWIEnd -> P&S success -> No change to user data
-	////////////////////////////////////////////////////////////////////////////////////////////
-    INFO_PRINTF1(_L("SCENARIO 18: Successful installation and Enable or Disable feature should not modify userdata"));
-    // Launching dummyswi.exe
-    err = process.Create(KDummySWIPath, _L("1"));   // 1 = install success
-    TESTDIAGNOSTICERROR(err==KErrNone,
-               _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
-    if( err==KErrNone )
-        {
-        process.Resume();
-    
-        // Allow P&S to complete initialising
-        User::After(200000);
-        
-        err = control.Open();
-        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::Open failed, returned value is = %d"),err);
-        
-        err = control.AddFeature(entry1);
-        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::AddFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
-        
-        err = control.SWIStart();
-        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::SWIStart expects KErrNone; returned value is = %d"),err);
-        
-        // Enable feature
-        err = control.EnableFeature(KNewUid1);
-        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::EnableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
-        
-        // Disable feature
-        err = control.DisableFeature(KNewUid1);
-        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::EnableFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
-        
-        err = control.SWIEnd();
-        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::SWIEnd expects KErrNone; returned value is = %d"),err);
-        
-        // Delay until the P&S property is set to ESASwisStatusSuccess in dummyswi.exe to indicate successful installation
-        User::After(1500000);
-        
-        err = control.FeatureSupported(query1);
-        TESTDIAGNOSTICERROR(err==KErrNone, _L("TFeatureEntry::FeatureData expects 0 for KNewUid1; returned value is = %d"),err);
-        TESTDIAGNOSTICERROR(query1.FeatureData()==KDefaultData1, _L("TFeatureEntry::FeatureData expects non-zero for KNewUid1; returned value is = %d"), err);
-        
-        // Delete KNewUid1
-        err = control.DeleteFeature(KNewUid1);
-        TESTDIAGNOSTICERROR(err==KErrNone, _L("RFeatureControl::DeleteFeature expects KErrNone for KNewUid1; returned value is = %d"),err);
-        
-        query1 = TFeatureEntry(KNewUid1);
-        
-        control.Close();
-
-        }
-    process.Close();
-    // Wait before starting the next test
-    User::After(100000);
 	
 
 	return TestStepResult();

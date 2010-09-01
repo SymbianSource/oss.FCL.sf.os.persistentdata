@@ -81,7 +81,7 @@ TInt CTe_UTraceSuiteStepBase::ReadGeneralConfigs()
 	return KErrNone;
 	}
 
-void CTe_UTraceSuiteStepBase::DeleteLogFileL()
+void CTe_UTraceSuiteStepBase::DeleteLogFile()
 	{
 	iLogger.DeleteLogfileL();
 	}

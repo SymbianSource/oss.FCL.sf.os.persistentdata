@@ -16,9 +16,6 @@
 #include <bautils.h>
 #include "t_logutil2.h"
 
-//Define "TheTest" variable used in the test cpp files
-extern RTest TheTest;
-
 _LIT(KHelperExeName, "t_LogHiCapHelper.exe");
 
 //======================================================================================================
@@ -892,6 +889,10 @@ void DeleteDataFile(const TDesC& aFullName)
 static void Cleanup(void*)
 	{
 	TRAP_IGNORE(TestUtils::DeleteDatabaseL());
+	_LIT(KCntModelFileName, "c:\\system\\data\\CntModel.ini");
+	::DeleteDataFile(KCntModelFileName);
+	_LIT(KContactsFileName, "c:\\system\\data\\Contacts.cdb");
+	::DeleteDataFile(KContactsFileName);
 	::DeleteDataFile(theLogName);
 	}
 

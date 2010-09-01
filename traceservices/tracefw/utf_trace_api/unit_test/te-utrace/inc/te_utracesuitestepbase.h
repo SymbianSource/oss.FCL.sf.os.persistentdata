@@ -24,7 +24,7 @@
 
 #if (!defined __TE_UTRACE_STEP_BASE__)
 #define __TE_UTRACE_STEP_BASE__
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include <e32utrace.h>
 #include "te_btracecmds.h"
 // Please add your include here if you have

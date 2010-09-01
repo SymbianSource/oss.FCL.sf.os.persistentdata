@@ -23,11 +23,6 @@
 #include "SqlSrvStartup.h"		//StartSqlServer()
 #include "SqlResourceTest.h"	//TSqlResourceTestData
 #include "SqlSecurityImpl.h"	//CSqlSecurityPolicy
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "SqlDbSessionTraces.h"
-#endif
-#include "SqlTraceDef.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////             TSqlFhCmdFunctor             ///////////////////////////////////////////////
@@ -201,8 +196,8 @@ TInt TSqlFhAttachCmdFunctor::operator()(RFile64& aDbFile, TBool /*aCreated*/, TB
 	TPtr8 bufPtr = buf->Des();
 	RDesWriteStream out(bufPtr);
 	TRAPD(err, SerializeToStreamL(out));
-	__ASSERT_DEBUG(err == KErrNone, __SQLPANIC(ESqlPanicInternalError));//"Write to descriptor" streaming operatons can't fail
-   TUint32 arg0 = (TUint32)bufPtr.Length() | (aReadOnly ? 0x80000000 : 0);
+	__SQLASSERT(err == KErrNone, ESqlPanicInternalError);//"Write to descriptor" streaming operatons can't fail
+    TUint32 arg0 = (TUint32)bufPtr.Length() | (aReadOnly ? 0x80000000 : 0);
     TIpcArgs ipcArgs(arg0, &bufPtr);
     err = aDbFile.TransferToServer(ipcArgs, 2, 3);
     if(err == KErrNone)
@@ -306,7 +301,6 @@ Usage of the IPC call arguments:
 */
 TInt RSqlDbSession::Connect(TSqlSrvFunction aFunction, const TDesC& aDbFileName, const TDesC8& aSecurityPolicyData, const TDesC8* aConfig)
 	{
-    SQL_TRACE_SESSION(OstTraceExt2(TRACE_INTERNALS, RSQLDBSESSION_CONNECT_ENTRY, "Entry;0x%X;RSqlDbSession::Connect;aDbFileName=%S", (TUint)this, __SQLPRNSTR(aDbFileName)));
 #ifdef SYSLIBS_TEST
     const TInt KDefaultMsgBufLen = 4;
 #else	
@@ -364,7 +358,6 @@ TInt RSqlDbSession::Connect(TSqlSrvFunction aFunction, const TDesC& aDbFileName,
 		{
 		Close();	
 		}
-    SQL_TRACE_SESSION(OstTraceExt3(TRACE_INTERNALS, RSQLDBSESSION_CONNECT_EXIT, "Exit;0x%X;RSqlDbSession::Connect;err=%d;handle=0x%X", (TUint)this, err, (TUint)Handle()));
 	return err;
 	}
 
@@ -657,7 +650,6 @@ Closes the database and releases the connection with the database server.
 */
 void RSqlDbSession::Close()
 	{
-    SQL_TRACE_SESSION(OstTraceExt2(TRACE_INTERNALS, RSQLDBSESSION_CLOSE, "0x%X;RSqlDbSession::Close;handle=0x%X", (TUint)this, (TUint)Handle()));
 	if(Handle())
 		{
 		(void)SendReceive(ESqlSrvDbClose);
@@ -856,7 +848,7 @@ TInt RSqlDbSession::DoConnect(TSqlSrvFunction aFunction, const TDesC& aDbFileNam
 			{
 			//coverity[DEADCODE]
 			//The ASSERT might be useful in catching future defect in this function
-			__ASSERT_DEBUG(aConfig != NULL, __SQLPANIC(ESqlPanicInternalError));
+			__SQLASSERT(aConfig != NULL, ESqlPanicInternalError);
 			arg3Ptr.Append(*aConfig);
 			}
 		ipcArgs.Set(3, &arg3Ptr);

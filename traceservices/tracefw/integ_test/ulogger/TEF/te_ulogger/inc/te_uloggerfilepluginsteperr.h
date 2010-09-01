@@ -25,7 +25,7 @@
 #ifndef __TE_ULOGGERFILEPLUGINTESTERR_H__
 #define __TE_ULOGGERFILEPLUGINTESTERR_H__
 
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_uloggermclsuitestepbase.h"
 #include <e32base.h>
 #include <e32math.h>

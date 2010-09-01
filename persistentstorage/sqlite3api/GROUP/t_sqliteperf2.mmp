@@ -22,7 +22,6 @@ OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
 SOURCEPATH		../TEST
 SOURCE			t_sqliteperf2.cpp
-SOURCE			sqliteTestUtl.cpp
 
 STATICLIBRARY   libcrt0.lib
 LIBRARY         libc.lib

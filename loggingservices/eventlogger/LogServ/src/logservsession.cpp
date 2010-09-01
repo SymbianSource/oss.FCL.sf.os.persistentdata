@@ -59,8 +59,7 @@ CLogServSession::~CLogServSession()
 	{
 	LOGTEXT3("CLogServSession::~CLogServSession() - client logging off: %S, %d", &iClientThreadName, iSessionId);
 
-	// Set second parameter to not complete the message, otherwise if the client has died a KERN-EXEC 44 will be generated.
-	iOperationManager.OMCancel(iSessionId, EFalse);
+	iOperationManager.OMCancel(iSessionId, ETrue);
 	
 	delete iPackage;
 	delete iNotify;

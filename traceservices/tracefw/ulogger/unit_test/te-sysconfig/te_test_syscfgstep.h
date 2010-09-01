@@ -24,7 +24,7 @@
 #ifndef TE_SYSCFG_TESTSTEP_H
 #define TE_SYSCFG_TESTSTEP_H
 
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include <e32base.h> // cbase
 #include <e32test.h>
 #include <f32file.h> // rfs, rfile

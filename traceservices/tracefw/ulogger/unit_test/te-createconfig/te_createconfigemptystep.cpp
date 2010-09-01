@@ -74,7 +74,7 @@ TVerdict CCreateConfigEmptyTestStep::doTestStepL()
 	logger.Connect();
 	CClearConfig configIni;
 	
-	configIni.ClearL(logger);
+	configIni.Clear(logger);
 
 	logger.SetSecondaryFilteringEnabled(EFalse);	
 

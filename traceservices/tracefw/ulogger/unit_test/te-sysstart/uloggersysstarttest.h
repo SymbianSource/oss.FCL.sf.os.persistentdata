@@ -20,8 +20,7 @@
 #ifndef __ULOGGERSYSSTARTTEST_H__
 #define __ULOGGERSYSSTARTTEST_H__
 
-#include <test/tefunit.h>
-
+#include <tefunit.h>
 #include "uloggersysstarter.h"
 #include "te_sysstartersuitestepbase.h"
 	

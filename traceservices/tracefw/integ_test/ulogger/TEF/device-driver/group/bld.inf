@@ -12,6 +12,10 @@
 //
 // Description:
 //
+/**
+ @file bld.inf
+ @internalTechnology
+*/
 
 PRJ_TESTMMPFILES
 //usbc.mmp

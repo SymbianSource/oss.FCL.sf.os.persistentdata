@@ -19,6 +19,13 @@
 @file
 */
 
+//#define SYMBIAN_INCLUDE_EXECUTABLE_TRACE
+#include <e32utrace.mmh>
+
+#ifdef SYMBIAN_INCLUDE_EXECUTABLE_TRACE
+MACRO			SQLSRV_ENABLE_TRACE
+#endif
+
 TARGET		sqlsrv.exe
 TARGETTYPE	exe
 CAPABILITY	ProtServ
@@ -43,10 +50,10 @@ OPTION CW -w noillpragmas
 
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 OS_LAYER_ESTLIB_SYSTEMINCLUDE
-USERINCLUDE	../traces_SqlSrv
 USERINCLUDE	../INC
 USERINCLUDE	../SRC/Common
 USERINCLUDE	../SRC/Common/IPC
+USERINCLUDE	../SRC/Common/Trace
 USERINCLUDE	../SRC/Security
 USERINCLUDE	../SRC/Server
 USERINCLUDE	../SRC/Server/IPC
@@ -59,23 +66,10 @@ USERINCLUDE		../SQLite
 #endif
 
 SOURCEPATH	../SRC/Server
-SOURCE		SqlSrvMain.cpp 
-SOURCE		SqlSrvSession.cpp 
-SOURCE		SqlSrvDatabase.cpp 
-SOURCE		SqlSrvStatement.cpp 
-SOURCE		SqlSrvAuthorizer.cpp
-SOURCE		SqlSrvUtil.cpp 
-SOURCE		SqlSrvStrings.cpp 
-SOURCE		SqlSrvStatementUtil.cpp 
-SOURCE		SqlSrvCollation.cpp 
-SOURCE		SqlSrvSecurityMap.cpp
-SOURCE		SqlSrvFileData.cpp 
-SOURCE		SqlSrvDriveSpace.cpp 
-SOURCE		SqlSrvDbSysSettings.cpp 
-SOURCE		SqlSrvConfig.cpp 
-SOURCE		SqlSrvBlob.cpp
-SOURCE		SqlSrvCheckStatement.cpp 
-SOURCE		SqlSrvResourceProfiler.cpp
+SOURCE		SqlSrvMain.cpp SqlSrvSession.cpp SqlSrvDatabase.cpp SqlSrvStatement.cpp SqlSrvAuthorizer.cpp
+SOURCE		SqlSrvUtil.cpp SqlSrvStrings.cpp SqlSrvStatementUtil.cpp SqlSrvCollation.cpp SqlSrvSecurityMap.cpp
+SOURCE		SqlSrvFileData.cpp SqlSrvDriveSpace.cpp SqlSrvDbSysSettings.cpp SqlSrvConfig.cpp SqlSrvBlob.cpp
+SOURCE		SqlSrvCheckStatement.cpp SqlSrvResourceProfiler.cpp
 // for backup and restore
 SOURCE		SqlBur.cpp
 
@@ -83,18 +77,18 @@ SOURCEPATH	../SRC/Server/IPC
 SOURCE		IPCStream.cpp
 
 SOURCEPATH	../SRC/Common
-SOURCE		SqlUtil.cpp 
-SOURCE		SqlBufFlat.cpp 
-SOURCE		SqlBufIterator.cpp
+SOURCE		SqlUtil.cpp SqlBufFlat.cpp SqlBufIterator.cpp
 
 SOURCEPATH	../SRC/Security
 SOURCE		SqlSecurityImpl.cpp 
 
 SOURCEPATH	../SRC/Server/Compact
-SOURCE		SqlCompact.cpp 
-SOURCE		SqlCompactEntry.cpp 
-SOURCE		SqlCompactConn.cpp 
-SOURCE		SqlCompactTimer.cpp
+SOURCE		SqlCompact.cpp SqlCompactEntry.cpp SqlCompactConn.cpp SqlCompactTimer.cpp
+
+#ifdef SYMBIAN_INCLUDE_EXECUTABLE_TRACE
+SOURCEPATH 	../SRC/Common/Trace
+SOURCE 		UTraceSql.cpp
+#endif
 
 LIBRARY		estlib.lib 
 LIBRARY		euser.lib 

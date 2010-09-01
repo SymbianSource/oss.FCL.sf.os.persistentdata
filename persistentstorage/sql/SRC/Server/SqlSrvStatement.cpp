@@ -9,7 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
-// NTT DOCOMO, INC - Fix for defect 1915 "SQL server panics when using long column type strings"
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -21,12 +21,7 @@
 #include "SqlSrvStatement.h"
 #include "SqlBufIterator.h"			//TSqlBufRIterator
 #include "SqlSrvResourceProfiler.h"
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "SqlSrvStatementTraces.h"
-#endif
-#include "SqlTraceDef.h"
-
+#include "UTraceSql.h"
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////      local const data       ////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -142,16 +137,14 @@ The created CSqlSrvStatement instance will be placed in the cleanup stack.
 */	
 CSqlSrvStatement* CSqlSrvStatement::NewLC(sqlite3* aDbHandle, const TDesC16& aSqlStmt, TInt& aColumnCount, TInt& aParamCount)
 	{
-    __SQLTRACE_INTERNALSEXPR(TPtrC sqlprnptr(aSqlStmt.Left(aSqlStmt.Length() - 1)));
-    SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVSTATEMENT_NEWLC_ENTRY, "Entry;0;CSqlSrvStatement::NewLC-16;aDbHandle=0x%X;aSqlStmt=%S", (TUint)aDbHandle, __SQLPRNSTR(sqlprnptr)));
-	__ASSERT_DEBUG(aSqlStmt.Length() > 0 ? (TInt)aSqlStmt[aSqlStmt.Length() - 1] == 0 : ETrue, __SQLPANIC2(ESqlPanicBadArgument));
+	__SQLASSERT(aSqlStmt.Length() > 0 ? (TInt)aSqlStmt[aSqlStmt.Length() - 1] == 0 : ETrue, ESqlPanicBadArgument);
 	
 	CSqlSrvStatement* self = new (ELeave) CSqlSrvStatement;
 	CleanupStack::PushL(self);
 	self->ConstructL(aDbHandle, aSqlStmt);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KSrvStmtCreated, self));
 	aColumnCount = self->iColumnCount;
 	aParamCount = self->iParamCount;
-	SQL_TRACE_INTERNALS(OstTraceExt4(TRACE_INTERNALS, CSQLSRVSTATEMENT_NEWLC_EXIT, "Exit;0x%X;CSqlSrvStatement::NewLC-16;iStmtHandle=0x%X;aColumnCount=%d;aParamCount=%d", (TUint)self, (TUint)self->iStmtHandle, aColumnCount, aParamCount));
 	return self;
 	}
 	
@@ -176,17 +169,14 @@ The created CSqlSrvStatement instance will be placed in the cleanup stack.
 */	
 CSqlSrvStatement* CSqlSrvStatement::NewLC(sqlite3* aDbHandle, const TDesC8& aSqlStmt, TInt& aColumnCount, TInt& aParamCount)
 	{
-    __SQLTRACE_INTERNALSEXPR(TPtrC8 sqlprnptr(aSqlStmt.Left(aSqlStmt.Length() - 1)));
-	__SQLTRACE_INTERNALSVAR(TBuf<100> des16prnbuf);
-    SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVSTATEMENT_NEWLC_ENTRY2, "Entry;0;CSqlSrvStatement::NewLC-8;aDbHandle=0x%X;aSqlStmt=%s", (TUint)aDbHandle, __SQLPRNSTR8(sqlprnptr, des16prnbuf)));
-	__ASSERT_DEBUG(aSqlStmt.Length() > 0 ? (TInt)aSqlStmt[aSqlStmt.Length() - 1] == 0 : ETrue, __SQLPANIC2(ESqlPanicBadArgument));
+	__SQLASSERT(aSqlStmt.Length() > 0 ? (TInt)aSqlStmt[aSqlStmt.Length() - 1] == 0 : ETrue, ESqlPanicBadArgument);
 
 	CSqlSrvStatement* self = new (ELeave) CSqlSrvStatement;
 	CleanupStack::PushL(self);
 	self->ConstructL(aDbHandle, aSqlStmt);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KSrvStmtCreated, self));
 	aColumnCount = self->iColumnCount;
 	aParamCount = self->iParamCount;
-	SQL_TRACE_INTERNALS(OstTraceExt4(TRACE_INTERNALS, CSQLSRVSTATEMENT_NEWLC_EXIT2, "Exit;0x%X;CSqlSrvStatement::NewLC-8;iStmtHandle=0x%X;aColumnCount=%d;aParamCount=%d", (TUint)self, (TUint)self->iStmtHandle, aColumnCount, aParamCount));
 	return self;
 	}
 	
@@ -195,19 +185,17 @@ Destroys the allocated by CSqlSrvStatement instance memory and other resources.
 */	
 CSqlSrvStatement::~CSqlSrvStatement()
 	{
-	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSRVSTATEMENT_CSQLSRVSTATEMENT2_ENTRY, "Entry;0x%X;CSqlSrvStatement::~CSqlSrvStatement;iStmtHandle=0x%X", (TUint)this, (TUint)iStmtHandle));
 	DestroyParamBufArray();
 	iBufFlat.Close();
 	if(iStmtHandle)
 		{
-#ifdef SYMBIAN_USE_SQLITE_VERSION_3_6_4
-		__SQLTRACE_INTERNALSEXPR(TInt scanCount = sqlite3_stmt_status(iStmtHandle, SQLITE_STMTSTATUS_FULLSCAN_STEP, ETrue));
-		__SQLTRACE_INTERNALSEXPR(TInt sortCount = sqlite3_stmt_status(iStmtHandle, SQLITE_STMTSTATUS_SORT, ETrue));
-		SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLSRVSTATEMENT_CSQLSRVSTATEMENT2, "0x%X;CSqlSrvStatement::~CSqlSrvStatement;scan count=%d;sort count=%d", (TUint)this, scanCount, sortCount));
-#endif		
+#ifdef SYMBIAN_TRACE_SQL_EVENTS
+		TInt scanCount = sqlite3_stmt_status(iStmtHandle, SQLITE_STMTSTATUS_FULLSCAN_STEP, ETrue);
+		TInt sortCount = sqlite3_stmt_status(iStmtHandle, SQLITE_STMTSTATUS_SORT, ETrue);
+		SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KSrvStmtStatus, this, scanCount, sortCount));
+#endif
 		(void)sqlite3_finalize(iStmtHandle);
 		}
-	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSRVSTATEMENT_CSQLSRVSTATEMENT2_EXIT, "Exit;0x%X;CSqlSrvStatement::~CSqlSrvStatement", (TUint)this));
 	}
 
 /**
@@ -226,7 +214,7 @@ Only parameters, whose values are set by the client, will be processed.
 */	
 void CSqlSrvStatement::BindL(const RSqlBufFlat& aParamBuf)
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	
 	(void)sqlite3SymbianLastOsError();//clear last OS error
 
@@ -294,7 +282,7 @@ Collects column names in a flat buffer and returns a reference to the buffer.
 */	
 const RSqlBufFlat& CSqlSrvStatement::ColumnNamesL()
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	iBufFlatType = static_cast <TSqlBufFlatType> (-1);
 	__SQLLEAVE_IF_ERROR(iBufFlat.SetCount(iColumnCount));
 	TSqlBufWIterator it;
@@ -323,7 +311,7 @@ Collects parameter names in a flat buffer and returns a reference to the buffer.
 */	
 const RSqlBufFlat& CSqlSrvStatement::ParamNamesL()
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	iBufFlatType = static_cast <TSqlBufFlatType> (-1);
 	__SQLLEAVE_IF_ERROR(iBufFlat.SetCount(iParamCount));
 	TSqlBufWIterator it;
@@ -365,7 +353,7 @@ Collects the column values in a flat buffer and returns a reference to the buffe
 */	
 const RSqlBufFlat& CSqlSrvStatement::ColumnValuesL()
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	
 	iBufFlatType = static_cast <TSqlBufFlatType> (-1);
 	iBufFlat.SetCount(iColumnCount);
@@ -405,7 +393,7 @@ const RSqlBufFlat& CSqlSrvStatement::ColumnValuesL()
 					{//sqlite3_column_bytes16() already allocated the needed memory if a UTF8->UTF16 conversion
                      //had to be performed. The sqlite3_column_text16() on the next line is guaranteed to succeed.
 					const TUint16* text = reinterpret_cast <const TUint16*> (sqlite3_column_text16(iStmtHandle, colIdx));
-					__ASSERT_DEBUG(text != NULL, __SQLPANIC(ESqlPanicInternalError));
+					__SQLASSERT(text != NULL, ESqlPanicInternalError);
 					__SQLLEAVE_IF_ERROR(it.SetText(TPtrC16(text, charLength)));
 					}
 				}
@@ -427,7 +415,7 @@ const RSqlBufFlat& CSqlSrvStatement::ColumnValuesL()
 				it.SetNull();
 				break;
 			default:
-				__ASSERT_DEBUG(EFalse, __SQLPANIC(ESqlPanicInternalError));
+				__SQLASSERT(EFalse, ESqlPanicInternalError);
 				break;
 			}//end of switch(...)
 		}//end of - while(it.Next())
@@ -449,15 +437,15 @@ This method sets aColumnSource parameter to point to the column data.
 */	
 TInt CSqlSrvStatement::ColumnSource(TInt aColumnIndex, TPtrC8& aColumnSource) const
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	TInt colType = sqlite3_column_type(iStmtHandle, aColumnIndex);
 	if(colType == SQLITE_TEXT)
         {//Since the first called function after the Next() operation is always CSqlSrvStatement::ColumnValuesL(), then
          //sqlite3_column_bytes16() (called from  ColumnValuesL()) already allocated the needed memory if a UTF8->UTF16 
          //conversion had to be performed. The sqlite3_column_text16() on the next line is guaranteed to succeed.
 		const void* text = sqlite3_column_text16(iStmtHandle, aColumnIndex);
-		__ASSERT_DEBUG(text != NULL, __SQLPANIC2(ESqlPanicInternalError));
- 		TInt length  = sqlite3_column_bytes16(iStmtHandle, aColumnIndex);
+        __SQLASSERT(text != NULL, ESqlPanicInternalError);
+		TInt length  = sqlite3_column_bytes16(iStmtHandle, aColumnIndex);
 		aColumnSource.Set(reinterpret_cast <const TUint8*> (text), length);
 		}
 	else if(colType == SQLITE_BLOB)
@@ -480,7 +468,7 @@ Retrieves from the SQLITE library columns and parameters count.
 */	
 void CSqlSrvStatement::DoCommonConstructL()
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	iColumnCount = sqlite3_column_count(iStmtHandle);
 	iParamCount = sqlite3_bind_parameter_count(iStmtHandle);
 	__SQLLEAVE_IF_ERROR(iBufFlat.SetCount(Max(iColumnCount, iParamCount)));
@@ -519,10 +507,10 @@ Binds a streamed text or binary parameter value.
 */
 void CSqlSrvStatement::BindParamBufL(TInt aParamIndex)
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	__ASSERT_DEBUG(aParamIndex >= 0 && aParamIndex < sqlite3_bind_parameter_count(iStmtHandle), __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(aParamIndex < iParamBufArray.Count(), __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(iParamBufArray[aParamIndex] != NULL, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT(aParamIndex >= 0 && aParamIndex < sqlite3_bind_parameter_count(iStmtHandle), ESqlPanicBadArgument);
+	__SQLASSERT(aParamIndex < iParamBufArray.Count(), ESqlPanicBadArgument);
+	__SQLASSERT(iParamBufArray[aParamIndex] != NULL, ESqlPanicBadArgument);
 	(void)sqlite3SymbianLastOsError();//clear last OS error
 	//Bind the parameter value.
 	//SQLITE_STATIC is used as an argument, because the text/blob data will be kept and can be used by the next bind call
@@ -558,8 +546,8 @@ void CSqlSrvStatement::BindParamBufL(TInt aParamIndex)
 */
 TInt CSqlSrvStatement::ColumnInt(TInt aColIdx) const
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	__ASSERT_DEBUG((TUint)aColIdx < iColumnCount, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT((TUint)aColIdx < iColumnCount, ESqlPanicBadArgument);
 	TInt colType = sqlite3_column_type(iStmtHandle, aColIdx);
 	switch(colType)
 		{
@@ -598,8 +586,8 @@ TInt CSqlSrvStatement::ColumnInt(TInt aColIdx) const
 */
 TInt64 CSqlSrvStatement::ColumnInt64(TInt aColIdx) const
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	__ASSERT_DEBUG((TUint)aColIdx < iColumnCount, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT((TUint)aColIdx < iColumnCount, ESqlPanicBadArgument);
 	TInt colType = sqlite3_column_type(iStmtHandle, aColIdx);
 	switch(colType)
 		{
@@ -635,8 +623,8 @@ TInt64 CSqlSrvStatement::ColumnInt64(TInt aColIdx) const
 */
 TReal CSqlSrvStatement::ColumnReal(TInt aColIdx) const
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	__ASSERT_DEBUG((TUint)aColIdx < iColumnCount, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT((TUint)aColIdx < iColumnCount, ESqlPanicBadArgument);
 	TInt colType = sqlite3_column_type(iStmtHandle, aColIdx);
 	switch(colType)
 		{
@@ -669,8 +657,8 @@ in SqlDb.h file.
 */
 TPtrC CSqlSrvStatement::ColumnTextL(TInt aColIdx) const
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	__ASSERT_DEBUG((TUint)aColIdx < iColumnCount, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT((TUint)aColIdx < iColumnCount, ESqlPanicBadArgument);
 	TPtrC res;
 	TInt colType = sqlite3_column_type(iStmtHandle, aColIdx);
 	if(colType == SQLITE_TEXT)
@@ -685,8 +673,8 @@ TPtrC CSqlSrvStatement::ColumnTextL(TInt aColIdx) const
         //sqlite3_column_bytes16() already allocated the needed memory if a UTF8->UTF16 conversion
         //had to be performed. The sqlite3_column_text16() on the next line is guaranteed to succeed.
         const TUint16* text = reinterpret_cast <const TUint16*> (sqlite3_column_text16(iStmtHandle, aColIdx));
-        __ASSERT_DEBUG(text != NULL, __SQLPANIC(ESqlPanicInternalError));
- 		res.Set(text, charLength);
+        __SQLASSERT(text != NULL, ESqlPanicInternalError);
+		res.Set(text, charLength);
 		}
 	return res;
 	}
@@ -704,8 +692,8 @@ in SqlDb.h file.
 */
 TPtrC8 CSqlSrvStatement::ColumnBinary(TInt aColIdx) const
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	__ASSERT_DEBUG((TUint)aColIdx < iColumnCount, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT((TUint)aColIdx < iColumnCount, ESqlPanicBadArgument);
 	TPtrC8 res;
 	TInt colType = sqlite3_column_type(iStmtHandle, aColIdx);
 	if(colType == SQLITE_BLOB)
@@ -728,8 +716,8 @@ flat buffer and returns a reference to the buffer.
 */
 const RSqlBufFlat& CSqlSrvStatement::GetDeclColumnTypesL()
 	{
-    __ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
- 	iBufFlatType = static_cast <TSqlBufFlatType> (-1);
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	iBufFlatType = static_cast <TSqlBufFlatType> (-1);
 	__SQLLEAVE_IF_ERROR(iBufFlat.SetCount(iColumnCount));
 	TSqlBufWIterator it;
 	it.Set(iBufFlat);
@@ -773,12 +761,12 @@ reuses the existing one.
 HSqlSrvStmtParamBuf* CSqlSrvStatement::GetParamBufL(TInt aParamIndex, HSqlSrvStmtParamBuf::TDataType aDataType, 
 													HSqlSrvStmtParamBuf::TBufType aBufType)
 	{
-	__ASSERT_DEBUG(aParamIndex >= 0 && aParamIndex < sqlite3_bind_parameter_count(iStmtHandle), __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aParamIndex >= 0 && aParamIndex < sqlite3_bind_parameter_count(iStmtHandle), ESqlPanicBadArgument);
 	ExtendParamBufArrayL(aParamIndex);
 	HSqlSrvStmtParamBuf*& paramBuf = iParamBufArray[aParamIndex];
 	if(paramBuf)
 		{//Reset and reuse the existing buffer
-		__ASSERT_DEBUG(paramBuf->ParamIndex() == aParamIndex, __SQLPANIC(ESqlPanicInternalError));
+		__SQLASSERT(paramBuf->ParamIndex() == aParamIndex, ESqlPanicInternalError);
 		paramBuf->Reset(aDataType, aBufType);	
 		}
 	else
@@ -801,8 +789,8 @@ to ensure that there is enough place in the buffer for the parameter identified 
 */
 void CSqlSrvStatement::ExtendParamBufArrayL(TInt aParamIndex)
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	__ASSERT_DEBUG(aParamIndex >= 0 && aParamIndex < sqlite3_bind_parameter_count(iStmtHandle), __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT(aParamIndex >= 0 && aParamIndex < sqlite3_bind_parameter_count(iStmtHandle), ESqlPanicBadArgument);
 	TInt ext = aParamIndex - iParamBufArray.Count() + 1;
 	while(ext-- > 0)
 		{
@@ -827,8 +815,8 @@ The reason: once bound, the parameter value can be used multiple times by the SQ
 */
 TPtrC8 CSqlSrvStatement::CopyAndStoreParamL(TInt aParamIndex, HSqlSrvStmtParamBuf::TDataType aDataType, const TDesC8& aParamValue)
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	__ASSERT_DEBUG(aParamIndex >= 0 && aParamIndex < sqlite3_bind_parameter_count(iStmtHandle), __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT(aParamIndex >= 0 && aParamIndex < sqlite3_bind_parameter_count(iStmtHandle), ESqlPanicBadArgument);
 	HSqlSrvStmtParamBuf* paramBuf = GetParamBufL(aParamIndex, aDataType, HSqlSrvStmtParamBuf::EBufSimpleBind);
 	return paramBuf->SetDataL(aParamValue);
 	}

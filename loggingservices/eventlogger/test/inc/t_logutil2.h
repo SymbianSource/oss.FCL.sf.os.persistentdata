@@ -82,7 +82,7 @@ GLREF_D TFileName theLogName;
 GLREF_D RFile theLog;
 GLREF_D RLogTestSession theLogServ;
 
-#define __FILE_FAILNEXT(err, iteration) theFs.SetErrorCondition(err, iteration)
+#define __FILE_FAILNEXT(X) theFs.SetErrorCondition(KErrGeneral, X)
 #define __FILE_RESET theFs.SetErrorCondition(KErrNone, 0)
 
 #if defined(_UNICODE)

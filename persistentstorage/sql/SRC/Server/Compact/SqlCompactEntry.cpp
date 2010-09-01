@@ -16,15 +16,10 @@
 #include <e32debug.h>
 #include <hal.h>
 #include <sqldb.h>
-#include "SqlAssert.h"
+#include "SqlPanic.h"
 #include "SqlCompactEntry.h"
 #include "SqlCompactTimer.h"
 #include "SqliteSymbian.h"		//TSqlFreePageCallback
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "SqlCompactEntryTraces.h"
-#endif
-#include "SqlTraceDef.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,13 +47,11 @@ for this entry will be kicked-off.
 CSqlCompactEntry* CSqlCompactEntry::NewLC(const TDesC& aFullName, TSqlCompactConnFactoryL aConnFactoryL, 
 										  const TSqlCompactSettings& aSettings, CSqlCompactTimer& aTimer)
 	{
-	SQL_TRACE_COMPACT(OstTraceExt1(TRACE_INTERNALS, CSQLCOMPACTENTRY_NEWLC_ENTRY, "Entry;0;CSqlCompactEntry::NewLC;aFullName=%S", __SQLPRNSTR(aFullName)));
-	__ASSERT_DEBUG(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, __SQLPANIC2(ESqlPanicBadArgument)); 
-	__ASSERT_DEBUG(aConnFactoryL != NULL, __SQLPANIC2(ESqlPanicBadArgument));
+	__SQLASSERT(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, ESqlPanicBadArgument); 
+	__SQLASSERT(aConnFactoryL != NULL, ESqlPanicBadArgument);
 	CSqlCompactEntry* self = new (ELeave) CSqlCompactEntry(aSettings, aTimer);
 	CleanupStack::PushL(self);
 	self->ConstructL(aFullName, aConnFactoryL);
-	SQL_TRACE_COMPACT(OstTrace1(TRACE_INTERNALS, CSQLCOMPACTENTRY_NEWLC_EXIT, "Exit;0x%X;CSqlCompactEntry::NewLC", (TUint)self));
 	return self;
 	}
 
@@ -67,7 +60,6 @@ Destroys the CSqlCompactEntry instance. The database connection will be closed.
 */
 CSqlCompactEntry::~CSqlCompactEntry()
 	{
-	SQL_TRACE_COMPACT(OstTraceExt3(TRACE_INTERNALS, CSQLCOMPACTENTRY_CSQLCOMPACTENTRY2, "0x%X;CSqlCompactEntry::~CSqlCompactEntry;iState=%d;iPageCount=%d", (TUint)this, (TInt)iState, iPageCount));
 	if(iState == CSqlCompactEntry::EInProgress)
 		{
 		iTimer.DeQueue(*this);
@@ -86,7 +78,6 @@ Increments the entry reference counter.
 */
 TInt CSqlCompactEntry::AddRef()
 	{
-	SQL_TRACE_COMPACT(OstTraceExt4(TRACE_INTERNALS, CSQLCOMPACTENTRY_ADDREF, "0x%X;CSqlCompactEntry::AddRef;iState=%d;iPageCount=%d;iRefCounter=%d", (TUint)this, (TInt)iState, iPageCount, iRefCounter));
 	SQLCOMPACTENTRY_INVARIANT();
 	return ++iRefCounter;
 	}
@@ -99,7 +90,6 @@ If the counter reaches zero, the CSqlCompactEntry instance will be destroyed.
 */
 TInt CSqlCompactEntry::Release()
 	{
-	SQL_TRACE_COMPACT(OstTraceExt4(TRACE_INTERNALS, CSQLCOMPACTENTRY_RELEASE, "0x%X;CSqlCompactEntry::Release;iState=%d;iPageCount=%d;iRefCounter=%d", (TUint)this, (TInt)iState, iPageCount, iRefCounter));
 	SQLCOMPACTENTRY_INVARIANT();
 	TInt rc = --iRefCounter;
 	if(rc == 0)
@@ -124,11 +114,10 @@ meber value.
 */
 /* static */ void CSqlCompactEntry::FreePageCallback(void* aThis, TInt aFreePageCount)
 	{
-	__ASSERT_DEBUG(aThis != NULL, __SQLPANIC2(ESqlPanicBadArgument)); 
-	__ASSERT_DEBUG(aFreePageCount > 0, __SQLPANIC2(ESqlPanicBadArgument)); 
+	__SQLASSERT(aThis != NULL, ESqlPanicBadArgument); 
+	__SQLASSERT(aFreePageCount > 0, ESqlPanicBadArgument); 
 	
 	CSqlCompactEntry& entry = *(static_cast <CSqlCompactEntry*> (aThis));
-	SQL_TRACE_COMPACT(OstTraceExt3(TRACE_INTERNALS, CSQLCOMPACTENTRY_FREEPAGECALLBACK, "0x%X;CSqlCompactEntry::FreePageCallback;aFreePageCount=%d;iState=%d", (TUint)aThis, aFreePageCount, (TInt)entry.iState));
 	if(entry.iFreePageCallbackDisabled)
 		{//The callback is disabled during the background compaction step.
 		 //The server is single-threaded, so no other client can activate the callback.
@@ -172,9 +161,9 @@ Schedules a background compaction if the free pages count is above the threshold
 */
 void CSqlCompactEntry::ConstructL(const TDesC& aFullName, TSqlCompactConnFactoryL aConnFactoryL)
 	{
-	__ASSERT_DEBUG(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, __SQLPANIC(ESqlPanicBadArgument)); 
-	__ASSERT_DEBUG(aConnFactoryL != NULL, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(!iConnection, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(aFullName.Length() > 0 && aFullName.Length() <= KMaxFileName, ESqlPanicBadArgument); 
+	__SQLASSERT(aConnFactoryL != NULL, ESqlPanicBadArgument);
+	__SQLASSERT(!iConnection, ESqlPanicInternalError);
 	
 	__SQLLEAVE_IF_ERROR(iFullName.Create(aFullName));
 
@@ -184,7 +173,7 @@ void CSqlCompactEntry::ConstructL(const TDesC& aFullName, TSqlCompactConnFactory
 	//the threshold from Kbs to pages when the connection with the database is established.
 	TSqlFreePageCallback callback(this, iSettings.iFreePageThresholdKb, &CSqlCompactEntry::FreePageCallback);
 	iConnection = (*aConnFactoryL)(aFullName, callback);
-	__ASSERT_DEBUG(iConnection != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iConnection != NULL, ESqlPanicInternalError);
 	
 	//"callback.iThreshold > 0" is an indication that the background compaction should be kicked-off
 	if(callback.iThreshold > 0) 
@@ -212,19 +201,19 @@ the database won't be compacted anymore.
 */
 TInt CSqlCompactEntry::Compact()
 	{
-	SQL_TRACE_COMPACT(OstTraceExt3(TRACE_INTERNALS, CSQLCOMPACTENTRY_COMPACT_ENTRY, "Entry;0x%X;CSqlCompactEntry::Compact;aFreePageCount=%d;iState=%d", (TUint)this, iPageCount, (TInt)iState));
+	//RDebug::Print(_L("++ CSqlCompactEntry::Compact() ++\r\n"));
 	SQLCOMPACTENTRY_INVARIANT();
-	__ASSERT_DEBUG(iPageCount > 0, __SQLPANIC(ESqlPanicInternalError));
-	__ASSERT_DEBUG(iState == CSqlCompactEntry::EInProgress, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iPageCount > 0, ESqlPanicInternalError);
+	__SQLASSERT(iState == CSqlCompactEntry::EInProgress, ESqlPanicInternalError);
 	TInt processedPageCount = 0;
 	iFreePageCallbackDisabled = ETrue;
 	TInt err = Connection().Compact(iPageCount, processedPageCount, iSettings.iStepLength);
 	iFreePageCallbackDisabled = EFalse;
-	__ASSERT_DEBUG(processedPageCount >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(processedPageCount >= 0, ESqlPanicInternalError);
 	if(err == KErrNone)
 		{
 		iPageCount -= processedPageCount;
-		__ASSERT_DEBUG(iPageCount >= 0, __SQLPANIC(ESqlPanicInternalError));
+		__SQLASSERT(iPageCount >= 0, ESqlPanicInternalError);
 		}
 	TBool stopCompaction = err == KSqlErrCorrupt || err == KSqlErrNotDb || err == KErrCorrupt || err == KErrDisMounted;
 	if(iPageCount <= 0 || stopCompaction)
@@ -232,7 +221,6 @@ TInt CSqlCompactEntry::Compact()
 		ResetState();
 		iTimer.DeQueue(*this);
 		}
-	SQL_TRACE_COMPACT(OstTraceExt4(TRACE_INTERNALS, CSQLCOMPACTENTRY_COMPACT_EXIT, "Exit;0x%X;CSqlCompactEntry::Compact;iPageCount=%d;iState=%d;err=%d", (TUint)this, iPageCount, (TInt)iState, err));
 	SQLCOMPACTENTRY_INVARIANT();
 	return err;
 	}
@@ -269,7 +257,7 @@ Returns a reference to the MSqlCompactConn interface.
 MSqlCompactConn& CSqlCompactEntry::Connection()
 	{
 	SQLCOMPACTENTRY_INVARIANT();
-	__ASSERT_ALWAYS(iConnection != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT_ALWAYS(iConnection != NULL, ESqlPanicInternalError);
 	return *iConnection;
 	}
 
@@ -279,11 +267,11 @@ CSqlCompactEntry invariant.
 */
 void CSqlCompactEntry::Invariant() const
 	{
-	__ASSERT_DEBUG(iFullName.Length() > 0 && iFullName.Length() <= KMaxFileName, __SQLPANIC(ESqlPanicInternalError)); 
-	__ASSERT_DEBUG(iConnection != NULL, __SQLPANIC(ESqlPanicInternalError));
-	__ASSERT_DEBUG(iRefCounter > 0, __SQLPANIC(ESqlPanicInternalError));
-	__ASSERT_DEBUG(iState == CSqlCompactEntry::EInactive || iState == CSqlCompactEntry::EInProgress, __SQLPANIC(ESqlPanicInternalError));
-	__ASSERT_DEBUG(iPageCount >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iFullName.Length() > 0 && iFullName.Length() <= KMaxFileName, ESqlPanicInternalError); 
+	__SQLASSERT(iConnection != NULL, ESqlPanicInternalError);
+	__SQLASSERT(iRefCounter > 0, ESqlPanicInternalError);
+	__SQLASSERT(iState == CSqlCompactEntry::EInactive || iState == CSqlCompactEntry::EInProgress, ESqlPanicInternalError);
+	__SQLASSERT(iPageCount >= 0, ESqlPanicInternalError);
 	iSettings.Invariant();
 	}
 #endif//_DEBUG

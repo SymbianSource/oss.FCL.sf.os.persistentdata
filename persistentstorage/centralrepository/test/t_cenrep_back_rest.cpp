@@ -13,9 +13,13 @@
 // Description:
 //
 
+//#include <centralrepository.h>
 #include <e32test.h>
 #include <f32file.h>
 #include <badesca.h>
+#include <connect/sbdefs.h>
+#include <connect/sbeclient.h>
+
 #include "srvrepos_noc.h"
 #include "srvres.h"
 #include "cachemgr.h"

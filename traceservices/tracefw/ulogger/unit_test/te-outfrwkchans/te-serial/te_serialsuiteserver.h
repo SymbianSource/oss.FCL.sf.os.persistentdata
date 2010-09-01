@@ -24,7 +24,7 @@
 
 #if (!defined __TE_SERIAL_SERVER_H__)
 #define __TE_SERIAL_SERVER_H__
-#include <test/testexecuteserverbase.h>
+#include <testexecuteserverbase.h>
 
 
 class CTe_serialSuite : public CTestServer

@@ -28,8 +28,6 @@ const TUid KInvalidFeatureUid1  = {KInvalidFeatureId1};
 ///////////////////////////////////////////////////////////////////////////////////////
 
 static RTest TheTest(_L("t_fmgrapi"));
-TUid SupportedFeature   = KConnectivity;  //Defaulted to KConnectivity, but we will re-assign it in FeatureTestPreparation().
-TUid SupportedFeature2  = KSip;          //Defaulted to KSip, but we will re-assign it in FeatureTestPreparation().
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -286,24 +284,24 @@ void FeatureDiscoveryTest1L()
     {
     TBool rc = CFeatureDiscovery::IsFeatureSupportedL(KInvalidFeatureId1);
     TEST(!rc);
-    rc = CFeatureDiscovery::IsFeatureSupportedL(SupportedFeature.iUid);
+    rc = CFeatureDiscovery::IsFeatureSupportedL(KLocationManagement.iUid);
     TEST(rc);
     
     rc = CFeatureDiscovery::IsFeatureSupportedL(KInvalidFeatureUid1);
     TEST(!rc);
-    rc = CFeatureDiscovery::IsFeatureSupportedL(SupportedFeature);
+    rc = CFeatureDiscovery::IsFeatureSupportedL(KLocationManagement);
     TEST(rc);
 
     CFeatureDiscovery* fdiscovery = CFeatureDiscovery::NewLC();
     
     rc = fdiscovery->IsSupported(KInvalidFeatureId1);
     TEST(!rc);
-    rc = fdiscovery->IsSupported(SupportedFeature.iUid);
+    rc = fdiscovery->IsSupported(KLocationManagement.iUid);
     TEST(rc);
 
     rc = fdiscovery->IsSupported(KInvalidFeatureUid1);
     TEST(!rc);
-    rc = fdiscovery->IsSupported(SupportedFeature);
+    rc = fdiscovery->IsSupported(KLocationManagement);
     TEST(rc);
     
     CleanupStack::PopAndDestroy(fdiscovery);
@@ -319,11 +317,11 @@ void DoFeatureDiscoveryTest2L(TBool aStaticMethodsUsed)
     //////////////////////////////////////////////////////////
     //A test with a set: one valid and one invalid feature 
     TFeatureSet fset;
-    TInt err = fset.Append(SupportedFeature);
+    TInt err = fset.Append(KConnectivity);
     TEST2(err, KErrNone);
     err = fset.Append(KInvalidFeatureUid1);
     TEST2(err, KErrNone);
-    TBool rc = fset.IsFeatureSupported(SupportedFeature);
+    TBool rc = fset.IsFeatureSupported(KConnectivity);
     TEST(!rc);
     rc = fset.IsFeatureSupported(KInvalidFeatureUid1);
     TEST(!rc);
@@ -336,7 +334,7 @@ void DoFeatureDiscoveryTest2L(TBool aStaticMethodsUsed)
         err = fdiscovery->FeaturesSupported(fset);
         }
     TEST2(err, KErrNone);
-    rc = fset.IsFeatureSupported(SupportedFeature);
+    rc = fset.IsFeatureSupported(KConnectivity);
     TEST(rc);
     rc = fset.IsFeatureSupported(KInvalidFeatureUid1);
     TEST(!rc);
@@ -345,7 +343,7 @@ void DoFeatureDiscoveryTest2L(TBool aStaticMethodsUsed)
     //////////////////////////////////////////////////////////
     //A test with an empty set 
     TFeatureSet fset2;
-    rc = fset2.IsFeatureSupported(SupportedFeature);
+    rc = fset2.IsFeatureSupported(KConnectivity);
     TEST(!rc);
     rc = fset2.IsFeatureSupported(KInvalidFeatureUid1);
     TEST(!rc);
@@ -358,7 +356,7 @@ void DoFeatureDiscoveryTest2L(TBool aStaticMethodsUsed)
         err = fdiscovery->FeaturesSupported(fset2);
         }
     TEST2(err, KErrArgument);
-    rc = fset2.IsFeatureSupported(SupportedFeature);
+    rc = fset2.IsFeatureSupported(KConnectivity);
     TEST(!rc);
     rc = fset2.IsFeatureSupported(KInvalidFeatureUid1);
     TEST(!rc);
@@ -367,9 +365,9 @@ void DoFeatureDiscoveryTest2L(TBool aStaticMethodsUsed)
     //////////////////////////////////////////////////////////
     //A test with a set: two valid features 
     TFeatureSet fset3;
-    err = fset3.Append(SupportedFeature);
+    err = fset3.Append(KConnectivity);
     TEST2(err, KErrNone);
-    err = fset3.Append(SupportedFeature2);
+    err = fset3.Append(KSip);
     TEST2(err, KErrNone);
     if(aStaticMethodsUsed)
         {
@@ -380,9 +378,9 @@ void DoFeatureDiscoveryTest2L(TBool aStaticMethodsUsed)
         err = fdiscovery->FeaturesSupported(fset3);
         }
     TEST2(err, KErrNone);
-    rc = fset3.IsFeatureSupported(SupportedFeature);
+    rc = fset3.IsFeatureSupported(KConnectivity);
     TEST(rc);
-    rc = fset3.IsFeatureSupported(SupportedFeature2);
+    rc = fset3.IsFeatureSupported(KSip);
     TEST(rc);
     rc = fset3.AreAllFeaturesSupported();
     TEST(rc);
@@ -404,31 +402,8 @@ void FeatureDiscoveryTest2L()
     DoFeatureDiscoveryTest2L(EFalse);
     }
 
-void FeatureTestPreparation()
-    {
-    RFeatureControl ctrl;
-    TInt err = ctrl.Open();
-    TEST2(err, KErrNone);
-    /////////////////////////////////////////////////////////////
-    RFeatureUidArray farray;
-    TheTest.Printf(_L("Getting supported feature for CFeatureDiscovery test\r\n"));
-    err = ctrl.ListSupportedFeatures(farray);
-    if (err == KErrNone && farray.Count() > 1)
-        {
-        SupportedFeature = farray[0]; //Take the first supported value
-        SupportedFeature2 = farray[1]; //Take the first supported value
-        }
-    else
-        {
-        TheTest.Printf(_L("Warning: Failed to get supported feature for testing. CFeatureDiscovery tests are going to fail\r\n"));
-        }
-    farray.Close();
-    ctrl.Close();
-    }
-
 void DoTestsL()
     {
-    FeatureTestPreparation(); //Preparation for the test.
     TheTest.Start(_L("@SYMTestCaseID:PDS-EFM-CT-4059 FeatureManager::FeatureSupported() test"));
     FeatureSupportedTestL();
     TheTest.Next(_L("@SYMTestCaseID:PDS-EFM-CT-4060 RFeatureControl tests-1"));

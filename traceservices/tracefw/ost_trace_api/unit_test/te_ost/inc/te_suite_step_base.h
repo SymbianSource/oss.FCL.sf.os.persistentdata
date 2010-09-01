@@ -22,7 +22,7 @@
 
 #ifndef TE_SUITE_STEP_BASE__
 #define TE_SUITE_STEP_BASE__
-#include <test/testexecutestepbase.h>
+#include <TestExecuteStepBase.h>
 #include "te_tracer.h"
 #include "te_logger.h"
 
@@ -50,7 +50,7 @@ protected:
 	TInt StartLoggingL(TTraceConfigs& aTraceData);
 	TInt StopLogging();
 	void SetLogFilename(const TDesC& aFilename);
-	void DeleteLogFileL();
+	void DeleteLogFile();
 protected:
 	TTraceTester	iTraceTester;
 	TTraceConfigs	iTraceData;

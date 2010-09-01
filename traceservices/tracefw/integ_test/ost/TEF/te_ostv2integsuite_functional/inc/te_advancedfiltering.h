@@ -21,7 +21,7 @@
 */
 #if (!defined TE_ULOGGERADPAPITESTSTEP_H)
 #define TE_ULOGGERADPAPITESTSTEP_H
-#include <test/datawrapper.h>
+#include <datawrapper.h>
 #include "te_ostv2integsuite_basewrapper.h"
 #include <e32base.h>
 #include <e32math.h>
@@ -45,7 +45,7 @@ public:
 	TBool DoCommandL(	const TTEFFunction& aCommand,
 						const TTEFSectionName& aSection, 
 						const TInt aAsyncErrorIndex);
-	TVerdict TestGroupIdFilteringL(RULogger& aLogger, const TBool aFilter, const TBool aFiltering);
+	TVerdict TestGroupIdFiltering(RULogger& aLogger, const TBool aFilter, const TBool aFiltering);
 
 private:
 	CTCMAdvancedGroupIDFilteringWrapper();
@@ -62,7 +62,7 @@ public:
 	TBool DoCommandL(	const TTEFFunction& aCommand,
 						const TTEFSectionName& aSection, 
 						const TInt aAsyncErrorIndex);
-	TVerdict TestComponentIdFilteringL(RULogger& aLogger, const TBool aFilter, const TBool aFiltering);
+	TVerdict TestComponentIdFiltering(RULogger& aLogger, const TBool aFilter, const TBool aFiltering);
 	
 // Please add/modify your class members here:
 private:

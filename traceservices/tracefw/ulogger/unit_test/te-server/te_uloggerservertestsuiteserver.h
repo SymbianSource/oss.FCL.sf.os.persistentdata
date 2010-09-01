@@ -24,7 +24,7 @@
 
 #if (!defined __TE_ULOGGERSERVERTEST_SERVER_H__)
 #define __TE_ULOGGERSERVERTEST_SERVER_H__
-#include <test/testexecuteserverbase.h>
+#include <testexecuteserverbase.h>
 
 
 class CTe_UloggerServerTestSuite : public CTestServer

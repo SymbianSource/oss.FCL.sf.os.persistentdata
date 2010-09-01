@@ -22,7 +22,7 @@
 
 #ifndef __TE_ENABLED_SUITE_SERVER_H__
 #define __TE_ENABLED_SUITE_SERVER_H__
-#include <test/testexecuteserverbase.h>
+#include <TestExecuteServerBase.h>
 
 
 class CTe_UTraceSuite : public CTestServer

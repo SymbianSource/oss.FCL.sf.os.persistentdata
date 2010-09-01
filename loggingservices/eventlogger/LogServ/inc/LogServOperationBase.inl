@@ -31,7 +31,7 @@ inline void CLogServOperationBase::Cancel()
 
 inline TBool CLogServOperationBase::HaveMessagePointer() const
 	{
-	return (!iMessage.IsNull());
+	return (iMessage != RMessage2());
 	}
 
 inline void CLogServOperationBase::ClearMessagePointer()
@@ -72,11 +72,6 @@ inline TLogServSessionId CLogServOperationBase::SessionId()
 inline const TLogClientServerData& CLogServOperationBase::ClientServerData() const
 	{
 	return iClientServerData;
-	}
-
-inline void CLogServOperationBase::SetMessageCompletion(const TBool aMessageCompletion)
-	{
-	iMessageCompletion = aMessageCompletion;
 	}
 
 #endif

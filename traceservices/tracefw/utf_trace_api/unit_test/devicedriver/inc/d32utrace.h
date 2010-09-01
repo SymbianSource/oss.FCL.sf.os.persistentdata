@@ -18,12 +18,14 @@
 #ifndef D32UTRACE_H
 #define D32UTRACE_H
 
-#include <e32cmn.h>
+/*#include <e32cmn.h>
 #include <e32ver.h>
+*/
 
 #ifndef __KERNEL_MODE__
-#include <e32std.h>
+//#include <e32std.h>
 #endif
+
 
 
 /**

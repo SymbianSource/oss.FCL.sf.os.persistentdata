@@ -97,8 +97,8 @@ EXPORT_C void CDbFileStoreDatabase::CreateL(const TDesC& aName, TDbFormat::TCrea
 		{
 	default:
 		__LEAVE(KErrNotSupported);
-	case TDbFormat::ECreate:   
-		store=CPermanentFileStore::CreateL(iFs,aName,EFileRead|EFileWrite);
+	case TDbFormat::ECreate:
+	store=CPermanentFileStore::CreateL(iFs,aName,EFileRead|EFileWrite);
 		break;
 	case TDbFormat::EReplace:
 		store=CPermanentFileStore::ReplaceL(iFs,aName,EFileRead|EFileWrite);

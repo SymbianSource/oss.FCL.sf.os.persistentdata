@@ -93,7 +93,7 @@ TInt CUptULogger::StartGeneralL(RULogger& aLogger, const TPtrC8& aPluginName, co
 	
 	//clear any configurations stored in the ULogger configuration file
 	CClearConfig configIni;
-	configIni.ClearL(aLogger);
+	configIni.Clear(aLogger);
 	
 	//prepare arrays for storing the filter settings to configure ULogger (and push any heap objects on the cleanup stack)
 	CArrayFixFlat<TUint8> *setPrimFilter = new (ELeave)CArrayFixFlat<TUint8>(256);
@@ -139,7 +139,7 @@ TInt CUptULogger::StartGeneralL(RULogger& aLogger, const TPtrC8& aPluginName, co
 	if(aGroupIdFilterMatch==1)
 		{
 		//if the user specifies that ULogger should have classifiaction filter settings which match the test trace points, then fill the filter arrays with the test trace point identifiers accordingly
-		SetFilterL(setPrimFilter);		
+		SetFilter(setPrimFilter);		
 		}
 	else
 		{
@@ -190,7 +190,7 @@ TInt CUptULogger::StartGeneralL(RULogger& aLogger, const TPtrC8& aPluginName, co
 	
 /** This user-side method sets the filter for OSTv2
  */
-void CUptULogger::SetFilterL(CArrayFixFlat<TUint8>* aSetPrimFilter)
+void CUptULogger::SetFilter(CArrayFixFlat<TUint8>* aSetPrimFilter)
     {
     aSetPrimFilter->AppendL(KGroupId);
     }

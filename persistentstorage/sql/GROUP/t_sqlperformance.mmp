@@ -13,6 +13,8 @@
 // Description:
 //
 
+#include <e32utrace.mmh>
+
 TARGET			t_sqlperformance.exe
 TARGETTYPE		EXE
 //"AllFiles" capability is needed because the test accesses the database files in the SQL server private data cage
@@ -26,7 +28,7 @@ OPTION ARMCC --diag_suppress 368
 USERINCLUDE 	.
 USERINCLUDE 	../INC
 USERINCLUDE 	../SRC/Common
-USERINCLUDE 	../traces_SqlSrv
+USERINCLUDE 	../SRC/Common/Trace
 USERINCLUDE 	../SRC/Server
 USERINCLUDE		../OsLayer
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN

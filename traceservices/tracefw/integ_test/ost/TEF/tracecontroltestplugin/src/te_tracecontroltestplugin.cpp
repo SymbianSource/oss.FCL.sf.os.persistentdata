@@ -22,8 +22,7 @@
 
 #include <e32std.h>
 #include <e32debug.h>
-#include <ecom/implementationproxy.h>
-
+#include <implementationproxy.h>
 #include "te_tracecontroltestplugin.h"
 
 #if defined(__TEST_LIGHTLOGGER_ENABLED)

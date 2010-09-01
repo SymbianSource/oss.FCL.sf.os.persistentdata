@@ -79,12 +79,12 @@ EXPORT_C CPluginAllocator* CPluginAllocator::NewL(const TPtrC8& aOutputPluginNam
 EXPORT_C void CPluginAllocator::ConstructL(const TPtrC8& aOutputPluginName, const TPtrC8& aInputPluginName)
 	{	
 	//create output and control channels
-	User::LeaveIfError(this->CreateChannelsL(aOutputPluginName, aInputPluginName));
+	User::LeaveIfError(this->CreateChannels(aOutputPluginName, aInputPluginName));
 	}
 
 /*!This function create Output channel according to aOutputSettings.
 */
-TInt CPluginAllocator::CreateChannelsL(const TPtrC8& aOutputPluginName, const TPtrC8& aInputPluginName)
+TInt CPluginAllocator::CreateChannels(const TPtrC8& aOutputPluginName, const TPtrC8& aInputPluginName)
 	{
 	TInt retVal = KErrNone;
 	

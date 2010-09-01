@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,7 +14,7 @@
 //
 
 
-//! @file
+//! @File
 //! @SYMTestSuiteName               	utfv1-api-uloggerv1-integration-test-suite.script
 //! @SYMScriptTestEnvironment       	TEF
 
@@ -32,7 +32,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerAPIPrim-0001
 //! @SYMTestActions    Run a combination of single and multiple Primary filter set() methods and check the contents of the get() methods on server return the filters as expected
 //! @SYMTestExpectedResults     Verify that the returned gettings match those expected from settings (test step returns a test pass if so)
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ                    
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerAPIPrimTestStep 
@@ -46,7 +46,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerAPISecond-0001
 //! @SYMTestActions    Run a combination of single and multiple Secondary filter set() methods and check the contents of the get() methods on server return the filters as expected
 //! @SYMTestExpectedResults     Verify that the returned gettings match those expected from settings (test step returns a test pass if so)
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ                   
 RUN_TEST_STEP 20000 te_uloggermclsuite ULoggerAPISecondTestStep 
@@ -60,7 +60,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerAPILogging-0001
 //! @SYMTestActions    Run a combination of single and multiple filter and filtering set() methods instrument user-side trace points accordingly for positive, begative and multiple setting tests
 //! @SYMTestExpectedResults     Verify that the returned trace data and the output trace log files match the setttings in the ulogger accordingly
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 			
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerAPILoggingTestStep 
@@ -74,7 +74,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerBufferSizing-0001
 //! @SYMTestActions    Run a combination of buffer resizing methods and run over various stress testing trace instrumentations. check the contents of the output file is as expected
 //! @SYMTestExpectedResults     Verify that output file contains #traces as expected
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ   
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerBufferSizingStep
@@ -88,7 +88,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerBufferMode-0001
 //! @SYMTestActions    Run a combination of buffer mode change methods and run over various stress testing trace instrumentations. check the contents of the output file is as expected
 //! @SYMTestExpectedResults     Verify that output file contains a trace pattern as expected from buffer mode type
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerBufferModeStep
@@ -102,7 +102,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerAPIKernel-0001
 //! @SYMTestActions    Run a combination of single and multiple filter and filtering set() methods instrument kernel-side trace points accordingly for positive, begative and multiple setting tests
 //! @SYMTestExpectedResults     Verify that the returned trace data and the output trace log files match the setttings in the ulogger accordingly
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerAPIKernelTestStep 
@@ -116,7 +116,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerAPIPrintf-0001
 //! @SYMTestActions    Run a combination of single and multiple filter and filtering set() methods instrument user-side trace printf-style points accordingly for positive, begative and multiple setting tests
 //! @SYMTestExpectedResults     Verify that the returned trace data and the output trace log files match the setttings in the ulogger accordingly
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerAPIPrintfTestStep 
@@ -130,7 +130,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerAPIKernelPrintf-0001
 //! @SYMTestActions    Run a combination of single and multiple filter and filtering set() methods instrument kernel-side trace printf-style points accordingly for positive, begative and multiple setting tests
 //! @SYMTestExpectedResults     Verify that the returned trace data and the output trace log files match the setttings in the ulogger accordingly
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerAPIKernelPrintfTestStep 
@@ -146,7 +146,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerFilePlugin-0001
 //! @SYMTestActions    Run a combination of plguin configuration methods for the file plugin and log over trace instrumentaion
 //! @SYMTestExpectedResults     Verify that the trace data is output as expected to the file plugin
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerFilePluginStep 
@@ -160,7 +160,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerSerialPlugin-0001
 //! @SYMTestActions    Run a combination of plguin configuration methods for the serial plugin and log over trace instrumentaion
 //! @SYMTestExpectedResults     Verify that the trace data is output as expected to the serial plugin
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerSerialPluginStep  
@@ -174,7 +174,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerFilePluginStepErr-0001
 //! @SYMTestActions    Run a combination of plguin configuration methods for the file plugin and test on the return errors
 //! @SYMTestExpectedResults     Verify that the errors returned are as expected
 //! @SYMTestType         CT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 1000 te_uloggermclsuite ULoggerFilePluginStepErr 

@@ -21,7 +21,7 @@
 */
 #if (!defined TE_PERFORMANCESANITYTEST_H)
 #define TE_PERFORMANCESANITYTEST_H
-#include <test/datawrapper.h>
+#include <datawrapper.h>
 #include "te_ostv2integsuite_basewrapper.h"
 #include <e32base.h>
 #include <e32math.h>
@@ -42,8 +42,8 @@ public:
 private:
 	CPerformanceSanityWrapper();
 	void ConstructL();
-	TVerdict 	TestTimerL();
-	TBool 	SanityTestTimedUtraceL();
+	TVerdict 	TestTimer();
+	TBool 	SanityTestTimedUtrace();
 
 	};		
 

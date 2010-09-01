@@ -88,7 +88,7 @@ class CULoggerServer : public CServer2,
 
 	//filters
 	TInt GetActiveFilters(RArray<TUint32>& aListBuffer,TInt aFilterType);
-	TInt SetActiveFilterL(RArray<TUint32> aCategory, TInt aFilterType);
+	TInt SetActiveFilter(RArray<TUint32> aCategory, TInt aFilterType);
 	TInt RemoveActiveFilter(RArray<TUint32>& aValue, const TInt aFilterType);
 	TInt SetSecondaryFiltering(const TDesC8& aEnabled);
 	TInt GetSecondaryFiltering(TBool& aEnabled);
@@ -102,14 +102,14 @@ class CULoggerServer : public CServer2,
 	TInt DeActivateInputPlugin(const TDesC8& aPluginname);
 	TInt GetActiveInputPlugin(RArray<TPtrC8>& aListBuffer);
 	TInt SetActiveInputPlugin(const TDesC8& aPluginname);
-	TInt GetInstalledInputPluginsL(RArray<TPtrC8>& aListBuffer);
+	TInt GetInstalledInputPlugins(RArray<TPtrC8>& aListBuffer);
 
 	//buffers
 	TInt GetOptionsSettingsL(const TDesC8& aMedianame, RArray<TPtrC8>& aListBuffer);
 	TInt GetBufandDataNotifyValuesL(const TDesC8& aSetting,TInt& value);
 	TInt SetBufferMode(const TDesC8& aValue);
-	TInt SetBufferSizeL(TInt aSize);
-	TInt SetDataNotificationSizeL(TInt aSize);
+	TInt SetBufferSize(TInt aSize);
+	TInt SetDataNotificationSize(TInt aSize);
 
 private:
 	//server related stuff
@@ -124,7 +124,7 @@ private:
 	CSession2* NewSessionL(const TVersion& aVersion,const RMessage2& aMessage) const;
 
 	//on boot things
-	TInt TraceSettingsOnBootL();
+	TInt TraceSettingsOnBoot();
 	TInt ResetBtracePrimaryFilters(RBTrace& aBTrace);
 
 	//action related things
@@ -153,7 +153,7 @@ private:
 	
 	//filter related stuff
 	ControlData* SetPrimaryFilters(RArray<TPtrC8> &aArguments);
-	TInt GetValuesL(const TDesC8& aSectionName, RArray<TPtrC8>& aListBuffer);
+	TInt GetValues(const TDesC8& aSectionName, RArray<TPtrC8>& aListBuffer);
 private:
 	//data
 	TInt iRunAsService;

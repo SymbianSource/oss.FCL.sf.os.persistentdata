@@ -14,15 +14,19 @@
 // Te_tracecontrol_FilePlugin.dll ULogger & Framework File Test plug-in
 //
 
+
+
+/**
+ @file te_tracecontroltestplugin.mmp
+ @internalTechnology
+*/
+
 TARGET te_tracecontrol_testplugin.dll
 TARGETTYPE PLUGIN
 UID  0x10009D8D 0x10287231
 VENDORID 0x70000001 
+
 CAPABILITY CommDD NetworkControl LocalServices ProtServ NetworkServices
-
-OS_LAYER_SYSTEMINCLUDE
-
-USERINCLUDE ../inc/
 
 SOURCEPATH ../src/
 SOURCE te_tracecontroltestplugin.cpp
@@ -32,10 +36,12 @@ start RESOURCE 10287231.rss
 TARGET te_tracecontrol_testplugin.rsc
 end
 
-LIBRARY	euser.lib 
-LIBRARY	efsrv.lib 
-LIBRARY	c32.lib 
-LIBRARY	ecom.lib
+
+USERINCLUDE ../inc/
+SYSTEMINCLUDE /epoc32/include
+SYSTEMINCLUDE /epoc32/include/ecom
+SYSTEMINCLUDE /epoc32/include/platform
+
+LIBRARY	euser.lib efsrv.lib c32.lib ecom.lib
 
 SMPSAFE
-epocallowdlldata

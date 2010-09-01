@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -43,8 +43,8 @@ Returns a pointer to the data of the current flat buffer cell. The pointer type 
 */
 inline CSqlSecurityPolicy::TPolicyItem* CSqlSecurityPolicy::PolicyItemPtr(const RSqlBufFlat::TCell* aBegin, const RSqlBufFlat::TCell* aCurrent)
 	{
-	__ASSERT_DEBUG(aBegin != NULL && aCurrent != NULL, __SQLPANIC2(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(aCurrent->iPos != 0, __SQLPANIC2(ESqlPanicBadArgument));
+	__SQLASSERT(aBegin != NULL && aCurrent != NULL, ESqlPanicBadArgument);
+	__SQLASSERT(aCurrent->iPos != 0, ESqlPanicBadArgument);
 	const TUint8* begin = reinterpret_cast <const TUint8*> (aBegin);
 	return reinterpret_cast <CSqlSecurityPolicy::TPolicyItem*> (const_cast <TUint8*> (begin) + aCurrent->iPos);
 	}
@@ -63,7 +63,7 @@ const CSqlSecurityPolicy::TPolicyItem* CSqlSecurityPolicy::FindPolicyItemPtr(RSq
 																	   		 const TDesC& aObjectName) const
 	{
 	const RSqlBufFlat::TCell* begin = iBufFlat.Header();
-	__ASSERT_DEBUG(begin != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(begin != NULL, ESqlPanicInternalError);
 	const RSqlBufFlat::TCell* end = begin + Count();
 	const RSqlBufFlat::TCell* current = begin + CSqlSecurityPolicy::EDbPolicyIdx;//ignore default and database policiy types ("current" points before the first non-database policy)
 	while(++current < end)
@@ -71,8 +71,8 @@ const CSqlSecurityPolicy::TPolicyItem* CSqlSecurityPolicy::FindPolicyItemPtr(RSq
 		if(current->iPos > 0 && current->Type() == (TInt)aObjectType) //if present and the same type as aObjectType
 			{
 			const CSqlSecurityPolicy::TPolicyItem* item = CSqlSecurityPolicy::PolicyItemPtr(begin, current);
-			__ASSERT_DEBUG(item != NULL, __SQLPANIC(ESqlPanicInternalError));
-			__ASSERT_DEBUG(((current->Size() - sizeof(CSqlSecurityPolicy::TPolicyItem) - sizeof(TInt)) / sizeof(TUint16)) == item->NameSize(), __SQLPANIC(ESqlPanicInternalError));
+			__SQLASSERT(item != NULL, ESqlPanicInternalError);
+			__SQLASSERT(((current->Size() - sizeof(CSqlSecurityPolicy::TPolicyItem) - sizeof(TInt)) / sizeof(TUint16)) == item->NameSize(), ESqlPanicInternalError);
 			if(::CompareNoCase16(aObjectName, TPtrC(item->NamePtr(), item->NameSize())) == 0)
 				{
 				return item;	
@@ -147,7 +147,7 @@ RSqlBufFlat& CSqlSecurityPolicy::BufFlat()
 TInt CSqlSecurityPolicy::Count() const
 	{
 	const RSqlBufFlat::TCell* begin = iBufFlat.Header();
-	__ASSERT_DEBUG(begin != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(begin != NULL, ESqlPanicInternalError);
 	return *reinterpret_cast <const TInt*> (reinterpret_cast <const TUint8*> (begin) + (begin + CSqlSecurityPolicy::ECountIdx)->iPos);
 	}
 
@@ -156,9 +156,9 @@ Sets the number of database security entries.
 */
 void CSqlSecurityPolicy::SetCount(TInt aCount)
 	{
-	__ASSERT_DEBUG(aCount >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aCount >= 0, ESqlPanicBadArgument);
 	RSqlBufFlat::TCell* begin = iBufFlat.Header();
-	__ASSERT_DEBUG(begin != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(begin != NULL, ESqlPanicInternalError);
 	*reinterpret_cast <TInt*> (reinterpret_cast <TUint8*> (begin) + (begin + CSqlSecurityPolicy::ECountIdx)->iPos) = aCount;
 	}
 
@@ -168,9 +168,9 @@ Sets the default policy.
 void CSqlSecurityPolicy::SetDefaultPolicy(const TSecurityPolicy& aPolicy)
 	{
 	RSqlBufFlat::TCell* begin = iBufFlat.Header();
-	__ASSERT_DEBUG(begin != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(begin != NULL, ESqlPanicInternalError);
 	CSqlSecurityPolicy::TPolicyItem* item = CSqlSecurityPolicy::PolicyItemPtr(begin, begin + CSqlSecurityPolicy::EDefaultPolicyIdx);
-	__ASSERT_DEBUG(item != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(item != NULL, ESqlPanicInternalError);
 	item->iPolicy[0] = aPolicy;
 	}
 	
@@ -184,11 +184,11 @@ void CSqlSecurityPolicy::SetDefaultPolicy(const TSecurityPolicy& aPolicy)
 void CSqlSecurityPolicy::SetDbPolicy(RSqlSecurityPolicy::TPolicyType aPolicyType, const TSecurityPolicy& aPolicy)
 	{
 	const TInt KPolicyIndex = CSqlSecurityPolicy::PolicyType2Index(aPolicyType);
-	__ASSERT_DEBUG((TUint)KPolicyIndex < EPolicyTypeCount, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT((TUint)KPolicyIndex < EPolicyTypeCount, ESqlPanicBadArgument);
 	RSqlBufFlat::TCell* begin = iBufFlat.Header();
-	__ASSERT_DEBUG(begin != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(begin != NULL, ESqlPanicInternalError);
 	CSqlSecurityPolicy::TPolicyItem* item = CSqlSecurityPolicy::PolicyItemPtr(begin, begin + CSqlSecurityPolicy::EDbPolicyIdx);
-	__ASSERT_DEBUG(item != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(item != NULL, ESqlPanicInternalError);
 	//KPolicyIndex value is tested at the beginning of the function
 	//coverity[overrun-local]
 	item->iPolicy[KPolicyIndex] = aPolicy;
@@ -220,8 +220,8 @@ TInt CSqlSecurityPolicy::SetPolicy(RSqlSecurityPolicy::TObjectType aObjectType, 
 							   	   RSqlSecurityPolicy::TPolicyType aPolicyType, const TSecurityPolicy& aPolicy)
 	{
 	const TInt KPolicyIndex = CSqlSecurityPolicy::PolicyType2Index(aPolicyType);
-	__ASSERT_DEBUG((TUint)KPolicyIndex < EPolicyTypeCount, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(aObjectName.Length() > 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT((TUint)KPolicyIndex < EPolicyTypeCount, ESqlPanicBadArgument);
+	__SQLASSERT(aObjectName.Length() > 0, ESqlPanicBadArgument);
 	CSqlSecurityPolicy::TPolicyItem* item = const_cast <CSqlSecurityPolicy::TPolicyItem*> (FindPolicyItemPtr(aObjectType, aObjectName));
 	if(item)
 		{//There is a field in the flat buffer for {aObjectType, aObjectName}. Set the policy.
@@ -246,7 +246,7 @@ TInt CSqlSecurityPolicy::SetPolicy(RSqlSecurityPolicy::TObjectType aObjectType, 
 	item = reinterpret_cast <CSqlSecurityPolicy::TPolicyItem*> (buf);
 	//coverity[DEADCODE]
 	//The ASSERT might be useful in catching future defect in this function
-	__ASSERT_DEBUG(item != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(item != NULL, ESqlPanicInternalError);
 	TSecurityPolicy defaultPolicy = DefaultPolicy();
 	for(TInt i=0;i<CSqlSecurityPolicy::EPolicyTypeCount;++i)
 		{
@@ -273,9 +273,9 @@ TInt CSqlSecurityPolicy::SetPolicy(RSqlSecurityPolicy::TObjectType aObjectType, 
 TSecurityPolicy CSqlSecurityPolicy::DefaultPolicy() const
 	{
 	const RSqlBufFlat::TCell* begin = iBufFlat.Header();
-	__ASSERT_DEBUG(begin != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(begin != NULL, ESqlPanicInternalError);
 	const CSqlSecurityPolicy::TPolicyItem* item = CSqlSecurityPolicy::PolicyItemPtr(begin, begin + CSqlSecurityPolicy::EDefaultPolicyIdx);
-	__ASSERT_DEBUG(item != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(item != NULL, ESqlPanicInternalError);
 	return item->iPolicy[0];
 	}
 	
@@ -292,11 +292,11 @@ Note: By default all database security policies will be initialized with the def
 TSecurityPolicy CSqlSecurityPolicy::DbPolicy(RSqlSecurityPolicy::TPolicyType aPolicyType) const
 	{
 	const TInt KPolicyIndex = CSqlSecurityPolicy::PolicyType2Index(aPolicyType);
-	__ASSERT_DEBUG((TUint)KPolicyIndex < EPolicyTypeCount, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT((TUint)KPolicyIndex < EPolicyTypeCount, ESqlPanicBadArgument);
 	const RSqlBufFlat::TCell* begin = iBufFlat.Header();
-	__ASSERT_DEBUG(begin != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(begin != NULL, ESqlPanicInternalError);
 	const CSqlSecurityPolicy::TPolicyItem* item = CSqlSecurityPolicy::PolicyItemPtr(begin, begin + CSqlSecurityPolicy::EDbPolicyIdx);
-	__ASSERT_DEBUG(item != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(item != NULL, ESqlPanicInternalError);
 	//KPolicyIndex value is tested at the beginning of the function
 	//coverity[overrun-local]
 	return item->iPolicy[KPolicyIndex];
@@ -324,8 +324,8 @@ TSecurityPolicy CSqlSecurityPolicy::Policy(RSqlSecurityPolicy::TObjectType aObje
 										   const TDesC& aObjectName, RSqlSecurityPolicy::TPolicyType aPolicyType)
 	{
 	const TInt KPolicyIndex = CSqlSecurityPolicy::PolicyType2Index(aPolicyType);
-	__ASSERT_DEBUG((TUint)KPolicyIndex < EPolicyTypeCount, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(aObjectName.Length() > 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT((TUint)KPolicyIndex < EPolicyTypeCount, ESqlPanicBadArgument);
+	__SQLASSERT(aObjectName.Length() > 0, ESqlPanicBadArgument);
 	const CSqlSecurityPolicy::TPolicyItem* item = FindPolicyItemPtr(aObjectType, aObjectName);
 	//KPolicyIndex value is tested at the beginning of the function
 	//coverity[overrun-local]
@@ -377,7 +377,7 @@ TSqlSecurityPolicyIterator::TSqlSecurityPolicyIterator(const CSqlSecurityPolicy&
 	iEnd(iBegin + aSqlSecurityPolicy.Count()),
 	iCurPolicyIdx(CSqlSecurityPolicy::EPolicyTypeCount)
 	{
-	__ASSERT_DEBUG(iBegin != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iBegin != NULL, ESqlPanicInternalError);
 	}
 	
 /**
@@ -402,7 +402,7 @@ TBool TSqlSecurityPolicyIterator::Next(RSqlSecurityPolicy::TObjectType& aObjectT
 			}
 		}
 	const CSqlSecurityPolicy::TPolicyItem* item = CSqlSecurityPolicy::PolicyItemPtr(iBegin, iCurrent);
-	__ASSERT_DEBUG(item != NULL, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(item != NULL, ESqlPanicInternalError);
 	aObjectType = static_cast <RSqlSecurityPolicy::TObjectType> (iCurrent->Type());
 	aPolicyType = static_cast <RSqlSecurityPolicy::TPolicyType> (iCurPolicyIdx);
 	aPolicy = item->iPolicy[iCurPolicyIdx];

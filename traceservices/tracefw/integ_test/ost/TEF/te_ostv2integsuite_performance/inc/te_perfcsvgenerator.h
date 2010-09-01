@@ -47,15 +47,15 @@ public:
 	CUptCsvGenerator(); 
 	~CUptCsvGenerator();
 
-	TInt OpenL(const TDesC& aFileName, const TBool& aAppend); 
+	TInt Open(const TDesC& aFileName, const TBool& aAppend); 
 	TInt Close();
 	void WriteL(const RArray<TInt64>& aPerformanceData);
 	void WriteL(const RArray<TPtrC8>& aPerformanceConfig);
 	void WriteApiNameL(const TInt aApiEnum);
-	TInt WriteNewLineL();		
-	TInt WriteHeaderL(const TInt& aTestType);	
+	TInt WriteNewLine();		
+	TInt WriteHeader(const TInt& aTestType);	
 
-	TInt TestL(); 
+	TInt Test(); 
 private:	
 	//Private helper method for sanity tests
 	TInt FillReferenceBuffer(RBuf8& aBufferName, const TInt& aAppendCount, const RArray<TInt64>& aDataName, const TInt& aData1Count, const RArray<TInt64>& aData2Name, const TInt& aData2Count);

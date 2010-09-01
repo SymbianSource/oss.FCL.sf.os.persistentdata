@@ -115,7 +115,7 @@ TVerdict CULoggerBufferModeStep::doTestStepL()
 			RULogger logger;
 			logger.Connect();
 			CClearConfig configIni;
-			configIni.ClearL(logger);
+			configIni.Clear(logger);
 			TInt iBufferCircular = 0;
 			TInt iBufferStraight = 1;
 			TInt iGetBuffer = 2;	

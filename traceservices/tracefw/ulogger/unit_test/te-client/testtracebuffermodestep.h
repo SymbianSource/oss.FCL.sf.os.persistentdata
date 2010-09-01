@@ -23,7 +23,7 @@
 */
 #if (!defined __TESTRESIZETRACEBUFFERSIZE_STEP_H__)
 #define __TESTRESIZETRACEBUFFERSIZE_STEP_H__
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_uloggerclientsuitestepbase.h"
 
 class CTestTraceBufferModeStep : public CTestUloggerClientApiStepBase

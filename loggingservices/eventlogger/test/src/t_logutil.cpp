@@ -14,9 +14,6 @@
 //
 #include "t_logutil.h"
 
-//Define "TheTest" variable used in the test cpp files
-extern RTest TheTest;
-
 TPtrC FileName(const TText* aFile)
     {
     TPtrC p(aFile);

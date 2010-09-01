@@ -23,7 +23,6 @@ OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 SOURCEPATH		../TEST
 SOURCE			t_sqlitewsd.cpp
 SOURCE			t_sqlitewsdinsert.cpp
-SOURCE			sqliteTestUtl.cpp
 
 LIBRARY         libc.lib
 LIBRARY			libpthread.lib

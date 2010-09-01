@@ -278,9 +278,9 @@ void DLddUsbcChannel::HandleMsg(TMessageBase* aMsg)
 		}
 	if (id < 0)
 		{
-		// DoRequestL
+		// DoRequest
 		TRequestStatus* pS = (TRequestStatus*) m.Ptr0();
-		DoRequestL(~id, pS, m.Ptr1(), m.Ptr2());
+		DoRequest(~id, pS, m.Ptr1(), m.Ptr2());
 		m.Complete(KErrNone, ETrue);
 		}
 	else
@@ -314,10 +314,10 @@ TInt DLddUsbcChannel::RequestUserHandle(DThread* aThread, TOwnerType /*aType*/)
 	}
 // Asynchronous requests - overriding pure virtual
 //
-void DLddUsbcChannel::DoRequestL(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2)
+void DLddUsbcChannel::DoRequest(TInt aReqNo, TRequestStatus* aStatus, TAny* a1, TAny* a2)
 	{
 	// Check on request status
-	//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL 0x%08x", aReqNo));
+	//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest 0x%08x", aReqNo));
 	if (aReqNo <= KUsbcMaxRequests)
 		{
 		TInt r = KErrNone;
@@ -442,7 +442,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 		// ep0 requests
 		if (!(iValidInterface || iOwnsDeviceControl))
 			{
-			//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL rejected: not configured (Ep0)"));
+			//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest rejected: not configured (Ep0)"));
 			r = KErrUsbInterfaceNotReady;
 			goto exit;
 			}
@@ -454,7 +454,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 		                          iDeviceState == EUsbcDeviceStateSuspended))
 		   )
 			{
-			//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL rejected not configured (Ep %d)", aEndpointNum));
+			//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest rejected not configured (Ep %d)", aEndpointNum));
 			r = KErrUsbInterfaceNotReady;
 			goto exit;
 			}
@@ -462,7 +462,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 
 	if (!ValidEndpoint(aEndpointNum))
 		{
-		//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequestL Read: in error complete"));
+		//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequest Read: in error complete"));
 		r = KErrUsbEpNotInInterface;
 		goto exit;
  		}
@@ -481,13 +481,13 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 	pEndpoint = iEndpoint[aEndpointNum];
 	if (!pEndpoint)
 		{
-		//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequestL Read: in error complete"));
+		//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequest Read: in error complete"));
 		r = KErrUsbEpNotInInterface;
 		goto exit;
 		}
 
 	pEndpointInfo = pEndpoint->EndpointInfo();
-	//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL %d", aEndpointNum));
+	//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest %d", aEndpointNum));
 
 	switch (pTfr->iTransferType)
 		{
@@ -497,7 +497,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 	case ETransferTypeReadUntilShort:
 	case ETransferTypeReadOneOrMore:
 		{
-		//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL Read"));
+		//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest Read"));
 		if (pEndpoint->iDmaBuffers->RxIsActive())
 			{
 			//__KTRACE_OPT(KUSB, Kern::Printf("**** ReadReq ep%d RxActive", aEndpointNum));
@@ -511,7 +511,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 			pEndpointInfo->iDir != KUsbEpDirBidirect)
 			{
 			// Trying to do the wrong thing
-			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequestL Read: in error complete"));
+			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequest Read: in error complete"));
 			r = KErrUsbEpBadDirection;
 			break;
 			}
@@ -530,7 +530,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 			{
 			if (pTfr->iTransferType == ETransferTypeReadPacket)
 				{
-				//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL Read packet: data available complete"));
+				//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest Read packet: data available complete"));
 				r = pEndpoint->CopyToClient(iClient);
 				aNeedsCompletion = ETrue;
 				break;
@@ -539,7 +539,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 				{
 				if (pTfr->iTransferSize <= pEndpoint->RxBytesAvailable())
 					{
-					//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL Read data: data available complete"));
+					//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest Read data: data available complete"));
 					r = pEndpoint->CopyToClient(iClient);
 					aNeedsCompletion = ETrue;
 					break;
@@ -553,7 +553,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 				{
 				if (pEndpoint->RxBytesAvailable() > 0)
 					{
-					//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL Read data: data available complete"));
+					//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest Read data: data available complete"));
 					r = pEndpoint->CopyToClient(iClient);
 					aNeedsCompletion = ETrue;
 					break;
@@ -571,7 +571,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 					(nRx < maxPacketSize) ||
 					pEndpoint->iDmaBuffers->ShortPacketExists())
 					{
-					//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL Read data: data available complete"));
+					//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest Read data: data available complete"));
 					r = pEndpoint->CopyToClient(iClient);
 					aNeedsCompletion = ETrue;
 					}
@@ -584,7 +584,7 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 		r = pEndpoint->TryToStartRead(EFalse);
 		if (r != KErrNone)
 			{
-			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequestL Read: couldn't start read"));
+			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequest Read: couldn't start read"));
 			r = KErrNone;									// Reader full isn't a userside error;
 			}
 		break;
@@ -592,33 +592,33 @@ TInt DLddUsbcChannel::DoTransferAsyncReq(TInt aEndpointNum, TAny* a1, TAny* a2, 
 
 	case ETransferTypeWrite:
 		{
-		//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL Write 1"));
+		//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest Write 1"));
 		if (pEndpointInfo->iDir != KUsbEpDirIn &&
 			pEndpointInfo->iDir != KUsbEpDirBidirect)
 			{
-			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequestL Write: wrong direction complete"));
+			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequest Write: wrong direction complete"));
 			r = KErrUsbEpBadDirection;
 			break;
 			}
-		//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL Write 2"));
+		//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest Write 2"));
 
 		TAny* logicalSrc = pTfr->iDes;
 		TInt desLength = Kern::ThreadGetDesLength(iClient, logicalSrc);
 		if (desLength < pTfr->iTransferSize)
 			{
-			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequestL Write: user buffer too short"));
+			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequest Write: user buffer too short"));
 			r = KErrUsbTransferSize;
 			break;
 			}
 
-		//__KTRACE_OPT(KUSB, Kern::Printf("DoRequestL Write 3 length=%d maxlength=%d",
+		//__KTRACE_OPT(KUSB, Kern::Printf("DoRequest Write 3 length=%d maxlength=%d",
 									//	pTfr->iTransferSize, desLength));
 		// Zero length writes are acceptable
 		pEndpoint->SetClientWritePending(ETrue);
 		r = pEndpoint->TryToStartWrite(pTfr);
 		if (r != KErrNone)
 			{
-			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequestL Write: couldn't start write"));
+			//__KTRACE_OPT(KPANIC, Kern::Printf("  Error: DoRequest Write: couldn't start write"));
 			pEndpoint->SetClientWritePending(EFalse);
 			}
 		break;

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,7 +14,7 @@
 //
 
 
-//! @file
+//! @File
 //! @SYMTestSuiteName           te-integ-tracecollectorclient_enabled.script
 //! @SYMScriptTestEnvironment   TEF
 
@@ -31,7 +31,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlAPIGroupIDEnabl
 //! @SYMTestActions             Run a combination of single and multiple group ID filter set() methods and check the contents of the get() methods on server return the filters as expected
 //! @SYMTestExpectedResults     Verify that the values returned by get methods match those expected from settings (test step returns a test pass if so)
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12974 12975
     START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -48,7 +48,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlAPICompIDEnable
 //! @SYMTestActions             Run a combination of single and multiple component ID filter set() methods and check the contents of the get() methods on server return the filters as expected
 //! @SYMTestExpectedResults     Verify that the values returned by get methods match those expected from settings (test step returns a test pass if so)
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12974 12975
     START_TEST_BLOCK    20000   te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -65,7 +65,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlAPILoggingEnabl
 //! @SYMTestActions             Run a combination of single and multiple filter and filtering set() methods instrument user-side trace points accordingly for positive, negative and multiple setting tests
 //! @SYMTestExpectedResults     Verify that the returned trace data and the output trace log files match the settings in the TraceControl accordingly
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12974 12975 12823 12824 12825 12128 12974 12975
     START_TEST_BLOCK    20000   te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -82,7 +82,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlADPAPIGroupIDEn
 //! @SYMTestActions             Run a combination of single and multiple group ID filter and filtering set() methods and check the contents of the get() methods on server return the filters as expected
 //! @SYMTestExpectedResults     Verify that the values returned by get methods match those expected from settings (test step returns a test pass if so)
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12974 12975
     START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -105,7 +105,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlADPAPICompIDEna
 //! @SYMTestActions             Run a combination of single and multiple component ID filter and filtering set() methods and check the contents of the get() methods on server return the filters as expected
 //! @SYMTestExpectedResults     Verify that the values returned by get methods match those expected from settings (test step returns a test pass if so)
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12974 12975
     START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -128,7 +128,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlBufferSizingEna
 //! @SYMTestActions             Run a combination of buffer resizing methods and run over various stress testing trace instrumentations. check the contents of the output file is as expected
 //! @SYMTestExpectedResults     Verify that output file contains #traces as expected
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12152 
     START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -145,7 +145,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlBufferModeEnabl
 //! @SYMTestActions             Run a combination of buffer mode change methods and run over various stress testing trace instrumentations. check the contents of the output file is as expected
 //! @SYMTestExpectedResults     Verify that output file contains a trace pattern as expected from buffer mode type
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12152 
     START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -163,7 +163,7 @@ END_TESTCASE                    DT-DEBUG-TRACE-OSTv2-TraceControlBufferModeEnabl
 //! @SYMTestActions             Run a combination of single and multiple filter and filtering set() methods instrument kernel-side trace points accordingly for positive, negative and multiple setting tests
 //! @SYMTestExpectedResults     Verify that the returned trace data and the output trace log files match the settings in the TraceControl accordingly
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12974 12975 12823 12824 12825 12128 12974 12975
 //  START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -180,7 +180,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlAPIPrintfEnable
 //! @SYMTestActions             Run a combination of single and multiple filter and filtering set() methods instrument user-side trace printf-style points accordingly for positive, negative and multiple setting tests
 //! @SYMTestExpectedResults     Verify that the returned trace data and the output trace log files match the settings in the TraceControl accordingly
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12974 12975 12823 12824 12825 12128 12974 12975
     START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -198,7 +198,7 @@ END_TESTCASE                    DT-DEBUG-TRACE-OSTv2-TraceControlAPIPrintfEnable
 //! @SYMTestActions             Run a combination of single and multiple filter and filtering set() methods instrument kernel-side trace printf-style points accordingly for positive, negative and multiple setting tests
 //! @SYMTestExpectedResults     Verify that the returned trace data and the output trace log files match the settings in the TraceControl accordingly
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12974 12975 12823 12824 12825 12128 12974 12975
 //  START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -218,7 +218,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlFilePluginEnabl
 //! @SYMTestActions             Run a combination of plugin configuration methods for the file plugin and log over trace instrumentation
 //! @SYMTestExpectedResults     Verify that the trace data is output as expected to the file plugin
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12129 12153
     START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -235,7 +235,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlSerialPluginEna
 //! @SYMTestActions             Run a combination of plugin configuration methods for the serial plugin and log over trace instrumentation
 //! @SYMTestExpectedResults     Verify that the trace data is output as expected to the serial plugin
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12129 12153 12147
     START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini
@@ -252,7 +252,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlFilePluginStepE
 //! @SYMTestActions             Run a combination of plugin configuration methods for the file plugin and test on the return errors
 //! @SYMTestExpectedResults     Verify that the errors returned are as expected
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12129 12153 12147
     START_TEST_BLOCK    1000    te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorclient.ini

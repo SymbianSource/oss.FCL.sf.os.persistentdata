@@ -19,7 +19,7 @@
 
 #include <e32std.h>
 #include <e32base.h>
-#include <test/testserver2.h>
+#include <testserver2.h>
 
 #include "te_ostv2integsuite_controller.h"
 

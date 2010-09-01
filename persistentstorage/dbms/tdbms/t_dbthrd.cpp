@@ -113,7 +113,7 @@ void CThread::ConstructL()
 	User::LeaveIfError(iFs.Connect());
 	User::LeaveIfError(iFs.SetSessionPath(KTestDir));
 	User::LeaveIfError(iLog.Replace(iFs,KLogFile,EFileWrite|EFileStreamText));
-	iStore=CFileStore::OpenL(iFs,KTestDatabase,EFileRead|EFileWrite|EFileWriteDirectIO);
+	iStore=CFileStore::OpenL(iFs,KTestDatabase,EFileRead|EFileWrite);
 	LogSize();
 	iData.OpenL(iStore,iStore->Root());
 	}

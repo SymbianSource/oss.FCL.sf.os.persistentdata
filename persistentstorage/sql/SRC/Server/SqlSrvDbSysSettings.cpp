@@ -29,11 +29,6 @@
 #include "SqlSrvStrings.h"		//System table names
 #include "SqlSrvUtil.h"			//Global functions
 #include "SqlSrvFileData.h"		//TSqlSrvFileData
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "SqlSrvDbSysSettingsTraces.h"
-#endif
-#include "SqlTraceDef.h"
 
 extern TBool IsStatementSupported(const TDesC& aStatementIn, const TDesC& aDbName, TDes& aStatementOut);
 
@@ -110,7 +105,7 @@ const TInt KObjPolicyDataColIdx = 4;
 //Panic SqlDb 4 In _DEBUG mode if aHandle argument is NULL.
 static void FinalizeStatementHandle(void* aHandle)
 	{
-	__ASSERT_DEBUG(aHandle != NULL, __SQLPANIC2(ESqlPanicBadArgument));
+	__SQLASSERT(aHandle != NULL, ESqlPanicBadArgument);
 	sqlite3_stmt* stmtHandle = static_cast <sqlite3_stmt*> (aHandle);
 	(void)sqlite3_finalize(stmtHandle);
 	}
@@ -119,7 +114,7 @@ static void FinalizeStatementHandle(void* aHandle)
 //Panic SqlDb 4 In _DEBUG mode if aDbHandle argument is NULL.
 static void RollbackTransaction(void* aDbHandle)
 	{
-	__ASSERT_DEBUG(aDbHandle != NULL, __SQLPANIC2(ESqlPanicBadArgument));
+	__SQLASSERT(aDbHandle != NULL, ESqlPanicBadArgument);
 	(void)::DbExecStmt8(reinterpret_cast <sqlite3*> (aDbHandle), KRollbackTransactionSql);
 	}
 
@@ -137,7 +132,7 @@ Initializes TSqlDbSysSettings data members with default values.
 TSqlDbSysSettings::TSqlDbSysSettings(sqlite3* aDbHandle) :
 	iDbHandle(aDbHandle)
 	{
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicBadArgument);
 	}
 
 /**
@@ -152,7 +147,7 @@ Creates the database security policy table and stores the security policy in the
 */
 void TSqlDbSysSettings::StoreSecurityPolicyL(const CSqlSecurityPolicy& aSecurityPolicyCon)
 	{
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
 	__SQLLEAVE_IF_ERROR(::DbExecStmt8(iDbHandle, KBeginTransactionSql()));
 	CleanupStack::PushL(TCleanupItem(&RollbackTransaction, iDbHandle));
 	__SQLLEAVE_IF_ERROR(::DbExecStmt8(iDbHandle, KCreateSecuritySql()));
@@ -181,8 +176,8 @@ Stores the database system settings in the settings table. The settings table is
 */
 void TSqlDbSysSettings::StoreSettingsL(const TDesC& aDbName, const TDesC& aCollationDllName, TInt aDbConfigFileVersion, TSqlCompactionMode aCompactionMode)
 	{
-	__ASSERT_DEBUG(aCompactionMode == ESqlCompactionManual || aCompactionMode == ESqlCompactionBackground || aCompactionMode == ESqlCompactionAuto, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(aCompactionMode == ESqlCompactionManual || aCompactionMode == ESqlCompactionBackground || aCompactionMode == ESqlCompactionAuto, ESqlPanicBadArgument);
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
 	HBufC* buf = HBufC::NewLC(Max((TInt)sizeof(KDropSettingsSql), 
 							  Max((TInt)sizeof(KCreateSettingsSql), (TInt)sizeof(KInsertSettingsSql))) + 
 							  aDbName.Length() + aCollationDllName.Length() + 10);
@@ -221,7 +216,7 @@ stays unchanged in a case of failure.
 */
 void TSqlDbSysSettings::LoadSecurityPolicyL(CSqlSecurityPolicy& aSecurityPolicyCon)
 	{
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
 	//Even if the version of the system settings is bigger than the current one (KSqlSystemVersion constant),
 	//I think that all future modifications of the system tables shall not affect the already existing
 	//fields. So it is correct to think that all information available in version 1 should be available 
@@ -294,7 +289,7 @@ file version will be 0).
 */	
 void TSqlDbSysSettings::LoadSettingsL(const TDesC& aDbName, TDes& aCollationDllName, TInt& aDbConfigFileVersion, TSqlCompactionMode& aCompactionMode)
 	{
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
 
 	aCollationDllName.Zero();
 	aDbConfigFileVersion = KSqlNullDbConfigFileVersion;	
@@ -324,7 +319,7 @@ void TSqlDbSysSettings::LoadSettingsL(const TDesC& aDbName, TDes& aCollationDllN
 			StoreSettingsL(aDbName, aCollationDllName, aDbConfigFileVersion, aCompactionMode); // store empty collation dll name, then reindexing will occur
 			}
 		}
-	__ASSERT_DEBUG(aCompactionMode == ESqlCompactionManual || aCompactionMode == ESqlCompactionBackground || aCompactionMode == ESqlCompactionAuto, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(aCompactionMode == ESqlCompactionManual || aCompactionMode == ESqlCompactionBackground || aCompactionMode == ESqlCompactionAuto, ESqlPanicInternalError);
 	}
 	
 /**
@@ -350,7 +345,7 @@ Retrieves the database system settings from the settings table.
 void TSqlDbSysSettings::GetSettingsL(const TDesC& aDbName, TDes& aCollationDllName, TInt& aDbConfigFileVersion, 
 									 TInt& aSettingsVersion, TSqlCompactionMode& aCompactionMode)
 	{
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
 
 	HBufC* buf = HBufC::NewLC(sizeof(KGetSettingsSql) + aDbName.Length());
 	TPtr sql = buf->Des();
@@ -394,7 +389,7 @@ void TSqlDbSysSettings::GetSettingsL(const TDesC& aDbName, TDes& aCollationDllNa
 		const void* ptr = sqlite3_column_text16(stmtHandle, KCollationDllNameColIdx);
         //Null column value - this might be an indication of an "out of memory" problem, if the column text  
         //is in UTF8 format. (sqlite3_column_text16() may allocate memory for UTF8->UTF16 conversion)
-		__SQLLEAVE_IF_NULL(const_cast<void*>(ptr));
+		__SQLLEAVE_IF_NULL(ptr);
         TPtrC16 src(reinterpret_cast <const TUint16*> (ptr));
         if(src.Length() > aCollationDllName.MaxLength())
             {
@@ -428,7 +423,7 @@ This is all performed as a single atomic transaction.
 */
 void TSqlDbSysSettings::ReindexDatabaseL(const TDesC& aDbName, const TDesC& aCurrentCollationDllName)
 	{	
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
 
 	//Allocate memory for the SQL statements
 	HBufC* buf = HBufC::NewLC(Max((TInt)sizeof(KUpdateCollationSettingsSql), (TInt)sizeof(KReindexSql)) + 
@@ -480,15 +475,12 @@ be updated with the version of the configuration file that was processed.
 void TSqlDbSysSettings::ConfigureDatabaseL(TInt aStoredDbConfigFileVersion, const TSqlSrvFileData& aFileData, 
 										   const TDesC& aDbName)
 	{	
-	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, TSQLDBSYSSETTINGS_CONFIGUREDATABASEL_ENTRY, "Entry;0x%X;TSqlDbSysSettings::ConfigureDatabaseL", (TUint)this));    
-	
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
 
 	if(!aFileData.IsSecureFileNameFmt())
 		{
 		//As a first implementation, config files will only be supported for 
 		//shared, secure databases - not for private, secure databases or public databases
-		SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, TSQLDBSYSSETTINGS_CONFIGUREDATABASEL_EXIT1, "Exit;0x%X;TSqlDbSysSettings::ConfigureDatabaseL;Not a secure db", (TUint)this));    
 		return;	
 		}
 		
@@ -522,13 +514,13 @@ void TSqlDbSysSettings::ConfigureDatabaseL(TInt aStoredDbConfigFileVersion, cons
 					if(fileVersion > aStoredDbConfigFileVersion)
 						{
 						//The latest version of the configuration file has not yet been processed, so do it now
-						SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, TSQLDBSYSSETTINGS_CONFIGUREDATABASEL1, "0x%X;TSqlDbSysSettings::ConfigureDatabaseL;Config file '%S'", (TUint)this, __SQLPRNSTR(configFileName)));	
+						__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::ConfigureDatabaseL() - Processing config file %S"), configFileName);	
 						ExecuteConfigurationUpdateL(aFileData, configFileName, fileVersion, aDbName);
-						SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, TSQLDBSYSSETTINGS_CONFIGUREDATABASEL2, "0x%X;TSqlDbSysSettings::ConfigureDatabaseL;Config file '%S' was processed, no errors", (TUint)this, __SQLPRNSTR(configFileName)));	
+						__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::ConfigureDatabaseL() - SUCCESS! Config file %S was processed"), configFileName);	
 						}
 					else
 						{
-						SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, TSQLDBSYSSETTINGS_CONFIGUREDATABASEL3, "0x%X;TSqlDbSysSettings::ConfigureDatabaseL;Config file '%S' as this or a later version has already been processed", (TUint)this, __SQLPRNSTR(configFileName)));	
+						__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::ConfigureDatabaseL() - Not processing config file %S as this or a later version has already been processed"), configFileName);	
 						}
 					}
 				else
@@ -545,10 +537,9 @@ void TSqlDbSysSettings::ConfigureDatabaseL(TInt aStoredDbConfigFileVersion, cons
 			}
 		else
 			{
-			SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, TSQLDBSYSSETTINGS_CONFIGUREDATABASEL4, "0x%X;TSqlDbSysSettings::ConfigureDatabaseL;No config file found for database '%S'", (TUint)this, __SQLPRNSTR(dbFileNameAndExt)));	
+			__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::ConfigureDatabaseL() - No config file found for database %S"), dbFileNameAndExt);	
 			}
 		}		
-	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, TSQLDBSYSSETTINGS_CONFIGUREDATABASEL_EXIT2, "Exit;0x%X;TSqlDbSysSettings::ConfigureDatabaseL", (TUint)this));    
 	}
 	
 /**
@@ -574,7 +565,7 @@ void TSqlDbSysSettings::ExecuteConfigurationUpdateL(const TSqlSrvFileData& aFile
 													TInt aDbConfigFileVersion,
 													const TDesC& aDbName)
 	{
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
 														
 	//Execute the specified database config file operations that are supported
 #ifdef SYSLIBS_TEST
@@ -618,7 +609,7 @@ operations are supported and will be executed).
 */
 void TSqlDbSysSettings::DoExecuteDbConfigFileOpsL(RFs& aFs, const TDesC& aConfigFilePath, const TDesC& aDbName)
 	{
-	__ASSERT_DEBUG(iDbHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iDbHandle != NULL, ESqlPanicInvalidObj);
 	
 	//Open the config file and read it into a buffer
 	RFile64 file;
@@ -629,7 +620,7 @@ void TSqlDbSysSettings::DoExecuteDbConfigFileOpsL(RFs& aFs, const TDesC& aConfig
 	if(size == 0)
 		{
 		//Config file is empty so just return
-		SQL_TRACE_INTERNALS(OstTraceExt1(TRACE_INTERNALS, TSQLDBSYSSETTINGS_DOEXECUTEDBCONFIGFILEOPSL, "0;TSqlDbSysSettings::DoExecuteDbConfigFileOpsL();Config file %S is empty", __SQLPRNSTR(aConfigFilePath)));	
+		__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::DoExecuteDbConfigFileOpsL() - Config file %S is empty"), aConfigFilePath);	
 		CleanupStack::PopAndDestroy(); // file
 		return;
 		}
@@ -700,12 +691,12 @@ as defined at http://www.sqlite.org/lang_comment.html.
 */
 void TSqlDbSysSettings::ProcessStatementL(const TDesC& aStmt, const TDesC& aDbName)
 	{	
-	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, TSQLDBSYSSETTINGS_PROCESSSTATEMENTL_ENTRY, "Entry;0x%X;TSqlDbSysSettings::ProcessStatementL;Processing statement '%S'", (TUint)this, __SQLPRNSTR(aStmt)));	
+	__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::ProcessStatementL() - Processing statement '%S'"), aStmt);	
 	
 	//If the statement only contained whitespace then just return
 	if(aStmt.Length() == 0)
 		{
-		SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, TSQLDBSYSSETTINGS_PROCESSSTATEMENTL_EXIT1, "Exit;0x%X;TSqlDbSysSettings::ProcessStatementL;The statement ignored because contains only whitespace", (TUint)this));	
+		__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::ProcessStatementL() - Statement '%S' only contains whitespace - statement will be ignored"), aStmt);	
 		return;	
 		}
 		
@@ -714,7 +705,7 @@ void TSqlDbSysSettings::ProcessStatementL(const TDesC& aStmt, const TDesC& aDbNa
 		{
 		//The statement contains '//' which is an unsupported comment style, but rather
 		//than leave here and cause the full file to fail, we just ignore this statement
-		SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, TSQLDBSYSSETTINGS_PROCESSSTATEMENTL_EXIT2, "Exit;0x%X;TSqlDbSysSettings::ProcessStatementL;The statement ignored because contains invalid comment style", (TUint)this));	
+		__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::ProcessStatementL() - Statement '%S' contains invalid comment style - statement will be ignored"), aStmt);	
 		return;
 		}
 		
@@ -726,11 +717,11 @@ void TSqlDbSysSettings::ProcessStatementL(const TDesC& aStmt, const TDesC& aDbNa
 		TInt err = ::DbExecStmt16(iDbHandle, stmtPtr);
 		if(KErrNone == err)
 			{
-			SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, TSQLDBSYSSETTINGS_PROCESSSTATEMENTL1, "0x%X;TSqlDbSysSettings::ProcessStatementL;Successfully executed statement", (TUint)this));		
+			__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::ProcessStatementL() - Successfully executed statement '%S'"), aStmt);		
 			}
 		else
 			{
-			SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, TSQLDBSYSSETTINGS_PROCESSSTATEMENTL2, "0x%X;TSqlDbSysSettings::ProcessStatementL;Failed to execute the statement;err=%d", (TUint)this, err));		
+			__SQLLOG_ERR(_L("SQLLOG: TSqlDbSysSettings::ProcessStatementL() - Failed to execute the statement, err=%d"), err);		
 			if(err == KErrNoMemory)
 				{
 				__SQLLEAVE(err);	
@@ -739,10 +730,9 @@ void TSqlDbSysSettings::ProcessStatementL(const TDesC& aStmt, const TDesC& aDbNa
 		}
 	else
 		{
-		SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, TSQLDBSYSSETTINGS_PROCESSSTATEMENTL3, "0x%X;TSqlDbSysSettings::ProcessStatementL;Non-supported statement, will be ignored", (TUint)this));		
+		__SQLLOG_STRING(_L("SQLLOG: TSqlDbSysSettings::ProcessStatementL() - Non-supported statement, will be ignored - '%S'"), aStmt);		
 		}
 	CleanupStack::PopAndDestroy(); // stmtBuf
-	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, TSQLDBSYSSETTINGS_PROCESSSTATEMENTL_EXIT3, "Exit;0x%X;TSqlDbSysSettings::ProcessStatementL", (TUint)this));  
 	}
 
 
@@ -805,7 +795,7 @@ Stores a security policy object in the security policies table.
 void TSqlDbSysSettings::StoreSecurityPolicyL(sqlite3_stmt* aStmtHandle, TInt aObjType, const TDesC& aObjName, 
 											 TInt aPolicyType, const TSecurityPolicy& aPolicy)
 	{
-	__ASSERT_DEBUG(aStmtHandle != NULL, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aStmtHandle != NULL, ESqlPanicBadArgument);
 	__SQLLEAVE_IF_ERROR(::StmtReset(aStmtHandle));
 	__SQLLEAVE_IF_ERROR(BindSecurityPolicyPrm(aStmtHandle, aObjType, aObjName, aPolicyType, aPolicy));
 	__SQLLEAVE_IF_ERROR(::StmtExec(aStmtHandle));
@@ -864,7 +854,7 @@ Reads a record from security policies table.
 TSecurityPolicy TSqlDbSysSettings::ReadCurrSecurityPolicyL(sqlite3_stmt* aStmtHandle, TInt& aObjType, 
 														   TPtrC& aObjName, TInt& aPolicyType)
 	{
-	__ASSERT_DEBUG(aStmtHandle != NULL, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aStmtHandle != NULL, ESqlPanicBadArgument);
 	aObjType = sqlite3_column_int(aStmtHandle, KObjTypeColIdx);
     //The "ObjectName" column type might be different than SQLITE_TEXT - malformed database.
     if(sqlite3_column_type(aStmtHandle, KObjNameColIdx) != SQLITE_TEXT)
@@ -874,7 +864,7 @@ TSecurityPolicy TSqlDbSysSettings::ReadCurrSecurityPolicyL(sqlite3_stmt* aStmtHa
     const void* text = sqlite3_column_text16(aStmtHandle, KObjNameColIdx);
     //Null column value - this might be an indication of an "out of memory" problem, if the column text  
     //is in UTF8 format. (sqlite3_column_text16() may allocate memory for UTF8->UTF16 conversion)
-    __SQLLEAVE_IF_NULL(const_cast<void*>(text));
+    __SQLLEAVE_IF_NULL(text);
 	TInt len = (TUint)sqlite3_column_bytes16(aStmtHandle, KObjNameColIdx) / sizeof(TUint16);
 	aObjName.Set(reinterpret_cast <const TUint16*> (text), len);
 	aPolicyType = sqlite3_column_int(aStmtHandle, KObjPolicyTypeColIdx);

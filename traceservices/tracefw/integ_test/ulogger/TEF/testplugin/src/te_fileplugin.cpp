@@ -20,8 +20,7 @@
 
 #include <e32std.h>
 #include <e32debug.h>
-#include <ecom/implementationproxy.h>
-
+#include <implementationproxy.h>
 #include "te_fileplugin.h"
 
 #if defined(__LIGHTLOGGER_ENABLED)

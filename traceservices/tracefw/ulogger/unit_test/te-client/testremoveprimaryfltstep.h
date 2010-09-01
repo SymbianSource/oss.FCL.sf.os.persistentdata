@@ -23,7 +23,7 @@
 */
 #if (!defined __TESTREMOVEPRIMARYFLT_STEP_H__)
 #define __TESTREMOVEPRIMARYFLT_STEP_H__
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_uloggerclientsuitestepbase.h"
 
 

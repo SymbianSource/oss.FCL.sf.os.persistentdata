@@ -17,24 +17,22 @@
 
 #include "../../kernel/kern_ext.mmh"
 
-target          usbc.ldd
-targettype      ldd
-uid             0 0x101F8928
-VENDORID 0x70000001
-capability      all
+systeminclude	../../include/drivers
+systeminclude   \epoc32\include\ulogger_integrationtest
 
-OS_LAYER_SYSTEMINCLUDE
-
-sourcepath      ..\src
-source			d_usbc.cpp 
-source          usbdma.cpp
-
-sourcepath      ..\..\te_ulogger\src
-source		    te_utracecmds.cpp
-
-library			ekern.lib 
-library         usbcc.lib 
+target			usbc.ldd
+targettype		ldd
+source			d_usbc.cpp usbdma.cpp //te_utracecmds.cpp#
+sourcepath  \epoc32\include\ulogger_integrationtest
+source		  te_utracecmds.cpp
+library			ekern.lib usbcc.lib 
+epocallowdlldata
 
 MACRO SYMBIAN_TRACE_ENABLE
+
+
+uid 			0 0x101F8928
+VENDORID 0x70000001
+capability		all
 
 SMPSAFE

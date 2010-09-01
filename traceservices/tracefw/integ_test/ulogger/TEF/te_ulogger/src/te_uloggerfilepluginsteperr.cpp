@@ -49,7 +49,7 @@ TVerdict CULoggerFilePluginStepErr::doTestStepL()
 		  RULogger logger;
 		  logger.Connect();
 		  CClearConfig configIni;
-		  configIni.ClearL(logger);
+		  configIni.Clear(logger);
 		  _LIT8(KTextmedia,"te_fileplugin");
 		  const TPtrC8 mediaptr(KTextmedia);
 		  INFO_PRINTF1(_L("Setting test plugin as active..."));

@@ -32,7 +32,7 @@ const TInt KServerCActivePriority       = CActive::EPriorityUserInput;
 const TInt KDefaultFeatMgrTimer         = (10*1000*1000);
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
 const TInt KShutdownTimeout				= 500000;
-const TInt KServerUid2Int               = 0x10205054;
+const TInt KServerUid2Int               = 0x102836E5;
 #else
 const TInt KServerUid2Int               = 0x10205054;
 #endif // EXTENDED_FEATURE_MANAGER_TEST

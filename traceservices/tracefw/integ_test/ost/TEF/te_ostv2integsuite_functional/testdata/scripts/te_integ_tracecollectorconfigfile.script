@@ -1,5 +1,5 @@
 
-// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,7 +14,7 @@
 // Description:
 //
 
-//! @file
+//! @File
 //! @SYMTestSuiteName           te_integ_tracecollectorconfigfile.script
 //! @SYMScriptTestEnvironment   TEF
 
@@ -39,7 +39,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlPublicConfigFil
 //! @SYMTestActions             Compare the settings in the TraceControl server with that specified in the test config file in \testdata\configs\configfiletracecontrolconfig.ini
 //! @SYMTestExpectedResults     Verify that the returned settings match those expected (test step returns a test pass if so)
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12129
     START_TEST_BLOCK    100     te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorconfigfile.ini
@@ -63,7 +63,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlPrivateConfigFi
 //! @SYMTestActions             Having deleted c:\ulogger\uloggerconfig.ini in the public path, now compare the settings in the TraceControl server with that specified by default in the private path
 //! @SYMTestExpectedResults     Verify that the returned settings match those expected (test step returns a test pass if so)
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12129
     START_TEST_BLOCK    100     te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorconfigfile.ini
@@ -88,7 +88,7 @@ START_TESTCASE                  DT-DEBUG-TRACE-OSTv2-TraceControlPublicConfigFil
 //! @SYMTestActions             Having reinstated a config file on the public path, now compare the settings in the TraceControl server with that specified in the public path
 //! @SYMTestExpectedResults     Verify that the returned settings match those expected (test step returns a test pass if so)
 //! @SYMTestType                CT
-//! @SYMTestStatus              Implemented
+//! @SYMTESTSTATUS              Implemented
 //! @SYMPREQ                    PREQ2390
 //! @SYMREQ                     12128 12129
     START_TEST_BLOCK    100     te_ostv2integsuite_enabled              \testdata\configs\te_integ_tracecollectorconfigfile.ini

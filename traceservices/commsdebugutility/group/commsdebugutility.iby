@@ -27,7 +27,7 @@ file=ABI_DIR\DEBUG_DIR\comsdbgutil.dll			System\bin\comsdbgutil.dll
 file=ABI_DIR\DEBUG_DIR\comsdbgsvr.exe			System\bin\comsdbgsvr.exe
  #if (!USE_FLOGGER_STUB)
  file=ABI_DIR\DEBUG_DIR\comsdbgsvr.dll			System\bin\comsdbgsvr.dll
- data=EPOCROOT##epoc32\data\z\resource\commsdbg.ini	resource\commsdbg.ini
+ data=EPOCROOT##Epoc32\data\z\resource\commsdbg.ini	resource\commsdbg.ini
  #else
  file=ABI_DIR\DEBUG_DIR\comsdbgstub.dll			System\bin\comsdbgsvr.dll
  #endif

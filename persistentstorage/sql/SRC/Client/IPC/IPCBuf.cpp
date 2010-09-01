@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,13 +15,8 @@
 
 #include <e32base.h>
 #include "IPCBuf.h"
-#include "SqlAssert.h"
+#include "SqlPanic.h"
 #include "SqlDbSession.h"
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "IPCBufTraces.h"
-#endif
-#include "SqlTraceDef.h"
 
 /**
 Standard, phase-one HIpcBuf factory method.
@@ -80,7 +75,6 @@ void HIpcBuf::ConstructL(TInt aFunction, TIpcArgs& aArgs)
 	TPckg<TIpcStreamBuf> pckg(iBuf);
 	aArgs.Set(2, &pckg);
 	__SQLLEAVE_IF_ERROR(iHandle = iSession.SendReceive(aFunction, aArgs));
-    SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, HIPCBUF_CONSTRUCTL, "0x%X;HIpcBuf::ConstructL;iHandle=%d", (TUint)this, iHandle));
 	TUint8* base = iBuf.iData;
 	// if reading we already have one buffer-full of data
 	TInt avail = Max(0, Min(iBuf.iExt, KIpcBufSize));
@@ -106,7 +100,6 @@ HIpcBuf::HIpcBuf(RSqlDbSession& aSession) :
 */
 HIpcBuf::~HIpcBuf()
 	{
-    SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, HIPCBUF_HIPCBUFL2, "0x%X;HIpcBuf::~HIpcBuf;iHandle=%d", (TUint)this, iHandle));
 	if(iHandle > 0) //iHandle is valid only when > 0.
 		{
 		(void)iSession.SendReceive(::MakeMsgCode(ESqlSrvStreamClose, ESqlSrvStreamHandle, iHandle));
@@ -123,7 +116,7 @@ TInt HIpcBuf::UnderflowL(TInt)
 		{
 		return 0;
 		}
-	__ASSERT_DEBUG(Avail(ERead) == 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(Avail(ERead) == 0, ESqlPanicInternalError);
 	TUint8* base=iBuf.iData;
 	IpcWriteL(base,Lag(EWrite));
 	SetBuf(EWrite,base,base);
@@ -138,7 +131,7 @@ Set up the buffer's write area.
 */
 void HIpcBuf::OverflowL()
 	{
-	__ASSERT_DEBUG(Avail(EWrite) == 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(Avail(EWrite) == 0, ESqlPanicInternalError);
 	
 	TUint8* base = iBuf.iData;
 	MovePos(ERead, Lag(ERead));
@@ -175,9 +168,9 @@ Read direct from ipc if asked to transfer more than a bufferful.
 */
 TInt HIpcBuf::DoReadL(TAny* aPtr, TInt aMaxLength)
 	{
-	__ASSERT_DEBUG(aMaxLength > 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(aMaxLength > 0, ESqlPanicInternalError);
 	TInt avail = Avail(ERead);
-	__ASSERT_DEBUG(avail >= 0 && Avail(EWrite) >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(avail >= 0 && Avail(EWrite) >= 0, ESqlPanicInternalError);
 	if(avail > 0)
 		{
 		TInt len = Min(aMaxLength, avail);
@@ -188,7 +181,7 @@ TInt HIpcBuf::DoReadL(TAny* aPtr, TInt aMaxLength)
 		if(aMaxLength == 0)
 			return len; // that's it
 		}
-	__ASSERT_DEBUG(Avail(ERead) == 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(Avail(ERead) == 0, ESqlPanicInternalError);
 	if(aMaxLength < iBuf.ESize)
 		return avail + TStreamBuf::DoReadL(aPtr, aMaxLength);
 
@@ -209,9 +202,9 @@ Write direct to ipc if asked to transfer more than a bufferful.
 */
 void HIpcBuf::DoWriteL(const TAny* aPtr,TInt aLength)
 	{
-	__ASSERT_DEBUG(aLength > 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(aLength > 0, ESqlPanicInternalError);
 	TInt avail = Avail(EWrite);
-	__ASSERT_DEBUG(Avail(ERead) >= 0 && avail >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(Avail(ERead) >= 0 && avail >= 0, ESqlPanicInternalError);
 	if(avail > 0)
 		{
 		TInt len = Min(aLength, avail);
@@ -222,7 +215,7 @@ void HIpcBuf::DoWriteL(const TAny* aPtr,TInt aLength)
 
 		aPtr = (TUint8*)aPtr + len;
 		}
-	__ASSERT_DEBUG(Avail(EWrite) == 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(Avail(EWrite) == 0, ESqlPanicInternalError);
 	if(aLength < iBuf.ESize)
 		TStreamBuf::DoWriteL(aPtr, aLength);
 	else
@@ -257,7 +250,7 @@ TStreamPos HIpcBuf::DoSeekL(TMark aMark, TStreamLocation aLocation, TInt aOffset
 			aOffset += Mark(EWrite);
 			break;
 		default:
-		    __ASSERT_ALWAYS(0, __SQLPANIC(ESqlPanicStreamMarkInvalid));
+			__SQLASSERT_ALWAYS(0, ESqlPanicStreamMarkInvalid);
 			break;
 			}
 		break;
@@ -265,7 +258,7 @@ TStreamPos HIpcBuf::DoSeekL(TMark aMark, TStreamLocation aLocation, TInt aOffset
 		aOffset += end;
 		break;
 	default:
-	    __ASSERT_ALWAYS(0, __SQLPANIC(ESqlPanicStreamLocationInvalid));
+		__SQLASSERT_ALWAYS(0, ESqlPanicStreamLocationInvalid);
 		break;
 		}
 	TInt r = KErrNone;
@@ -280,7 +273,7 @@ TStreamPos HIpcBuf::DoSeekL(TMark aMark, TStreamLocation aLocation, TInt aOffset
 		r = KErrEof;
 		}
 
-	__ASSERT_ALWAYS(!(aMark & ~(ERead | EWrite)), __SQLPANIC(ESqlPanicStreamMarkInvalid));
+	__SQLASSERT_ALWAYS(!(aMark & ~(ERead | EWrite)), ESqlPanicStreamMarkInvalid);
 	if(aMark & ERead)
 		{
 		TInt lag = aOffset - Pos(ERead);
@@ -311,7 +304,7 @@ Arg 3: [out]      max length of the requested data
 */
 TInt HIpcBuf::IpcReadL(TAny* aPtr, TInt aMaxLength)
 	{
-	__ASSERT_DEBUG(aMaxLength >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(aMaxLength >= 0, ESqlPanicInternalError);
 	if(aMaxLength == 0)
 		return 0;
 
@@ -334,7 +327,7 @@ Arg 2: [in/out]   IPC buffer
 */
 void HIpcBuf::IpcWriteL(const TAny* aPtr, TInt aLength)
 	{
-	__ASSERT_DEBUG(aLength >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(aLength >= 0, ESqlPanicInternalError);
 	if(aLength == 0)
 		return;
 

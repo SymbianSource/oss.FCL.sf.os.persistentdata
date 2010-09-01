@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,19 +13,15 @@
 // Description:
 //
 
+/**
+ @file te_uloggermclsuite.mmp
+ @internalTechnology
+*/
 TARGET      te_uloggermclsuite.exe
 TARGETTYPE  exe
-UID         0x1000007A 0x10285835
-CAPABILITY CommDD NetworkControl LocalServices
-
-EPOCHEAPSIZE 1048576 4194304
-
-OS_LAYER_SYSTEMINCLUDE
-
-USERINCLUDE    ../inc
-USERINCLUDE    ../../../../../common_utils/lightlogger/inc
-USERINCLUDE    ../../../../../common_utils
-        
+          UID             0x1000007A 0x10285835
+         
+//Please add any change under here
 SOURCEPATH  ../src
 SOURCE	        	te_uloggermclsuiteserver.cpp
 SOURCE	        	te_uloggermclsuitestepbase.cpp
@@ -42,16 +38,32 @@ SOURCE				te_uloggerconfigfilestep.cpp
 SOURCE				te_uloggerfilepluginsteperr.cpp
 SOURCE              te_uloggermclperfstep.cpp
 	
+USERINCLUDE   	../inc
+USERINCLUDE  	../../../../../common_utils/lightlogger/inc
+
+SYSTEMINCLUDE /epoc32/include
+SYSTEMINCLUDE /epoc32/include/test
+SYSTEMINCLUDE /epoc32/include/ulogger_integrationtest
+SYSTEMINCLUDE /epoc32/include/ecom
+
+
+//Please add your system include under here. 
+
 LIBRARY     euser.lib
-LIBRARY	    testexecuteutils.lib 
-LIBRARY	    testexecutelogclient.lib 
-LIBRARY	    efsrv.lib
-LIBRARY     uloggerclient.lib
-LIBRARY     hal.lib
+LIBRARY	testexecuteutils.lib 
+LIBRARY	testexecutelogclient.lib 
+LIBRARY	efsrv.lib
+LIBRARY 	uloggerclient.lib
+LIBRARY 	hal.lib
 LIBRARY     serialdriver.lib ecom.lib
 
 MACRO __LIGHTLOGGER_ENABLED
 MACRO SYMBIAN_TRACE_ENABLE
 
+
+EPOCHEAPSIZE 1048576 4194304
+
+CAPABILITY CommDD NetworkControl LocalServices
+USERINCLUDE ../../../../../common_utils
+
 SMPSAFE
-epocallowdlldata

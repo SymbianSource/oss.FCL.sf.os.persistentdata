@@ -171,7 +171,7 @@ void CSqlDatabaseImpl::ConstructL(TSqlSrvFunction aFunction, const TDesC& aDbFil
 	TPtrC8 securityPolicyData;
 	if(aFunction == ESqlSrvDbCreateSecure)	
 		{
-		__ASSERT_DEBUG(aSecurityPolicy != NULL, __SQLPANIC(ESqlPanicBadArgument));
+		__SQLASSERT(aSecurityPolicy != NULL, ESqlPanicBadArgument);
 		const RSqlBufFlat& bufFlat = aSecurityPolicy->BufFlat();
 		securityPolicyData.Set(bufFlat.BufDes());
 		}

@@ -17,6 +17,9 @@
 
 #include <e32test.h>
 
+//Define "TheTest" variable in the cpp test file 
+extern RTest TheTest;
+
 void LogTestBoolExpr(TBool aRes, const TText* aFile, TInt aLine, TBool aPrintThreadName = EFalse);
 void LogCheck(TInt aValue, TInt aExpected, const TText* aFile, TInt aLine, TBool aPrintThreadName = EFalse);
 void LogCheckU(TUint aValue, TUint aExpected, const TText* aFile, TInt aLine, TBool aPrintThreadName = EFalse);

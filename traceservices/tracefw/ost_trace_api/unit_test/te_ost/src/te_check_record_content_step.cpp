@@ -52,12 +52,11 @@ CCheckRecordContentStep::CCheckRecordContentStep()
 	SetTestStepName(KCheckRecordContentStep);
 	
  	SetLogFilename(KLogFilename);
+ 	DeleteLogFile();
 	}
 
 TVerdict CCheckRecordContentStep::doTestStepPreambleL()
 	{
-    DeleteLogFileL();
-	
 	if(TestStepResult()==EPass)
 		{
 		//SetTestStepResult(EFail);
@@ -80,7 +79,7 @@ TVerdict CCheckRecordContentStep::doTestStepL()
 		TInt error = KErrNone;
 
 		INFO_PRINTF1(_L("-------- Writing traces --------"));
-		error = WriteTracesL();
+		error = WriteTraces();
 		if(error)
 			{
 			INFO_PRINTF2(_L("ERROR: Error when writing traces, error %i"), error);
@@ -277,7 +276,7 @@ TTraceConfigs* CCheckRecordContentStep::CreateTrace(TTraceApiUsed aApi)
 	return trace;	
 	}
 
-TInt CCheckRecordContentStep::WriteTracesL()
+TInt CCheckRecordContentStep::WriteTraces()
 	{
 	TInt error = KErrNone;
 	TInt lastError = KErrNone;
@@ -420,11 +419,11 @@ TInt CCheckRecordContentStep::CompareTraces()
 		TInt32 temp = TInt32(sent->iPc-logged->iPc); 
 		if ( temp < 4) 
 			INFO_PRINTF2(_L("Pc value 0x%x         - ok"), (TInt) sent->iPc);
-//		else
-//			{
-//			INFO_PRINTF4(_L("Pc value              - ERROR: sent 0x%x, logged 0x%x, temp difference %u"), sent->iPc, logged->iPc, temp);
-//			error = KErrCorrupt;
-//			}
+		else
+			{
+			INFO_PRINTF4(_L("Pc value              - ERROR: sent 0x%x, logged 0x%x, temp difference %u"), sent->iPc, logged->iPc, temp);
+			error = KErrCorrupt;
+			}
 		
 		//payload ...
 		TInt j = sizeof(sent->iRawData)/4 - 1;

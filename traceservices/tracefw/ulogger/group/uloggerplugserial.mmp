@@ -15,25 +15,26 @@
 // 
 //
 
+/**
+ @file 
+*/
+
 TARGET uloggerserialplugin.dll
 TARGETTYPE PLUGIN
 UID  0x10009D8D 0x10273887
 VENDORID 0x70000001 
 CAPABILITY CommDD NetworkControl LocalServices ProtServ NetworkServices
 
-OS_LAYER_SYSTEMINCLUDE
-
-USERINCLUDE ../inc
-USERINCLUDE     ../../common_utils/lightlogger/inc
 
 SOURCEPATH ../src/outfrwkchans/serial
-SOURCE     uloggerserialplugin.cpp
+SOURCE uloggerserialplugin.cpp
 
 START RESOURCE 10273887.rss
 TARGET uloggerserialplugin.rsc
 end
 
-LIBRARY	euser.lib 
-LIBRARY efsrv.lib 
-LIBRARY c32.lib 
-LIBRARY ecom.lib
+
+USERINCLUDE	../inc
+USERINCLUDE 	../../common_utils/lightlogger/inc
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+LIBRARY	euser.lib efsrv.lib c32.lib ecom.lib

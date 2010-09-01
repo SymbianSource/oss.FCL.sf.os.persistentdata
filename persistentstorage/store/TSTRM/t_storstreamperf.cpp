@@ -510,7 +510,7 @@ void PermanentFileStoreIterTestL()
 	store = CPermanentFileStore::OpenLC(TheFs, TheTestFile, EFileWrite | EFileRead);
 	RPermanentFileStoreIter it4;
 	it4.ResetLC(*store);
-	TStreamId id(KNullStreamIdValue);
+	TStreamId id;
 	TInt cnt = 0;
 	fc = User::FastCounter();
 	while((id = it4.NextL()) != KNullStreamIdValue)

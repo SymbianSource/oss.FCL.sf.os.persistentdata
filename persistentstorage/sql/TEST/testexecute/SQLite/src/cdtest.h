@@ -39,9 +39,6 @@ public:
     void FilesDifferBySize(const TDesC &, const TInt );
     void SecurityPolicyCheck(const TDesC &, const TInt );
     void CollationTest(const TDesC &, const TInt );
-
-private:
-    void PrepareLargeDisk(const TDesC&, const TDriveUnit atdu, TInt64 &atowrite);
     };
 
 #endif // CDTEST_H__

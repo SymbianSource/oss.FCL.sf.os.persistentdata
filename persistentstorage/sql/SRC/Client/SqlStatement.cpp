@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,11 +14,6 @@
 //
 
 #include "SqlStatementImpl.h"		//CSqlStatementImpl
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "SqlStatementTraces.h"
-#endif
-#include "SqlTraceDef.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -84,10 +79,10 @@ amounts of blob or text data from a database.
 */	
 EXPORT_C TInt RSqlStatement::Prepare(RSqlDatabase& aDatabase, const TDesC& aSqlStmt)
 	{
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLSTATEMENT_PREPARE16_ENTRY, "Entry;0x%X;RSqlStatement::Prepare16;aDatabase=0x%X;aSqlStmt=%S", (TUint)this, (TUint)&aDatabase, __SQLPRNSTR(aSqlStmt)));
-	TInt err = CSqlStatementImpl::New(iImpl, aDatabase.Impl(), aSqlStmt);
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLSTATEMENT_PREPARE16_EXIT, "Exit;0x%X;RSqlStatement::Prepare16;iImpl=0x%X;err=%d", (TUint)this, (TUint)iImpl, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexStrParam16, &aDatabase, &aSqlStmt));
+
+	return CSqlStatementImpl::New(iImpl, aDatabase.Impl(), aSqlStmt);
 	}
 	
 /**
@@ -143,11 +138,11 @@ amounts of blob or text data from a database.
 */	
 EXPORT_C TInt RSqlStatement::Prepare(RSqlDatabase& aDatabase, const TDesC8& aSqlStmt)
 	{
-	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLSTATEMENT_PREPARE8_ENTRY, "Entry;0x%X;RSqlStatement::Prepare8;aDatabase=0x%X;aSqlStmt=%s", (TUint)this, (TUint)&aDatabase, __SQLPRNSTR8(aSqlStmt, des16prnbuf)));
-	TInt err = CSqlStatementImpl::New(iImpl, aDatabase.Impl(), aSqlStmt);
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLSTATEMENT_PREPARE8_EXIT, "Exit;0x%X;RSqlStatement::Prepare8;iImpl=0x%X;err=%d", (TUint)this, (TUint)iImpl, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexStrParam, 
+			&aDatabase, &aSqlStmt));
+	
+	return CSqlStatementImpl::New(iImpl, aDatabase.Impl(), aSqlStmt);
 	}
 
 /**
@@ -201,9 +196,11 @@ amounts of blob or text data from a database.
 */
 EXPORT_C void RSqlStatement::PrepareL(RSqlDatabase& aDatabase, const TDesC& aSqlStmt)
 	{
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLSTATEMENT_PREPARE16L_ENTRY, "Entry;0x%X;RSqlStatement::Prepare16L;aDatabase=0x%X;aSqlStmt=%S", (TUint)this, (TUint)&aDatabase, __SQLPRNSTR(aSqlStmt)));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexStrParam16, 
+			&aDatabase, &aSqlStmt));
+	
 	__SQLLEAVE_IF_ERROR(Prepare(aDatabase, aSqlStmt));
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSTATEMENT_PREPARE16L_EXIT, "Exit;0x%X;RSqlStatement::Prepare16L;iImpl=0x%X", (TUint)this, (TUint)iImpl));
 	}
 	
 /**
@@ -258,10 +255,11 @@ amounts of blob or text data from a database.
 */
 EXPORT_C void RSqlStatement::PrepareL(RSqlDatabase& aDatabase, const TDesC8& aSqlStmt)
 	{
-	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLSTATEMENT_PREPARE8L_ENTRY, "Entry;0x%X;RSqlStatement::Prepare8L;aDatabase=0x%X;aSqlStmt=%s", (TUint)this, (TUint)&aDatabase, __SQLPRNSTR8(aSqlStmt, des16prnbuf)));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KHexStrParam, 
+			&aDatabase, &aSqlStmt));
+
 	__SQLLEAVE_IF_ERROR(Prepare(aDatabase, aSqlStmt));
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSTATEMENT_PREPARE8L_EXIT, "Exit;0x%X;RSqlStatement::Prepare8L;iImpl=0x%X", (TUint)this, (TUint)iImpl));
 	}
 
 
@@ -276,9 +274,8 @@ The function frees memory and any allocated resources.
 */	
 EXPORT_C void RSqlStatement::Close()
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSTATEMENT_CLOSE_ENTRY, "Entry;0x%X;RSqlStatement::Close;iImpl=0x%X", (TUint)this, (TUint)iImpl));
+	SQLUTRACE_PROFILER(this);
 	delete iImpl;
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSTATEMENT_CLOSE_EXIT, "Exit;0x%X;RSqlStatement::Close;iImpl=0x%X", (TUint)this, (TUint)iImpl));
 	iImpl = NULL;
 	}
 
@@ -291,6 +288,7 @@ Tests whether the SQL statement points to a valid record.
 */
 EXPORT_C TBool RSqlStatement::AtRow() const
 	{
+	SQLUTRACE_PROFILER(this);
 	return Impl().AtRow();
 	}
 	
@@ -354,10 +352,8 @@ stmt.Close();
 */	
 EXPORT_C TInt RSqlStatement::Reset()
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLSTATEMENT_RESET_ENTRY, "Entry;0x%X;RSqlStatement::Reset", (TUint)this));
-	TInt err = Impl().Reset();
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSTATEMENT_RESET_EXIT, "Exit;0x%X;RSqlStatement::Reset;err=%d", (TUint)this, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	return Impl().Reset();
 	}
 	
 /**
@@ -416,10 +412,8 @@ stmt.Close();
 */	
 EXPORT_C TInt RSqlStatement::Exec()
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLSTATEMENT_EXEC_ENTRY, "Entry;0x%X;RSqlStatement::Exec", (TUint)this));
-	TInt err = Impl().Exec();
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSTATEMENT_EXEC_EXIT, "Exit;0x%X;RSqlStatement::Exec;err=%d", (TUint)this, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	return Impl().Exec();
 	}
 
 /**
@@ -469,9 +463,8 @@ the error can be obtained calling RSqlDatabase::LastErrorMessage().
 */	
 EXPORT_C void RSqlStatement::Exec(TRequestStatus& aStatus)
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLSTATEMENT_EXECASYNC_ENTRY, "Entry;0x%X;RSqlStatement::ExecAsync", (TUint)this));
+	SQLUTRACE_PROFILER(this);
 	Impl().Exec(aStatus);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSTATEMENT_EXECASYNC_EXIT, "Exit;0x%X;RSqlStatement::ExecAsync;aStatus.Int()=%d", (TUint)this, aStatus.Int()));
 	}
 	
 /**
@@ -520,10 +513,8 @@ will raise a panic.
 */	
 EXPORT_C TInt RSqlStatement::Next()
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLSTATEMENT_NEXT_ENTRY, "Entry;0x%X;RSqlStatement::Next", (TUint)this));
-	TInt err = Impl().Next();
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSTATEMENT_NEXT_EXIT, "Exit;0x%X;RSqlStatement::Next;err=%d", (TUint)this, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	return Impl().Next();
 	}
 
 /**
@@ -546,6 +537,9 @@ This function can be called at any time after the SQL statement has been prepare
 */	
 EXPORT_C TInt RSqlStatement::ParameterIndex(const TDesC& aParameterName) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aParameterName));
+
 	return Impl().ParamIndex(aParameterName);
 	}
 
@@ -561,6 +555,7 @@ but it is useful only for SELECT statements. The column count of any other type 
 */	
 EXPORT_C TInt RSqlStatement::ColumnCount() const
 	{
+	SQLUTRACE_PROFILER(this);
 	return Impl().ColumnCount();
 	}
 	
@@ -581,6 +576,9 @@ This function can be called at any time after the SQL statement has been prepare
 */	
 EXPORT_C TInt RSqlStatement::ColumnIndex(const TDesC& aColumnName) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aColumnName));
+
 	return Impl().ColumnIndex(aColumnName);
 	}
 	
@@ -611,6 +609,9 @@ Calling this function after an unsuccessful call to Next() raises a panic.
 */	
 EXPORT_C TSqlColumnType RSqlStatement::ColumnType(TInt aColumnIndex) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	return Impl().ColumnType(aColumnIndex);
 	}
 
@@ -649,6 +650,9 @@ The declared type of a column is determined according to the following rules:
 */	
 EXPORT_C TInt RSqlStatement::DeclaredColumnType(TInt aColumnIndex, TSqlColumnType& aColumnType) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	return Impl().DeclaredColumnType(aColumnIndex, aColumnType);
 	}
 	
@@ -696,6 +700,9 @@ Calling this function after an unsuccessful call to Next() raises a panic.
 */	
 EXPORT_C TInt RSqlStatement::ColumnSize(TInt aColumnIndex) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	return Impl().ColumnSize(aColumnIndex);
 	}
 
@@ -726,6 +733,9 @@ A parameter value can be set:
 */	
 EXPORT_C TInt RSqlStatement::BindNull(TInt aParamIndex)
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aParamIndex));
+	
 	return Impl().BindNull(aParamIndex);
 	}
 	
@@ -754,6 +764,9 @@ A parameter value can be set:
 */	
 EXPORT_C TInt RSqlStatement::BindInt(TInt aParamIndex, TInt aParamValue)
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aParamIndex));
+	
 	return Impl().BindInt(aParamIndex, aParamValue);
 	}
 	
@@ -782,6 +795,9 @@ A parameter value can be set:
 */	
 EXPORT_C TInt RSqlStatement::BindInt64(TInt aParamIndex, TInt64 aParamValue)
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aParamIndex));
+	
 	return Impl().BindInt64(aParamIndex, aParamValue);
 	}
 	
@@ -810,6 +826,9 @@ A parameter value can be set:
 */	
 EXPORT_C TInt RSqlStatement::BindReal(TInt aParamIndex, TReal aParamValue)
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aParamIndex));
+
 	return Impl().BindReal(aParamIndex, aParamValue);
 	}
 	
@@ -853,6 +872,10 @@ can then be written using the above classes.
 */	
 EXPORT_C TInt RSqlStatement::BindText(TInt aParamIndex, const TDesC& aParamText)
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntSizeParam, 
+			aParamIndex, aParamText.Length()));
+	
 	return Impl().BindText(aParamIndex, aParamText);
 	}
 	
@@ -894,6 +917,10 @@ a placeholder for the binary data, whose content can then be written using the a
 */	
 EXPORT_C TInt RSqlStatement::BindBinary(TInt aParamIndex, const TDesC8& aParamData)
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntSizeParam, 
+			aParamIndex, aParamData.Length()));
+	
 	return Impl().BindBinary(aParamIndex, aParamData);
 	}
 	
@@ -942,6 +969,10 @@ before being written to.
 */	
 EXPORT_C TInt RSqlStatement::BindZeroBlob(TInt aParamIndex, TInt aBlobSize)
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntSizeParam, 
+			aParamIndex, aBlobSize));
+	
 	return Impl().BindZeroBlob(aParamIndex, aBlobSize);
 	}
 
@@ -974,6 +1005,9 @@ Calling this function after an unsuccessful call to Next() raises a panic.
 */	
 EXPORT_C TBool RSqlStatement::IsNull(TInt aColumnIndex) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	return Impl().ColumnType(aColumnIndex) == ESqlNull;
 	}
 
@@ -1001,6 +1035,9 @@ Calling this function after an unsuccessful call to Next() raises a panic.
 */	
 EXPORT_C TInt RSqlStatement::ColumnInt(TInt aColumnIndex) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	return Impl().ColumnInt(aColumnIndex);
 	}
 	
@@ -1028,6 +1065,9 @@ Calling this function after an unsuccessful call to Next() raises a panic.
 */	
 EXPORT_C TInt64 RSqlStatement::ColumnInt64(TInt aColumnIndex) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	return Impl().ColumnInt64(aColumnIndex);
 	}
 	
@@ -1055,6 +1095,9 @@ Calling this function after an unsuccessful call to Next() raises a panic.
 */	
 EXPORT_C TReal RSqlStatement::ColumnReal(TInt aColumnIndex) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	return Impl().ColumnReal(aColumnIndex);
 	}
 
@@ -1097,6 +1140,9 @@ of text data from a database.
 */
 EXPORT_C TPtrC RSqlStatement::ColumnTextL(TInt aColumnIndex) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	TPtrC res;
 	__SQLLEAVE_IF_ERROR(Impl().ColumnText(aColumnIndex, res));
 	return res;
@@ -1138,6 +1184,9 @@ of text data from a database.
 */	
 EXPORT_C TInt RSqlStatement::ColumnText(TInt aColumnIndex, TPtrC& aPtr) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	return Impl().ColumnText(aColumnIndex, aPtr);
 	}
 	
@@ -1179,6 +1228,9 @@ of text data from a database.
 */	
 EXPORT_C TInt RSqlStatement::ColumnText(TInt aColumnIndex, TDes& aDest) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	return Impl().ColumnText(aColumnIndex, aDest);
 	}
 
@@ -1221,6 +1273,9 @@ of binary data from a database.
 */
 EXPORT_C TPtrC8 RSqlStatement::ColumnBinaryL(TInt aColumnIndex) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
 	TPtrC8 res;
 	__SQLLEAVE_IF_ERROR(Impl().ColumnBinary(aColumnIndex, res));
 	return res;
@@ -1262,6 +1317,9 @@ of binary data from a database.
 */	
 EXPORT_C TInt RSqlStatement::ColumnBinary(TInt aColumnIndex, TPtrC8& aPtr) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+
    	return Impl().ColumnBinary(aColumnIndex, aPtr);
 	}
 	
@@ -1303,6 +1361,9 @@ of binary data from a database.
 */	
 EXPORT_C TInt RSqlStatement::ColumnBinary(TInt aColumnIndex, TDes8& aDest) const
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+	
    	return Impl().ColumnBinary(aColumnIndex, aDest);
 	}
 
@@ -1316,6 +1377,9 @@ Obtain the name of a column after preparing a query.
 */
 EXPORT_C TInt RSqlStatement::ColumnName(TInt aColumnIndex, TPtrC& aNameDest)
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aColumnIndex));
+	
 	return Impl().ColumnName(aColumnIndex, aNameDest);
 	}
 
@@ -1334,6 +1398,9 @@ This function can be called at any time after the DML SQL statement has been pre
 */
 EXPORT_C TInt RSqlStatement::ParameterName(TInt aParameterIndex, TPtrC& aNameDest)
 	{
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KIntParam, 1, aParameterIndex));
+	
 	return Impl().ParameterName(aParameterIndex, aNameDest);
 	}
 
@@ -1373,6 +1440,6 @@ Returns a reference to the implementation object of RSqlStatement - CSqlStatemen
 */
 CSqlStatementImpl& RSqlStatement::Impl() const
 	{
-	__ASSERT_ALWAYS(iImpl != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT_ALWAYS(iImpl != NULL, ESqlPanicInvalidObj);
 	return *iImpl;	
 	}

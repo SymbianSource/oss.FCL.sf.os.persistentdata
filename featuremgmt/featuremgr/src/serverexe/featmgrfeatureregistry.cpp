@@ -163,11 +163,6 @@ TInt CFeatMgrFeatureRegistry::IsFeatureSupported( TFeatureServerEntry& aFeature 
         }
     else
         {
-        TBitFlags32 flags = iFeatureList[index].FeatureFlags();
-        flags.Assign( EFeatureSupported, KFeatureUnsupported );
-        TUint32 data = iFeatureList[index].FeatureData();
-        TFeatureServerEntry entry( aFeature.FeatureUid(), flags, data );
-        aFeature = entry;
         err = KFeatureUnsupported;
         }
 
@@ -281,19 +276,8 @@ TInt CFeatMgrFeatureRegistry::SetFeature( TUid aFeature, TInt aEnable, const TUi
             {
             data = *aData;
             }
-
-        TFeatureServerEntry entry( aFeature, flags, data );
-
-        // If aData is not null, we want to change the user data too
-        //  otherwise only change the feature status.
-        if( aData )
-            {
-            err = SWICacheCommand(ESWISetFeatAndData, entry);
-            }
-        else
-            {
-            err = SWICacheCommand(ESWISetFeat, entry);
-            }
+        TFeatureServerEntry entry( aFeature, flags, data );    
+        err = SWICacheCommand(ESWISetFeatAndData, entry);
     	}
     else 
     	{
@@ -1458,13 +1442,6 @@ void CFeatMgrFeatureRegistry::CommitSWIFeatChanges()
 							EFeatureSupportUntouch,&data);
 				}
 				break;
-            case ESWISetFeat:
-                {
-                SetFeature( iSWICachedOperations[i].iFeatEntry.FeatureUid(),
-                            iSWICachedOperations[i].iFeatEntry.FeatureFlags().Value(),
-                            NULL);
-                }
-                break;
 			default:
 				break;
 				};

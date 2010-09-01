@@ -23,7 +23,7 @@
 */
 #if (!defined __TESTSETOUTPUTPLUGINSETTINGS_STEP_H__)
 #define __TESTSETOUTPUTPLUGINSETTINGS_STEP_H__
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_uloggerclientsuitestepbase.h"
 
 class CTestSetOutputPluginSettingsStep : public CTestUloggerClientApiStepBase

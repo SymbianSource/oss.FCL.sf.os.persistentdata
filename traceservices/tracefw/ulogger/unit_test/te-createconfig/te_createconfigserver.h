@@ -16,7 +16,7 @@
 #ifndef TE_CREATECONFIG_SERVER_H
 #define TE_CREATECONFIG_SERVER_H
 
-#include <test/testexecuteserverbase.h>
+#include<testexecuteserverbase.h>
 
 /*
  * Derived class of the CTestServer

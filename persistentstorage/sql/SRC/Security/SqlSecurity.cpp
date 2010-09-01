@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,12 +14,8 @@
 //
 
 #include "SqlSecurityImpl.h"
-#include "SqlAssert.h"
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "SqlSecurityTraces.h"
-#endif
-#include "SqlTraceDef.h"
+#include "SqlPanic.h"
+#include "UTraceSql.h"
 
 const TInt32 KEndOfSPStream = -1;//If found in the stream, given as an argument to RSqlSecurityPolicy::InternalizeL(),
 							     //then there are no more policies in the stream.
@@ -50,9 +46,8 @@ Initializes RSqlSecurityPolicy instance.
 */
 EXPORT_C TInt RSqlSecurityPolicy::Create(const TSecurityPolicy& aDefaultPolicy)
 	{
-	SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSECURITYPOLICY_CREATE_ENTRY , "Entry;0x%X;RSqlSecurityPolicy::Create;aDefaultPolicy=0x%X", (TUint)this, (TUint)&aDefaultPolicy));
+	SQLUTRACE_PROFILER(this);
 	TRAPD(err, CreateL(aDefaultPolicy));
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLSECURITYPOLICY_CREATE_EXIT, "Exit;0x%X;RSqlSecurityPolicy::Create;iImpl=0x%X;err=%d", (TUint)this, (TUint)iImpl, err));
 	return err;
 	}
 
@@ -71,9 +66,8 @@ Initializes RSqlSecurityPolicy instance.
 */
 EXPORT_C void RSqlSecurityPolicy::CreateL(const TSecurityPolicy& aDefaultPolicy)
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSECURITYPOLICY_CREATEL_ENTRY , "Entry;0x%X;RSqlSecurityPolicy::CreateL;aDefaultPolicy=0x%X", (TUint)this, (TUint)&aDefaultPolicy));
+	SQLUTRACE_PROFILER(this);
 	iImpl = CSqlSecurityPolicy::NewL(aDefaultPolicy);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSECURITYPOLICY_CREATEL_EXIT, "Exit;0x%X;RSqlSecurityPolicy::CreateL;iImpl=0x%X", (TUint)this, (TUint)iImpl));
 	}
 
 /**
@@ -83,9 +77,8 @@ Frees the allocated by RSqlSecurityPolicy instance memory and other resources.
 */
 EXPORT_C void RSqlSecurityPolicy::Close()
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLSECURITYPOLICY_CLOSE_ENTRY , "Entry;0x%X;RSqlSecurityPolicy::Close", (TUint)this));
+	SQLUTRACE_PROFILER(this);
 	delete iImpl;
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLSECURITYPOLICY_CLOSE_EXIT, "Exit;0x%X;RSqlSecurityPolicy::Close;iImpl=0x%X", (TUint)this, (TUint)iImpl));
 	iImpl = NULL;
 	}
 
@@ -110,7 +103,8 @@ If the aPolicyType database security policy has already been set then it will be
 */
 EXPORT_C TInt RSqlSecurityPolicy::SetDbPolicy(TPolicyType aPolicyType, const TSecurityPolicy& aPolicy)
 	{
-	__ASSERT_ALWAYS(aPolicyType >= ESchemaPolicy && aPolicyType <= EWritePolicy, __SQLPANIC(ESqlPanicBadArgument));
+	SQLUTRACE_PROFILER(this);
+	__SQLASSERT_ALWAYS(aPolicyType >= ESchemaPolicy && aPolicyType <= EWritePolicy, ESqlPanicBadArgument);
 	Impl().SetDbPolicy(aPolicyType, aPolicy);
 	return KErrNone;
 	}
@@ -146,9 +140,10 @@ reinitialized with the data of aPolicy parameter.
 EXPORT_C TInt RSqlSecurityPolicy::SetPolicy(TObjectType aObjectType, const TDesC& aObjectName, 
 									  TPolicyType aPolicyType, const TSecurityPolicy& aPolicy)
 	{
-	__ASSERT_ALWAYS(aObjectType == ETable, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_ALWAYS(aObjectName.Length() > 0, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_ALWAYS(aPolicyType >= EReadPolicy && aPolicyType <= EWritePolicy, __SQLPANIC(ESqlPanicBadArgument));
+	SQLUTRACE_PROFILER(this);
+	__SQLASSERT_ALWAYS(aObjectType == ETable, ESqlPanicBadArgument);
+	__SQLASSERT_ALWAYS(aObjectName.Length() > 0, ESqlPanicBadArgument);
+	__SQLASSERT_ALWAYS(aPolicyType >= EReadPolicy && aPolicyType <= EWritePolicy, ESqlPanicBadArgument);
 	return Impl().SetPolicy(aObjectType, aObjectName, aPolicyType, aPolicy);
 	}
 
@@ -163,6 +158,7 @@ Gets the default database security policy.
 */	
 EXPORT_C TSecurityPolicy RSqlSecurityPolicy::DefaultPolicy() const
 	{
+	SQLUTRACE_PROFILER(this);
 	return Impl().DefaultPolicy();
 	}
 
@@ -183,7 +179,8 @@ Gets a database security policy of the specified type.
 */	
 EXPORT_C TSecurityPolicy RSqlSecurityPolicy::DbPolicy(TPolicyType aPolicyType) const
 	{
-	__ASSERT_ALWAYS(aPolicyType >= ESchemaPolicy && aPolicyType <= EWritePolicy, __SQLPANIC(ESqlPanicBadArgument));
+	SQLUTRACE_PROFILER(this);
+	__SQLASSERT_ALWAYS(aPolicyType >= ESchemaPolicy && aPolicyType <= EWritePolicy, ESqlPanicBadArgument);
 	return Impl().DbPolicy(aPolicyType);
 	}
 	
@@ -212,9 +209,10 @@ will be returned.
 EXPORT_C TSecurityPolicy RSqlSecurityPolicy::Policy(TObjectType aObjectType, const TDesC& aObjectName, 
 												 TPolicyType aPolicyType) const
 	{
-	__ASSERT_ALWAYS(aObjectType == ETable, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_ALWAYS(aObjectName.Length() > 0, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_ALWAYS(aPolicyType >= EReadPolicy && aPolicyType <= EWritePolicy, __SQLPANIC(ESqlPanicBadArgument));
+	SQLUTRACE_PROFILER(this);
+	__SQLASSERT_ALWAYS(aObjectType == ETable, ESqlPanicBadArgument);
+	__SQLASSERT_ALWAYS(aObjectName.Length() > 0, ESqlPanicBadArgument);
+	__SQLASSERT_ALWAYS(aPolicyType >= EReadPolicy && aPolicyType <= EWritePolicy, ESqlPanicBadArgument);
 	return Impl().Policy(aObjectType, aObjectName, aPolicyType);
 	}
 
@@ -229,7 +227,7 @@ Externalizes RSqlSecurityPolicy instance to a write stream.
 */
 EXPORT_C void RSqlSecurityPolicy::ExternalizeL(RWriteStream& aStream) const
 	{
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLSECURITYPOLICY_EXTERNALIZEL_ENTRY , "Entry;0x%X;RSqlSecurityPolicy::ExternalizeL;aStream=0x%X;aStream.Sink()=0x%X", (TUint)this, (TUint)&aStream, (TUint)aStream.Sink()));
+	SQLUTRACE_PROFILER(this);
 	RSqlSecurityPolicy::TObjectType objectType;
 	TPtrC objectName;
 	RSqlSecurityPolicy::TPolicyType policyType;
@@ -255,7 +253,6 @@ EXPORT_C void RSqlSecurityPolicy::ExternalizeL(RWriteStream& aStream) const
 		}
 	//Object policy stream - end
 	aStream << KEndOfSPStream;
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLSECURITYPOLICY_EXTERNALIZEL_EXIT, "Exit;0x%X;RSqlSecurityPolicy::ExternalizeL", (TUint)this));
 	}
 	
 /**
@@ -271,7 +268,7 @@ In case of an error the original security policy data is preserved.
 */
 EXPORT_C void RSqlSecurityPolicy::InternalizeL(RReadStream& aStream)
 	{
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLSECURITYPOLICY_INTERNALIZEL_ENTRY , "Entry;0x%X;RSqlSecurityPolicy::InternalizeL;aStream=0x%X;aStream.Source()=0x%X", (TUint)this, (TUint)&aStream, (TUint)aStream.Source()));
+	SQLUTRACE_PROFILER(this);
 	TSecurityPolicy policy;
 	TBuf8<sizeof(TSecurityPolicy)> policyBuf;
 	//Default policy
@@ -314,7 +311,6 @@ EXPORT_C void RSqlSecurityPolicy::InternalizeL(RReadStream& aStream)
 	iImpl = temp;
 	//Destroy the old policy (which was swapped)
 	CleanupStack::PopAndDestroy(&newPolicy);
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLSECURITYPOLICY_INTERNALIZEL_EXIT, "Exit;0x%X;RSqlSecurityPolicy::InternalizeL", (TUint)this));
 	}
 
 /**
@@ -337,6 +333,6 @@ void RSqlSecurityPolicy::Set(CSqlSecurityPolicy& aImpl)
 */
 CSqlSecurityPolicy& RSqlSecurityPolicy::Impl() const
 	{
-	__ASSERT_ALWAYS(iImpl != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT_ALWAYS(iImpl != NULL, ESqlPanicInvalidObj);
 	return *iImpl;	
 	}

@@ -18,6 +18,7 @@
 
 #include <sqldb.h>			//RSqlDatabase::TIsolationLevel
 #include "SqlUtil.h"		//TSqlSrvFunction
+#include "UTraceSql.h"
 
 //Forward declarations
 struct sqlite3;

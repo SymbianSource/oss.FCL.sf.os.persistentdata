@@ -15,24 +15,24 @@
 // 
 //
 
+/**
+ @file 
+*/
+
 TARGET		uloggersysconfig.dll
 TARGETTYPE	DLL
 UID			0x1000008d 0x10273889
 VENDORID    0x70000001
 CAPABILITY  CommDD LocalServices NetworkControl NetworkServices ProtServ
 
-OS_LAYER_SYSTEMINCLUDE
-
-USERINCLUDE ../inc
-
 SOURCEPATH	../src/sysconfig
 SOURCE		uloggersysconfig.cpp
-SOURCE		sysconfigimpl.cpp 
-SOURCE      configfilemanager.cpp
+SOURCE		sysconfigimpl.cpp configfilemanager.cpp
 
-LIBRARY		euser.lib 
-LIBRARY     efsrv.lib 
-LIBRARY     bsulinifile.lib 
-LIBRARY     hal.lib
+
+USERINCLUDE	../inc
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+LIBRARY		euser.lib efsrv.lib bsulinifile.lib hal.lib
 
 DEFFILE		ULOGGERSYSCONFIG.DEF

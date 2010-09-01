@@ -26,7 +26,7 @@ CClearConfig::CClearConfig()
 	/*Constructor*/
 }
 
-void CClearConfig::ClearL(RULogger& aLoggerSession)
+void CClearConfig::Clear(RULogger& aLoggerSession)
 {	
 	aLoggerSession.Stop();
 	aLoggerSession.DeActivateInputPlugin();
@@ -58,9 +58,9 @@ void CClearConfig::ClearL(RULogger& aLoggerSession)
 }
 
 //NB: currently this method does not set the default values for serial and usb! hanging the server
-void  CClearConfig::DefaultL(RULogger& aLoggerSession)
+void  CClearConfig::Default(RULogger& aLoggerSession)
 	{
-		ClearL(aLoggerSession);
+		Clear(aLoggerSession);
 		//Now set default configurations shipped with ulogger
 		
 		CArrayFixFlat<TUint8>* array = new(ELeave) CArrayFixFlat<TUint8>(4);

@@ -151,7 +151,7 @@ public:
 private:
 	void Invariant() const;
     TInt DoPreInit();
-    void DoPostInit(TInt aInitErr);
+    TInt DoPostInit(TInt aInitErr);
 	void DoDiscard();
 	TInt DoFileSize();
 	TInt DoSetFileSize(TInt64 aFileSize);

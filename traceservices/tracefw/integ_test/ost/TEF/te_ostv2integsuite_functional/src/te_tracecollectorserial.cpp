@@ -91,7 +91,7 @@ TBool CTCMSerialPluginWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
                    }
                 }
 			CClearConfig configIni;
-			configIni.ClearL(logger);
+			configIni.Clear(logger);
 			CArrayFixFlat<TUint8> *setprimfilter = new (ELeave)CArrayFixFlat<TUint8>(1);
 			setprimfilter->AppendL(KGroupId);
 			RArray<TUint32> setsecondfilter;

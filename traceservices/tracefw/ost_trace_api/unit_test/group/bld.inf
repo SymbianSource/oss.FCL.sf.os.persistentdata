@@ -12,6 +12,10 @@
 //
 // Description:
 //
+/**
+ @file bld.inf
+ @internalTechnology
+*/
 
 #include "../lauterbach_perf_tester/group/bld.inf"
 #include "../devicedriver/group/bld.inf"

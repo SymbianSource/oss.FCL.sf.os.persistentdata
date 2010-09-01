@@ -32,7 +32,7 @@
 #include "te_perfstackinfo.h"
 #include "te_dataparameters.h"
 #include "sanity/te_perfsanityhelpers.h"
-#include "te_ctor.h"
+
 
 
 
@@ -684,26 +684,6 @@ TInt TUptTraceCalls::DoSendTraceL(const TApiRunConfig& aApiRunConfig, TApiRunRes
         
         __MARK_INITIAL_STACK(aApiRunConfig.iDoStack, stackbase, before);
         OstTraceFunctionEntryExt( TEST_OSTTraceFunctionalityExt, KData1 );
-        logged = ETrue;
-        __RETURN_STACK_SIZE(aApiRunConfig.iDoStack, stackbase, before,  aApiRunResults.iApiStackUsage); 
-
-        }
-    break;
-    
-    case EOstTraceFunctionEntryExtCtorInitList:
-        {        
-        __MARK_INITIAL_STACK(aApiRunConfig.iDoStack, stackbase, before);
-        TTestCtor       testCtorA( 1, 2 );
-        logged = ETrue;
-        __RETURN_STACK_SIZE(aApiRunConfig.iDoStack, stackbase, before,  aApiRunResults.iApiStackUsage); 
-
-        }
-    break;
-    
-    case EOstTraceFunctionEntryExtCtorNoInitList:
-        {        
-        __MARK_INITIAL_STACK(aApiRunConfig.iDoStack, stackbase, before);
-        TTestCtor       testCtorB( 3 );
         logged = ETrue;
         __RETURN_STACK_SIZE(aApiRunConfig.iDoStack, stackbase, before,  aApiRunResults.iApiStackUsage); 
 

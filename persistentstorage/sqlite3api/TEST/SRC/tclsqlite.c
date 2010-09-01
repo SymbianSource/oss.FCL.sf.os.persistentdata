@@ -273,7 +273,7 @@ static int incrblobSeek(
       p->iSeek = sqlite3_blob_bytes(p->pBlob) + offset;
       break;
 
-    default: assert(0); /* Bad seekMode */ 
+    default: assert(!"Bad seekMode");
   }
 
   return p->iSeek;

@@ -25,14 +25,10 @@
 #include "SqlCompact.h"
 #include "SqlCompactConn.h"
 #include "SqlSrvResourceProfiler.h"
+#include "UTraceSql.h"
 #ifdef _DEBUG
 #include <stdio.h>
 #endif
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "SqlSrvMainTraces.h"
-#endif
-#include "SqlTraceDef.h"
 
 #ifndef SQLSRV_STARTUP_TEST
 static  
@@ -70,7 +66,7 @@ enum TSharedCacheState
 //aRight argument is NULL.
 static TInt Compare(const TSqlSecurityPair& aLeft, const TSqlSecurityPair& aRight)
 	{
-	__ASSERT_DEBUG(aLeft.iKey != NULL && aRight.iKey != NULL, __SQLPANIC2(ESqlPanicInternalError));
+	__SQLASSERT(aLeft.iKey != NULL && aRight.iKey != NULL, ESqlPanicInternalError);
 	return ::CompareNoCase8(TPtrC8(aLeft.iKey), TPtrC8(aRight.iKey));
 	}
 	
@@ -85,7 +81,7 @@ Returns a reference to the sql server instance.
 */
 CSqlServer& SqlServer(void)
 	{
-	__ASSERT_ALWAYS(TheServer != NULL, __SQLPANIC2(ESqlPanicInvalidObj));		
+	__SQLASSERT_ALWAYS(TheServer != NULL, ESqlPanicInvalidObj);		
 	return *TheServer;
 	}
 	
@@ -99,11 +95,9 @@ The created instance will be pushed in the cleanup stack.
 */
 CSqlServer* CSqlServer::NewLC()
 	{
-	SQL_TRACE_INTERNALS(OstTrace0(TRACE_INTERNALS, CSQLSERVER_NEWLC_ENTRY, "Entry;0;CSqlServer::NewLC"));
 	CSqlServer* self = new (ELeave) CSqlServer;
 	CleanupStack::PushL(self);
 	self->ConstructL();
-	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSERVER_NEWLC_EXIT, "Exit;0x%X;CSqlServer::NewLC", (TUint)self));
 	return self;
 	}
 	
@@ -112,7 +106,6 @@ Frees owned by CSqlServer memory and other resources.
 */
 CSqlServer::~CSqlServer()
 	{
-	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSERVER_CSQLSERVER2_ENTRY, "Entry;0x%x;CSqlServer::~CSqlServer", (TUint)this));
 	delete iCompactor;
 	delete iBackupClient;
 	iDriveSpaceCol.ResetAndDestroy();
@@ -124,7 +117,8 @@ CSqlServer::~CSqlServer()
 	delete iDbConfigFiles;
 	sqlite3SymbianLibFinalize();
 	TheServer = NULL;
-	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSERVER_CSQLSERVER2_EXIT, "Exit;0x%x;CSqlServer::~CSqlServer", (TUint)this));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KSqlSrvClose));
+    SQLPROFILER_SERVER_STOP();
 	}
 
 /**
@@ -134,7 +128,7 @@ CSqlServer::~CSqlServer()
 */
 RSqlBufFlat& CSqlServer::GetFlatBufL(TInt aMinLen)
 	{
-	__ASSERT_DEBUG(aMinLen >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aMinLen >= 0, ESqlPanicBadArgument);
 	__SQLLEAVE_IF_ERROR(iFlatBuf.ReAlloc(aMinLen));
 	SQLPROFILER_REPORT_ALLOC(iFlatBuf.MaxSize());
 	return iFlatBuf;
@@ -150,10 +144,10 @@ Note that the function may reallocate the buffer if the buffer length is smaller
 */
 TDes8& CSqlServer::GetBuf8L(TInt aMinLen)
 	{
-	__ASSERT_DEBUG(aMinLen >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aMinLen >= 0, ESqlPanicBadArgument);
 #ifdef _DEBUG
-	TInt maxBufLen = iBufPtr8.MaxLength();
-	maxBufLen = maxBufLen;
+TInt maxBufLen = iBufPtr8.MaxLength();
+maxBufLen = maxBufLen;
 #endif
 	if(iBufPtr8.MaxLength() < aMinLen)
 		{
@@ -173,10 +167,10 @@ Note that the function may reallocate the buffer if the buffer length is smaller
 */
 TDes16& CSqlServer::GetBuf16L(TInt aMinLen)
 	{
-	__ASSERT_DEBUG(aMinLen >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aMinLen >= 0, ESqlPanicBadArgument);
 #ifdef _DEBUG
-	TInt maxBufLen = iBufPtr16.MaxLength();
-	maxBufLen = maxBufLen;
+TInt maxBufLen = iBufPtr16.MaxLength();
+maxBufLen = maxBufLen;
 #endif
 	if(iBufPtr16.MaxLength() < aMinLen)
 		{
@@ -202,7 +196,7 @@ void CSqlServer::MinimizeBuffers()
 	if(iBufPtr8.MaxSize() > KBufLimit)
 		{
 		(void)ReAllocBuf(KBufLimit);
-		__ASSERT_DEBUG(oldBuf == iBuf, __SQLPANIC(ESqlPanicInternalError));
+		__SQLASSERT(oldBuf == iBuf, ESqlPanicInternalError);
 		}
 	}
 
@@ -217,7 +211,7 @@ Sets iBufPtr8 and iBufPtr16 to point to iBuf.
 */
 TInt CSqlServer::ReAllocBuf(TInt aNewBufSize)
 	{
-	__ASSERT_DEBUG(aNewBufSize >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aNewBufSize >= 0, ESqlPanicBadArgument);
 #ifdef _DEBUG	
 	const TInt KMinBufSize = 8;
 #else
@@ -307,8 +301,7 @@ void CSqlServer::ConstructL()
 #endif	
     SQLPROFILER_SERVER_START();
 	//Configure the SQLite library
-	TInt sqliteErr = sqlite3_config(SQLITE_CONFIG_LOOKASIDE, KSqliteLookAsideCellSize, KSqliteLookAsideCellCount);
-    __SQLLEAVE_IF_ERROR(::Sql2OsErrCode(sqliteErr, KErrArgument));
+	__SQLLEAVE_IF_ERROR(sqlite3_config(SQLITE_CONFIG_LOOKASIDE, KSqliteLookAsideCellSize, KSqliteLookAsideCellCount));
 	//Open SQLITE library - this must be the first call after StartL() (os_symbian.cpp, "TheAllocator" initialization rellated).
 	__SQLLEAVE_IF_ERROR(sqlite3SymbianLibInit());
 	//Create buffers
@@ -321,6 +314,7 @@ void CSqlServer::ConstructL()
 	RFs& fs = sqlite3SymbianFs();
 	TFileName serverPrivatePath;
 	__SQLLEAVE_IF_ERROR(fs.PrivatePath(serverPrivatePath));
+
 	DeleteTempFilesL(sysDrive, serverPrivatePath);
 	//Load config file parameter values (if config file exists) and initialize iFileData.
 	TParse parse;
@@ -334,8 +328,8 @@ void CSqlServer::ConstructL()
 	const TSqlSrvConfigParams& configParams = iFileData.ConfigParams();
 	if(configParams.iSoftHeapLimitKb > 0)
 		{
-		__ASSERT_DEBUG(configParams.iSoftHeapLimitKb >= TSqlSrvConfigParams::KMinSoftHeapLimitKb &&
-		            configParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb, __SQLPANIC(ESqlPanicInternalError));
+		__SQLASSERT(configParams.iSoftHeapLimitKb >= TSqlSrvConfigParams::KMinSoftHeapLimitKb &&
+		            configParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb, ESqlPanicInternalError);
 		sqlite3_soft_heap_limit(configParams.iSoftHeapLimitKb * 1024);
 		}
 	//Enable shared cache
@@ -366,7 +360,7 @@ void CSqlServer::ConstructL()
     const TInt KGreatSize = 1024; 
  	__SQLLEAVE_IF_ERROR(ReAllocBuf(KGreatSize));
     #endif //SQLSRV_STARTUP_TEST 	
-#endif //_DEBUG 	
+#endif //_DEBUG 
 	}
 
 /**
@@ -421,7 +415,6 @@ void CSqlServer::GetCollationDllNameL()
 		fileName.Set(fname, NULL, NULL);
 		iCollationDllName = fileName.NameAndExt();
 		}
-	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLSERVER_GETCOLLATIONDLLNAMEL, "0x%x;CSqlServer::GetCollationDllNameL;iCollationDllName=%S;err=%d", (TUint)this, __SQLPRNSTR(iCollationDllName), err));
 	}
 /**
 Finds and caches the name of each database configuration file 
@@ -445,7 +438,7 @@ void CSqlServer::CacheDbConfigFileNamesL(RFs& aFs, const TDesC& aServerPrivatePa
 		}
 	else
 		{
-		SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSERVER_CACHEDDBCONFIGFILENAMESL, "0x%X;CSqlServer::CacheDbConfigFileNamesL;GetDir() failed with error code %d", (TUint)this, err));	
+		__SQLLOG_ERR(_L("SQLLOG: CSqlServer::CacheDbConfigFileNamesL() - GetDir() failed with error code %d"), err);	
 		}
 	CleanupStack::PopAndDestroy(); // entryList	
 	}
@@ -501,7 +494,6 @@ Database files on ROM drive(s) won't be put in aFileList.
 */
 void CSqlServer::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
 	{
-	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL_ENTRY, "Entry;0x%x;CSqlServer::GetBackUpListL;aUid=0x%X", (TUint)this, (TUint)aUid.iId));
 	aFileList.Reset();
 	TFindFile findFile(iFileData.Fs());
 	CDir* fileNameCol = NULL;
@@ -515,14 +507,14 @@ void CSqlServer::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
 		//The first set of files, which name is matching "[aUid]*" pattern, is ready.
 		do
 			{
-			__ASSERT_DEBUG(fileNameCol != NULL, __SQLPANIC(ESqlPanicInternalError));
+			__SQLASSERT(fileNameCol != NULL, ESqlPanicInternalError);
 			CleanupStack::PushL(fileNameCol);
 			const TDesC& file = findFile.File();//"file" variable contains the drive and the path. the file name in "file" is invalid in this case.
 			//Check that the drive, where the database files are, is not ROM drive
 			TParse parse;
 			(void)parse.Set(file, NULL, NULL);//this call can't file, the file name comes from findFile call.
 			TPtrC driveName = parse.Drive();
-			__ASSERT_DEBUG(driveName.Length() > 0, __SQLPANIC(ESqlPanicInternalError));
+			__SQLASSERT(driveName.Length() > 0, ESqlPanicInternalError);
 			TInt driveNumber = -1;
 			__SQLLEAVE_IF_ERROR(RFs::CharToDrive(driveName[0], driveNumber));
 			TDriveInfo driveInfo;
@@ -538,8 +530,6 @@ void CSqlServer::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
 					if(!entry.IsDir())
 						{
 						(void)parse.Set(entry.iName, &file, NULL);//"parse" variable now contains the full file path
-						__SQLTRACE_INTERNALSVAR(TPtrC fname = parse.FullName());
-						SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL, "0x%x;CSqlServer::GetBackUpListL;fname=%S", (TUint)this, __SQLPRNSTR(fname)));
 						__SQLLEAVE_IF_ERROR(aFileList.Append(parse));
 						}
 					}
@@ -548,12 +538,11 @@ void CSqlServer::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
 			fileNameCol = NULL;
 			} while((err = findFile.FindWild(fileNameCol)) == KErrNone);//Get the next set of files
 		}//end of "if(err == KErrNone)"
-	__ASSERT_DEBUG(!fileNameCol, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(!fileNameCol, ESqlPanicInternalError);
 	if(err != KErrNotFound && err != KErrNone)
 		{
 		__SQLLEAVE(err);
 		}
-	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL_EXIT, "Exit;0x%x;CSqlServer::GetBackUpListL;file count=%d;err=%d", (TUint)this, aFileList.Count(), err));
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -572,6 +561,7 @@ static void RunServerL()
 	CActiveScheduler* scheduler = new (ELeave) CActiveScheduler;
 	CleanupStack::PushL(scheduler);
 	CActiveScheduler::Install(scheduler);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KSqlSrvStart));
 	TheServer = CSqlServer::NewLC();
 	RProcess::Rendezvous(KErrNone);
 	CActiveScheduler::Start();

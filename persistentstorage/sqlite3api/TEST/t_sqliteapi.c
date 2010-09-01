@@ -942,8 +942,6 @@ static void* ThreadFunc(void* pname)
 			}
 		}
 	
-	srand((unsigned)&ThreadFunc);
-	
 	PrintS("Thread \"%s\" - begin\r\n", (char*)pname);
 	err = sqlite3_open(TheTestDbName, &db);
 	TEST2(err, SQLITE_OK);
@@ -951,10 +949,6 @@ static void* ThreadFunc(void* pname)
 	
 	while(records < KRecordsCount)
 		{
-        if((records % 10) == 0)
-            {
-            PrintSI("Thread \"%s\", %d records.\r\n", (char*)pname, records);
-            }
 		err = sqlite3_exec(db, "BEGIN", 0, 0, &errmsg);
 		if(err == SQLITE_OK)
 			{
@@ -972,7 +966,7 @@ static void* ThreadFunc(void* pname)
 		if(err == SQLITE_OK)
 			{
 			TheInsertRecCnt[threadIdx]	+= KCommitRecordsCount;
-			records += KCommitRecordsCount;
+			records += 2;
 			}
 		else if(err == SQLITE_BUSY)
 			{
@@ -980,15 +974,11 @@ static void* ThreadFunc(void* pname)
 			(void)sqlite3_exec(db, "ROLLBACK", 0, 0, 0);
 			if(errmsg)
 				{
-                char fmt[100];
-                strcpy(fmt, "Thread \"");
-                strcat(fmt, (char*)pname);
-                strcat(fmt, "\". Err msg: %s. Err: %d.\r\n");
-				PrintSI(fmt, errmsg, err);
+				PrintSI("Err msg: %s. Err: %d.\r\n", errmsg, err);
 				sqlite3_free(errmsg);
 				errmsg = 0;
 				}
-			usleep((rand() % 3000) + 500);
+			usleep(100);
 			}
 		}
 
@@ -1357,7 +1347,6 @@ int main(int argc, void** argv)
 	UNUSED_ARG(argc);
 	UNUSED_ARG(argv);
 
-	TestOpen("t_sqliteapi test");
 	TestTitle();
 
 	TestHeapMark();

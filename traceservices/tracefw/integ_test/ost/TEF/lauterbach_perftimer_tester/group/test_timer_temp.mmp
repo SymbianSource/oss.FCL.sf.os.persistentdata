@@ -15,22 +15,27 @@
 // This is the project specification file for test_timer_temp.
 //
 
+
+
 TARGET		  test_timer_temp.exe
 TARGETTYPE	  exe
 UID			 0 0xE48A1B8A
 
-OS_LAYER_SYSTEMINCLUDE
+USERINCLUDE	 ..\inc
+SYSTEMINCLUDE   \epoc32\include
+SYSTEMINCLUDE   \epoc32\include\platform
 
-USERINCLUDE	 ../inc
-USERINCLUDE  ../../../performance
-
-SOURCEPATH	  ../src
+SOURCEPATH	  ..\src
 SOURCE		  test_timer_temp.cpp
 
 SOURCEPATH    ../../../performance
 SOURCE te_upttimer.cpp
 
-LIBRARY		euser.lib
+USERINCLUDE   ../../../performance
+
+LIBRARY		 euser.lib
 LIBRARY 	hal.lib
 
 SMPSAFE
+
+

@@ -22,8 +22,7 @@
 #ifndef __ULOGGERSERIALPLUGINTEST_H__
 #define __ULOGGERSERIALPLUGINTEST_H__
 
-#include <test/tefunit.h>
-
+#include <tefunit.h>
 #include "uloggerserialplugin.h"
 #include "te_serialsuitestepbase.h"
 	
@@ -39,9 +38,9 @@ public:
 private:
 	// Tests
 	void TestNewL();
-	void TestUnlockResourcesL(); 
-	void TestSettingsL();
-	void TestWriteL(); 
+	void TestUnlockResources(); 
+	void TestSettings();
+	void TestWrite(); 
 	RFs iFileServer;
 	};
 

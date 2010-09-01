@@ -26,7 +26,6 @@ static TInt TheAllocatedCellsCount = 0;
 static const TInt KBurstRate = 20;
 #endif
 
-void DestroyTestEnv();
 ///////////////////////////////////////////////////////////////////////////////////////
 
 static RTest TheTest(_L("t_fmgrstartup"));
@@ -37,6 +36,24 @@ _LIT( KFeaturesFile, "C:\\Private\\102836E5\\features.dat" );
 _LIT( KFeaturesDir, "C:\\Private\\102836E5\\" );
 #endif
 
+///////////////////////////////////////////////////////////////////////////////////////
+
+//Deletes all created test files.
+void DestroyTestEnv()
+    {
+    //KFeaturesDir is defined only if EXTENDED_FEATURE_MANAGER_TEST is defined     
+#ifdef EXTENDED_FEATURE_MANAGER_TEST
+    RFs fs;
+    TInt err = fs.Connect();
+    if(err == KErrNone)
+        {
+        (void)fs.Delete(KFeaturesFile);
+        }
+    fs.Close();
+#endif        
+    }
+
+///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 //Test macros and functions
 void Check1(TInt aValue, TInt aLine)
@@ -60,45 +77,6 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 #define TEST(arg) ::Check1((arg), __LINE__)
 #define TEST2(aValue, aExpected) ::Check2(aValue, aExpected, __LINE__)
 
-///////////////////////////////////////////////////////////////////////////////////////
-void CreateTestEnv()
-    {
-    //KFeaturesDir is defined only if EXTENDED_FEATURE_MANAGER_TEST is defined     
-#ifdef EXTENDED_FEATURE_MANAGER_TEST    
-    RFs fs;
-    TInt err = fs.Connect();
-    TEST2(err, KErrNone);
-    
-    err = fs.MkDir(KFeaturesDir);
-    TEST (err == KErrNone || err == KErrAlreadyExists);
-    
-    (void)fs.Delete(KFeaturesFile);
-    err = BaflUtils::CopyFile(fs, KZOrgFeaturesFile, KFeaturesDir);
-    TEST2 (err, KErrNone);
-    err = fs.SetAtt(KFeaturesFile, KEntryAttNormal, KEntryAttReadOnly);
-    TEST2 (err, KErrNone);
-    fs.Close();
-#endif
-    }
-
-//Deletes all created test files.
-void DestroyTestEnv()
-    {
-    //KFeaturesDir is defined only if EXTENDED_FEATURE_MANAGER_TEST is defined     
-#ifdef EXTENDED_FEATURE_MANAGER_TEST
-    RFs fs;
-    TInt err = fs.Connect();
-    if(err == KErrNone)
-        {
-        err = fs.Delete(KFeaturesFile);
-        if (err != KErrNone)
-            {
-            RDebug::Print(_L("Warning: Clean test enviroment failed with error %d"), err);
-            }
-        }
-    fs.Close();
-#endif        
-    }
 ///////////////////////////////////////////////////////////////////////////////////////
 
 static void MarkHandles()
@@ -215,6 +193,24 @@ void FeatMgrServerStartupFileIoTest()
     TheTest.Printf(_L("\r\n===File I/O error simulation test succeeded on iteration %d===\r\n"), cnt);
     }
 
+void CreateTestEnv()
+    {
+    //KFeaturesDir is defined only if EXTENDED_FEATURE_MANAGER_TEST is defined     
+#ifdef EXTENDED_FEATURE_MANAGER_TEST    
+    RFs fs;
+    TInt err = fs.Connect();
+    TEST2(err, KErrNone);
+    
+    err = fs.MkDir(KFeaturesDir);
+    TEST (err == KErrNone || err == KErrAlreadyExists);
+    
+    (void)fs.Delete(KFeaturesFile);
+    err = BaflUtils::CopyFile(fs, KZOrgFeaturesFile, KFeaturesDir);
+    TEST2 (err, KErrNone);
+    
+    fs.Close();
+#endif
+    }
 
 void DoTestsL()
     {

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -435,7 +435,16 @@ TVerdict CFeatmgrOomSWI::doTestStepPreambleL()
 			   _L("RProcess::Create expects KErrNone, returned value is = %d"),err);
 	if( err==KErrNone )
 		{
-	    iSWIProcess.Resume();	
+	    RApaLsSession ls;
+		CApaCommandLine* cmdLine;		
+		User::LeaveIfError(ls.Connect());
+		CleanupClosePushL(ls);
+		cmdLine = CApaCommandLine::NewLC();
+		cmdLine->SetExecutableNameL(KDummySWIPath);
+		cmdLine->SetProcessEnvironmentL(iSWIProcess);
+		iSWIProcess.Resume();	
+		CleanupStack::PopAndDestroy(2);
+		cmdLine = NULL;			
 		}
     
 	// Install the Active Scheduler. We need this for the SWIListener Active Object on the server to

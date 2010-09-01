@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,11 +15,11 @@
 //
 
 
+
 /**
  @file te_uloggerostv2integsuite_defs.h
  @internalTechnology
 */
-
 #if (!defined TE_ULOGGER_MCL_SUITEDEFS_H)
 #define TE_ULOGGER_MCL_SUITEDEFS_H
 
@@ -31,8 +31,8 @@ class CClearConfig : public CBase
 public:
 	~CClearConfig();
 	CClearConfig();
-	void ClearL(RULogger& loggerSession);
-	void DefaultL(RULogger& loggerSession);
+	void Clear(RULogger& loggerSession);
+	void Default(RULogger& loggerSession);
 //private:
 	
 };

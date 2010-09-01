@@ -65,8 +65,7 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->SetFilterL(*filter, active->iStatus));
@@ -87,25 +86,25 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    TheTest.Printf(_L("\r\nTest-1 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-1 has succeeded at iteration %d\n"), failCount);
 
 	list->AppendL(filter);
 	CleanupStack::Pop(); // filter
@@ -121,8 +120,7 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->SetFilterL(*list, active->iStatus));
@@ -143,20 +141,20 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
@@ -165,7 +163,7 @@ LOCAL_C void TestEventViewSetupWithFileFailL(CLogClient& aClient)
 	list->ResetAndDestroy();
 	CleanupStack::PopAndDestroy(4); // list, view, event, active
 
-    TheTest.Printf(_L("\r\nTest-2 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-2 has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -208,8 +206,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->SetRecentListL(KLogRecentIncomingCalls, active->iStatus));
@@ -228,25 +225,25 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    TheTest.Printf(_L("\r\nTest-1 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-1 has succeeded at iteration %d\n"), failCount);
 
 	CLogFilterList* list = new(ELeave)CLogFilterList;
 	CleanupStack::PushL(list);
@@ -260,8 +257,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->SetRecentListL(KLogRecentIncomingCalls, *filter, active->iStatus));
@@ -280,25 +276,25 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    TheTest.Printf(_L("\r\nTest-2 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-2 has succeeded at iteration %d\n"), failCount);
 
 	list->AppendL(filter);
 	CleanupStack::Pop(); // filter
@@ -314,8 +310,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->SetRecentListL(KLogRecentIncomingCalls, *list, active->iStatus));
@@ -334,20 +329,20 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
@@ -356,7 +351,7 @@ LOCAL_C void TestRecentViewSetupWithFileFailL(CLogClient& aClient)
 	list->ResetAndDestroy();
 	CleanupStack::PopAndDestroy(4); // list, view, event, active
 
-    TheTest.Printf(_L("\r\nTest-3 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-3 has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -414,8 +409,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->DuplicatesL(*duplicate, active->iStatus));
@@ -434,25 +428,25 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    TheTest.Printf(_L("\r\nTest-1 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-1 has succeeded at iteration %d\n"), failCount);
 
 	CLogFilterList* list = new(ELeave)CLogFilterList;
 	CleanupStack::PushL(list);
@@ -466,8 +460,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->DuplicatesL(*duplicate, *filter, active->iStatus));
@@ -486,25 +479,25 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    TheTest.Printf(_L("\r\nTest-2 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-2 has succeeded at iteration %d\n"), failCount);
 
 	list->AppendL(filter);
 	CleanupStack::Pop(); // filter
@@ -520,8 +513,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->DuplicatesL(*duplicate, *list, active->iStatus));
@@ -540,20 +532,20 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
@@ -562,7 +554,7 @@ LOCAL_C void TestDuplicateViewSetupWithFileFailL(CLogClient& aClient)
 	list->ResetAndDestroy();
 	CleanupStack::PopAndDestroy(5); // list, duplicate, view, event, active
 
-    TheTest.Printf(_L("\r\nTest-3 has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-3 has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -609,8 +601,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 		TEST(view->CountL() > 1);
 		event->CopyL(view->Event());
 
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->NextL(active->iStatus));
@@ -629,25 +620,25 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    TheTest.Printf(_L("\r\nTest-1 (\"View Next\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-1 (\"View Next\") has succeeded at iteration %d\n"), failCount);
 
 	failCount = 0;
 	finished = EFalse;
@@ -667,8 +658,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 
 		event->CopyL(view->Event());
 
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->PreviousL(active->iStatus));
@@ -687,25 +677,25 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    TheTest.Printf(_L("\r\nTest-2 (\"View Previous\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-2 (\"View Previous\") has succeeded at iteration %d\n"), failCount);
 
 	failCount = 0;
 	finished = EFalse;
@@ -725,8 +715,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 
 		event->CopyL(view->Event());
 
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->FirstL(active->iStatus));
@@ -745,25 +734,25 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
 		}
-    TheTest.Printf(_L("\r\nTest-3 (\"View First\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-3 (\"View First\") has succeeded at iteration %d\n"), failCount);
 
 	failCount = 0;
 	finished = EFalse;
@@ -783,8 +772,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 
 		event->CopyL(view->Event());
 
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TBool result = EFalse;
 		TRAP(error, result = view->LastL(active->iStatus));
@@ -803,20 +791,20 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 				}
 			else
 				{
-				if(active->iStatus.Int() != KErrNoMemory)
+				if(active->iStatus.Int() != KErrGeneral)
 					{
-					TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+					TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 					}
-				TEST2(active->iStatus.Int(), KErrNoMemory);
+				TEST2(active->iStatus.Int(), KErrGeneral);
 				}
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
@@ -824,7 +812,7 @@ LOCAL_C void TestNavigationWithFileFailL(CLogClient& aClient)
 
 	CleanupStack::PopAndDestroy(4); // filter, view, event, active
 
-    TheTest.Printf(_L("\r\nTest-4 (\"View Last\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("Test-4 (\"View Last\") has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -868,8 +856,7 @@ LOCAL_C void TestViewCountWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 
 		TInt result = 0;
 		TRAP(error, result = view->CountL());
@@ -881,11 +868,11 @@ LOCAL_C void TestViewCountWithFileFailL(CLogClient& aClient)
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 
 		__FILE_RESET;
@@ -893,7 +880,7 @@ LOCAL_C void TestViewCountWithFileFailL(CLogClient& aClient)
 
 	CleanupStack::PopAndDestroy(4); // filter, view, event, active
 
-    TheTest.Printf(_L("\r\nThe test (\"View Count\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("The test (\"View Count\") has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -956,9 +943,14 @@ LOCAL_C void TestRecentViewRemoveWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
-		
+		// This failCount value causes DBMS to return KErrCorrupt. Apparently this
+		// can't actually occur in real life, so we skip this value.
+		if (failCount == 9)
+		    {
+		    failCount++;
+		    }
+		__FILE_FAILNEXT(++failCount);
+
 		TRAP(error, view->RemoveL(view->Event().Id()));
 
 		__FILE_RESET;
@@ -972,7 +964,7 @@ LOCAL_C void TestRecentViewRemoveWithFileFailL(CLogClient& aClient)
 			CActiveScheduler::Start();
 			if(active->iStatus.Int() != KErrNone)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 				}
 			TEST2(active->iStatus.Int(), KErrNone);
 
@@ -980,24 +972,16 @@ LOCAL_C void TestRecentViewRemoveWithFileFailL(CLogClient& aClient)
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
-			}
-		// This failCount value causes DBMS to return KErrCorrupt. Apparently this
-		// can't actually occur in real life, so we skip this value.
-		if (failCount > 9)
-			{
-			finished = ETrue;
-			TRAP(error, view->RemoveL(view->Event().Id()));
-			TEST2(error, KErrNone);
+			TEST2(error, KErrGeneral);
 			}
 		}
 	CleanupStack::PopAndDestroy(3); // view, event, active
 	
-    TheTest.Printf(_L("\r\nThe test (\"View Remove\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("The test (\"View Remove\") has succeeded at iteration %d\n"), failCount);
 	}
 
 /**
@@ -1071,15 +1055,14 @@ LOCAL_C void TestDuplicateViewRemoveWithFileFailL(CLogClient& aClient)
 
 	while(!finished)
 		{
-		TheTest.Printf(_L("%d  \r"), failCount);
-		__FILE_FAILNEXT(KErrNoMemory, failCount++);
+		__FILE_FAILNEXT(++failCount);
 		
-		if(failCount == 17)
+		if(failCount == 7)
 			{
 			__FILE_RESET;
 			break;
 			}
-		
+
 		TRAP(error, duplicate->RemoveL(duplicate->Event().Id()));
 
 		__FILE_RESET;
@@ -1093,7 +1076,7 @@ LOCAL_C void TestDuplicateViewRemoveWithFileFailL(CLogClient& aClient)
 			CActiveScheduler::Start();
 			if(active->iStatus.Int() != KErrNone)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, active->iStatus.Int());
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, active->iStatus.Int());
 				}
 			TEST2(active->iStatus.Int(), KErrNone);
 
@@ -1101,16 +1084,16 @@ LOCAL_C void TestDuplicateViewRemoveWithFileFailL(CLogClient& aClient)
 			}
 		else
 			{
-			if(error != KErrNoMemory)
+			if(error != KErrGeneral)
 				{
-				TheTest.Printf(_L("\r\nIter.step: %d, error %d\n"), failCount, error);
+				TheTest.Printf(_L("Iter.step: %d, error %d\n"), failCount, error);
 				}
-			TEST2(error, KErrNoMemory);
+			TEST2(error, KErrGeneral);
 			}
 		}
 	CleanupStack::PopAndDestroy(4); // duplicate, view, event, active
     
-    TheTest.Printf(_L("\r\nThe test (\"View Remove Duplicates\") has succeeded at iteration %d\n"), failCount);
+    TheTest.Printf(_L("The test (\"View Remove Duplicates\") has succeeded at iteration %d\n"), failCount);
 	}
 
 void doTestsL()

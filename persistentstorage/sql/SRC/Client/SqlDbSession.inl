@@ -223,6 +223,8 @@ The method sends a message to the SQL server.
 */
 inline TInt RSqlDbSession::SendReceive(TInt aFunction)
 	{
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(TPtrC8 funcStr = GetIPCFuncStr(aFunction));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EBorder), KDbMsgStr, &funcStr));
 	return RSessionBase::SendReceive(aFunction);	
 	}
 
@@ -235,6 +237,8 @@ The method sends a message asynchronously to the SQL server.
 */
 inline void RSqlDbSession::SendReceive(TInt aFunction, TRequestStatus& aStatus)
 	{
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(TPtrC8 funcStr = GetIPCFuncStr(aFunction));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EBorder), KDbMsgStr, &funcStr));
 	RSessionBase::SendReceive(aFunction, aStatus);
 	}
 
@@ -248,6 +252,8 @@ The method sends a message with arguments to the SQL server.
 */
 inline TInt RSqlDbSession::SendReceive(TInt aFunction, const TIpcArgs& aArgs)
 	{
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(TPtrC8 funcStr = GetIPCFuncStr(aFunction));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EBorder), KDbMsgStr, &funcStr));
 	return RSessionBase::SendReceive(aFunction, aArgs);	
 	}
 	
@@ -260,5 +266,7 @@ The method sends asynchronously a message with arguments to the SQL server.
 */
 inline void RSqlDbSession::SendReceive(TInt aFunction,const TIpcArgs& aArgs, TRequestStatus& aStatus)
 	{
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(TPtrC8 funcStr = GetIPCFuncStr(aFunction));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EBorder), KDbMsgStr, &funcStr));
 	RSessionBase::SendReceive(aFunction, aArgs, aStatus);	
 	}

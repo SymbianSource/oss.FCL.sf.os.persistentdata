@@ -25,7 +25,7 @@
 #define CUTRACE_KERNPERF_STEP_H_
 
 
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_utracesuitestepbase.h"
 
 

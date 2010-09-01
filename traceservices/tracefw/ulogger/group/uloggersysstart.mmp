@@ -15,22 +15,22 @@
 // 
 //
 
+/**
+ @file
+*/
+
 target			uloggersysstart.exe
 targettype		exe
 uid				0x10273884 0x10273885
 CAPABILITY 	  	None
 
-OS_LAYER_SYSTEMINCLUDE
-
-USERINCLUDE     ../inc
-
 SOURCEPATH		../src/sysstarter
 SOURCE			uloggersysstarter.cpp
 
-LIBRARY			euser.lib 
-LIBRARY         hal.lib 
-LIBRARY         efsrv.lib 
-LIBRARY         uloggerclient.lib
+USERINCLUDE		../inc
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+LIBRARY			euser.lib hal.lib efsrv.lib uloggerclient.lib
 
 
 

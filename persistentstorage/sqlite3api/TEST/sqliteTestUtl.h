@@ -24,16 +24,12 @@
 extern "C" {
 #endif
 
-void TestOpen(const char* title);
 void TestTitle(void);
 void TestStart(const char* title);
 void TestNext(const char* title);
 void TestClose(void);
 void TestEnd(void);
 void TestAbort(TInt aLine);
-void TestTestLine(int aResult, int aLine);
-void TestTest(int aResult);
-void TestPrintf(const char* title);
 
 void TestHeapMark(void);
 void TestHeapMarkEnd(void);

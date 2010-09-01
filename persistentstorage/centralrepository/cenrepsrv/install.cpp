@@ -1,4 +1,4 @@
-// Copyright (c) 1997-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1997-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -227,115 +227,109 @@ void CCentRepSWIWatcher::FindChangedEntriesL(TBool aStartup)
 	// Find added or updated entries
 	ReadInstallDirL(iCurrentInstallDirEntries);
 		
+	TInt newCount=iCurrentInstallDirEntries.Count();
+	TInt currentCount=iInstallEntryArray.Count();
+	TInt i;
+	TInt r;
+	TInt operation;
+
+	// If both counts are 0, we shouldn't have been notified, just return
+	if( (newCount==0) && (currentCount==0))
+		return;
+	
+	if(aStartup)
+		{
+		operation=ESASwisNone;
+		}
+	else
+		{
+		operation=iSWIOperation;
+		}
+
 	// We don't want cache activity during SWI operations
 	TServerResources::iCacheManager->DisableCache();
 
-	TRAPD(err, HandleFileChangesL(aStartup));
+	if( newCount==0)						// currentCount > 0, newCount = 0
+		{									// All installed files have been deleted
+		// Handle deletes of all files
+		for(i=0;i<currentCount;i++)
+			{
+			iInstallEntryArray[i]->HandleFileDeleteL(operation);
+			}
+		// Free memory of elements
+		iInstallEntryArray.ResetAndDestroy();
+		}
+	else 
+		{	
+		if( currentCount==0)				// currentCount = 0, newCount > 0
+			{								// All new files need to be handled
+			for(i=0;i<newCount;i++)
+				{
+				CInstallEntry* newEntry=iCurrentInstallDirEntries[i];
+				newEntry->HandleFileCreateL(operation);
+				}
+			}
+		else								// currentCount > 0, newCount > 0
+			{
+			// Find added and modified entries by going through new entries and
+			// looking for them in current array
+			for(i=0;i<newCount;i++)
+				{
+				CInstallEntry* newEntry=iCurrentInstallDirEntries[i];
+				r=iInstallEntryArray.Find( newEntry, MatchEntries);
+				// If we find new entry in current array, check modification date
+				if(r>=KErrNone)
+					{
+					CInstallEntry* currentEntry=iInstallEntryArray[r];
+					if( newEntry->Modified() > currentEntry->Modified())
+						{												
+						// Deal with newly installed file, note use newEntry
+						// so we use new timestamp
+						newEntry->HandleFileUpdateL(operation);
+						}
+					}
+				else if(r==KErrNotFound)		// File has been added
+					{
+					// Handle add
+					newEntry->HandleFileCreateL(operation);
+					// Don't leave on KErrNotFound
+					r=KErrNone;
+					}
+				User::LeaveIfError(r);
+				}
+	
+			// Find deleted entries by going through current entries and looking for them 
+			// in new array
+			for(i=0;i<currentCount;i++)
+				{
+				CInstallEntry* currentEntry=iInstallEntryArray[i];
+				r=iCurrentInstallDirEntries.Find( currentEntry, MatchEntries);
+				// If we don't find current entry in new array, it's been deleted
+				if(r==KErrNotFound)
+					{
+					// Deal with uninstalls
+					currentEntry->HandleFileDeleteL(operation);
+					// Don't leave on KErrNotFound
+					r=KErrNone;
+					}
+				User::LeaveIfError(r);
+				}
+			}
+
+		// Clear out old list
+		iInstallEntryArray.ResetAndDestroy();
+		
+		// Re-read directory - if any files were corrupt they have been deleted
+		// during the merge, so we need to re-read in case this has occurred
+		ReadInstallDirL(iInstallEntryArray);
+		}
+		
+	SaveInstallDirL();
+	iCurrentInstallDirEntries.ResetAndDestroy();
 	
 	// SWI operations finished, enable cache
-	TServerResources::iCacheManager->EnableCache();
-	User::LeaveIfError(err);
+	TServerResources::iCacheManager->EnableCache();				
 	} 
-
-void CCentRepSWIWatcher::HandleFileChangesL(TBool aStartup)
-    {
-    TInt newCount=iCurrentInstallDirEntries.Count();
-    TInt currentCount=iInstallEntryArray.Count();
-    TInt i;
-    TInt r;
-    TInt operation;
-
-    // If both counts are 0, we shouldn't have been notified, just return
-    if( (newCount==0) && (currentCount==0))
-        return;
-    
-    if(aStartup)
-        {
-        operation=ESASwisNone;
-        }
-    else
-        {
-        operation=iSWIOperation;
-        }
-
-    if( newCount==0)                        // currentCount > 0, newCount = 0
-        {                                   // All installed files have been deleted
-        // Handle deletes of all files
-        for(i=0;i<currentCount;i++)
-            {
-            iInstallEntryArray[i]->HandleFileDeleteL(operation);
-            }
-        // Free memory of elements
-        iInstallEntryArray.ResetAndDestroy();
-        }
-    else 
-        {   
-        if( currentCount==0)                // currentCount = 0, newCount > 0
-            {                               // All new files need to be handled
-            for(i=0;i<newCount;i++)
-                {
-                CInstallEntry* newEntry=iCurrentInstallDirEntries[i];
-                newEntry->HandleFileCreateL(operation);
-                }
-            }
-        else                                // currentCount > 0, newCount > 0
-            {
-            // Find added and modified entries by going through new entries and
-            // looking for them in current array
-            for(i=0;i<newCount;i++)
-                {
-                CInstallEntry* newEntry=iCurrentInstallDirEntries[i];
-                r=iInstallEntryArray.Find( newEntry, MatchEntries);
-                // If we find new entry in current array, check modification date
-                if(r>=KErrNone)
-                    {
-                    CInstallEntry* currentEntry=iInstallEntryArray[r];
-                    if( newEntry->Modified() > currentEntry->Modified())
-                        {                                               
-                        // Deal with newly installed file, note use newEntry
-                        // so we use new timestamp
-                        newEntry->HandleFileUpdateL(operation);
-                        }
-                    }
-                else if(r==KErrNotFound)        // File has been added
-                    {
-                    // Handle add
-                    newEntry->HandleFileCreateL(operation);
-                    // Don't leave on KErrNotFound
-                    r=KErrNone;
-                    }
-                User::LeaveIfError(r);
-                }
-    
-            // Find deleted entries by going through current entries and looking for them 
-            // in new array
-            for(i=0;i<currentCount;i++)
-                {
-                CInstallEntry* currentEntry=iInstallEntryArray[i];
-                r=iCurrentInstallDirEntries.Find( currentEntry, MatchEntries);
-                // If we don't find current entry in new array, it's been deleted
-                if(r==KErrNotFound)
-                    {
-                    // Deal with uninstalls
-                    currentEntry->HandleFileDeleteL(operation);
-                    // Don't leave on KErrNotFound
-                    r=KErrNone;
-                    }
-                User::LeaveIfError(r);
-                }
-            }
-
-        // Clear out old list
-        iInstallEntryArray.ResetAndDestroy();
-        
-        // Re-read directory - if any files were corrupt they have been deleted
-        // during the merge, so we need to re-read in case this has occurred
-        ReadInstallDirL(iInstallEntryArray);
-        }
-        
-    SaveInstallDirL();
-    iCurrentInstallDirEntries.ResetAndDestroy();
-    }
 
 CInstallEntry::CInstallEntry() :
 	iUid(KNullUid),

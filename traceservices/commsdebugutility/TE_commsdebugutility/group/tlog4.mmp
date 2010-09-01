@@ -23,7 +23,7 @@ SMPSAFE
 
 #define __FLOGGER_UREL
 MACRO __FLOG_SUPPRESS_REL_WARNING
-#include        "../group/commsdebugutility.mmh"
+#include        "comms-infras/commsdebugutility.mmh"
 
 USERINCLUDE     ../inc
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN

@@ -15,6 +15,10 @@
 // 
 //
 
+/**
+ @file 
+*/
+
 TARGET			uloggerpluginframework.dll
 TARGETTYPE		dll
 UID				0x1000008d 0x102857F4
@@ -22,19 +26,17 @@ VENDORID		0x70000001
 CAPABILITY 		CommDD LocalServices NetworkControl NetworkServices ProtServ
 DEFFILE			ULOGGERPLUGINFRAMEWORK.DEF
 
-OS_LAYER_SYSTEMINCLUDE
-
-USERINCLUDE     ../inc
-USERINCLUDE     ../../common_utils/lightlogger/inc
-USERINCLUDE     ../src/pluginframework
-
 SOURCEPATH		../src/pluginframework
 SOURCE			outputframework.cpp
 SOURCE			inputframework.cpp
 SOURCE			inputdata.cpp
 SOURCE			pluginallocator.cpp
 
-LIBRARY	euser.lib 
-LIBRARY etext.lib 
-LIBRARY ecom.lib 
+
+USERINCLUDE		../inc
+USERINCLUDE 	../../common_utils/lightlogger/inc
+USERINCLUDE		../src/pluginframework
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+LIBRARY	euser.lib etext.lib ecom.lib 
 LIBRARY	uloggercommand.lib

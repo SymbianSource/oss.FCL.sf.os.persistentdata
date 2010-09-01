@@ -35,7 +35,7 @@ public:
 	static TInt SendTraceL(TTraceConfigs& aTraceData);
 	static TInt TimeTraceL(TTraceConfigs& aTraceData, TUint32& aTime, TUint32& aCount);
 private:
-	static TInt TimeTraceCallL(TTraceConfigs& aTraceData, TUint32& aTime, TUint32& aCount);
+	static TInt TimeTraceCall(TTraceConfigs& aTraceData, TUint32& aTime, TUint32& aCount);
 };
 
 #endif /*TE_TRACER_H_*/

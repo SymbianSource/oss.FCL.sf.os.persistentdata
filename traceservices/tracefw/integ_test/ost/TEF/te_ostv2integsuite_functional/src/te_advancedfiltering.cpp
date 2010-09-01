@@ -108,7 +108,7 @@ TBool CTCMAdvancedGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCo
                }
             }
 		CClearConfig configIni;
-		configIni.ClearL(logger);
+		configIni.Clear(logger);
 		INFO_PRINTF2(_L("connect err %d"), result);
 
 		INFO_PRINTF1(_L("Test setting a single primary filter with the filter, rather than an array"));
@@ -187,7 +187,7 @@ TBool CTCMAdvancedGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCo
 			INFO_PRINTF1(_L(" Testing GroupId filtering enabled/ disabled "));
 
 			//reset config file
-			configIni.ClearL(logger);
+			configIni.Clear(logger);
 
 
 			/***********************************************************/
@@ -195,7 +195,7 @@ TBool CTCMAdvancedGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCo
 			/***********************************************************/
 
 			INFO_PRINTF1(_L("\n\n Enable test GroupId, enable GroupId filtering.\n Testing error returns and ensuring a trace statement IS carried out "));
-			SetBlockResult(TestGroupIdFilteringL(logger, ETrue, ETrue));
+			SetBlockResult(TestGroupIdFiltering(logger, ETrue, ETrue));
 
 			/***********************************************************/
 			/***enable GroupId, disable GroupId filtering*/
@@ -204,7 +204,7 @@ TBool CTCMAdvancedGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCo
 			if(BlockResult()==EPass)
 				{
 				INFO_PRINTF1(_L("\n\n Enable test GroupId, disable GroupId filtering.\n Testing error returns and ensuring a trace statement IS carried out + lots of kernel traces "));
-				SetBlockResult(TestGroupIdFilteringL(logger, ETrue, EFalse));
+				SetBlockResult(TestGroupIdFiltering(logger, ETrue, EFalse));
 				}
 
 			/***********************************************************/
@@ -214,7 +214,7 @@ TBool CTCMAdvancedGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCo
 			if(BlockResult()==EPass)
 				{
 				INFO_PRINTF1(_L("\n\n Disable test GroupId, disable GroupId filtering.\n Testing error returns and ensuring a trace statement IS carried out + lots of kernel traces"));
-				SetBlockResult(TestGroupIdFilteringL(logger, EFalse, EFalse));
+				SetBlockResult(TestGroupIdFiltering(logger, EFalse, EFalse));
 				}
 
 			/***********************************************************/
@@ -224,7 +224,7 @@ TBool CTCMAdvancedGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCo
 			if(BlockResult()==EPass)
 				{
 				INFO_PRINTF1(_L("\n\n Disable test GroupId, enable GroupId filtering.\n Testing error returns and ensuring a trace statement IS NOT carried out "));
-				SetBlockResult(TestGroupIdFilteringL(logger, EFalse, ETrue));
+				SetBlockResult(TestGroupIdFiltering(logger, EFalse, ETrue));
 				}
 
 		}
@@ -249,7 +249,7 @@ TBool CTCMAdvancedGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCo
 
 		//  **************   Block end ****************
 
-		configIni.ClearL(logger);
+		configIni.Clear(logger);
 		logger.Close();
 		CleanupStack::Pop(3);
 		if(getfilter)
@@ -263,7 +263,7 @@ TBool CTCMAdvancedGroupIDFilteringWrapper::DoCommandL(	const TTEFFunction& /*aCo
 	}
 
 
-TVerdict CTCMAdvancedGroupIDFilteringWrapper::TestGroupIdFilteringL(RULogger& aLogger, const TBool aFilter, const TBool aFiltering)
+TVerdict CTCMAdvancedGroupIDFilteringWrapper::TestGroupIdFiltering(RULogger& aLogger, const TBool aFilter, const TBool aFiltering)
 /**
  * @return - TVerdict code
  * standard function to test error returns and GroupId filtering
@@ -497,7 +497,7 @@ TBool CTCMAdvancedComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /
                }
             }
 		CClearConfig configIni;
-		configIni.ClearL(logger);
+		configIni.Clear(logger);
 		result = logger.SetSecondaryFiltersEnabled(setfilterarray,ETrue);//CA previously:Result = logger.EnableModuleUid(setfilter);
 		INFO_PRINTF2(_L("Setting single Secondary filter with filter rather than array has been set with single filter, %d, check log"), setfilter);
 		INFO_PRINTF2(_L("code: %d"), result);
@@ -558,7 +558,7 @@ TBool CTCMAdvancedComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /
 			INFO_PRINTF1(_L(" Testing ComponentId filtering enabled/ disabled "));
 
 			//reset config file
-			configIni.ClearL(logger);
+			configIni.Clear(logger);
 
 
 			/***********************************************************/
@@ -566,7 +566,7 @@ TBool CTCMAdvancedComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /
 			/***********************************************************/
 
 			INFO_PRINTF1(_L("\n\n Enable test ComponentID, enable ComponentID filtering.\n Testing error returns and ensuring a trace statement IS carried out "));
-			SetBlockResult(TestComponentIdFilteringL(logger, ETrue, ETrue));
+			SetBlockResult(TestComponentIdFiltering(logger, ETrue, ETrue));
 
 			/***********************************************************/
 			/***enable ComponentId, disable ComponentId filtering*/
@@ -575,7 +575,7 @@ TBool CTCMAdvancedComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /
 			if(BlockResult()==EPass)
 				{
 				INFO_PRINTF1(_L("\n\n Enable test ComponentId, disable ComponentId filtering.\n Testing error returns and ensuring a trace statement IS carried out "));
-				SetBlockResult(TestComponentIdFilteringL(logger, ETrue, EFalse));
+				SetBlockResult(TestComponentIdFiltering(logger, ETrue, EFalse));
 				}
 
 			/***********************************************************/
@@ -585,7 +585,7 @@ TBool CTCMAdvancedComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /
 			if(BlockResult()==EPass)
 				{
 				INFO_PRINTF1(_L("\n\n Disable test ComponentId, disable ComponentId filtering.\n Testing error returns and ensuring a trace statement IS carried out "));
-				SetBlockResult(TestComponentIdFilteringL(logger, EFalse, EFalse));
+				SetBlockResult(TestComponentIdFiltering(logger, EFalse, EFalse));
 				}
 
 			/***********************************************************/
@@ -595,7 +595,7 @@ TBool CTCMAdvancedComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /
 			if(BlockResult()==EPass)
 				{
 				INFO_PRINTF1(_L("\n\n Disable test ComponentId, enable ComponentId filtering.\n Testing error returns and ensuring a trace statement IS NOT carried out "));
-				SetBlockResult(TestComponentIdFilteringL(logger, EFalse, ETrue));
+				SetBlockResult(TestComponentIdFiltering(logger, EFalse, ETrue));
 				}
 			}
 
@@ -621,7 +621,7 @@ TBool CTCMAdvancedComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /
 
 		//  **************   Block end ****************
 
-		configIni.ClearL(logger);
+		configIni.Clear(logger);
 		logger.Close();
 		}
 	  return ETrue;
@@ -629,7 +629,7 @@ TBool CTCMAdvancedComponentIDFilteringWrapper::DoCommandL(	const TTEFFunction& /
 
 
 
-TVerdict CTCMAdvancedComponentIDFilteringWrapper::TestComponentIdFilteringL(RULogger& aLogger, const TBool aFilter, const TBool aFiltering)
+TVerdict CTCMAdvancedComponentIDFilteringWrapper::TestComponentIdFiltering(RULogger& aLogger, const TBool aFilter, const TBool aFiltering)
 /**
  * @return - TVerdict code
  * standard function to test error returns and ComponentId filtering

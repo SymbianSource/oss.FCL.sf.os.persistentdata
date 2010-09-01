@@ -14,7 +14,7 @@
 //
 
 #include "SqlResourceProfiler.h"
-#include "SqlAssert.h"
+#include "SqlPanic.h"
 #include "SqlDatabaseImpl.h"
 
 

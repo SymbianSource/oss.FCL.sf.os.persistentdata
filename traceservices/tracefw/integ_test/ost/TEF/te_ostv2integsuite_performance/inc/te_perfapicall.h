@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,6 +13,7 @@
 // Description:
 // Ost Performance Tests API Test Object
 //
+
 
 
 /**
@@ -33,6 +34,8 @@
 #include "te_apirunconfig.h"
 
 
+
+
 class CApiCallTest: public CBase
 	{
 public:
@@ -40,9 +43,9 @@ public:
 	~CApiCallTest();
 	//could get rid of this now if you want...
 	TInt DoTestL(const TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult);
-	TInt CachedTraceTimeL(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult);
-	TInt NonCachedTraceTimeL(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult);
-	TInt StackUsageL(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult);
+	TInt CachedTraceTime(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult);
+	TInt NonCachedTraceTime(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult);
+	TInt StackUsage(TApiRunConfig& aApiRunConfig, TApiTestResult& aApiTestResult);
 
 	TInt Test();
 private:
@@ -56,12 +59,12 @@ private:
 
 	//TInt TraceBaselineTime(const TApiRunConfig& aApiRunConfig, TUint64& aBaselineTime, TBool aDoTrace);
 	//TInt TraceTime(const TApiRunConfig& aApiRunConfig, TUint64& aTime, const TUint64& aBaselineTime, TBool aDoTrace);
-	TInt CachedTraceBaselineTimeL(TApiRunConfig& aApiRunConfig, TInt32& aMinimumExecutionBaselineTime);
-	TInt CachedTraceTimeL(TApiRunConfig& aApiRunConfig, TInt32& aMinimumExecutionTime, TInt32& aMinimumExecutionBaselineTime);
-	TInt NonCachedTraceBaselineTimeL(TApiRunConfig& aApiRunConfig, TInt32& aTypicalExecutionBaselineTime);
-	TInt NonCachedTraceTimeL(TApiRunConfig& aApiRunConfig, TInt32& aTypicalExecutionTime, TInt32& aTypicalExecutionBaselineTime);
+	TInt CachedTraceBaselineTime(TApiRunConfig& aApiRunConfig, TInt32& aMinimumExecutionBaselineTime);
+	TInt CachedTraceTime(TApiRunConfig& aApiRunConfig, TInt32& aMinimumExecutionTime, TInt32& aMinimumExecutionBaselineTime);
+	TInt NonCachedTraceBaselineTime(TApiRunConfig& aApiRunConfig, TInt32& aTypicalExecutionBaselineTime);
+	TInt NonCachedTraceTime(TApiRunConfig& aApiRunConfig, TInt32& aTypicalExecutionTime, TInt32& aTypicalExecutionBaselineTime);
 
-	TInt StackUsageL(TApiRunConfig& aApiRunConfig, TInt& aApiStackUsage);
+	TInt StackUsage(TApiRunConfig& aApiRunConfig, TInt& aApiStackUsage);
 
 	TInt HeapUsage(TInt& aApiHeapUsage);
 	TInt DoTheApiCall();
@@ -74,3 +77,5 @@ private:
 	};
 
 #endif
+
+

@@ -1,0 +1,33 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:
+*
+*/
+#ifndef __TE_CENTREP_PERFTEST_IBY__
+#define __TE_CENTREP_PERFTEST_IBY__
+
+#include <testexecute.iby>
+
+// centrep test dlls
+#include <centreptesthelper.iby>
+
+// centrep test data
+#include <centreptestdata.iby>
+
+file=ABI_DIR\BUILD_DIR\CentRepPerfTest.exe		System\bin\CentRepPerfTest.exe
+
+data=DATAZ_\TEF_CentralRepository\perf.ini 			TEF_CentralRepository\perf.ini
+data=DATAZ_\TEF_CentralRepository\TE_PerfTest.script 	TEF_CentralRepository\TE_PerfTest.Script
+
+#endif //__TE_CENTREP_PERFTEST_IBY__

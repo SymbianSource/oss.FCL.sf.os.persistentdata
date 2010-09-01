@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -16,7 +16,10 @@
 
 PRJ_PLATFORMS
 DEFAULT
-
+PRJ_EXPORTS
+PRJ_MMPFILES
 PRJ_TESTMMPFILES
-te_utracedrv_enabled.mmp manual
-te_utracedrv_disabled.mmp manual
+te_utracedrv_enabled.mmp
+te_utracedrv_disabled.mmp
+
+PRJ_TESTEXPORTS

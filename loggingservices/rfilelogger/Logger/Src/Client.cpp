@@ -288,8 +288,7 @@ EXPORT_C void RFileFlogger::Log(const TText8* aFile, TInt aLine, TLogSeverity aS
 
 	}
 /*----------------- End of Maintaince warning section --------------------------*/
-	TRAP_IGNORE(WriteL(ptr));
-
+	TRAPD(err,WriteL(ptr));
 	delete buffer;
 
 	}
@@ -306,7 +305,7 @@ void RFileFlogger::WriteL(const TDesC& aLogBuffer)
 	TPtr8 ptr(buffer->Des());
 	AddTime(ptr);
 	ptr.Append(aLogBuffer);
-	TRAP_IGNORE(WriteL(ptr));
+	TRAPD(err,WriteL(ptr));
 
 	CleanupStack::PopAndDestroy(buffer);
 	}

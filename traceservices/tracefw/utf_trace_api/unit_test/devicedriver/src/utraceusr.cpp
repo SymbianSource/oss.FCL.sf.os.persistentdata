@@ -16,7 +16,7 @@
 //
 
 #include <e32std.h>
-#include "d32utrace.h"
+#include <d32utrace.h>
 #include <e32svr.h>
 
 

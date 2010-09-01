@@ -24,7 +24,7 @@
 #if (!defined __TESTSETPRIMARYFLT_STEP_H__)
 #define __TESTSETPRIMARYFLT_STEP_H__
 
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_uloggerclientsuitestepbase.h"
 
 class CTestSetPrimaryFltStep : public CTestUloggerClientApiStepBase

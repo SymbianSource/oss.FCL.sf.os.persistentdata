@@ -14,7 +14,7 @@
 // 10287231.RSS -- for outfrwkinterface definitions
 //
 
-#include <ecom/registryinfo.rh>
+#include "registryinfo.rh"
 
 RESOURCE REGISTRY_INFO r_registry
 	{

@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,14 +14,14 @@
 //
 
 PRJ_EXPORTS
-../include/centralrepository.h                  OS_LAYER_PUBLIC_EXPORT_PATH(centralrepository.h)
+../include/centralrepository.h         SYMBIAN_OS_LAYER_PUBLIC_EXPORT_PATH(centralrepository.h)
 #ifndef SYMBIAN_ENABLE_SPLIT_HEADERS 
-    #ifdef SYMBIAN_OLD_EXPORT_LOCATION
-        ../include/centralrepositoryinternal.h  /epoc32/include/centralrepositoryinternal.h
-    #endif
+#ifdef SYMBIAN_OLD_EXPORT_LOCATION
+../include/centralrepositoryinternal.h         /epoc32/include/centralrepositoryinternal.h
 #endif
-centralrepository.iby                           /epoc32/rom/include/centralrepository.iby
-backup_registration.xml                         z:/private/10202be9/backup_registration.xml
+#endif
+centralrepository.iby                  /epoc32/rom/include/centralrepository.iby
+backup_registration.xml                z:/private/10202be9/backup_registration.xml
 
 
 PRJ_MMPFILES
@@ -32,40 +32,12 @@ cenrepsrv.mmp
 #endif // WINS
 
 #ifdef SYMBIAN_CENREPNOTIFIERHANDLER
-   // Core OS extension
+   //Core OS extension
    #include "../cenrepnotifierhandler/group/bld.inf"
 #endif // SYMBIAN_CENREPNOTIFIERHANDLER
 
 
 PRJ_TESTEXPORTS
-// Stub sis file required by various tests.
-
-//define PDS_FULL_UI_TEST in the rom build command for Full S60 UI build
-#if defined(__SERIES60_) && defined(PDS_FULL_UI_TEST)
-../test/testexecute/SWI/data/rnd_sis/centrepswiteststub.sis     z:/system/install/centrepswiteststub.sis
-#else
-../test/testexecute/SWI/data/techview_sis/centrepswiteststub.sis     z:/system/install/centrepswiteststub.sis
-#endif //__SERIES60_
-
-CentralRepositoryTests.bat                              /epoc32/data/z/system/test/centralrepositorytests.bat
-centrepswiteststub.iby                                  /epoc32/rom/include/centrepswiteststub.iby
-CentralRepositoryTests.iby                              /epoc32/rom/include/centralrepositorytests.iby
-CentralRepositoryTechviewRTests.iby                     /epoc32/rom/include/centralrepositorytechviewrtests.iby
-centreptesthelper.iby                                   /epoc32/rom/include/centreptesthelper.iby
-centreptestdata.iby                                     /epoc32/rom/include/centreptestdata.iby
-
-// For pccenrep tests.
-../pccenrep/include/centralrepository.h                 OS_LAYER_PLATFORM_EXPORT_PATH(x86tool/centralrepository.h)
-
-../test/testexecute/SWI/data/certstore/swicertstore.dat	z:/resource/versions/swicertstore.dat
-
-#ifdef SYMBIAN_BAFL_SYSUTIL
-   //CenRepFotaTvRTests.iby and CentralRepositoryTechviewFlashPerformance.iby are manual tests only.
-   CenRepFotaTvRTests.iby                               /epoc32/rom/include/cenrepfotatvrtests.iby
-   CentralRepositoryTechviewFlashPerformance.iby        /epoc32/rom/include/centralrepositorytechviewflashperformance.iby
-   ../test/t_cenrep_runtxtshellflashtests.bat           /epoc32/data/z/system/test/t_cenrep_runtxtshellflashtests.bat
-   ../test/t_cenrep_runtvflashtests.bat                 /epoc32/data/z/system/test/t_cenrep_runtvflashtests.bat
-#endif // SYMBIAN_BAFL_SYSUTIL
 
 ../test/00000100.crb            z:/private/10202be9/00000100.crb
 ../test/00000005.cra            z:/private/10202be9/00000005.cra
@@ -176,23 +148,14 @@ centreptestdata.iby                                     /epoc32/rom/include/cent
 ../test/sw.txt                  z:/resource/versions/sw.txt
 ../test/00000003.txt            z:/private/102081e4/00000003.txt
 ../test/00112273.txt            z:/private/10202be9/00112273.txt
-
-//define PDS_FULL_UI_TEST in the rom build command for Full S60 UI build
-#if defined(__SERIES60_) && defined(PDS_FULL_UI_TEST)
-../test/rnd_RF1.sis             z:/private/10202be9/rf1.sis
-../test/rnd_RF2.sis             z:/private/10202be9/rf2.sis
-../test/rnd_RF3.sis             z:/private/10202be9/rf3.sis
-../test/rnd_RF4.sis             z:/private/10202be9/rf4.sis
-#else
-../test/techview_RF1.sis	    z:/private/10202be9/rf1.sis
-../test/techview_RF2.sis        z:/private/10202be9/rf2.sis
-../test/techview_RF3.sis        z:/private/10202be9/rf3.sis
-../test/techview_RF4.sis	    z:/private/10202be9/rf4.sis
-#endif //__SERIES60_
+../test/RF1.sis	                z:/private/10202be9/rf1.sis
+../test/RF2.sis                 z:/private/10202be9/rf2.sis
+../test/RF3.sis                 z:/private/10202be9/rf3.sis
+../test/RF4.sis	                z:/private/10202be9/rf4.sis
+../test/testexecute/SWI/data/certstore/swicertstore.dat	z:/resource/versions/swicertstore.dat
 
 #ifdef SYMBIAN_CENTREP_SUPPORT_MULTIROFS
 // Multi Rofs testing
-centreptestdata_multirofs.iby                               /epoc32/rom/include/centreptestdata_multirofs.iby
 ../test/multirofs/testrepository/aaaa0000.txt               z:/private/10202be9/aaaa0000.txt
 ../test/multirofs/testrepository/aaaa0000.txt{01-00}        z:/private/10202be9/aaaa0000.txt[01-00]
 ../test/multirofs/testrepository/bbbb0000.txt               z:/private/10202be9/bbbb0000.txt
@@ -1437,7 +1400,33 @@ centreptestdata_multirofs.iby                               /epoc32/rom/include/
 ../test/multirofs/2112_test_keyspaces/102869bc.cre{01-00}   z:/private/10202be9/102869bc.cre[01-00]
 ../test/multirofs/2112_test_keyspaces/102869bd.cre{01-00}   z:/private/10202be9/102869bd.cre[01-00]
 ../test/multirofs/2112_test_keyspaces/102869be.cre{01-00}   z:/private/10202be9/102869be.cre[01-00]
+
 #endif // SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+
+// Stub sis file required by various tests.
+../test/testexecute/SWI/data/centrepswiteststub.SIS   /epoc32/release/winscw/urel/z/system/install/centrepswiteststub.sis
+../test/testexecute/SWI/data/centrepswiteststub.SIS   /epoc32/release/winscw/udeb/z/system/install/centrepswiteststub.sis
+
+CentralRepositoryTests.bat                            /epoc32/data/z/system/test/centralrepositorytests.bat
+centrepswiteststub.iby                                /epoc32/rom/include/centrepswiteststub.iby
+CentralRepositoryTests.iby                            /epoc32/rom/include/centralrepositorytests.iby
+CentralRepositoryTechviewRTests.iby                   /epoc32/rom/include/centralrepositorytechviewrtests.iby
+centreptesthelper.iby                                 /epoc32/rom/include/centreptesthelper.iby
+centreptestdata.iby                                   /epoc32/rom/include/centreptestdata.iby
+#ifdef SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+   centreptestdata_multirofs.iby                         /epoc32/rom/include/centreptestdata_multirofs.iby
+#endif // SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+
+#ifdef SYMBIAN_BAFL_SYSUTIL
+   //CenRepFotaTvRTests.iby and CentralRepositoryTechviewFlashPerformance.iby are manual tests only.
+   CenRepFotaTvRTests.iby                                /epoc32/rom/include/cenrepfotatvrtests.iby
+   CentralRepositoryTechviewFlashPerformance.iby         /epoc32/rom/include/centralrepositorytechviewflashperformance.iby
+   ../test/t_cenrep_runtxtshellflashtests.bat            /epoc32/data/z/system/test/t_cenrep_runtxtshellflashtests.bat
+   ../test/t_cenrep_runtvflashtests.bat                  /epoc32/data/z/system/test/t_cenrep_runtvflashtests.bat
+#endif // SYMBIAN_BAFL_SYSUTIL
+
+// for pccenrep tests
+../pccenrep/include/centralrepository.h               SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(x86tool/centralrepository.h)
 
 
 PRJ_TESTMMPFILES
@@ -1453,38 +1442,26 @@ t_cenrep_defects.mmp
 t_cenrep_meta.mmp
 t_cenrep_rfs.mmp
 t_cenrep_back_rest.mmp
-#ifdef CENTREP_MW_TESTS
-    t_cenrep_back_rest_defect.mmp       manual
-#endif // CENTREP_MW_TESTS
+t_cenrep_back_rest_defect.mmp     manual
 t_cenrep_back_rest_delete.mmp
 t_oomcenrepsrv.mmp
 t_processkillprocess.mmp          support
 
 #ifdef SYMBIAN_BAFL_SYSUTIL
-    #ifdef CENTREP_MW_TESTS
-        t_cenrep_fota_tvem1.mmp         manual
-    #endif // CENTREP_MW_TESTS
+   t_cenrep_fota_tvem1.mmp        manual
+   t_cenrep_fota_tvem2.mmp        manual
+   t_cenrep_fota_tvem3.mmp        manual
+   t_cenrep_fota_txtem1.mmp       manual
+   t_cenrep_fota_txtem2.mmp       manual
+   t_cenrep_fotaUT.mmp            manual
 
-    t_cenrep_fota_tvem2.mmp          manual
+   #ifdef __CENTREP_SERVER_PERFTEST__
+      t_cenrep_fota_perf1.mmp     manual
+      t_cenrep_fota_perf2.mmp     manual
+   #endif // __CENTREP_SERVER_PERFTEST__
 
-    #ifdef CENTREP_MW_TESTS
-        t_cenrep_fota_tvem3.mmp         manual
-        t_cenrep_fota_txtem1.mmp        manual
-        t_cenrep_fota_txtem2.mmp        manual
-        t_cenrep_fotaUT.mmp             manual
-    #endif // CENTREP_MW_TESTS
-
-    #ifdef __CENTREP_SERVER_PERFTEST__
-        #ifdef CENTREP_MW_TESTS
-            t_cenrep_fota_perf1.mmp     manual
-        #endif // CENTREP_MW_TESTS
-        t_cenrep_fota_perf2.mmp         manual
-    #endif // __CENTREP_SERVER_PERFTEST__
-
-    #ifdef CENTREP_MW_TESTS
-       t_cenrep_fota_hw_setup.mmp       manual
-       t_cenrep_fota_hw_tests.mmp       manual
-    #endif // CENTREP_MW_TESTS
+   t_cenrep_fota_hw_setup.mmp     manual
+   t_cenrep_fota_hw_tests.mmp     manual
 #endif // SYMBIAN_BAFL_SYSUTIL
 
 

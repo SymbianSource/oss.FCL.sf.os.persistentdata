@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -17,7 +17,7 @@
 #define __SQLSRVMAIN_H__
 
 #include <f32file.h>
-#include "SqlAssert.h" 			//TSqlPanic
+#include "SqlPanic.h" 			//TSqlPanic
 #include "SqlSrvFileData.h"		//TSqlSrvFileData
 #include "SqlSrvAuthorizer.h"	//MSqlPolicyInspector
 #include "SqlSrvSecurityMap.h"	//
@@ -90,7 +90,7 @@ private:
 	void GetCollationDllNameL();
 	void CacheDbConfigFileNamesL(RFs& aFs, const TDesC& aServerPrivatePath);
 	TInt ReAllocBuf(TInt aNewBufSize);
-	void DeleteTempFilesL(TInt aDriveNumber, const TDesC& aServerPrivatePath) const;
+	void DeleteTempFilesL(TInt aDriveNumber, const TDesC& aServerPrivatePath)const;
 
 private:
 	TSqlSrvFileData		iFileData;		//Used as a temporary storage for file data (file name, drive, path, secure uid)
@@ -163,7 +163,7 @@ inline TDes& CSqlServer::FileNameBuf()
 */
 inline CSqlCompactor& CSqlServer::Compactor()
 	{
-	__ASSERT_DEBUG(iCompactor != NULL, __SQLPANIC(ESqlPanicInternalError));			
+	__SQLASSERT(iCompactor != NULL, ESqlPanicInternalError);			
 	return *iCompactor;
 	}
 

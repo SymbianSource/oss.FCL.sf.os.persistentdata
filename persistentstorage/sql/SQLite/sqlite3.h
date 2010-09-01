@@ -698,7 +698,6 @@ struct sqlite3_io_methods {
 ** into an integer that the pArg argument points to. This capability
 ** is used during testing and only needs to be supported when SQLITE_TEST
 ** is defined.
-**
 */
 #define SQLITE_FCNTL_LOCKSTATE        1
 

@@ -71,6 +71,7 @@ CTCMPerformanceWrapper::CTCMPerformanceWrapper()
  */
 	{
 	TRunConfigurer::Init(iApiRunConfig);
+	iPluginRunConfig = new(ELeave) CPluginRunConfig;
 	}
 
 
@@ -91,7 +92,6 @@ CTCMPerformanceWrapper* CTCMPerformanceWrapper::NewL()
 
 void CTCMPerformanceWrapper::ConstructL()
 	{
-	iPluginRunConfig = new(ELeave) CPluginRunConfig;
 	}
 
 TAny* CTCMPerformanceWrapper::GetObject()
@@ -125,18 +125,18 @@ TBool CTCMPerformanceWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 		TInt pluginOnlyTests=0;
 	  	//run api tests
 		if(doapicalltests)
-			SetBlockResult(DoApiTestsL(aSection));
+			SetBlockResult(DoApiTests(aSection));
 
 		if(dooutputplugintests)
 			{
 			pluginOnlyTests=1;
-			SetBlockResult(DoPluginTestsL(pluginOnlyTests, aSection));
+			SetBlockResult(DoPluginTests(pluginOnlyTests, aSection));
 			}
 		
 		if(dothroughputtests)
 			{
 			pluginOnlyTests=2;
-			SetBlockResult(DoPluginTestsL(pluginOnlyTests, aSection));
+			SetBlockResult(DoPluginTests(pluginOnlyTests, aSection));
 			}
 
 		/*
@@ -155,7 +155,7 @@ TBool CTCMPerformanceWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
 	 	return ETrue;
 	}
 
-TVerdict CTCMPerformanceWrapper::DoApiTestsL(const TTEFSectionName& aSection)
+TVerdict CTCMPerformanceWrapper::DoApiTests(const TTEFSectionName& aSection)
 	{
 	//initialize and create test run parameters
   	//*******this is quite ugly and could be tidied up into a new routine so isnt in main test step
@@ -327,7 +327,7 @@ TVerdict CTCMPerformanceWrapper::DoApiTestsL(const TTEFSectionName& aSection)
                 }
             }
 		CClearConfig configIni;
-		configIni.ClearL(logger);
+		configIni.Clear(logger);
 	
 		//put in test over API CALLS
 		testtype=0;
@@ -373,22 +373,22 @@ TVerdict CTCMPerformanceWrapper::DoApiTestsL(const TTEFSectionName& aSection)
 		
 									//do the test
 									INFO_PRINTF2(_L("Testing API %d"), iApiRunConfig.iApiId);
-									error = apitest.CachedTraceTimeL(iApiRunConfig, apitestresult);
+									error = apitest.CachedTraceTime(iApiRunConfig, apitestresult);
 									if(error)
 										{
-										INFO_PRINTF2(_L("ERROR: CachedTraceTimeL failed, error %d"), error);
+										INFO_PRINTF2(_L("ERROR: CachedTraceTime failed, error %d"), error);
 										SetBlockResult(EFail);
 										}
-									error = apitest.NonCachedTraceTimeL(iApiRunConfig, apitestresult);
+									error = apitest.NonCachedTraceTime(iApiRunConfig, apitestresult);
 									if(error)
 										{
-										INFO_PRINTF2(_L("ERROR: NonCachedTraceTimeL failed, error %d"), error);
+										INFO_PRINTF2(_L("ERROR: NonCachedTraceTime failed, error %d"), error);
 										SetBlockResult(EFail);
 										}
-									error = apitest.StackUsageL(iApiRunConfig, apitestresult);							
+									error = apitest.StackUsage(iApiRunConfig, apitestresult);							
 									if(error)
 										{
-										INFO_PRINTF2(_L("ERROR: StackUsageL failed, error %d"), error);
+										INFO_PRINTF2(_L("ERROR: StackUsage failed, error %d"), error);
 										SetBlockResult(EFail);
 										}
 									
@@ -437,7 +437,7 @@ TVerdict CTCMPerformanceWrapper::DoApiTestsL(const TTEFSectionName& aSection)
                     }
                 }
             }
-		configIni.ClearL(logger);
+		configIni.Clear(logger);
 		}
 	//put in all the error returns
 	//put in test step result returns
@@ -445,7 +445,7 @@ TVerdict CTCMPerformanceWrapper::DoApiTestsL(const TTEFSectionName& aSection)
 	return BlockResult();
 	}
 
-TVerdict CTCMPerformanceWrapper::DoPluginTestsL(const TInt& aPluginOnly, const TTEFSectionName& aSection)
+TVerdict CTCMPerformanceWrapper::DoPluginTests(const TInt& aPluginOnly, const TTEFSectionName& aSection)
 	{
 	//define default plugin configurations
 	_LIT(KDefaultPlugin,"uloggerfileplugin");

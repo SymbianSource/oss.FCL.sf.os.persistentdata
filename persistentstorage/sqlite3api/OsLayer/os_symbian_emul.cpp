@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -22,12 +22,6 @@
 #include "os_symbian.h"
 #include <pls.h>
 #include <e32std.h>
-#include "SqliteUtil.h"
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "os_symbian_emulTraces.h"
-#endif
-#include "SqliteTraceDef.h"
 
 #ifdef SQLITE_OS_SYMBIAN
 
@@ -84,7 +78,7 @@ public:
 			{
 			idx = ++idx % KMaxEntries;
 			}
-		__ASSERT_ALWAYS(cnt < KMaxEntries, __SQLITEPANIC2(ESqliteOsPanicMaxKeysExceeded));
+		__ASSERT_ALWAYS(cnt < KMaxEntries, User::Panic(KPanicCategory, EPanicMaxKeysExceeded));
 		if(!iTable[idx].iKey)
 			{
 			Add(idx, aKey, aLength);
@@ -111,7 +105,7 @@ private:
 	*/
 	void Add(TInt aIdx, const TUint8* aKey, TInt aLength)
 		{
-		__ASSERT_ALWAYS((iSize + aLength) <= KBufferSize, __SQLITEPANIC2(ESqliteOsPanicBufferSizeExceeded));
+		__ASSERT_ALWAYS((iSize + aLength) <= KBufferSize, User::Panic(KPanicCategory, EPanicBufferSizeExceeded));
 		//Add new entry to the hash table and the intial value to the WSD buffer
 		iTable[aIdx].iKey = aKey;
 		iTable[aIdx].iData = iNext;
@@ -165,20 +159,16 @@ The function initializes the TPls data members.
 */
 static TInt PlsInitialize(TPls* aPls)
 	{
-	SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, PLSINITIALIZE_ENTRY, "OS-Entry;0;PlsInitialize"));
-	__ASSERT_ALWAYS(aPls != NULL, __SQLITEPANIC2(ESqliteOsPanicNullPls1));
+	__ASSERT_ALWAYS(aPls != NULL, User::Panic(KPanicCategory, EPanicNullPls1));
 	//Global RFs object
 	TInt err = aPls->iStaticFs.Connect();
-	SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, PLSINITIALIZE1, "OS;0;PlsInitialize;iStaticFs.Connect() err=%d", err));
-	__ASSERT_ALWAYS(err == KErrNone, __SQLITEPANIC2(ESqliteOsPanicFsCreationError));
+	__ASSERT_ALWAYS(err == KErrNone , User::Panic(KPanicCategory, EPanicFsCreationError));
 	//Static mutexes
-	TInt idx = 0;
-	for(;idx<(sizeof(aPls->iStaticMutex)/sizeof(aPls->iStaticMutex[0])) && err==KErrNone;++idx)
+	for(TInt i=0;i<(sizeof(aPls->iStaticMutex)/sizeof(aPls->iStaticMutex[0])) && err==KErrNone;++i)
 		{
-		err = aPls->iStaticMutex[idx].Create();
+		err = aPls->iStaticMutex[i].Create();
 		}
-	SQLITE_TRACE_OS(OstTraceExt2(TRACE_INTERNALS, PLSINITIALIZE2, "OS;0;PlsInitialize;iStaticMutex[%d].Create() err=%d", idx, err));
-	__ASSERT_ALWAYS(err == KErrNone , __SQLITEPANIC2(ESqliteOsPanicMutexCreationError));
+	__ASSERT_ALWAYS(err == KErrNone , User::Panic(KPanicCategory, EPanicMutexCreationError));
 	//WSD map
 	//...already initialized by its constructor
 	//sqlite3_vfs object	
@@ -201,7 +191,6 @@ static TInt PlsInitialize(TPls* aPls)
 	aPls->iVfsApi.xCurrentTime 	= &TVfs::CurrentTime;
 	aPls->iVfsApi.xGetLastError	= &TVfs::GetLastError;
 	
-	SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, PLSINITIALIZE_EXIT, "OS-Exit;0;PlsInitialize"));
 	return KErrNone;
 	}
 
@@ -224,8 +213,8 @@ Returns a reference to the already created RFs object that is located in the pro
 RFs& TStaticFs::Fs()
 	{
 	TPls* pls = ::Pls(KSqliteUid, &PlsInitialize);
-	__ASSERT_ALWAYS(pls != 0, __SQLITEPANIC2(ESqliteOsPanicNullPls2));
-	__ASSERT_DEBUG(pls->iStaticFs.iFs.Handle() != KNullHandle, __SQLITEPANIC2(ESqliteOsPanicInvalidFs));
+	__ASSERT_ALWAYS(pls != 0, User::Panic(KPanicCategory, EPanicNullPls2));
+	__ASSERT_DEBUG(pls->iStaticFs.iFs.Handle() != KNullHandle, User::Panic(KPanicCategory, EPanicInvalidFs));
 	return pls->iStaticFs.iFs;
 	}
 
@@ -240,8 +229,8 @@ TStaticMutex::TStaticMutex()
 sqlite3_mutex* StaticMutex(TInt aType)
 	{
 	TPls* pls = ::Pls(KSqliteUid, &PlsInitialize);
-	__ASSERT_ALWAYS(pls != 0, __SQLITEPANIC2(ESqliteOsPanicNullPls3));
-	__ASSERT_ALWAYS((TUint)aType < (sizeof(pls->iStaticMutex)/sizeof(pls->iStaticMutex[0])), __SQLITEPANIC2(ESqliteOsPanicInvalidMutexType));
+	__ASSERT_ALWAYS(pls != 0, User::Panic(KPanicCategory, EPanicNullPls3));
+	__ASSERT_ALWAYS((TUint)aType < (sizeof(pls->iStaticMutex)/sizeof(pls->iStaticMutex[0])), User::Panic(KPanicCategory, EPanicInvalidMutexType));
 	return &pls->iStaticMutex[aType];
 	}
 
@@ -264,8 +253,8 @@ global variables count (WSD entries) are not bigger than the max TWsdMap buffer 
 */
 int sqlite3_wsd_init(int aWsdBufSize, int aWsdEntryCount)
 	{
-	__ASSERT_ALWAYS(aWsdBufSize <= TWsdMap::KBufferSize, __SQLITEPANIC2(ESqliteOsPanicWsdBufSize));
-	__ASSERT_ALWAYS(aWsdEntryCount <= TWsdMap::KMaxEntries, __SQLITEPANIC2(ESqliteOsPanicWsdEntryCount));
+	__ASSERT_ALWAYS(aWsdBufSize <= TWsdMap::KBufferSize, User::Panic(KPanicCategory, EPanicWsdBufSize));
+	__ASSERT_ALWAYS(aWsdEntryCount <= TWsdMap::KMaxEntries, User::Panic(KPanicCategory, EPanicWsdEntryCount));
 	return SQLITE_OK;	
 	}
 
@@ -283,7 +272,7 @@ Performs a search in the WSD map (in the process local storage) for a global var
 */
 void* sqlite3_wsd_find(void* aKey, int aLength)
 	{
-	__ASSERT_ALWAYS(aKey != NULL, __SQLITEPANIC2(ESqliteOsPanicNullKey));
+	__ASSERT_ALWAYS(aKey != NULL, User::Panic(KPanicCategory, EPanicNullKey));
 	return ::Pls(KSqliteUid, &PlsInitialize)->iWsdMap.Find(static_cast <const TUint8*> (aKey), aLength);
 	}
 
@@ -294,7 +283,7 @@ void* sqlite3_wsd_find(void* aKey, int aLength)
 sqlite3_vfs* VfsApi()
 	{
 	TPls* pls = ::Pls(KSqliteUid, &PlsInitialize);
-	__ASSERT_ALWAYS(pls != 0, __SQLITEPANIC2(ESqliteOsPanicNullPls4));
+	__ASSERT_ALWAYS(pls != 0, User::Panic(KPanicCategory, EPanicNullPls4));
 	return &pls->iVfsApi;
 	}
 

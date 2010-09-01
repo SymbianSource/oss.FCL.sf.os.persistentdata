@@ -26,7 +26,7 @@
 */
 inline TInt TSqlBufRIterator::AsInt() const
 	{
-	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
 	return *reinterpret_cast <const TInt32*> (reinterpret_cast <const TUint8*> (iBegin) + iCurrent->iPos);
 	}
 
@@ -35,7 +35,7 @@ inline TInt TSqlBufRIterator::AsInt() const
 */
 inline TInt64 TSqlBufRIterator::AsInt64() const
 	{
-	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
 	return *reinterpret_cast <const TInt64*> (reinterpret_cast <const TUint8*> (iBegin) + iCurrent->iPos);
 	}
 
@@ -44,7 +44,7 @@ inline TInt64 TSqlBufRIterator::AsInt64() const
 */
 inline TReal TSqlBufRIterator::AsReal() const
 	{
-	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
 	return *reinterpret_cast <const TReal*> (reinterpret_cast <const TUint8*> (iBegin) + iCurrent->iPos);
 	}
 
@@ -56,7 +56,7 @@ inline TReal TSqlBufRIterator::AsReal() const
 */
 TInt TSqlBufRIterator::Int() const
 	{
-	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
 	switch(Type())
 		{
 		case ESqlInt64:
@@ -94,7 +94,7 @@ TInt TSqlBufRIterator::Int() const
 */
 TInt64 TSqlBufRIterator::Int64() const
 	{
-	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
 	switch(Type())
 		{
 		case ESqlInt:
@@ -128,7 +128,7 @@ TInt64 TSqlBufRIterator::Int64() const
 */
 TReal TSqlBufRIterator::Real() const
 	{
-	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
 	switch(Type())
 		{
 		case ESqlInt:
@@ -159,7 +159,7 @@ TReal TSqlBufRIterator::Real() const
 */
 TPtrC8 TSqlBufRIterator::Binary() const
 	{
-	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
 	TInt size = Size();
 	if(Type() != ESqlBinary || size == 0)
 		{
@@ -176,7 +176,7 @@ TPtrC8 TSqlBufRIterator::Binary() const
 */
 TPtrC16 TSqlBufRIterator::Text() const
 	{
-	__ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
 	TInt size = Size();
 	if(Type() != ESqlText || size == 0)
 		{
@@ -196,7 +196,7 @@ class HReadOnlyBuf : public TMemBuf
 public:
 	static HReadOnlyBuf* NewL(const TUint8* aFrom, TInt aLen)
 		{
-		__ASSERT_DEBUG(aLen >= 0, __SQLPANIC2(ESqlPanicBadArgument));
+		__SQLASSERT(aLen >= 0, ESqlPanicBadArgument);
    		HReadOnlyBuf* self = new (ELeave) HReadOnlyBuf;
 		TUint8* p = const_cast <TUint8*> (aFrom);
 		self->Set(p, p + aLen, MStreamBuf::ERead);
@@ -219,7 +219,7 @@ private:
 */	
 MStreamBuf* TSqlBufRIterator::StreamL() const
 	{
-    __ASSERT_DEBUG(iCurrent >= iBegin && iCurrent < iEnd, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iCurrent >= iBegin && iCurrent < iEnd, ESqlPanicInternalError);
 	if(!::IsSequenceSqlType(Type()))
 		{
 		__SQLLEAVE(KErrArgument);

@@ -15,7 +15,7 @@
 
 #include "SqlSrvFileData.h"
 #include "SqlSrvUtil.h"
-#include "SqlAssert.h"
+#include "SqlPanic.h"
 #include "SqlSrvStrings.h"
 #include "SqlSrvResourceProfiler.h"
 
@@ -35,13 +35,13 @@ operation - attempting to create a database file there for example.
 static void CreatePrivateDataPathL(RFs& aFs, TDriveNumber aDriveNumber)
 	{
 	TDriveInfo driveInfo;
-	__SQLLEAVE_IF_ERROR2(aFs.Drive(driveInfo, aDriveNumber));
+	__SQLLEAVE_IF_ERROR(aFs.Drive(driveInfo, aDriveNumber));
 	if(!(driveInfo.iDriveAtt & KDriveAttRom))
 		{
 		TInt err = aFs.CreatePrivatePath(aDriveNumber);
 		if(err != KErrNone && err != KErrAlreadyExists)
 			{
-			__SQLLEAVE2(err);
+			__SQLLEAVE(err);
 			}
 		}
 	}
@@ -114,16 +114,16 @@ The full file name will be constructed in aFileName input/output argument.
 static void DoFullFileNameL(TDes& aDbFileName, const TDesC& aSysDrivePrivatePath, TDriveNumber& aDrive)
 	{
 	TParse parse;
-	__SQLLEAVE_IF_ERROR2(parse.Set(aDbFileName, &aSysDrivePrivatePath, NULL));
+	__SQLLEAVE_IF_ERROR(parse.Set(aDbFileName, &aSysDrivePrivatePath, NULL));
 	if(!parse.NamePresent())
 		{
-		__SQLLEAVE2(KErrBadName);	
+		__SQLLEAVE(KErrBadName);	
 		}
 	aDbFileName.Copy(parse.FullName());
 	TPtrC driveName = parse.Drive();
-	__ASSERT_DEBUG(driveName.Length() > 0, __SQLPANIC2(ESqlPanicInternalError));
+	__SQLASSERT(driveName.Length() > 0, ESqlPanicInternalError);
 	TInt driveNumber = -1;
-	__SQLLEAVE_IF_ERROR2(RFs::CharToDrive(driveName[0], driveNumber));
+	__SQLLEAVE_IF_ERROR(RFs::CharToDrive(driveName[0], driveNumber));
 	aDrive = static_cast <TDriveNumber> (driveNumber);
 	}
 
@@ -143,7 +143,7 @@ static void GetFileNamePropertiesL(const TDesC& aDbFileName, const TDesC& aServe
 	//If SQL server private path is in the file name - leave
 	if(::IsPrivatePathInFileName(aDbFileName, aServerPrivatePath))
 		{
-		__SQLLEAVE2(KErrArgument);
+		__SQLLEAVE(KErrArgument);
 		}
 	//Extract database SID from the name
 	aIsSecureFileNameFmt = ::IsSecureFileNameFmt(aDbFileName);
@@ -198,8 +198,8 @@ void TSqlSrvFileData::SetL(const RMessage2& aMessage, TInt aFileNameLen, TInt aF
 #endif          
                            const TDesC8* aConfigStr)
 	{
-	__ASSERT_DEBUG((TUint)aFileNameArgNum < KMaxMessageArguments, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(iSysDrivePrivatePath.DriveAndPath().Length() > 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT((TUint)aFileNameArgNum < KMaxMessageArguments, ESqlPanicBadArgument);
+	__SQLASSERT(iSysDrivePrivatePath.DriveAndPath().Length() > 0, ESqlPanicInternalError);
 		
 	if(aFileNameLen < 1 || aFileNameLen > KMaxFileName)
 		{

@@ -92,7 +92,7 @@ TBool CTCMFilePluginWrapper::DoCommandL(	const TTEFFunction& /*aCommand*/,
             }
 		
 		CClearConfig configIni;
-		configIni.ClearL(logger);
+		configIni.Clear(logger);
 		_LIT8(KTextmedia,"uloggerfileplugin");
 		const TPtrC8 mediaptr(KTextmedia);
 		if(result==0||result==-11)	

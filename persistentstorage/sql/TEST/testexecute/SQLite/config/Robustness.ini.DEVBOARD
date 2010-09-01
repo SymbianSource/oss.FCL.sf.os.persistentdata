@@ -14,9 +14,9 @@ Exec2=Create Table Sometable(Someint int primary key, Somereal real, Sometext te
 // Add a small amount of data and check it.
 NewBlock3=AddBlock10-1
 NewBlock4=CheckBlock10-1
-// Fill the disk to within 100K of full. First fill to within 160k so we have
-// an easy way of quickly getting 60K of disk back - by deleting 'fillfile'.
-NewBlock5=FillDisk160K
+// Fill the disk to within 100K of full. First fill to within 150k so we have
+// an easy way of quickly getting 50K of disk back - by deleting 'fillfile'.
+NewBlock5=FillDisk150K
 NewBlock6=FillDisk100K
 
 NoOperation7=
@@ -25,7 +25,7 @@ NoOperation7=
 NewBlock8=FillDisk1
 Close9=
 
-// This will return things to 60K of disk free (because we filled to 160K,
+// This will return things to 50K of disk free (because we filled to 150K,
 // then to 100K with this file).
 Delete10=E:\fillfile.txt
 
@@ -124,11 +124,11 @@ FillFile=E:\fillfile4M.txt
 DiskFree=4194304
 EndBlock1=
 
-// Fill the disk to within 160K of full.
-[FillDisk160K]
+// Fill the disk to within 150K of full.
+[FillDisk150K]
 Function0=NearFillDisk
 FillFile=E:\fillfile2.txt
-DiskFree=168960
+DiskFree=153600
 EndBlock1=
 
 // Fill the disk to within 100K of full.
@@ -298,7 +298,7 @@ Exec6=Attach "E:\Robustness3.db" as TheAttached;
 Exec7=Create Table TheAttached.Sometable(Someint int, Somereal real, Sometext text);
 
 // Fill the disk to within 100K of full (with a file..)
-NewBlock8=FillDisk160K
+NewBlock8=FillDisk150K
 NewBlock9=FillDisk100K
 
 // Fill up the drive with the attached database, first with big records,
@@ -330,9 +330,9 @@ Delete22=E:\Robustness3.db
 ExpectedError22=KErrInUse
 
 // Beyond this point we can't expect anything to work (necessarily) because
-// there isn't any disk space left. So grab free off 60K to make sure
+// there isn't any disk space left. So grab free off 50K to make sure
 // (the fill to within 100K of full file which was created after filling
-// to within 160K of full).
+// to within 150K of full).
 Delete23=E:\fillfile.txt
 NoOperation24=
 NoOperation25=

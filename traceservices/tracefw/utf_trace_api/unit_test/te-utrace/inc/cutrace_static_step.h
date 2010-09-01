@@ -26,7 +26,7 @@
 
 
 
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_utracesuitestepbase.h"
 
 class CUTrace_Static_Step : public CTe_UTraceSuiteStepBase

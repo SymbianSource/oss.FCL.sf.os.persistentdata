@@ -56,13 +56,13 @@ public:
 	 * Makes a trace call to either kernel or user side
 	 * and returns the time in the parameter aApiRunConfig.iApiTraceTime
 	 */
-	TInt TimeTraceCallL(const TApiRunConfig& aApiRunConfig,  TApiRunResults& aApiRunResults);
+	TInt TimeTraceCall(const TApiRunConfig& aApiRunConfig,  TApiRunResults& aApiRunResults);
 
 	/**
 	 * Makes a call to user side, returning the time in the
 	 * parameter aApiRunConfig.iApiTraceTime
 	 */
-	TInt TimeUsersideTraceCallsL(const TApiRunConfig& aApiRunConfig,  TApiRunResults& aApiRunResults);
+	TInt TimeUsersideTraceCalls(const TApiRunConfig& aApiRunConfig,  TApiRunResults& aApiRunResults);
 
 	/**
 	 */

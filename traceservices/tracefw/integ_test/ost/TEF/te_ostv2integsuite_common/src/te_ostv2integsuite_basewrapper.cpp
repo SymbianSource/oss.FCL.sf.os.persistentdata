@@ -697,35 +697,9 @@ TBool CTe_MCLSuiteBaseWrapper::CreateTraceObject(TUPTApiUsed aApi, THasThreadIde
             ASSERT(trace);
             TTraceConfigsOperator::Init(*trace);
             TTraceConfigsOperator::SetOptions(*trace, aApi, ETrue, ETrue);
-            TTraceConfigsOperator::SetHeader(*trace,  TRACE_FLOW, KComponentId, EAddThreadIdentification, ENoProgramCounter, (0x8a0005&TRACEIDMASK)>>TRACEIDSHIFT);
+            TTraceConfigsOperator::SetHeader(*trace,  TRACE_FLOW, KComponentId, EAddThreadIdentification, ENoProgramCounter, (0x8a0003&TRACEIDMASK)>>TRACEIDSHIFT);
             //fix this - should be a list of the function arguments of this method all these traces are insturmented in
 			TTraceConfigsOperator::SetData(*trace, KData1);
-            setThreadId = aHasContext;
-            aTraceObjects.Append(trace);
-            }
-            break;
-        case EOstTraceFunctionEntryExtCtorInitList:
-            {
-            TTraceConfigs* trace = new TTraceConfigs;
-            ASSERT(trace);
-            TTraceConfigsOperator::Init(*trace);
-            TTraceConfigsOperator::SetOptions(*trace, aApi, ETrue, ETrue);
-            TTraceConfigsOperator::SetHeader(*trace,  TRACE_FLOW, KComponentId, EAddThreadIdentification, ENoProgramCounter, (0x8a0001&TRACEIDMASK)>>TRACEIDSHIFT);
-            //fix this - should be a list of the function arguments of this method all these traces are insturmented in
-            TTraceConfigsOperator::SetData(*trace,1,2,KData1);
-            setThreadId = aHasContext;
-            aTraceObjects.Append(trace);
-            }
-            break;
-        case EOstTraceFunctionEntryExtCtorNoInitList:
-            {
-            TTraceConfigs* trace = new TTraceConfigs;
-            ASSERT(trace);
-            TTraceConfigsOperator::Init(*trace);
-            TTraceConfigsOperator::SetOptions(*trace, aApi, ETrue, ETrue);
-            TTraceConfigsOperator::SetHeader(*trace,  TRACE_FLOW, KComponentId, EAddThreadIdentification, ENoProgramCounter, (0x8a0002&TRACEIDMASK)>>TRACEIDSHIFT);
-            //fix this - should be a list of the function arguments of this method all these traces are insturmented in
-            TTraceConfigsOperator::SetData(*trace,3, KData1);
             setThreadId = aHasContext;
             aTraceObjects.Append(trace);
             }

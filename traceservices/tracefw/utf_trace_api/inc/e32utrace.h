@@ -83,14 +83,14 @@ const TInt KMaxPrintfSize = 256;
 	+((aSchema)<<BTrace::ESubCategoryIndex*8))
 /**@internalComponent*/
 #define UTracePf0(aF1,aSchema,aContext,aPc)	\
-    BTrace::OutX \
-        (UTRACE_HEADER(4,(aF1),(aSchema),(aContext),(aPc)),0,0,0)
+	((BTrace::TBTrace1)BTrace::OutX) \
+		(UTRACE_HEADER(4,(aF1),(aSchema),(aContext),(aPc)))
 /**@internalComponent*/
 #define UTracePf1(aF1,aSchema,aContext,aPc,a1)	\
-    BTrace::OutX(UTRACE_HEADER(8,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(a1),0,0)
+	((BTrace::TBTrace2)BTrace::OutX)(UTRACE_HEADER(8,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(a1))
 /**@internalComponent*/
 #define UTracePf2(aF1,aSchema,aContext,aPc,a1,a2) \
-    BTrace::OutX(UTRACE_HEADER(12,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(a1),(TUint32)(a2),0)
+	((BTrace::TBTrace3)BTrace::OutX)(UTRACE_HEADER(12,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(a1),(TUint32)(a2))
 /**@internalComponent*/
 #define UTracePf3(aF1,aSchema,aContext,aPc,a1,a2,a3) \
 	BTrace::OutX(UTRACE_HEADER(16,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(a1),(TUint32)(a2),(TUint32)(a3))
@@ -99,10 +99,10 @@ const TInt KMaxPrintfSize = 256;
 	BTrace::OutBig(UTRACE_HEADER(8,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(a1),aData,(TInt)(aDataSize))
 /**@internalComponent*/
 #define UTraceSf0(aF1,aF2,aSchema,aContext,aPc)	\
-    BTrace::OutFilteredX(UTRACE_HEADER(8,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(aF2),0,0)
+	((BTrace::TBTrace2)BTrace::OutFilteredX)(UTRACE_HEADER(8,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(aF2))
 /** @internalComponent */
 #define UTraceSf1(aF1,aF2,aSchema,aContext,aPc,a1) \
-    BTrace::OutFilteredX(UTRACE_HEADER(12,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(aF2),(TUint32)(a1),0)
+	((BTrace::TBTrace3)BTrace::OutFilteredX)(UTRACE_HEADER(12,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(aF2),(TUint32)(a1))
 /** @internalComponent */
 #define UTraceSf2(aF1,aF2,aSchema,aContext,aPc,a1,a2) \
 	BTrace::OutFilteredX(UTRACE_HEADER(16,(aF1),(aSchema),(aContext),(aPc)),(TUint32)(aF2),(TUint32)(a1),(TUint32)(a2))

@@ -377,8 +377,44 @@ void TempFileTest()
     //
     TheDb1.Close();
     err = RSqlDatabase::Delete(KTestDatabase1);
-    TEST2(err, KErrNone);
+    TEST2(err, KErrNone);    
 	}
+
+/**
+@SYMTestCaseID          PDS-SQL-CT-4214
+@SYMTestCaseDesc        Test for the change "After *#7370# Java apps are not preinstalled again" 
+@SYMTestPriority        High
+@SYMTestActions         The test makes sure there are no issues if the temp folder is removed after the server 
+                        has already started. The test performs the following actions - 
+                        1. Delete the 'temp' directory.
+                        2. Create a transaction which creates temp files.
+                        3. Check 'temp' folder exists at the end
+@SYMTestExpectedResults Test must not fail
+*/
+void DeleteTempFolder()
+    {
+    //1. Delete 'temp' folder
+    TInt err = TheFs.RmDir(KServerTempDir);
+    TEST2(err, KErrNone);
+	
+    //2. Create a transaction which creates temp files.
+    (void)RSqlDatabase::Delete(KTestDatabase1);
+    err = TheDb1.Create(KTestDatabase1);
+    TEST2(err, KErrNone);
+    
+    err = TheDb1.Exec(_L("CREATE TABLE t1(x UNIQUE); INSERT INTO t1 VALUES(1)"));
+    TEST(err >= 0);
+    err = TheDb1.Exec(_L("BEGIN; UPDATE t1 SET x = 2; UPDATE t1 SET x = 3; COMMIT"));
+    TEST(err >= 0);
+    
+    TheDb1.Close();
+    err = RSqlDatabase::Delete(KTestDatabase1);
+    TEST2(err, KErrNone);
+    
+    //3. Check 'temp' folder exists
+    err = TheFs.MkDir(KServerTempDir);
+    TEST2(err, KErrAlreadyExists);
+    }
 
 /**
 @SYMTestCaseID          PDS-SQL-CT-4213
@@ -467,42 +503,6 @@ void EmptyTextColumnTest()
 		}
 	}
 
-/**
-@SYMTestCaseID          PDS-SQL-CT-4214
-@SYMTestCaseDesc        Test for the change "After *#7370# Java apps are not preinstalled again" 
-@SYMTestPriority        High
-@SYMTestActions         The test makes sure there are no issues if the temp folder is removed after the server 
-                        has already started. The test performs the following actions - 
-                        1. Delete the 'temp' directory.
-                        2. Create a transaction which creates temp files.
-                        3. Check 'temp' folder exists at the end
-@SYMTestExpectedResults Test must not fail
-*/
-void DeleteTempFolder()
-    {
-    //1. Delete 'temp' folder
-    TInt err = TheFs.RmDir(KServerTempDir);
-    TEST2(err, KErrNone);
-	
-    //2. Create a transaction which creates temp files.
-    (void)RSqlDatabase::Delete(KTestDatabase1);
-    err = TheDb1.Create(KTestDatabase1);
-    TEST2(err, KErrNone);
-    
-    err = TheDb1.Exec(_L("CREATE TABLE t1(x UNIQUE); INSERT INTO t1 VALUES(1)"));
-    TEST(err >= 0);
-    err = TheDb1.Exec(_L("BEGIN; UPDATE t1 SET x = 2; UPDATE t1 SET x = 3; COMMIT"));
-    TEST(err >= 0);
-    
-    TheDb1.Close();
-    err = RSqlDatabase::Delete(KTestDatabase1);
-    TEST2(err, KErrNone);
-    
-    //3. Check 'temp' folder exists
-    err = TheFs.MkDir(KServerTempDir);
-    TEST2(err, KErrAlreadyExists);
-    }	
-	
 void DoTestsL()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4154 DEF143062: SQL, \"CREATE INDEX\" sql crashes SQL server"));
@@ -514,16 +514,16 @@ void DoTestsL()
     TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4156 DEF143150: SQL, strftime() returns incorrect result"));
     DEF143150();
     
-    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4210 Temp files created during sql operations are not deleted after rebooting the phone - 1"));
+    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4210 Temp files created during sql operations are not deleted after rebooting the phone - 1"));
     DeleteTempFile();
     
-    TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4211 Temp files created during sql operations are not deleted after rebooting the phone - 2"));
+    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4211 Temp files created during sql operations are not deleted after rebooting the phone - 2"));
     TempFileTest();
     
     TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4213 No support to store an empty string in symbian's sqlite."));
     EmptyTextColumnTest();
-	
-	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4214 After *#7370# Java apps are not preinstalled again"));
+
+    TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4214 After *#7370# Java apps are not preinstalled again"));
     DeleteTempFolder();
 	}
 

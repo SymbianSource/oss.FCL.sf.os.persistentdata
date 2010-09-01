@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,15 +14,14 @@
 //
 
 
+
 /**
  @file te_perf.h
  @internalTechnology
 */
-
 #if (!defined TE_ULOGGERMCLPERFSTEP_H)
 #define TE_ULOGGERMCLPERFSTEP_H
-
-#include <test/datawrapper.h>
+#include <datawrapper.h>
 #include "te_ostv2integsuite_basewrapper.h"
 #include <hal.h>
 #include <uloggerclient.h>
@@ -54,8 +53,8 @@ public:
 	
 private:
 //private run config members
-	};
 
+	};
 
 class CTCMPerformanceWrapper : public CTe_MCLSuiteBaseWrapper
 	{
@@ -70,13 +69,16 @@ public:
 private:
 	CTCMPerformanceWrapper();
 	void ConstructL();
-	TVerdict DoApiTestsL(const TTEFSectionName& aSection);
-	TVerdict DoPluginTestsL(const TInt& aPluginOnly, const TTEFSectionName& aSection); //tried TBool - didn't work for some reason
+	TVerdict DoApiTests(const TTEFSectionName& aSection);
+	TVerdict DoPluginTests(const TInt& aPluginOnly, const TTEFSectionName& aSection); //tried TBool - didn't work for some reason
 	TVerdict DoBufferSizeTests();//to be implemented
 	TVerdict DoBufferModeTests();//to be implemented
 	TApiRunConfig 		iApiRunConfig;
 	CPluginRunConfig* 	iPluginRunConfig;
 	};
+
+	
+
 
 _LIT(KTCMPerformanceWrapper,"TCMPerformance");
 

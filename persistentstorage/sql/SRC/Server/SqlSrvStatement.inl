@@ -33,7 +33,7 @@
 inline HSqlSrvStmtParamBuf* HSqlSrvStmtParamBuf::NewL(CSqlSrvStatement& aStatement, TInt aParamIndex, 
 													  HSqlSrvStmtParamBuf::TDataType aDataType, HSqlSrvStmtParamBuf::TBufType aBufType)
 	{
-	__ASSERT_DEBUG(aParamIndex >= 0, __SQLPANIC2(ESqlPanicBadArgument));
+	__SQLASSERT(aParamIndex >= 0, ESqlPanicBadArgument);
 	HSqlSrvStmtParamBuf* self = new (ELeave) HSqlSrvStmtParamBuf(aStatement, aParamIndex, aDataType, aBufType);
 	self->PushL();
 	self->ConstructL();
@@ -53,7 +53,7 @@ The internal buffer will be resized, if its capacity is bigger than HSqlSrvStmtP
 */
 inline void HSqlSrvStmtParamBuf::Reset(HSqlSrvStmtParamBuf::TDataType aDataType, HSqlSrvStmtParamBuf::TBufType aBufType)
 	{
-	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iBuf != NULL, ESqlPanicInvalidObj);
 	
 	iStatementFinalized = EFalse;
 	iAlive = ETrue;
@@ -65,7 +65,7 @@ inline void HSqlSrvStmtParamBuf::Reset(HSqlSrvStmtParamBuf::TDataType aDataType,
 	if(iBuf->Capacity() > (HSqlSrvStmtParamBuf::EExpandSize * 2))
 		{
 		TRAPD(err, iBuf->SetReserveL(HSqlSrvStmtParamBuf::EExpandSize * 2));//the buffer size is minimized, the call can't fail
-		__ASSERT_ALWAYS(err == KErrNone, __SQLPANIC(ESqlPanicInternalError));
+		__SQLASSERT_ALWAYS(err == KErrNone, ESqlPanicInternalError);
 		}
 	Set(*iBuf, 0, MStreamBuf::ERead | MStreamBuf::EWrite);
 	}
@@ -83,8 +83,8 @@ This function is used when the buffer type is not IPC.
 */
 inline const TPtrC8 HSqlSrvStmtParamBuf::SetDataL(const TDesC8& aData)
 	{
-	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInvalidObj));
-	__ASSERT_DEBUG(iBufType == HSqlSrvStmtParamBuf::EBufSimpleBind, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iBuf != NULL, ESqlPanicInvalidObj);
+	__SQLASSERT(iBufType == HSqlSrvStmtParamBuf::EBufSimpleBind, ESqlPanicInternalError);
 	iBuf->ResizeL(aData.Length());
 	iBuf->Write(0, aData);
 	//If the size is 0, then return KNullDesC8, where an empty string is hold, not a null one ("" instead of NULL)
@@ -100,7 +100,7 @@ Returns a 8-bit pointer to the parameter data.
 */
 inline const TPtrC8 HSqlSrvStmtParamBuf::Data() const
 	{
-	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iBuf != NULL, ESqlPanicInvalidObj);
 	//If the size is 0, then return KNullDesC8, where an empty string is hold, not a null one ("" instead of NULL)
 	return iBuf->Size() == 0 ? KNullDesC8() : iBuf->Ptr(0);
 	}
@@ -122,7 +122,7 @@ Returns the parameter index.
 */
 inline TInt HSqlSrvStmtParamBuf::ParamIndex() const
 	{
-	__ASSERT_DEBUG(iParamIndex >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT(iParamIndex >= 0, ESqlPanicInternalError);
 	return iParamIndex;
 	}
 
@@ -182,7 +182,7 @@ Executes the SQL statement moving the cursor to the next row if there is a row a
 */	
 inline TInt CSqlSrvStatement::Next()
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	TInt err = ::StmtNext(iStmtHandle);
 	iBufFlatType = static_cast <TSqlBufFlatType> (-1);
 	iBufFlat.ResetAndMinimize();
@@ -202,7 +202,7 @@ Any SQL statement parameters that had values bound to them, retain their values.
 */	
 inline TInt CSqlSrvStatement::Reset()
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	iBufFlatType = static_cast <TSqlBufFlatType> (-1);
 	iBufFlat.ResetAndMinimize();
 	return ::StmtReset(iStmtHandle);
@@ -221,7 +221,7 @@ Executes the prepared SQL statement.
 */	
 inline TInt CSqlSrvStatement::Exec()
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	TInt err = ::StmtExec(iStmtHandle);
 	iBufFlatType = static_cast <TSqlBufFlatType> (-1);
 	iBufFlat.ResetAndMinimize();
@@ -233,7 +233,7 @@ inline TInt CSqlSrvStatement::Exec()
 */
 inline const RSqlBufFlat& CSqlSrvStatement::BufFlatL(TSqlBufFlatType aWhat) const
 	{
-	__ASSERT_DEBUG(iStmtHandle != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT(iStmtHandle != NULL, ESqlPanicInvalidObj);
 	if(aWhat != iBufFlatType)
 		{
 		__SQLLEAVE(KErrArgument);
@@ -262,7 +262,7 @@ Initializes CSqlSrvStatement instance.
 */	
 inline void CSqlSrvStatement::ConstructL(sqlite3* aDbHandle, const TDesC16& aSqlStmt)
 	{
-	__ASSERT_DEBUG(aDbHandle != NULL, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aDbHandle != NULL, ESqlPanicBadArgument);
 	iStmtHandle = ::StmtPrepare16L(aDbHandle, aSqlStmt);
 	DoCommonConstructL();
 	}
@@ -282,7 +282,7 @@ Initializes CSqlSrvStatement instance.
 */	
 inline void CSqlSrvStatement::ConstructL(sqlite3* aDbHandle, const TDesC8& aSqlStmt)
 	{
-	__ASSERT_DEBUG(aDbHandle != NULL, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aDbHandle != NULL, ESqlPanicBadArgument);
 	iStmtHandle = ::StmtPrepare8L(aDbHandle, aSqlStmt);
 	DoCommonConstructL();
 	}

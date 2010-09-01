@@ -141,7 +141,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 					filterArray.Append((TUint32)array->At(i));
 					}
 			
-				error = iServer.SetActiveFilterL(filterArray, EPrimaryFilter);
+				error = iServer.SetActiveFilter(filterArray, EPrimaryFilter);
 
 				CleanupStack::PopAndDestroy(2,desData); //array, desData
 				filterArray.Close();
@@ -218,7 +218,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 				TUint32 tmp=1;
 				InternalizeFromBufL(readPtr, filterArray, tmp);
 					
-				error = iServer.SetActiveFilterL(filterArray,ESecondaryFilter);
+				error = iServer.SetActiveFilter(filterArray,ESecondaryFilter);
 
 				CleanupStack::PopAndDestroy(); //desData
 				filterArray.Close();
@@ -285,7 +285,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 			{
 			TBool enabled = EFalse;
 			iServer.GetSecondaryFiltering(enabled);
-			SendIntegerL(aMessage, (TInt)enabled);
+			SendInteger(aMessage, (TInt)enabled);
 			}
 			break;
 
@@ -452,7 +452,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 			{
 			//Get the installed plugins	
 			RArray<TPtrC8> tmpArray;
-			error = iServer.GetInstalledInputPluginsL(tmpArray);
+			error = iServer.GetInstalledInputPlugins(tmpArray);
 			if(!error)
 				{
 			//<rewrite array and add separator to each record>
@@ -547,7 +547,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 			{
 			//Resize buffer size
 			TInt bufferSize = aMessage.Int0();
-			error = iServer.SetBufferSizeL(bufferSize);
+			error = iServer.SetBufferSize(bufferSize);
 			}
 			break;
 
@@ -556,7 +556,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 			//Get buffer size
 			TInt bufferSize = 0;
 			error = iServer.GetBufandDataNotifyValuesL(KBuffer,bufferSize);
-			SendIntegerL(aMessage, bufferSize);
+			SendInteger(aMessage, bufferSize);
 			}
 			break;
 
@@ -577,7 +577,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 			//Get buffer size
 			TInt bufferMode = 3;
 			error = iServer.GetBufandDataNotifyValuesL(KBufferMode,bufferMode);
-			SendIntegerL(aMessage, bufferMode);
+			SendInteger(aMessage, bufferMode);
 			}
 			break;
 
@@ -585,7 +585,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 			{
 			//Set data notification size
 			TInt dataNotification = aMessage.Int0();
-			error = iServer.SetDataNotificationSizeL(dataNotification);
+			error = iServer.SetDataNotificationSize(dataNotification);
 			}
 			break;
 
@@ -594,7 +594,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 			//Get Data Notification size
 			TInt dataNotification = 0;
 			error = iServer.GetBufandDataNotifyValuesL(KDataNotification,dataNotification);
-			SendIntegerL(aMessage, dataNotification);
+			SendInteger(aMessage, dataNotification);
 			}
 			break;
 
@@ -607,7 +607,7 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
     aMessage.Complete(error);
 	}
 
-void CULoggerSession::SendIntegerL(const RMessage2& aMessage, TUint32 aInt)
+void CULoggerSession::SendInteger(const RMessage2& aMessage, TUint32 aInt)
 	{
 	HBufC8* size = HBufC8::NewLC(32);
 	size->Des().Num(aInt);

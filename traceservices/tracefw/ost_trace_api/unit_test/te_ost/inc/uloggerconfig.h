@@ -34,8 +34,8 @@ class CClearConfig : public CBase
 public:
 	~CClearConfig();
 	CClearConfig();
-	void ClearL(RULogger& loggerSession);
-	void DefaultL(RULogger& loggerSession);
+	void Clear(RULogger& loggerSession);
+	void Default(RULogger& loggerSession);
 //private:
 	
 };

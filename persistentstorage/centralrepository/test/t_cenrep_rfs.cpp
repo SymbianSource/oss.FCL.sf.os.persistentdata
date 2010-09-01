@@ -73,17 +73,6 @@ LOCAL_C void CheckL(TInt aValue, TInt aExpected, TInt aLine)
 #define TEST(arg) ::CheckL((arg), __LINE__)
 #define TEST2(aValue, aExpected) ::CheckL(aValue, aExpected, __LINE__)
 
-// This function kills the C32exe.exe process. This commsdat process will
-// interfere with the test if not killed. In a nutshell, some of the test cases 
-// will kill and then wait for 2 seconds and restart the centrep server 
-// with --SoftReset option. During that 2 seconds wait sometimes C32exe.exe 
-// will use centrep API, thus starting the server normally without --SoftReset.
-LOCAL_C void KillC32Exe()
-    {
-    _LIT( KC32ServerName, "c32exe");
-    KillProcess(KC32ServerName); // Don't need to check the return code, it always return KErrNone anyway.
-    User::After(KGeneralDelay);
-    }
 
 //This function restores the state of the files required for this test
 //Existing files are deleted and then the required files are copied
@@ -633,7 +622,6 @@ LOCAL_C void MainL()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-0497-0001 Restore Factory Settings tests "));
 	CleanupCDriveL();
-	KillC32Exe(); //Need to kill C32Exe as it is interfering with the test.
 	RestoreFactorySettingsTestL();
 	PDEF105203();
 	RFSRomOnlyL();

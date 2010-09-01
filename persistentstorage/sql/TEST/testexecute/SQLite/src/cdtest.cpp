@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -312,55 +312,6 @@ void CSQLCDT::WriteIntsToStream(const TDesC &acfgblk, const TInt acnnum)
     return;
     }
 
-//This function is needed for drives with more free space than KMaxTUint32 (4GB -1) 
-//This is because in a FAT32 file system, the maximum file size is (4GB-1)
-//In the case where the free space is larger than this limit, this function will create additional 
-//file(s)until the disk is under the (4GB-1) limit. After that CSQLCDT::NearFillDisk will fill the 
-//disk up to the required amount.
-void CSQLCDT::PrepareLargeDisk(const TDesC& /*acfgblk*/, const TDriveUnit atdu, TInt64 &atowrite)
-    {
-    _LIT(KTestFunction, "PrepareLargeDisk");
-    _LIT(KFillDiskName,"\\FillDisk");
-    _LIT(KFillDiskExt,".txt");
-    TFileName fname;
-    TInt count = 1;
-    TInt err = 0;
-    
-    while(atowrite > KMaxTUint32)
-        {
-        RFile64 fillDiskFile;
-        fname.Copy(atdu.Name());
-        fname.Append(KFillDiskName);
-        fname.AppendNum(count);
-        fname.Append(KFillDiskExt);
-        
-        if( (err = fillDiskFile.Create(irfs, fname, EFileWrite)) != KErrNone )
-            {
-            SetTestStepResult(EFail);
-            INFO_PRINTF1(HTML_RED);
-            ERR_PRINTF4(_L("%S: Failed to open RFile64 for file %S, err %d"),
-                               &KTestFunction, &fname, err );
-            INFO_PRINTF1(HTML_COLOUR_OFF);
-            return;
-            }
-        
-        if( (err = fillDiskFile.SetSize(KMaxTUint32)) != KErrNone )
-            {
-            SetTestStepResult(EFail);
-            INFO_PRINTF1(HTML_RED);
-            ERR_PRINTF4(_L("%S: Failed on RFile64::SetSize for file %S, err %d"),
-                               &KTestFunction, &fname, err );
-            INFO_PRINTF1(HTML_COLOUR_OFF);
-            fillDiskFile.Close();
-            return;
-            }
-        
-        fillDiskFile.Close();
-        atowrite-=KMaxTUint32;
-        count++;
-        }
-    }
-
 // Create a file specified by 'FillFile' in the config and write to
 // it until 'DiskFree' bytes remain. Note that because files use whole
 // sectors (512/1024/2048/4096 or whatever bytes), that attempting to leave
@@ -396,33 +347,29 @@ void CSQLCDT::NearFillDisk(const TDesC &acfgblk)
         }
 
     // So how many bytes do we need to write?
-    TInt64 towrite = vol.iFree - free;
-    INFO_PRINTF4(_L("%S: Disk writing %Ld, free %Ld"), &KTestFunction, 
+    TInt towrite = vol.iFree - free;
+    INFO_PRINTF4(_L("%S: Disk writing %d, free %d"), &KTestFunction, 
                     towrite, vol.iFree );
-    INFO_PRINTF3(_L("%S: free %Ld"), &KTestFunction, vol.iFree );
-    INFO_PRINTF3(_L("%S: writing %Ld"), &KTestFunction, towrite );
+    INFO_PRINTF3(_L("%S: free %d"), &KTestFunction, vol.iFree );
+    INFO_PRINTF3(_L("%S: writing %d"), &KTestFunction, towrite );
 
     if( towrite < 0 )
         {
         SetTestStepResult(EFail);
         INFO_PRINTF1(HTML_RED);
-        ERR_PRINTF3(_L("%S: Disk wanted remaining less than current(%Ld)"),
+        ERR_PRINTF3(_L("%S: Disk wanted remaining less than current(%d)"),
                            &KTestFunction, vol.iFree );
         INFO_PRINTF1(HTML_COLOUR_OFF);
         return;
         }
-    
-    //In case the disk is large (i.e >4G -1 bytes) we need another function to 
-    //create more files to fill it
-    PrepareLargeDisk(acfgblk, tdu, towrite);
-    
+        
     // Get a file.
-    RFile64 myfile;
+    RFile myfile;
     if( (err = myfile.Create(irfs, fillfile, EFileWrite)) != KErrNone )
         {
         SetTestStepResult(EFail);
         INFO_PRINTF1(HTML_RED);
-        ERR_PRINTF4(_L("%S: Failed to open RFile64 for file %S, err %d"),
+        ERR_PRINTF4(_L("%S: Failed to open RFile for file %S, err %d"),
                            &KTestFunction, &fillfile, err );
         INFO_PRINTF1(HTML_COLOUR_OFF);
         return;
@@ -436,20 +383,18 @@ void CSQLCDT::NearFillDisk(const TDesC &acfgblk)
     // remaining space tends to be a kilobyte or two less than requested.
     // Obviously this is likely to be different between file system types,
     // between hardware and emulator and so on.
-    
-    
-    TInt64 size = 0;
+	TInt size = 0;
     while(towrite > 0)
         {
         if(towrite < 1024) break;
-        TInt64 tow = towrite/2;
+        TInt tow = towrite/2;
         if(towrite < 4096) tow = towrite;
 		size += tow;
         if( (err = myfile.SetSize(size)) != KErrNone )
             {
             SetTestStepResult(EFail);
             INFO_PRINTF1(HTML_RED);
-            ERR_PRINTF4(_L("%S: Failed on RFile64::SetSize for file %S, err %d"),
+            ERR_PRINTF4(_L("%S: Failed on RFile::SetSize for file %S, err %d"),
                                &KTestFunction, &fillfile, err );
             INFO_PRINTF1(HTML_COLOUR_OFF);
 			break;
@@ -476,7 +421,7 @@ void CSQLCDT::NearFillDisk(const TDesC &acfgblk)
                            &KTestFunction, err);
         INFO_PRINTF1(HTML_COLOUR_OFF);
     	}
-    INFO_PRINTF3(_L("%S: Disk remaining is %Ld"), &KTestFunction, vol.iFree );
+    INFO_PRINTF3(_L("%S: Disk remaining is %d"), &KTestFunction, vol.iFree );
 	myfile.Close();
     return;
     }
@@ -538,8 +483,8 @@ void CSQLCDT::ScalarFullSelectL(const TDesC &acfgblk, const TInt acnnum)
                 actual = asfs->SelectIntL(stmt8);
             else
                 actual = asfs->SelectIntL(stmt);
-				
-            TInt expected;
+			
+			TInt expected;	
 			if (res.CompareF(_L("DEFAULT_SOFT_HEAP_LIMIT")) == 0)
 				{
 				expected = KDefaultSoftHeapLimitKb;

@@ -276,7 +276,7 @@ TInt CULoggerServer::SetActiveInputPlugin(const TDesC8 &aPluginname)
 	TInt ret= KErrNone;
 	//check configuration file in user path (\\ulogger\\uloggerconfig.ini)	
 
-	ret = GetInstalledInputPluginsL(activePluginsArray);
+	ret = GetInstalledInputPlugins(activePluginsArray);
 	if(ret==KErrNone)
 		{
 		ret = KErrNotFound;
@@ -334,7 +334,7 @@ TInt CULoggerServer::GetOptionsSettingsL(const TDesC8 &aMediaName, RArray<TPtrC8
 		return KErrNotFound;
 	else
 		{
-		TInt ret = GetValuesL(aMediaName,aListBuffer);
+		TInt ret = GetValues(aMediaName,aListBuffer);
 		if(ret == KErrNotFound) //this error indicate that there is no section in config file, plug-in exists
 			ret = KErrNone;
 		return ret;
@@ -347,7 +347,7 @@ TInt CULoggerServer::GetOptionsSettingsL(const TDesC8 &aMediaName, RArray<TPtrC8
 Function to get values from the configuration file (i.e. for filters,plugin settings)
 This should leave with KErrNotFound if it cannot find the configuration file
 */
-TInt CULoggerServer::GetValuesL(const TDesC8 &aSectionName, RArray<TPtrC8>& aListBuffer)
+TInt CULoggerServer::GetValues(const TDesC8 &aSectionName, RArray<TPtrC8>& aListBuffer)
 {	
 	TPtrC8 key;
 	TPtrC8 val;
@@ -386,7 +386,7 @@ Sets the Active Filter in the configuration file (primary and secondary filters)
 @return KErrNone, if successful, otherwise one of the other system-wide
         error codes.
 */
-TInt CULoggerServer::SetActiveFilterL(RArray<TUint32> aCategory, TInt aFilterType)
+TInt CULoggerServer::SetActiveFilter(RArray<TUint32> aCategory, TInt aFilterType)
 {
 	TInt error = KErrNone;
 	if(aFilterType == 1)
@@ -490,7 +490,7 @@ Resize the BTrace buffer size
 @return KErrNone, if successful, otherwise one of the other system-wide
         error codes.
 */
-TInt CULoggerServer::SetBufferSizeL(TInt aSize)
+TInt CULoggerServer::SetBufferSize(TInt aSize)
 	{
 	if(aSize > KMaxBufferSize || aSize < 1)
 		return KErrArgument;
@@ -532,7 +532,7 @@ Resize the Data Notification size
 @return KErrNone, if successful, otherwise one of the other system-wide
         error codes.
 */
-TInt CULoggerServer::SetDataNotificationSizeL(TInt aSize)
+TInt CULoggerServer::SetDataNotificationSize(TInt aSize)
 	{
 	if(aSize > KMaxDnsSize || aSize < 0)
 		return KErrArgument;
@@ -644,7 +644,7 @@ TInt CULoggerServer::GetActiveFilters(RArray<TUint32>& aListBuffer,TInt aFilterT
 	RArray<TPtrC8> aValues;
 	if(aFilterType == 1)
 		{
-		ret = GetValuesL(KPrimaryFilterSection,aValues);
+		ret = GetValues(KPrimaryFilterSection,aValues);
 		if(ret==KErrNone)	
 			{
 			TInt i =0;
@@ -664,7 +664,7 @@ TInt CULoggerServer::GetActiveFilters(RArray<TUint32>& aListBuffer,TInt aFilterT
 		}
 	else if(aFilterType == 2)
 		{
-		ret = GetValuesL(KSecondaryFilterSection,aValues);
+		ret = GetValues(KSecondaryFilterSection,aValues);
 		if(ret==KErrNone)	
 			{
 			TInt i =0;
@@ -739,7 +739,7 @@ TInt CULoggerServer::GetInstalledOutputPlugins(RArray<TPtrC8>& aListBuffer)
 	
 
 
-TInt CULoggerServer::GetInstalledInputPluginsL(RArray<TPtrC8>& aListBuffer)
+TInt CULoggerServer::GetInstalledInputPlugins(RArray<TPtrC8>& aListBuffer)
 	{
 	#if defined(__LIGHTLOGGER_ENABLED) && defined(__VERBOSE_MODE)
 	__MARK_METHOD("CULoggerServer::GetInstalledControlPlugins")
@@ -773,7 +773,7 @@ This should leave with KErrNotFound if cannot find one or any system wide error 
 */
 TInt CULoggerServer::GetActiveOutputPlugin(RArray<TPtrC8>& aListBuffer)
 	{
-	TInt errCode = GetValuesL(KActiveSection,aListBuffer);
+	TInt errCode = GetValues(KActiveSection,aListBuffer);
 	//plugins are received as, e.g. '1 uloggerfileplugin' (.ini file syntax)
 	//we have to remove number from array
 	for(TInt i=0; i<aListBuffer.Count(); ++i)
@@ -813,7 +813,7 @@ This should leave with KErrNotFound if cannot find one or any system wide error 
 */
 TInt CULoggerServer::GetActiveInputPlugin(RArray<TPtrC8>& aListBuffer)
 	{
-	return GetValuesL(KActiveControlSection,aListBuffer);
+	return GetValues(KActiveControlSection,aListBuffer);
 	}
 
 /**
@@ -884,7 +884,7 @@ TInt CULoggerServer::Start()
 	if(iBtraceOpen == EFalse)
 		{
 		if(iIsBooting)
-			error = TraceSettingsOnBootL();
+			error = TraceSettingsOnBoot();
 		else
 			error = iTrace.Open();
 
@@ -1015,8 +1015,9 @@ TInt CULoggerServer::Stop()
 Gets the Trace settings on boot
 @return none
 */
-TInt CULoggerServer::TraceSettingsOnBootL()
+TInt CULoggerServer::TraceSettingsOnBoot()
 {
+
 	TInt trace = FALSE;
 	
 	RArray<TUint32> category;
@@ -1026,9 +1027,9 @@ TInt CULoggerServer::TraceSettingsOnBootL()
 	
 	TInt bufferSize = iTrace.BufferSize(); //To get the buffer size set at boot	
 	if(bufferSize <= 0 && bufferSize > KMaxBufferSize)
-		SetBufferSizeL(KMaxBufferSize); //Update config
+		SetBufferSize(KMaxBufferSize); //Update config
 	else
-		SetBufferSizeL(bufferSize); //Update config
+		SetBufferSize(bufferSize); //Update config
 	for(TUint i=0; i<KMaxPrimaryFiltersLimit; i++)
 	{
 		trace = iTrace.Filter(i);
@@ -1346,7 +1347,7 @@ ControlData* CULoggerServer::ProcessCommandL(TCommand aOpCode, RArray<TPtrC8> &a
 			
 			if(errCode == KErrNone)
 				{
-				errCode = SetActiveFilterL(filterArray, EPrimaryFilter);
+				errCode = SetActiveFilter(filterArray, EPrimaryFilter);
 				result.Num(errCode);
 			
 				//create acknowledment
@@ -1404,7 +1405,7 @@ ControlData* CULoggerServer::ProcessCommandL(TCommand aOpCode, RArray<TPtrC8> &a
 				break;
 			
 			//create ack
-			errCode = SetActiveFilterL(filterArray, ESecondaryFilter);
+			errCode = SetActiveFilter(filterArray, ESecondaryFilter);
 			result.Num(errCode);
 			data = inputData->CreatePackage((void*)result.Ptr(), result.Length());
 		
@@ -1435,7 +1436,7 @@ ControlData* CULoggerServer::ProcessCommandL(TCommand aOpCode, RArray<TPtrC8> &a
 				TInt bufSize;
 				TLex8 lex(aArguments[0]);
 				if((errCode = lex.Val(bufSize)) == KErrNone)
-					errCode = SetBufferSizeL(bufSize);
+					errCode = SetBufferSize(bufSize);
 				}
 			else
 				errCode = KErrArgument;
@@ -1484,7 +1485,7 @@ ControlData* CULoggerServer::ProcessCommandL(TCommand aOpCode, RArray<TPtrC8> &a
 				TInt dns;
 				TLex8 lex(aArguments[0]);
 				if((errCode = lex.Val(dns)) == KErrNone)
-					errCode = SetDataNotificationSizeL(dns);
+					errCode = SetDataNotificationSize(dns);
 					else
 						errCode = KErrArgument;
 				}
@@ -1936,7 +1937,7 @@ ControlData* CULoggerServer::ProcessCommandL(TCommand aOpCode, RArray<TPtrC8> &a
 			#endif
 			
 			RArray<TPtrC8> tmpArray;
-			errCode = GetInstalledInputPluginsL(tmpArray);
+			errCode = GetInstalledInputPlugins(tmpArray);
 
 			result.Num(errCode);
 			data = inputData->CreatePackage((void*)result.Ptr(), result.Length());
@@ -2014,7 +2015,7 @@ void CULoggerServer::FilterPlugins(TPluginFilter aFilter, RArray<TPtrC8>& aPlugi
 	TInt errCode = 0;
 	CPlugin::TPluginInterface interfaceId;
 	//assign filter value
-	interfaceId = (aFilter == EOutputPluginFilter ? MOutputPlugin::iInterfaceId : MInputPlugin::iInterfaceId);
+	aFilter==EOutputPluginFilter ? interfaceId=MOutputPlugin::iInterfaceId : interfaceId=MInputPlugin::iInterfaceId;
 	
 	//filter plugins
 	TInt i=0;
@@ -2055,7 +2056,7 @@ TBool CULoggerServer::CheckPluginExists(TPtrC8& aPluginName, TPluginFilter aPlug
 	if(aPluginFilter == EOutputPluginFilter)
 		GetInstalledOutputPlugins(pluginsArray);
 	else if(aPluginFilter == EInputPluginFilter)
-		GetInstalledInputPluginsL(pluginsArray);
+		GetInstalledInputPlugins(pluginsArray);
 
 	for(TInt i=0; i<pluginsArray.Count(); ++i)
 		if(aPluginName.Compare(pluginsArray[i])==0)

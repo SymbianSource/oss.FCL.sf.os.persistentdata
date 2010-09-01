@@ -9,7 +9,7 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
-// NTT DOCOMO, INC - Fix for defect 1915 "SQL server panics when using long column type strings"
+// NTT DOCOMO, INC - Fix for Bug 1915 "SQL server panics when using long column type strings"
 //
 // Description:
 //
@@ -45,8 +45,8 @@ values collection.
 */
 TBool RSqlLongColumnColl::TData::Compare(const TInt* aIndex, const RSqlLongColumnColl::TData& aData)
 	{
-	__ASSERT_DEBUG(aIndex != NULL, __SQLPANIC2(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(*aIndex >= 0, __SQLPANIC2(ESqlPanicBadArgument));
+	__SQLASSERT(aIndex != NULL, ESqlPanicBadArgument);
+	__SQLASSERT(*aIndex >= 0, ESqlPanicBadArgument);
 	return *aIndex == aData.iIndex;
 	}
 
@@ -63,8 +63,8 @@ Reads a long column value, identified by aColumnIndex parameter, from the server
 */
 TInt RSqlLongColumnColl::Append(RSqlLongColumnColl::TColumnReader& aReader, TInt aColumnIndex, TInt aColumnSize)
 	{
-	__ASSERT_DEBUG(aColumnIndex >= 0, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(aColumnSize >= KSqlMaxDesLen, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aColumnIndex >= 0, ESqlPanicBadArgument);
+	__SQLASSERT(aColumnSize >= KSqlMaxDesLen, ESqlPanicBadArgument);
 	LONGCOL_INVARIANT();
 	HBufC8* colBuf = HBufC8::New(aColumnSize);
 	if(!colBuf)
@@ -96,11 +96,11 @@ void RSqlLongColumnColl::Invariant() const
 	for(TInt i=iValues.Count()-1;i>=0;--i)
 		{
 		const RSqlLongColumnColl::TData& data = iValues[i];
-		__ASSERT_DEBUG(data.iIndex >= 0, __SQLPANIC(ESqlPanicInternalError));
-		__ASSERT_DEBUG(data.iData != NULL, __SQLPANIC(ESqlPanicInternalError));
+		__SQLASSERT(data.iIndex >= 0, ESqlPanicInternalError);
+		__SQLASSERT(data.iData != NULL, ESqlPanicInternalError);
 		for(TInt j=i-1;j>=0;--j)
 			{
-			__ASSERT_DEBUG(data.iIndex != iValues[j].iIndex, __SQLPANIC(ESqlPanicInternalError));
+			__SQLASSERT(data.iIndex != iValues[j].iIndex, ESqlPanicInternalError);
 			}
 		}
 	}
@@ -318,7 +318,7 @@ Implements RSqlStatement::BindNull().
 */	
 TInt CSqlStatementImpl::BindNull(TInt aParamIndex)
 	{
-	__ASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
+	__SQLASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, ESqlPanicBadColumnIndex);
 	iBound = EFalse;
 	iParamValBufIt.MoveTo(aParamIndex);
 	iParamValBufIt.SetNull();
@@ -334,7 +334,7 @@ Implements RSqlStatement::BindInt().
 */	
 TInt CSqlStatementImpl::BindInt(TInt aParamIndex, TInt aParamValue)
 	{
-	__ASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
+	__SQLASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, ESqlPanicBadColumnIndex);
 	iBound = EFalse;
 	iParamValBufIt.MoveTo(aParamIndex);
 	return iParamValBufIt.SetInt(aParamValue);
@@ -349,7 +349,7 @@ Implements RSqlStatement::BindInt64().
 */	
 TInt CSqlStatementImpl::BindInt64(TInt aParamIndex, TInt64 aParamValue)
 	{
-	__ASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
+	__SQLASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, ESqlPanicBadColumnIndex);
 	iBound = EFalse;
 	iParamValBufIt.MoveTo(aParamIndex);
 	return iParamValBufIt.SetInt64(aParamValue);
@@ -364,7 +364,7 @@ Implements RSqlStatement::BindReal().
 */	
 TInt CSqlStatementImpl::BindReal(TInt aParamIndex, TReal aParamValue)
 	{
-	__ASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
+	__SQLASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, ESqlPanicBadColumnIndex);
 	iBound = EFalse;
 	iParamValBufIt.MoveTo(aParamIndex);
 	return iParamValBufIt.SetReal(aParamValue);
@@ -379,7 +379,7 @@ Implements RSqlStatement::BindText().
 */	
 TInt CSqlStatementImpl::BindText(TInt aParamIndex, const TDesC& aParamText)
 	{
-	__ASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
+	__SQLASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, ESqlPanicBadColumnIndex);
 	iBound = EFalse;
 	iParamValBufIt.MoveTo(aParamIndex);
 	return iParamValBufIt.SetText(aParamText);
@@ -394,7 +394,7 @@ Implements RSqlStatement::BindBinary().
 */	
 TInt CSqlStatementImpl::BindBinary(TInt aParamIndex, const TDesC8& aParamData)
 	{
-	__ASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
+	__SQLASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, ESqlPanicBadColumnIndex);
 	iBound = EFalse;
 	iParamValBufIt.MoveTo(aParamIndex);
 	return iParamValBufIt.SetBinary(aParamData);
@@ -409,7 +409,7 @@ Implements RSqlStatement::BindZeroBlob().
 */	
 TInt CSqlStatementImpl::BindZeroBlob(TInt aParamIndex, TInt aBlobSize)
 	{
-	__ASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
+	__SQLASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, ESqlPanicBadColumnIndex);
 	iBound = EFalse;
 	iParamValBufIt.MoveTo(aParamIndex);
 	return iParamValBufIt.SetZeroBlob(aBlobSize);
@@ -425,8 +425,8 @@ Implements RSqlStatement::ColumnType().
 */	
 TSqlColumnType CSqlStatementImpl::ColumnType(TInt aColumnIndex)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
 	return static_cast <TSqlColumnType> (iColumnValBufIt.Type());
 	}
@@ -447,7 +447,7 @@ Implements RSqlStatement::DeclaredColumnType().
 */
 TInt CSqlStatementImpl::DeclaredColumnType(TInt aColumnIndex, TSqlColumnType& aColumnType)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
 	if(iDeclaredColumnTypes.Count() == 0) //initialise iDeclaredColumnTypes array if necessary
 		{
 		RSqlBufFlat declaredColumnTypeBuf;
@@ -506,10 +506,10 @@ TInt CSqlStatementImpl::DeclaredColumnType(TInt aColumnIndex, TSqlColumnType& aC
 				colType = ESqlReal;
 				}
 			err = iDeclaredColumnTypes.Append(colType);
-			__ASSERT_DEBUG(err == KErrNone, __SQLPANIC(ESqlPanicInternalError));//memory for the array elements has been reserved already
+			__SQLASSERT(err == KErrNone, ESqlPanicInternalError);//memory for the array elements has been reserved already
 			++colIdx;
 			} //end of - while(declColumnTypeBufIt.Next())
-		__ASSERT_DEBUG(colIdx == iColumnCnt, __SQLPANIC(ESqlPanicInternalError));
+		__SQLASSERT(colIdx == iColumnCnt, ESqlPanicInternalError);
 		declaredColumnTypeBuf.Close();
 		} //end of - if(iDeclaredColumnTypes.Count() == 0 && iColumnCnt > 0)
 	aColumnType = iDeclaredColumnTypes[aColumnIndex];
@@ -526,8 +526,8 @@ Implements RSqlStatement::ColumnSize().
 */	
 TInt CSqlStatementImpl::ColumnSize(TInt aColumnIndex)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
 	return iColumnValBufIt.Size();
 	}
@@ -542,10 +542,10 @@ Implements RSqlStatement::ColumnInt().
 */	
 TInt CSqlStatementImpl::ColumnInt(TInt aColumnIndex)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
-	__ASSERT_DEBUG(iColumnValBufIt.IsPresent(), __SQLPANIC(ESqlPanicValueNotPresent));
+	__SQLASSERT(iColumnValBufIt.IsPresent(), ESqlPanicValueNotPresent);
 	return iColumnValBufIt.Int();
 	}
 	
@@ -559,10 +559,10 @@ Implements RSqlStatement::ColumnInt64().
 */	
 TInt64 CSqlStatementImpl::ColumnInt64(TInt aColumnIndex)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
-	__ASSERT_DEBUG(iColumnValBufIt.IsPresent(), __SQLPANIC(ESqlPanicValueNotPresent));
+	__SQLASSERT(iColumnValBufIt.IsPresent(), ESqlPanicValueNotPresent);
 	return iColumnValBufIt.Int64();
 	}
 	
@@ -576,10 +576,10 @@ Implements RSqlStatement::ColumnReal().
 */	
 TReal CSqlStatementImpl::ColumnReal(TInt aColumnIndex)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
-	__ASSERT_DEBUG(iColumnValBufIt.IsPresent(), __SQLPANIC(ESqlPanicValueNotPresent));
+	__SQLASSERT(iColumnValBufIt.IsPresent(), ESqlPanicValueNotPresent);
 	return iColumnValBufIt.Real();
 	}
 
@@ -597,8 +597,8 @@ Return a text (16 bit) descriptor to a text column identified by aColumnIndex.
 */	
 TInt CSqlStatementImpl::ColumnText(TInt aColumnIndex, TPtrC& aPtr)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
 	if(iColumnValBufIt.IsPresent())
 		{
@@ -644,8 +644,8 @@ return KErrOverflow.
 */	
 TInt CSqlStatementImpl::ColumnText(TInt aColumnIndex, TDes& aDest)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
 	TInt err = KErrNone;
 	//The text column value has not been transferred to the client side if its length is >= KSqlMaxDesLen characters.
@@ -697,8 +697,8 @@ Return a binary (8 bit) descriptor to a binary column identified by aColumnIndex
 */	
 TInt CSqlStatementImpl::ColumnBinary(TInt aColumnIndex, TPtrC8& aPtr)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
 	if(iColumnValBufIt.IsPresent())
 		{
@@ -744,8 +744,8 @@ return KErrOverflow.
 */	
 TInt CSqlStatementImpl::ColumnBinary(TInt aColumnIndex, TDes8& aDest)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
 	TInt err = KErrNone;
 	//The binary column value has not been transferred to the client side if its length is >= KSqlMaxDesLen bytes.

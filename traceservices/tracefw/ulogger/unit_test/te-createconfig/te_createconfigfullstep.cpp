@@ -72,7 +72,7 @@ TVerdict CCreateConfigFUllTestStep::doTestStepL()
 	logger.Connect();
 	CClearConfig configIni;
 
-	configIni.ClearL(logger);
+	configIni.Clear(logger);
 
 	_LIT8(KTextplugin,"uloggerfileplugin");						
 	logger.ActivateOutputPlugin(KTextplugin);

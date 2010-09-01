@@ -133,14 +133,9 @@ void CLogServOperationQueue::OMCancel(TLogOperationId aOpId, TLogServSessionId a
 		// This should complete the request with KErrCancel causing RunL to leave
 		// RunError completes the request and removes the operation from the pending queue
 		iTaskInterface.TaskCancelCurrent();
-
 		//
-		// Do not complete the message when the operation completes
-		//
-		if (!aCompleteRequest)
-			{
-			iCurrentOperation->SetMessageCompletion(aCompleteRequest);
-			}
+		if	(!aCompleteRequest)
+			iCurrentOperation->ClearMessagePointer();
 		}
 	else
 		{

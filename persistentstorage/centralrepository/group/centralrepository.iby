@@ -23,7 +23,7 @@ file=ABI_DIR\BUILD_DIR\centralrepositorysrv.exe System\Programs\centralrepositor
 
 #include <bsul.iby>
 
-data=ZPRIVATE\10202be9\backup_registration.xml PRIVATE\10202BE9\backup_registration.xml
+data=ZPRIVATE\10202BE9\backup_registration.xml PRIVATE\10202BE9\backup_registration.xml
 
 #ifdef SYMBIAN_CENREPNOTIFIERHANDLER
 //Core OS extension

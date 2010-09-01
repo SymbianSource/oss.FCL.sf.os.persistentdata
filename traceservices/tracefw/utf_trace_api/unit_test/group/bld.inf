@@ -12,6 +12,11 @@
 //
 // Description:
 //
+/**
+ @file bld.inf
+ @internalTechnology
+*/
+
 
 #include "../devicedriver/group/bld.inf"
 #include "../te-utrace/group/bld.inf"

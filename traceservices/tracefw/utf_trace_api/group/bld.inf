@@ -12,10 +12,15 @@
 //
 // Description:
 //
+/**
+ @file bld.inf
+ @internalTechnology
+*/
+
 
 PRJ_PLATFORMS
 DEFAULT
 
 PRJ_EXPORTS
-../inc/e32utrace.h   		OS_LAYER_PLATFORM_EXPORT_PATH(e32utrace.h)
+../inc/e32utrace.h   		SYMBIAN_OS_LAYER_PLATFORM_EXPORT_PATH(e32utrace.h)
 

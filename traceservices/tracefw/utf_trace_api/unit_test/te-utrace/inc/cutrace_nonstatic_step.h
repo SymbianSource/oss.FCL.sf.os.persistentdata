@@ -23,7 +23,7 @@
 */
 #if (!defined __CUTRACE_PRINTF_CHAR_STEP_H__)
 #define __CUTRACE_PRINTF_CHAR_STEP_H__
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_utracesuitestepbase.h"
 
 

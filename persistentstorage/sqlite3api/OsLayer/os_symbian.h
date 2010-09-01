@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -29,6 +29,45 @@
 #include "FileBuf64.h"
 
 #ifdef SQLITE_OS_SYMBIAN
+
+/**
+Multi-threaded Symbian OS porting layer panic category.
+
+@see TPanicCodes
+
+@internalComponent
+*/
+_LIT(KPanicCategory, "SqliteMt");
+
+/**
+Panic codes - used by asserts in the multi-threaded OS porting layer.
+
+@see KPanicCategory
+
+@internalComponent
+*/
+enum TPanicCodes
+	{
+	EPanicFsCreationError		= 1,
+	EPanicMutexCreationError	= 2,
+	EPanicInvalidFs				= 3,
+	EPanicNullPls1				= 4,
+	EPanicNullPls2				= 5,
+	EPanicNullPls3				= 6,
+	EPanicNullPls4				= 7,
+	EPanicAssert				= 8,
+	EPanicMaxKeysExceeded		= 9,
+	EPanicBufferSizeExceeded	=10,
+	EPanicNullKey				=11,
+	EPanicWsdBufSize			=12,
+	EPanicWsdEntryCount			=13,
+	EPanicInternalError			=19,
+	EPanicNullDbFilePtr			=20,
+	EPanicInvalidLock			=21,
+	EPanicInvalidMutexType		=22,
+	EPanicMutexLockCounter		=23,
+	EPanicMutexOwner			=24
+	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////  TStaticFs  /////////////////////////////////////////////////////////////////////////////////////////
@@ -302,7 +341,6 @@ private:
 	static TInt DoGetDeviceCharacteristics(const TDriveInfo& aDriveInfo, const TVolumeIOParamInfo& aVolumeInfo);
 	static TInt DoGetSectorSize(const TDriveInfo& aDriveInfo, const TVolumeIOParamInfo& aVolumeInfo);
 	static TInt DoGetDeviceCharacteristicsAndSectorSize(TDbFile& aDbFile, TInt& aRecReadBufSize);
-	static TInt DoFileSizeCorruptionCheck(TDbFile& aDbFile, const TDesC& aFname, TInt aFmode);
 	};
 	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

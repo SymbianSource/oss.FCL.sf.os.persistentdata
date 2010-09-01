@@ -21,7 +21,7 @@
 */
 #if (!defined TE_ULOGGERAPITESTSTEP_H)
 #define TE_ULOGGERAPITESTSTEP_H
-#include <test/datawrapper.h>
+#include <datawrapper.h>
 #include "te_ostv2integsuite_basewrapper.h"
 #include <e32base.h>
 #include <e32math.h>

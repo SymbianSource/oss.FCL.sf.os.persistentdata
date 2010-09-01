@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,19 +15,19 @@
 // 
 //
 
+/**
+ @file 
+*/
+
+
 TARGET        te_syscfg.exe
 TARGETTYPE    exe
-VENDORID      0x70000001
-UID           0x1000008d 0x10273881
-CAPABILITY    NONE
+
+VENDORID 0x70000001
+UID 0x1000008d 0x10273881
+CAPABILITY NONE
 
 MACRO SYSCONFIG_COMTEST
-
-OS_LAYER_SYSTEMINCLUDE
-
-USERINCLUDE ../../src/sysconfig
-USERINCLUDE ../../inc
-USERINCLUDE ../../src/pluginframework
 
 SOURCEPATH    ../te-sysconfig
 SOURCE      te_test_syscfgserver.cpp  
@@ -36,6 +36,13 @@ SOURCE	    te_test_syscfgstep.cpp
 SOURCEPATH    ../../src/sysconfig
 source	uloggersysconfig.cpp
 source	sysconfigimpl.cpp
+
+userinclude	../../src/sysconfig
+userinclude	../../inc
+userinclude	../../src/pluginframework
+SYSTEMINCLUDE	/epoc32/include
+SYSTEMINCLUDE	/epoc32/include/ecom
+SYSTEMINCLUDE	/epoc32/include/test
 
 LIBRARY		euser.lib
 LIBRARY		testexecutelogclient.lib
@@ -47,3 +54,4 @@ LIBRARY		uloggerpluginframework.lib
 LIBRARY		ecom.lib
 
 SMPSAFE
+

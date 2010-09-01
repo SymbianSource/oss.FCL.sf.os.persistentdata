@@ -80,7 +80,7 @@ TVerdict CCTe_multiparttrace::doTestStepPreambleL()
 	INFO_PRINTF1(_L("INFO: configuring ULogger..."));
 	User::LeaveIfError( iUlogger.Connect() );
 	CClearConfig configIni;
-	configIni.ClearL(iUlogger);
+	configIni.Clear(iUlogger);
 
 	iUlogger.SetSecondaryFilteringEnabled(EFalse);
 

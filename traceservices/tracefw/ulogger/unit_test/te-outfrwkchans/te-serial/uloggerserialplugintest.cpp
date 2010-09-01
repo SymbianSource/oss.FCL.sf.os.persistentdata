@@ -47,7 +47,7 @@ void CSerial0Step::TestNewL()
  * Description: Retrieve and print some data from an external ini data file
  *
  */
-void CSerial0Step::TestUnlockResourcesL()
+void CSerial0Step::TestUnlockResources()
 	{
 	Ulogger::CSerialWriter* serialWriter = Ulogger::CSerialWriter::NewL();
 	INFO_PRINTF1(_L("Invoking CSerialWriter::CloseOutputPlugin(). CloseOutputPlugin() is supposed to do nothing."));
@@ -66,7 +66,7 @@ void CSerial0Step::TestUnlockResourcesL()
  * Description: Retrieve and print some data from an external ini data file
  *
  */
-void CSerial0Step::TestSettingsL()
+void CSerial0Step::TestSettings()
 	{
 	Ulogger::CSerialWriter* serialWriter = Ulogger::CSerialWriter::NewL();
 	INFO_PRINTF1(_L("Passing empty RPointerArray to CSerialWriter::ConfigureOutputPlugin()"));
@@ -92,7 +92,7 @@ void CSerial0Step::TestSettingsL()
  *
  */
 // The implementation for this is not working correctly! Check this
-void CSerial0Step::TestWriteL()
+void CSerial0Step::TestWrite()
 	{
 	INFO_PRINTF1(_L("Checking that CSerialWriter::Write(const TDesC8&) writes a string correctly to the serial port"));
 
@@ -148,9 +148,9 @@ TVerdict CSerial0Step::doTestStepL()
 	  if (TestStepResult()==EPass)
 		{
 		TestNewL();
-		TestUnlockResourcesL();
-		TestSettingsL();
-		TestWriteL();
+		TestUnlockResources();
+		TestSettings();
+		TestWrite();
 		
 		if(iErrors == 0)
 			SetTestStepResult(EPass);

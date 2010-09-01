@@ -25,7 +25,10 @@ UID				0x100000af 0x10287233
 VENDORID		0x70000001
 capability		all
 
-OS_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE		/epoc32/include/test
+SYSTEMINCLUDE		/epoc32/include/ecom
+SYSTEMINCLUDE   	/epoc32/include/kernel
+
 
 USERINCLUDE			../inc/
 USERINCLUDE			../../te_ostv2integsuite_common/inc/
@@ -50,9 +53,13 @@ SOURCE				te_cacheflush.s
 SOURCE				te_stackinfo.s
 #endif
 
+
+EPOCALLOWDLLDATA
+
 start wins
 win32_headers
 end
 
 SMPSAFE
-epocallowdlldata
+
+ 

@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,7 +13,7 @@
 // Description:
 //
 
-//! @file
+//! @File
 //! @SYMTestSuiteName               	uloggerv1-outfrwk-unit-test-suite.script
 //! @SYMScriptTestEnvironment       	TEF
 
@@ -34,7 +34,7 @@ START_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerOutfrmwkServer-0001
 //! @SYMTestActions    Set and configure output framework server 
 //! @SYMTestExpectedResults      error returns as expected
 //! @SYMTestType         UT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP 100 UloggerOutfrmwkServer TextMessageTeststep 
@@ -48,7 +48,7 @@ END_TESTCASE			DT-DEBUG-TRACE-UTFv1-ULoggerOutfrmwkServer-0001
 //! @SYMTestActions    Set and configure output framework server with OOM
 //! @SYMTestExpectedResults      error returns as expected
 //! @SYMTestType         UT
-//! @SYMTestStatus   Implemented
+//! @SYMTESTSTATUS   Implemented
 //! @SYMPREQ                 PREQ1635
 //! @SYMREQ 
 RUN_TEST_STEP !OOM 100 UloggerOutfrmwkServer TextMessageTeststep 

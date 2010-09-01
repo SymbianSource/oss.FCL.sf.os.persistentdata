@@ -85,7 +85,7 @@ TBool CClearTraceControlConfigWrapper::DoCommandL(	const TTEFFunction& /*aComman
                  }
              }
 	    CClearConfig configIni;
-	    configIni.ClearL(logger);		
+	    configIni.Clear(logger);		
      	SetBlockResult(EPass);
 		return ETrue;
 	}

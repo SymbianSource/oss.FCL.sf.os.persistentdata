@@ -23,7 +23,7 @@
 */
 #if (!defined __TESTSETDATANOTIFICATIONSIZE_STEP_H__)
 #define __TESTSETDATANOTIFICATIONSIZE_STEP_H__
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_uloggerclientsuitestepbase.h"
 
 class CTestSetDataNotificationSizeStep : public CTestUloggerClientApiStepBase

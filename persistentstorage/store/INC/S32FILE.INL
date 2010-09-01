@@ -378,7 +378,7 @@ This file replaces any existing file of the same name.
 @param aFs Handle to a file server session. 
 @param aName The full path name of the file to be replaced.
 @param aFileMode The mode in which the file is to be accessed. The mode is 
-defined by the TFileMode type.
+defined by the TFileMode type. 
 @return A pointer to the new permanent file store object.
 @see TFileMode */
 	{
@@ -401,7 +401,7 @@ This file replaces any existing file of the same name.
 @param aFs Handle to a file server session. 
 @param aName The full path name of the file to be replaced.
 @param aFileMode The mode in which the file is to be accessed. The mode is 
-defined by the TFileMode type.
+defined by the TFileMode type. 
 @return A pointer to the new permanent file store object. 
 @see TFileMode */
 	{
@@ -477,8 +477,6 @@ bit when opening the file. This is because that when the file server write cachi
 order of file write operations is not guaranteed. This could cause data inconsistency in some
 circumstances, for example, when the power is lost in the middle of database transaction.
 Therefore, the file write caching should be switched off to maintain integrity.
-   
-
 
 The file must already be open before calling this function.
 
@@ -510,7 +508,7 @@ inline CPermanentFileStore* CPermanentFileStore::NewL(RFile& aFile)
 
 The file must already be open before calling this function. The existing content 
 of the file is discarded. It is strongly recommended to set EFileWriteDirectIO
-bit when opening the file. It is because that when the file write caching in file server is on, the
+bit when opening the file. It is because that when file server file write cachingis on, the
 order of file writing is not guaranteed which could cause data inconsistency in some
 circumstances, for example, when the power is lost in the middle of data transaction.
 Therefore, the file write caching should be switched off to maintain the file integrity.
@@ -527,10 +525,10 @@ places the pointer onto the cleanup stack.
 
 The file must already be open before calling this function.The existing content 
 of the file is discarded. It is strongly recommended to set EFileWriteDirectIO
-bit when opening the file. It is because that when the write caching in file server is on, the
+bit when opening the file. It is because that when the file write caching in file server is on, the
 order of file writing is not guaranteed which could cause data inconsistency in some
 circumstances, for example, when the power is lost in the middle of data transaction.
-Therefore, the file write caching should be switched off to maintain the file integrity.
+Therefore, the file file write caching should be switched off to maintain the file integrity.
 
 Note that ownership of the file passes to the store. The referenced RFile 
 is cleared and is no longer valid.

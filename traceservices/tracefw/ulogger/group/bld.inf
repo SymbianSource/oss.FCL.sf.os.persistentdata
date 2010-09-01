@@ -15,24 +15,14 @@
 // 
 //
 
+/**
+ @file
+*/
+
 #include "../../utf_trace_api/group/bld.inf"
 
-PRJ_EXPORTS
-../inc/uloggerclient.h          OS_LAYER_PLATFORM_EXPORT_PATH(uloggerclient.h)
-../inc/uloggeroutputplugin.h    OS_LAYER_PLATFORM_EXPORT_PATH(uloggeroutputplugin.h)
-../inc/uloggerdatatypes.h       OS_LAYER_PLATFORM_EXPORT_PATH(uloggerdatatypes.h)
-../inc/uloggerinputplugin.h     OS_LAYER_PLATFORM_EXPORT_PATH(uloggerinputplugin.h)
-../inc/uloggerplugin.h          OS_LAYER_PLATFORM_EXPORT_PATH(uloggerplugin.h)
-../inc/uloggerplugin.inl        OS_LAYER_PLATFORM_EXPORT_PATH(uloggerplugin.inl)
-../inc/uloggercommands.h   		OS_LAYER_PLATFORM_EXPORT_PATH(uloggercommands.h)
-../inc/uloggershared.h   		OS_LAYER_PLATFORM_EXPORT_PATH(uloggershared.h)
-
-../inc/uloggerconfig.ini   		c:/private/10273881/uloggerconfig.ini
-../inc/uloggerconfig.ini   		z:/private/10273881/uloggerconfig.ini
-
-../group/ulogger.iby            /epoc32/rom/include/ulogger.iby
-
 PRJ_MMPFILES
+
 uloggercommand.mmp
 uloggersysconfig.mmp
 uloggerpluginframework.mmp
@@ -41,3 +31,23 @@ uloggerplugserial.mmp
 uloggerclient.mmp
 uloggerserver.mmp
 uloggersysstart.mmp
+
+PRJ_EXPORTS
+
+../inc/uloggerclient.h              uloggerclient.h
+../inc/uloggeroutputplugin.h        uloggeroutputplugin.h
+../inc/uloggerdatatypes.h           uloggerdatatypes.h
+../inc/uloggerinputplugin.h         uloggerinputplugin.h
+../inc/uloggerplugin.h              uloggerplugin.h
+../inc/uloggerplugin.inl            uloggerplugin.inl
+../inc/uloggercommands.h   			uloggercommands.h
+../inc/uloggershared.h   			uloggershared.h
+
+
+
+../inc/uloggerconfig.ini   		c:/private/10273881/uloggerconfig.ini
+../inc/uloggerconfig.ini   		z:/private/10273881/uloggerconfig.ini
+
+
+//IBY file
+../group/ulogger.iby     /epoc32/rom/include/ulogger.iby

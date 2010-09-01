@@ -62,7 +62,7 @@ TVerdict CULoggerClearConfigStep::doTestStepL()
 		RULogger logger;
 	    logger.Connect();
 	    CClearConfig configIni;
-	    configIni.ClearL(logger);		
+	    configIni.Clear(logger);		
      	SetTestStepResult(EPass);
 		return TestStepResult();
 	}

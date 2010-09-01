@@ -22,7 +22,7 @@
 
 #ifndef TE_CHECK_RECORD_CONTENT_STEP_H_
 #define TE_CHECK_RECORD_CONTENT_STEP_H_
-#include <test/testexecutestepbase.h>
+#include <TestExecuteStepBase.h>
 #include "te_suite_step_base.h"
 #include "te_parser.h"
 
@@ -37,7 +37,7 @@ public:
 //	virtual TVerdict doTestStepPostambleL();
 private:
 	TInt CompareTraces();
-	TInt WriteTracesL();
+	TInt WriteTraces();
 	TInt ReadTraces();
 	TTraceConfigs* CreateTrace(TTraceApiUsed aApi);
 	TTraceParser	iParser;

@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -13,13 +13,8 @@
 // Description:
 //
 
-#include "SqlAssert.h"			//ESqlPanicInvalidObj, ESqlPanicObjExists
+#include "SqlPanic.h"			//ESqlPanicInvalidObj, ESqlPanicObjExists
 #include "SqlDatabaseImpl.h"	//CSqlDatabaseImpl
-#include "OstTraceDefinitions.h"
-#ifdef OST_TRACE_COMPILER_IN_USE
-#include "SqlDatabaseTraces.h"
-#endif
-#include "SqlTraceDef.h"
 
 /**
 Gets the category of the return code value that is returned by
@@ -100,11 +95,12 @@ Creates a new shared non-secure or private secure database.
 */
 EXPORT_C TInt RSqlDatabase::Create(const TDesC& aDbFileName, const TDesC8* aConfig)
 	{
-    __SQLTRACE_BORDEREXPR(TPtrC8 config(aConfig ? *aConfig : KNullDesC8));
-	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
-	SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_CREATE_ENTRY, "Entry;0x%X;RSqlDatabase::Create;aDbFileName=%S;aConfig=%s", (TUint)this, __SQLPRNSTR(aDbFileName), __SQLPRNSTR8(config, des16prnbuf)));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aDbFileName));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(aConfig ? (void)UTF::Printf(UTF::TTraceContext(UTF::EInternals), 
+			KStrParam, 2, aConfig) : void(0));
+	
 	TRAPD(err, iImpl = CSqlDatabaseImpl::NewL(ESqlSrvDbCreate, aDbFileName, NULL, aConfig));
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_CREATE_Exit, "Exit;0x%X;RSqlDatabase::Create;iImpl=0x%X;err=%d", (TUint)this, (TUint)iImpl, err));
 	return err;
 	}
 	
@@ -150,11 +146,13 @@ Creates a new shared secure database.
 EXPORT_C TInt RSqlDatabase::Create(const TDesC& aDbFileName,
 						const RSqlSecurityPolicy& aSecurityPolicy, const TDesC8* aConfig)
 	{
-    __SQLTRACE_BORDEREXPR(TPtrC8 config(aConfig ? *aConfig : KNullDesC8));
-	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
-    SQL_TRACE_BORDER(OstTraceExt4(TRACE_BORDER, RSQLDATABASE_CREATE2_ENTRY, "Entry;0x%X;RSqlDatabase::Create;aDbFileName=%S;aSecurityPolicy=0x%X;aConfig=%s", (TUint)this, __SQLPRNSTR(aDbFileName), (TUint)&aSecurityPolicy, __SQLPRNSTR8(config, des16prnbuf)));
-	TRAPD(err, 	iImpl = CSqlDatabaseImpl::NewL(ESqlSrvDbCreateSecure, aDbFileName, &aSecurityPolicy.Impl(), aConfig));
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_CREATE2_Exit, "Exit;0x%X;RSqlDatabase::Create;iImpl=0x%X;err=%d", (TUint)this, (TUint)iImpl, err));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aDbFileName));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(aConfig ? (void)UTF::Printf(UTF::TTraceContext(UTF::EInternals), 
+			KStrParam, 2, aConfig) : void(0));
+	
+	TRAPD(err, 	iImpl = CSqlDatabaseImpl::NewL(ESqlSrvDbCreateSecure, aDbFileName,
+			&aSecurityPolicy.Impl(), aConfig));
 	return err;
 	}
 	
@@ -201,11 +199,12 @@ Opens an existing database, which can be:
 */
 EXPORT_C TInt RSqlDatabase::Open(const TDesC& aDbFileName, const TDesC8* aConfig)
 	{
-    __SQLTRACE_BORDEREXPR(TPtrC8 config(aConfig ? *aConfig : KNullDesC8));
-	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_OPEN_ENTRY, "Entry;0x%X;RSqlDatabase::Open;aDbFileName=%S;aConfig=%s", (TUint)this, __SQLPRNSTR(aDbFileName), __SQLPRNSTR8(config, des16prnbuf)));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aDbFileName));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(aConfig ? (void)UTF::Printf(UTF::TTraceContext(UTF::EInternals), 
+			KStrParam, 2, aConfig) : void(0));
+	
 	TRAPD(err, iImpl = CSqlDatabaseImpl::NewL(ESqlSrvDbOpen, aDbFileName, NULL, aConfig));
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_OPEN_EXIT, "Exit;0x%X;RSqlDatabase::Open;iImpl=0x%X;err=%d", (TUint)this, (TUint)iImpl, err));
 	return err;
 	}
 
@@ -241,11 +240,12 @@ Creates a new shared non-secure or private secure database.
 */
 EXPORT_C void RSqlDatabase::CreateL(const TDesC& aDbFileName, const TDesC8* aConfig)
 	{
-    __SQLTRACE_BORDEREXPR(TPtrC8 config(aConfig ? *aConfig : KNullDesC8));
-	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_CREATEL_ENTRY, "Entry;0x%X;RSqlDatabase::CreateL;aDbFileName=%S;aConfig=%s", (TUint)this, __SQLPRNSTR(aDbFileName), __SQLPRNSTR8(config, des16prnbuf)));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aDbFileName));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(aConfig ? (void)UTF::Printf(UTF::TTraceContext(UTF::EInternals), 
+			KStrParam, 2, aConfig) : void(0));
+	
 	iImpl = CSqlDatabaseImpl::NewL(ESqlSrvDbCreate, aDbFileName, NULL, aConfig);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_CREATEL_EXIT, "Entry;0x%X;RSqlDatabase::CreateL;iImpl=0x%X", (TUint)this, (TUint)iImpl));
 	}
 	
 /**
@@ -288,11 +288,13 @@ Creates a new shared secure database.
 EXPORT_C void RSqlDatabase::CreateL(const TDesC& aDbFileName,
 				const RSqlSecurityPolicy& aSecurityPolicy, const TDesC8* aConfig)
 	{
-    __SQLTRACE_BORDEREXPR(TPtrC8 config(aConfig ? *aConfig : KNullDesC8));
-	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
-    SQL_TRACE_BORDER(OstTraceExt4(TRACE_BORDER, RSQLDATABASE_CREATEL2_ENTRY, "Entry;0x%X;RSqlDatabase::CreateL;aDbFileName=%S;aSecurityPolicy=0x%X;aConfig=%s", (TUint)this, __SQLPRNSTR(aDbFileName), (TUint)&aSecurityPolicy, __SQLPRNSTR8(config, des16prnbuf)));
-	iImpl = CSqlDatabaseImpl::NewL(ESqlSrvDbCreateSecure, aDbFileName, &aSecurityPolicy.Impl(), aConfig);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_CREATEL2_EXIT, "Exit;0x%X;RSqlDatabase::CreateL;iImpl=0x%X", (TUint)this, (TUint)iImpl));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aDbFileName));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(aConfig ? (void)UTF::Printf(UTF::TTraceContext(UTF::EInternals), 
+			KStrParam, 2, aConfig) : void(0));
+	
+	iImpl = CSqlDatabaseImpl::NewL(ESqlSrvDbCreateSecure, aDbFileName,
+						&aSecurityPolicy.Impl(), aConfig);
 	}
 	
 /**
@@ -337,10 +339,12 @@ Opens an existing database, which can be:
 */
 EXPORT_C void RSqlDatabase::OpenL(const TDesC& aDbFileName, const TDesC8* aConfig)
 	{
-    __SQLTRACE_BORDEREXPR(TPtrC8 config(aConfig ? *aConfig : KNullDesC8));
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_OPENL_ENTRY, "Entry;0x%X;RSqlDatabase::OpenL;aDbFileName=%S;aConfig=%s", (TUint)this, __SQLPRNSTR(aDbFileName), __SQLPRNSTR(config)));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aDbFileName));
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(aConfig ? (void)UTF::Printf(UTF::TTraceContext(UTF::EInternals), 
+			KStrParam, 2, aConfig) : void(0));
+	
 	iImpl = CSqlDatabaseImpl::NewL(ESqlSrvDbOpen, aDbFileName, NULL, aConfig);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_OPENL_EXIT, "Exit;0x%X;RSqlDatabase::OpenL;iImpl=0x%X", (TUint)this, (TUint)iImpl));
 	}
 
 /**
@@ -358,9 +362,8 @@ RSqlDatabase::Create() or RSqlDatabase::Open().
 */
 EXPORT_C void RSqlDatabase::Close()
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_CLOSE_ENTRY, "Entry;0x%X;RSqlDatabase::Close;iImpl=0x%X", (TUint)this, (TUint)iImpl));
+	SQLUTRACE_PROFILER(this);
 	delete iImpl;
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_CLOSE_EXIT, "Exit;0x%X;RSqlDatabase::Close;iImpl=0x%X", (TUint)this, (TUint)iImpl));
 	iImpl = NULL;
 	}
 	
@@ -405,10 +408,10 @@ Transactions involving multiple attached databases are atomic.
 */
 EXPORT_C TInt RSqlDatabase::Attach(const TDesC& aDbFileName, const TDesC& aDbName)
 	{
-    SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_ATTACH_ENTRY, "Entry;0x%X;RSqlDatabase::Attach;aDbFileName=%S;aDbName=%S", (TUint)this, __SQLPRNSTR(aDbFileName), __SQLPRNSTR(aDbName)));
-	TInt err = Impl().Attach(aDbFileName, aDbName);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_ATTACH_EXIT, "Entry;0x%X;RSqlDatabase::Attach;err=%d", (TUint)this, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrStrParam16, &aDbFileName, &aDbName));
+	
+	return Impl().Attach(aDbFileName, aDbName);
 	}
 		
 /**
@@ -426,10 +429,10 @@ Detaches previously attached database.
 */
 EXPORT_C TInt RSqlDatabase::Detach(const TDesC& aDbName)
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_DETACH_ENTRY, "Entry;0x%X;RSqlDatabase::Detach;aDbName=%S", (TUint)this, __SQLPRNSTR(aDbName)));
-	TInt err = Impl().Detach(aDbName);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_DETACH_EXIT, "Exit;0x%X;RSqlDatabase::Detach;err=%d", (TUint)this, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aDbName));
+	
+	return Impl().Detach(aDbName);
 	}
 
 /**
@@ -467,10 +470,11 @@ Note that if the source database is a secure database, only the application, whi
 */
 EXPORT_C TInt RSqlDatabase::Copy(const TDesC& aSrcDbFileName, const TDesC& aDestDbFileName)
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_COPY_ENTRY, "Entry;0;RSqlDatabase::Copy;aSrcDbFileName=%S;aDestDbFileName=%S", __SQLPRNSTR(aSrcDbFileName), __SQLPRNSTR(aDestDbFileName)));
-	TInt err = CSqlDatabaseImpl::Copy(aSrcDbFileName, aDestDbFileName);
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLDATABASE_COPY_EXIT, "Exit;0;RSqlDatabase::Copy;err=%d", err));
-	return err;
+	SQLUTRACE_PROFILER(0);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrStrParam16, 
+			&aSrcDbFileName, &aDestDbFileName));
+
+	return CSqlDatabaseImpl::Copy(aSrcDbFileName, aDestDbFileName);
 	}
 	
 /**
@@ -500,10 +504,10 @@ Note that if the database to be deleted is a secure database, only the applicati
 */
 EXPORT_C TInt RSqlDatabase::Delete(const TDesC& aDbFileName)
 	{
-    SQL_TRACE_BORDER(OstTraceExt1(TRACE_BORDER, RSQLDATABASE_DELETE_ENTRY, "Entry;0;RSqlDatabase::Delete;aDbFileName=%S", __SQLPRNSTR(aDbFileName)));
-	TInt err = CSqlDatabaseImpl::Delete(aDbFileName);
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLDATABASE_DELETE_EXIT, "Exit;0;RSqlDatabase::Delete;err=%d", err));
-	return err;
+	SQLUTRACE_PROFILER(0);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aDbFileName));
+	
+	return CSqlDatabaseImpl::Delete(aDbFileName);
 	}
 	
 /**
@@ -523,9 +527,10 @@ Note that there may be no security policies in force for this database.
 */
 EXPORT_C TInt RSqlDatabase::GetSecurityPolicy(RSqlSecurityPolicy& aSecurityPolicy) const
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_GETSECURITYPOLICY_ENTRY, "Entry;0x%X;RSqlDatabase::GetSecurityPolicy;aSecurityPolicy=0x%X", (TUint)this, (TUint)&aSecurityPolicy));
-	TRAPD(err, CSqlSecurityPolicy* securityPolicy = Impl().CloneSecurityPolicyL(); aSecurityPolicy.Set(*securityPolicy));
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_GETSECURITYPOLICY_EXIT, "Exit;0x%X;RSqlDatabase::GetSecurityPolicy;err=%d", (TUint)this, err));
+	SQLUTRACE_PROFILER(this);
+	TRAPD(err, CSqlSecurityPolicy* securityPolicy = Impl().CloneSecurityPolicyL();
+		aSecurityPolicy.Set(*securityPolicy));
+	
 	return err;
 	}
 	
@@ -545,10 +550,9 @@ Note that there may be no security policies in force for this database.
 */
 EXPORT_C void RSqlDatabase::GetSecurityPolicyL(RSqlSecurityPolicy& aSecurityPolicy) const
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_GETSECURITYPOLICYL_ENTRY, "Entry;0x%X;RSqlDatabase::GetSecurityPolicyL;aSecurityPolicy=0x%X", (TUint)this, (TUint)&aSecurityPolicy));
+	SQLUTRACE_PROFILER(this);
 	CSqlSecurityPolicy* securityPolicy = Impl().CloneSecurityPolicyL();
 	aSecurityPolicy.Set(*securityPolicy);	
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLDATABASE_GETSECURITYPOLICYL_EXIT, "Exit;0x%X;RSqlDatabase::GetSecurityPolicyL", (TUint)this));
 	}
 	
 /**
@@ -577,10 +581,8 @@ whenever the database is created or opened.
 */
 EXPORT_C TInt RSqlDatabase::SetIsolationLevel(RSqlDatabase::TIsolationLevel aIsolationLevel)
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_SETISOLATIONLEVEL_ENTRY, "Entry;0x%X;RSqlDatabase::SetIsolationLevel;aIsolationLevel=%d", (TUint)this, aIsolationLevel));
-	TInt err = Impl().SetIsolationLevel(aIsolationLevel);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_SETISOLATIONLEVEL_EXIT, "Exit;0x%X;RSqlDatabase::SetIsolationLevel;err=%d", (TUint)this, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	return Impl().SetIsolationLevel(aIsolationLevel);
 	}
 	
 /**
@@ -630,10 +632,10 @@ the error can be obtained calling RSqlDatabase::LastErrorMessage().
 */
 EXPORT_C TInt RSqlDatabase::Exec(const TDesC& aSqlStmt)
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_EXEC16_ENTRY, "Entry;0x%X;RSqlDatabase::Exec16;aSqlStmt=%S", (TUint)this, __SQLPRNSTR(aSqlStmt)));
-	TInt err = Impl().Exec(aSqlStmt);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_EXEC16_EXIT, "Exit;0x%X;RSqlDatabase::Exec16;err=%d", (TUint)this, err));
-    return err;
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aSqlStmt));
+
+	return Impl().Exec(aSqlStmt);
 	}
 	
 /**
@@ -683,11 +685,10 @@ the error can be obtained calling RSqlDatabase::LastErrorMessage().
 */
 EXPORT_C TInt RSqlDatabase::Exec(const TDesC8& aSqlStmt)
 	{
-	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_EXEC8_ENTRY, "Entry;0x%X;RSqlDatabase::Exec8;aSqlStmt=%s", (TUint)this, __SQLPRNSTR8(aSqlStmt, des16prnbuf)));
-	TInt err = Impl().Exec(aSqlStmt);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_EXEC8_EXIT, "Exit;0x%X;RSqlDatabase::Exec8;err=%d", (TUint)this, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam, 1, &aSqlStmt));
+
+	return Impl().Exec(aSqlStmt);
 	}
 
 /**
@@ -742,9 +743,10 @@ the error can be obtained calling RSqlDatabase::LastErrorMessage().
 */
 EXPORT_C void RSqlDatabase::Exec(const TDesC& aSqlStmt, TRequestStatus& aStatus)
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_EXECASYNC16_ENTRY, "Entry;0x%X;RSqlDatabase::ExecAsync16;aSqlStmt=%S", (TUint)this, __SQLPRNSTR(aSqlStmt)));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 1, &aSqlStmt));
+
 	Impl().Exec(aSqlStmt, aStatus);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_EXECASYNC16_EXIT, "Exit;0x%X;RSqlDatabase::ExecAsync16;aStatus.Int()=%d", (TUint)this, aStatus.Int()));
 	}
 
 /**
@@ -799,10 +801,10 @@ the error can be obtained calling RSqlDatabase::LastErrorMessage().
 */
 EXPORT_C void RSqlDatabase::Exec(const TDesC8& aSqlStmt, TRequestStatus& aStatus)
 	{
-	__SQLTRACE_BORDERVAR(TBuf<100> des16prnbuf);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_EXECASYNC8_ENTRY, "Entry;0x%X;RSqlDatabase::ExecAsync8;aSqlStmt=%s", (TUint)this, __SQLPRNSTR8(aSqlStmt, des16prnbuf)));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam, 1, &aSqlStmt));
+
 	Impl().Exec(aSqlStmt, aStatus);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_EXECASYNC8_EXIT, "Exit;0x%X;RSqlDatabase::ExecAsync8;aStatus.Int()=%d", (TUint)this, aStatus.Int()));
 	}
 	
 /**
@@ -831,9 +833,8 @@ type ESqlDbError.
 */
 EXPORT_C TPtrC RSqlDatabase::LastErrorMessage() const
 	{
-	TPtrC msg(Impl().LastErrorMessage());
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_LASTERRORMESSAGE, "0x%X;RSqlDatabase::LastErrorMessage;msg=%S", (TUint)this, __SQLPRNSTR(msg)));
-	return msg;
+	SQLUTRACE_PROFILER(0);
+	return Impl().LastErrorMessage();
 	}
 
 /**
@@ -849,10 +850,8 @@ from this database connection.
 */
 EXPORT_C TInt64 RSqlDatabase::LastInsertedRowId() const
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLDATABASE_LASTINSERTEDROWID_ENTRY, "Entry;0x%X;RSqlDatabase::LastInsertedRowId", (TUint)this));
-	TInt64 rc = Impl().LastInsertedRowId();
-	SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_LASTINSERTEDROWID_EXIT, "Exit;0x%X;RSqlDatabase::LastInsertedRowId;RowId=%lld", (TUint)this, rc));
-	return rc;
+	SQLUTRACE_PROFILER(0);
+	return Impl().LastInsertedRowId();	
 	}
 
 /**
@@ -864,10 +863,8 @@ Checks the database transaction state.
 */
 EXPORT_C TBool RSqlDatabase::InTransaction() const
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLDATABASE_INTRABSACTION_ENTRY, "Entry;0x%X;RSqlDatabase::InTransaction", (TUint)this));
-	TBool res = Impl().InTransaction();
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_INTRABSACTION_EXIT, "Exit;0x%X;RSqlDatabase::InTransaction;res=%d", (TUint)this, res));
-	return res;
+	SQLUTRACE_PROFILER(0);
+	return Impl().InTransaction();
 	}
 	
 /**
@@ -884,10 +881,8 @@ Returns the database file size, in bytes.
 */
 EXPORT_C TInt RSqlDatabase::Size() const
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLDATABASE_SIZE_ENTRY, "Entry;0x%X;RSqlDatabase::Size", (TUint)this));
-	TInt rc = Impl().Size();
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_SIZE_EXIT, "Exit;0x%X;RSqlDatabase::Size;rc=%d", (TUint)this, rc));
-	return rc;
+	SQLUTRACE_PROFILER(0);
+	return Impl().Size();
 	}
 
 /**
@@ -907,10 +902,10 @@ Returns the database file size and free space, in bytes.
 */
 EXPORT_C TInt RSqlDatabase::Size(RSqlDatabase::TSize& aSize, const TDesC& aDbName) const
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_SIZE2_ENTRY, "Entry;0x%X;RSqlDatabase::Size-2;aDbName=%S", (TUint)this, __SQLPRNSTR(aDbName)));
-	TInt err = Impl().Size(aSize, aDbName);
-    SQL_TRACE_BORDER(OstTraceExt4(TRACE_BORDER, RSQLDATABASE_SIZE2_EXIT, "Exit;0x%X;RSqlDatabase::Size-2;err=%d;aSize.iSize=%lld;aSize.iFree=%lld", (TUint)this, err, aSize.iSize, aSize.iFree));
-	return err;
+	SQLUTRACE_PROFILER(0);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KStrParam16, 2, &aDbName));
+	
+	return Impl().Size(aSize, aDbName);
 	}
 
 /**
@@ -945,10 +940,10 @@ has been configured for a manual compaction.
 */
 EXPORT_C TInt RSqlDatabase::Compact(TInt64 aSize, const TDesC& aDbName)
 	{
-	SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_COMPACT_ENTRY, "Entry;0x%X;RSqlDatabase::Compact;aSize=%lld;aDbName=%S", (TUint)this, aSize, __SQLPRNSTR(aDbName)));
-	TInt rc = Impl().Compact(aSize, aDbName);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_COMPACT_EXIT, "Exit;0x%X;RSqlDatabase::Compact;rc=%d", (TUint)this, rc));
-	return rc;
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KSizeStrParam16, 1, aSize, 2, &aDbName));
+
+	return Impl().Compact(aSize, aDbName);
 	}
 	
 /**
@@ -985,9 +980,10 @@ has been configured for a manual compaction.
 */
 EXPORT_C void RSqlDatabase::Compact(TInt64 aSize, TRequestStatus& aStatus, const TDesC& aDbName)
 	{
-	SQL_TRACE_BORDER(OstTraceExt3(TRACE_BORDER, RSQLDATABASE_COMPACTASYNC_ENTRY, "Entry;0x%X;RSqlDatabase::CompactAsync;aSize=%lld;aDbName=%S", (TUint)this, aSize, __SQLPRNSTR(aDbName)));
+	SQLUTRACE_PROFILER(this);
+	SYMBIAN_TRACE_SQL_EVENTS_ONLY(UTF::Printf(UTF::TTraceContext(UTF::EInternals), KSizeStrParam16, 1, aSize, 3, &aDbName));
+
 	Impl().Compact(aSize, aDbName, aStatus);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_COMPACTASYNC_EXIT, "Exit;0x%X;RSqlDatabase::CompactAsync;aStatus.Int()=%d", (TUint)this, aStatus.Int()));
 	}
 
 /**
@@ -1014,12 +1010,10 @@ in "low memory" situations.
 */
 EXPORT_C TInt RSqlDatabase::ReserveDriveSpace(TInt aSize)
 	{
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_RESERVEDRIVESPACE_ENTRY, "Entry;0x%X;RSqlDatabase::ReserveDriveSpace;aSize=%d", (TUint)this, aSize));
+	SQLUTRACE_PROFILER(this);
 	//Usage of the IPC call arguments: 
 	//Arg 0: [out]  requested size
-	TInt err = Impl().Session().SendReceive(ESqlSrvDbReserveDriveSpace, TIpcArgs(aSize));
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_RESERVEDRIVESPACE_EXIT, "Exit;0x%X;RSqlDatabase::ReserveDriveSpace;err=%d", (TUint)this, err));
-    return err;
+	return Impl().Session().SendReceive(ESqlSrvDbReserveDriveSpace, TIpcArgs(aSize));
 	}
 	
 /**
@@ -1031,9 +1025,8 @@ Frees the reserved disk space.
 */
 EXPORT_C void RSqlDatabase::FreeReservedSpace()
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLDATABASE_FREERESERVEDSPACE_ENTRY, "Entry;0x%X;RSqlDatabase::FreeReservedSpace", (TUint)this));
-	__SQLTRACE_BORDERVAR(TInt err =) Impl().Session().SendReceive(ESqlSrvDbFreeReservedSpace);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_FREERESERVEDSPACE_EXIT, "Exit;0x%X;RSqlDatabase::FreeReservedSpace;err=%d", (TUint)this, err));
+	SQLUTRACE_PROFILER(this);
+	Impl().Session().SendReceive(ESqlSrvDbFreeReservedSpace);
 	}
 	
 /**
@@ -1050,10 +1043,8 @@ Gives the client an access to the already reserved disk space.
 */
 EXPORT_C TInt RSqlDatabase::GetReserveAccess()
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLDATABASE_GETRESERVEACCESS_ENTRY, "Exit;0x%X;RSqlDatabase::GetReserveAccess", (TUint)this));
-	TInt err = Impl().Session().SendReceive(ESqlSrvDbGetReserveAccess);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_GETRESERVEACCESS_EXIT, "Exit;0x%X;RSqlDatabase::GetReserveAccess;err=%d", (TUint)this, err));
-	return err;
+	SQLUTRACE_PROFILER(this);
+	return Impl().Session().SendReceive(ESqlSrvDbGetReserveAccess);
 	}
 	
 /**
@@ -1065,9 +1056,8 @@ Releases the access to the reserved disk space.
 */
 EXPORT_C void RSqlDatabase::ReleaseReserveAccess()
 	{
-    SQL_TRACE_BORDER(OstTrace1(TRACE_BORDER, RSQLDATABASE_RELEASERESERVEACCESS_ENTRY, "Entry;0x%X;RSqlDatabase::ReleaseReserveAccess", (TUint)this));
-	__SQLTRACE_BORDERVAR(TInt err =) Impl().Session().SendReceive(ESqlSrvDbReleaseReserveAccess);
-    SQL_TRACE_BORDER(OstTraceExt2(TRACE_BORDER, RSQLDATABASE_RELEASERESERVEACCESS_EXIT, "Exit;0x%X;RSqlDatabase::ReleaseReserveAccess;err=%d", (TUint)this, err));
+	SQLUTRACE_PROFILER(this);
+	Impl().Session().SendReceive(ESqlSrvDbReleaseReserveAccess);
 	}
 
 /**
@@ -1079,6 +1069,6 @@ Returns a reference to the implementation object of RSqlDatabase - CSqlDatabaseI
 */
 CSqlDatabaseImpl& RSqlDatabase::Impl() const
 	{
-	__ASSERT_ALWAYS(iImpl != NULL, __SQLPANIC(ESqlPanicInvalidObj));
+	__SQLASSERT_ALWAYS(iImpl != NULL, ESqlPanicInvalidObj);
 	return *iImpl;	
 	}

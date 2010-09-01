@@ -53,10 +53,10 @@ Constructs and returns a TPtrC object to the long column value, identified by aC
 */
 inline TPtrC RSqlLongColumnColl::Text(TInt aColumnIndex) const
 	{
-	__ASSERT_DEBUG(aColumnIndex >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aColumnIndex >= 0, ESqlPanicBadArgument);
 	LONGCOL_INVARIANT();
 	TInt rc = FindValue(aColumnIndex);
-	__ASSERT_ALWAYS(rc >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT_ALWAYS(rc >= 0, ESqlPanicInternalError);
 	TPtrC8 ptr(iValues[rc].iData->Des());
 	return TPtrC(reinterpret_cast <const TUint16*> (ptr.Ptr()), ptr.Length() / sizeof(TUint16));
 	}
@@ -70,10 +70,10 @@ Constructs and returns a TPtrC8 object to the long column value, identified by a
 */
 inline TPtrC8 RSqlLongColumnColl::Binary(TInt aColumnIndex) const
 	{
-	__ASSERT_DEBUG(aColumnIndex >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aColumnIndex >= 0, ESqlPanicBadArgument);
 	LONGCOL_INVARIANT();
 	TInt rc = FindValue(aColumnIndex);
-	__ASSERT_ALWAYS(rc >= 0, __SQLPANIC(ESqlPanicInternalError));
+	__SQLASSERT_ALWAYS(rc >= 0, ESqlPanicInternalError);
 	return iValues[rc].iData->Des();
 	}
 
@@ -85,7 +85,7 @@ Returns true if there is a long column value in the collection, which index is a
 */
 inline TBool RSqlLongColumnColl::IsPresent(TInt aColumnIndex) const
 	{
-	__ASSERT_DEBUG(aColumnIndex >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aColumnIndex >= 0, ESqlPanicBadArgument);
 	LONGCOL_INVARIANT();
 	return FindValue(aColumnIndex) >= 0;
 	}
@@ -99,7 +99,7 @@ The method returns the index in the collection of the long column value, identif
 */
 inline TInt RSqlLongColumnColl::FindValue(TInt aColumnIndex) const
 	{
-	__ASSERT_DEBUG(aColumnIndex >= 0, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aColumnIndex >= 0, ESqlPanicBadArgument);
 	return iValues.Find(aColumnIndex, &RSqlLongColumnColl::TData::Compare);
 	}
 
@@ -113,8 +113,8 @@ inline RSqlLongColumnColl::TData::TData(TInt aIndex, HBufC8* aData) :
 	iIndex(aIndex),
 	iData(aData)
 	{
-	__ASSERT_DEBUG(aIndex >= 0, __SQLPANIC(ESqlPanicBadArgument));
-	__ASSERT_DEBUG(aData != NULL, __SQLPANIC(ESqlPanicBadArgument));
+	__SQLASSERT(aIndex >= 0, ESqlPanicBadArgument);
+	__SQLASSERT(aData != NULL, ESqlPanicBadArgument);
 	}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,7 +145,7 @@ template <class DES> TInt CSqlStatementImpl::Construct(CSqlDatabaseImpl& aDataba
 		{
 		return err;	
 		}
-	__ASSERT_DEBUG(iColumnCnt >= 0, __SQLPANIC(ESqlPanicInternalError));
+    __SQLASSERT(iColumnCnt >= 0, ESqlPanicInternalError);
     err = iColumnValueBuf.SetCount(iColumnCnt);
     if(err != KErrNone)
         {
@@ -342,8 +342,8 @@ otherwise the method issues panic 11.
 */
 inline MStreamBuf* CSqlStatementImpl::ColumnSourceL(TInt aColumnIndex)
 	{
-	__ASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
-	__ASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, __SQLPANIC(ESqlPanicInvalidRow));
+	__SQLASSERT_ALWAYS((TUint)aColumnIndex < (TUint)iColumnCnt, ESqlPanicBadColumnIndex);
+	__SQLASSERT_ALWAYS(iState == CSqlStatementImpl::EAtRow, ESqlPanicInvalidRow);
 	iColumnValBufIt.MoveTo(aColumnIndex);		
 	return iColumnValBufIt.IsPresent() ? iColumnValBufIt.StreamL() : iSqlStmtSession.ColumnSourceL(aColumnIndex);
 	}
@@ -369,7 +369,7 @@ The caller is responsible for the destroying of the MStreamBuf derived object.
 */
 inline MStreamBuf* CSqlStatementImpl::ParamSinkL(TSqlSrvFunction aFunction, TInt aParamIndex)
 	{
-	__ASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, __SQLPANIC(ESqlPanicBadColumnIndex));
+	__SQLASSERT_ALWAYS((TUint)aParamIndex < (TUint)iParamCnt, ESqlPanicBadColumnIndex);
 	return iSqlStmtSession.ParamSinkL(aFunction, aParamIndex);
 	}
 

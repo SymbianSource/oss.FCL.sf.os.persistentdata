@@ -23,7 +23,7 @@
 */
 #if (!defined __TESTVERSION_STEP_H__)
 #define __TESTVERSION_STEP_H__
-#include <test/testexecutestepbase.h>
+#include <testexecutestepbase.h>
 #include "te_uloggerclientsuitestepbase.h"
 
 class CTestVersionStep : public CTestUloggerClientApiStepBase

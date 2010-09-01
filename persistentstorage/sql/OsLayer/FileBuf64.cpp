@@ -801,7 +801,7 @@ TInt RFileBuf64::DoPreInit()
     DoDiscard();
     iReadAheadSize = RFileBuf64::KDefaultReadAheadSize;
     iBase = static_cast <TUint8*> (User::Alloc(iCapacity));
-    return iBase ? KErrNone : KErrNoMemory;   
+    return iBase ? KErrNone : KErrNoMemory; 
     }
 
 /**
