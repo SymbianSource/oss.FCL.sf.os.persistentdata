@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -21,10 +21,7 @@ UID			0x1000007A 0x101F777C
 VENDORID 	0x70000001
 MACRO __ULOGGER_SYSTEMSTART_UNIT_TEST
 
-SYSTEMINCLUDE	/epoc32/include
-SYSTEMINCLUDE	/epoc32/include/test
-
-
+OS_LAYER_SYSTEMINCLUDE
 
 USERINCLUDE ../te-sysstart
 USERINCLUDE ../../inc

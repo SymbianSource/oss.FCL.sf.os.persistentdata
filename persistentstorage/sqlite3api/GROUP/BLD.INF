@@ -441,6 +441,7 @@ PRJ_TESTEXPORTS
 ../TEST/TclScript/where5.test			z:/private/10285a82/where5.test
 ../TEST/TclScript/where6.test			z:/private/10285a82/where6.test
 ../TEST/TclScript/zeroblob.test			z:/private/10285a82/zeroblob.test
+../TEST/t_sqliteapi.txt				z:/private/212c3129/t_sqliteapi.txt
 
 PRJ_TESTMMPFILES
 
