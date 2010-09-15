@@ -12,17 +12,8 @@
 //
 // Description:
 //
-// If this test starts failing, then go and check the CentralRepository private data cage 
-// (c:\\private\\10202be9 or z:\\private\\10202be9) if 101f401d.txt file is there.
-// If it is then delete it and try the test again.
-// (The problem is that if there is an existing 101f401d.txt file, then the contact match count value
-// will be loaded from that file, not from the LogEng resource file)
-//
-
-#include <bautils.h>
-#include <logserv.rsg>
-#include <barsc.h>
 #include "t_logutil2.h"
+#include "t_logutil3.h"
 #include "t_logcntmatchplugin.h"
 
 RTest TheTest(_L("t_logcntmatch"));
@@ -34,30 +25,6 @@ TLogContactNameFormat TheContactNameFmt = ELogWesternFormat;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//The function opens the LogEng server resource file (logserv.rsc) and gets the value of 
-//R_LOG_CONTACT_NAME_FORMAT resource. This value will be retured as a result of the call.
-//It gives an information what is the contact name format in the logs.
-static TLogContactNameFormat GetContactNameFormatL()
-	{
-	// Get language of resource file
-	_LIT(KLogResourceFile,"z:\\private\\101f401d\\logserv.rsc");
-	TFileName fileName(KLogResourceFile);
-	BaflUtils::NearestLanguageFile(theFs, fileName);
-
-	// Open resource file
-	RResourceFile rscFile;
-	CleanupClosePushL(rscFile);
-	rscFile.OpenL(theFs, fileName);
-	HBufC8* buf = rscFile.AllocReadLC(R_LOG_CONTACT_NAME_FORMAT);
-
-	TResourceReader reader;
-	reader.SetBuffer(buf);
-
-	TLogContactNameFormat contactNameFmt = static_cast <TLogContactNameFormat> (reader.ReadInt16());
-	CleanupStack::PopAndDestroy(2, &rscFile);
-	return contactNameFmt;
-	}
 
 //This function checks the logged name is the same as the event name.
 //Contact name logging format is taken into account.
@@ -329,16 +296,17 @@ void doTestsL()
 		return;
 		}
 
-	TheContactNameFmt = ::GetContactNameFormatL();
+	TInt contactMatchCount = 0;
+	LogGetContactmatchCountAndNameFormatL(contactMatchCount, TheContactNameFmt);
+	TheTest.Printf(_L("Contact match count = %d, TheContactNameFmt = %d\r\n"), contactMatchCount, (TInt)TheContactNameFmt);
 
 	TestUtils::DeleteDatabaseL();
 
 	CLogClient* client = CLogClient::NewL(theFs);
 	CleanupStack::PushL(client);
 	
-	//All tests bellow are likely to fail if:
-	// 1. 101f401d.txt file exists in CentralRepository private data cage and the contact mach count is set to 0 in that file.
-	// 2. SYSLIB_TEST macro is not defined.
+	//All tests bellow are likely to fail if
+	// 101f401d.txt file exists in CentralRepository private data cage and the contact mach count is set to 0 in that file.
     TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1392: DEF068087: Chinese names don't display in Chinese name format"));
 	::DEF068087L(*client);
     TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1016: Contacts matching - test1"));

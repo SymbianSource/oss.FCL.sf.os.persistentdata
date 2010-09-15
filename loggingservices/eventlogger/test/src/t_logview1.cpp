@@ -12,12 +12,6 @@
 //
 // Description:
 //
-// If this test starts failing, then go and check the CentralRepository private data cage 
-// (c:\\private\\10202be9 or z:\\private\\10202be9) if 101f401d.txt file is there.
-// If it is then delete it and try the test again.
-// (The problem is that if there is an existing 101f401d.txt file, then the contact match count value
-// will be loaded from that file, not from the LogEng resource file)
-//
 
 #include <s32file.h>
 #include <s32mem.h>

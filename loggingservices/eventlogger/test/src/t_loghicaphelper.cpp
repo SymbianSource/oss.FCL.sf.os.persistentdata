@@ -21,10 +21,8 @@
 
 #include <s32file.h>
 #include <babackup.h>
-#include <bautils.h>
-#include <barsc.h>
-#include <logserv.rsg>
 #include "t_logutil2.h"
+#include "t_logutil3.h"
 
 const TUid KTestEventUid = {0x10005393};
 _LIT(KTestEventDesc1, "Event Type Description");
@@ -505,28 +503,15 @@ static TBool DatabaseIsOpenL()
 //.................................................................................................
 
 //See TestUtils::MatchingEnabledL().
-//The function opens the LogEng server resource file (logserv.rsc) and gets the value of 
-//r_log_contact_match_count resource. This value will be retured as a result of the call.
+//The function loads the contact match count value and returns true if that value is  bigger than 0.
 //If the value is 0 - "contacts matching" part of the test will be skipped.
 static TBool MatchingEnabledL()
 	{
-	// Get language of resource file
-	_LIT(KLogResourceFile,"z:\\private\\101f401d\\logserv.rsc");
-	TFileName fileName(KLogResourceFile);
-	BaflUtils::NearestLanguageFile(theFs, fileName);
-
-	// Open resource file
-	RResourceFile res;
-	res.OpenL(theFs, fileName);
-	HBufC8* buf = res.AllocReadLC(R_LOG_CONTACT_MATCH_COUNT);
-	res.Close();
-
-	TResourceReader reader;
-	reader.SetBuffer(buf);
-
-	TBool enabled = reader.ReadInt16() > 0;
-	CleanupStack::PopAndDestroy(buf);
-	return enabled;
+	TInt contactMatchCount = 0;
+	TLogContactNameFormat contactNameFormat = ELogWesternFormat; 
+	LogGetContactmatchCountAndNameFormatL(contactMatchCount, contactNameFormat);
+    RDebug::Print(_L("** contact match count = %d, contact name format = %d\r\n"), contactMatchCount, (TInt)contactNameFormat);
+	return contactMatchCount > 0;
 	}
 
 //.................................................................................................

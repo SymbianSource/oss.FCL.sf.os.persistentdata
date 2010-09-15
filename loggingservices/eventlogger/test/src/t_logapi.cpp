@@ -18,6 +18,7 @@
 #include <logview.h>
 #include <s32mem.h> 
 #include "t_logutil2.h"
+#include "t_logutil3.h"
 
 #define UNUSED_VAR(a) a = a
 
@@ -199,9 +200,6 @@ LOCAL_C void TestClientObserverMechanismL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
-//
-//
-//
 	{
 	LOGTEXT("TestAddEventTypeL()");	
 	CLogEventType* type = CLogEventType::NewL();
@@ -244,9 +242,6 @@ LOCAL_C void TestAddEventTypeL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
-//
-//
-//
 	{
 	LOGTEXT("TestGetEventTypeL()");	
 	CLogEventType* type = CLogEventType::NewL();
@@ -287,9 +282,6 @@ LOCAL_C void TestGetEventTypeL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
-//
-//
-//
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0836 "));
 	LOGTEXT("TestChangeEventTypeL()");	
@@ -345,9 +337,6 @@ LOCAL_C void TestChangeEventTypeL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
-//
-//
-//
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0837 "));
 	LOGTEXT("TestChangeEventTypeL()");	
@@ -390,9 +379,6 @@ LOCAL_C void TestDeleteEventTypeL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestAddEventL(CLogClient& aClient)
-//
-//
-//
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1329 "));	
 	CLogEventType* type = CLogEventType::NewL();
@@ -498,9 +484,6 @@ LOCAL_C void TestClientFailL()
 */
 
 LOCAL_C void TestGetEventL(CLogClient& aClient)
-//
-//
-//
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0839 "));
 	CTestActive* active = new(ELeave)CTestActive();
@@ -588,9 +571,6 @@ LOCAL_C void TestGetEventL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestChangeEventL(CLogClient& aClient)
-//
-//
-//
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0840 "));
 	CTestActive* active = new(ELeave)CTestActive();
@@ -668,9 +648,6 @@ LOCAL_C void TestChangeEventL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestDeleteEventL(CLogClient& aClient)
-//
-//
-//
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0841 "));
 	CTestActive* active = new(ELeave)CTestActive();
@@ -703,11 +680,12 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 
 
 #ifdef SYSLIBS_TEST
+
 /**
 @SYMTestCaseID          SYSLIB-LOGENG-UT-4015
 @SYMTestCaseDesc	    Test the behaviour implemented by PREQ2103
 @SYMTestPriority 	    Medium
-@SYMTestActions  	    Get the settings from logeng repository file / resource file.
+@SYMTestActions  	    Get the settings from logeng repository file or their default values.
 @SYMTestExpectedResults Test must not fail
 @SYMREQ                 REQ11125
                         REQ11126
@@ -716,20 +694,25 @@ LOCAL_C void TestDeleteEventL(CLogClient& aClient)
 */
 LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	{
-	//Note: if this test starts failing, then go and check the CentralRepository private data cage 
-	//(c:\\private\\10202be9 or z:\\private\\10202be9) if 101f401d.txt file is there.
-	//If it is then delete it and try the test again.
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-UT-4015 "));
-	//Get the contact match count and contact name format.This should be from resource file.
-	TInt16 contactMatchCount;
-	TInt16 contactNameFormat;
+	
+	TInt contactMatchCount1;
+	TLogContactNameFormat contactNameFormat1;
+	LogGetContactmatchCountAndNameFormatL(contactMatchCount1, contactNameFormat1);
+	TheTest.Printf(_L("Contact match count = %d, contact name format = %d\r\n"), contactMatchCount1, (TInt)contactNameFormat1);
+	//contactMatchCount1 and contactNameFormat1 are loaded directly from the repository, if exists.
+	//Otherwise they are initialzied with their default values from the LogServ resource file.
+	//The LogEng server should load these resource values in a similar way.
+	//They will be stored in contactMatchCount2 and contactNameFormat2.  
+	TInt16 contactMatchCount2;
+	TInt16 contactNameFormat2;
 	RFs fs;
 	
 	LEAVE_IF_ERROR(fs.Connect());
 	CleanupClosePushL(fs);
 	
 	//Creating a new CLogClient Object make the server getting the contact match settings. 
-	//As the database is deleted it get them from the resource file.
+	//As the database is deleted it gets them from the LogEng repository.
 	CLogClient* client2 = CLogClient::NewL(fs);
 	CleanupStack::PushL(client2);
 	CleanupStack::PopAndDestroy(client2);
@@ -743,12 +726,12 @@ LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	_LIT(KLogengTestFileNameFormat, "c:\\test\\test_logengconfig_format.ini");
 	LEAVE_IF_ERROR(resFileCount_reader.Open(fs, KLogengTestFileNameCount, EFileRead));
 	LEAVE_IF_ERROR(resFileFormat_reader.Open(fs, KLogengTestFileNameFormat, EFileRead));		
-	contactMatchCount = resFileCount_reader.ReadInt32L();
-	contactNameFormat = resFileFormat_reader.ReadInt32L();
+	contactMatchCount2 = resFileCount_reader.ReadInt32L();
+	contactNameFormat2 = resFileFormat_reader.ReadInt32L();
 		
-	//The settings should match the ones from resource file.
-	TEST(contactMatchCount == 8);
-	TEST(contactNameFormat == 0);
+	//The settings loaded by the LogEng server should match the ones loaded by this test.
+	TEST(contactMatchCount1 == contactMatchCount2);
+	TEST(contactNameFormat1 == contactNameFormat2);
 		
 	CleanupStack::PopAndDestroy(&resFileFormat_reader);
 	CleanupStack::PopAndDestroy(&resFileCount_reader);
@@ -767,7 +750,7 @@ LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	
-	//The config settings should match the ones from the resource file.
+	//The config settings should match the ones from the repository.
 	TEST(config.iMaxEventAge == 2592000);
 	TEST(config.iMaxLogSize == 1000);
 	TEST(config.iMaxRecentLogSize == 20);
@@ -817,15 +800,15 @@ LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 	CleanupClosePushL(repFileFormat_reader);
 	LEAVE_IF_ERROR(repFileCount_reader.Open(fs, KLogengTestFileNameCount, EFileRead));
 	LEAVE_IF_ERROR(repFileFormat_reader.Open(fs, KLogengTestFileNameFormat, EFileRead));		
-	contactMatchCount = repFileCount_reader.ReadInt32L();
-	contactNameFormat = repFileFormat_reader.ReadInt32L();
+	contactMatchCount2 = repFileCount_reader.ReadInt32L();
+	contactNameFormat2 = repFileFormat_reader.ReadInt32L();
 	CleanupStack::PopAndDestroy(&repFileFormat_reader);
 	CleanupStack::PopAndDestroy(&repFileCount_reader);
 	CleanupStack::PopAndDestroy(&fs);
 	
 	//The values should match the ones from the repository file.
-	TEST(contactMatchCount == 6);
-	TEST(contactNameFormat == 1);
+	TEST(contactMatchCount2 == 6);
+	TEST(contactNameFormat2 == 1);
 	
 	//delete the repository file c:\\private\\10202be9\\101f401d.txt.
 	_LIT(KCommandParameters2,		"c:\\private\\10202be9\\101f401d.txt;private\\10202be9\101f401d.txt;2");
@@ -850,9 +833,6 @@ LOCAL_C void TestGetConfigSettingsFromRepositoryFileL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestGetConfigL(CLogClient& aClient)
-//
-//
-//
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0842 "));
 	CTestActive* active = new(ELeave)CTestActive();
@@ -892,9 +872,6 @@ LOCAL_C void TestGetConfigL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestChangeConfigL(CLogClient& aClient)
-//
-//
-//
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0843 "));
 	CTestActive* active = new(ELeave)CTestActive();
@@ -934,9 +911,6 @@ LOCAL_C void TestChangeConfigL(CLogClient& aClient)
 @SYMREQ                 REQ0000
 */
 LOCAL_C void TestGetStringL(CLogClient& aClient)
-//
-//
-//
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-0844 "));
 	TBuf<KLogMaxSharedStringLength> str;
