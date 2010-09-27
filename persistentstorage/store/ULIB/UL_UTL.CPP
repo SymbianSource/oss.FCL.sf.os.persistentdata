@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -17,6 +17,9 @@
 
 
 #if defined (_DEBUG)
+
+#pragma BullseyeCoverage off
+
 //
 // Leave to the current control region.
 //
@@ -60,5 +63,8 @@ TAny *Util::__DbgLeaveIfNull(TAny *aPtr,const TDesC8& aFileName,TInt aLineNo)
 		}
 	return aPtr;
 	}
+
+#pragma BullseyeCoverage on
+
 #endif
 

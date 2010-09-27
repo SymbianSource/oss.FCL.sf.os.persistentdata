@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -18,230 +18,144 @@
 #include "logservpanic.h"
 #include "LogServResourceInterpreter.h"
 
-// Constants
-const TInt KLogResourceFileGranularity = 2;
+//LogWrap resoure file name
+_LIT(KResourceFileWrapper, "\\resource\\logeng\\logwrap.rsc");
 
-// Literal constants
-_LIT(KResourceFileClient,"\\private\\101f401d\\logserv.rsc");
-_LIT(KResourceFileWrapper,"\\resource\\logeng\\logwrap.rsc");
+const TInt KStringsArrayGranularity = 20;
 
+/**
+Creates a CLogServResourceInterpreter instance.
+The created CLogServResourceInterpreter instance will load into memory the content of the LogWrap
+resource file.
+  
+@param aFs Reference to a file session object, used later for reading the content of the resource file.
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// -----> CLogServResourceInterpreter (source)
-/////////////////////////////////////////////////////////////////////////////////////////
-CLogServResourceInterpreter::CLogServResourceInterpreter(RFs& aFsSession) :	
-	iFsSession(aFsSession), iResourceFiles(KLogResourceFileGranularity),
-	iResourceStringCache(CResourceStringCacheEntry::Offset()),
-	iResourceStringCacheIter(iResourceStringCache) 
+@leave  KErrNoMemory, an out of memory condition has occurred;
+                      Note that the function may leave with database specific errors and
+                      other system-wide error codes.
+*/
+CLogServResourceInterpreter* CLogServResourceInterpreter::NewL(RFs& aFs)
 	{
-	}
-
-CLogServResourceInterpreter::~CLogServResourceInterpreter()
-	{
-	const TInt count = iResourceFiles.Count();
-	for(TInt i=0; i<count; i++)
-		{
-		TResourceFileEntry& entry = iResourceFiles[i];
-		entry.iFile.Close();
-		}
-	iResourceFiles.Close();
-
-	// Iterate through list of cache entries deleting them in turn.	
-	CResourceStringCacheEntry* item ;
-	iResourceStringCacheIter.SetToFirst() ;
-	while ((item = iResourceStringCacheIter++) != NULL)
-      {
-        iResourceStringCache.Remove(*item);
-        delete item;
-        }
-    }
-
-void CLogServResourceInterpreter::ConstructL()
-	{
-	// Load standard resource files
-	LoadResourceFileL(KResourceFileClient, ELogServer);
-	LoadResourceFileL(KResourceFileWrapper, ELogWrap);
-	}
-
-CLogServResourceInterpreter* CLogServResourceInterpreter::NewL(RFs& aFsSession)
-	{
-	CLogServResourceInterpreter* self = new(ELeave) CLogServResourceInterpreter(aFsSession);
+	CLogServResourceInterpreter* self = new (ELeave) CLogServResourceInterpreter(aFs);
 	CleanupStack::PushL(self);
 	self->ConstructL();
 	CleanupStack::Pop(self);
 	return self;
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////
-
-void CLogServResourceInterpreter::CreateResourceReaderLC(TResourceReader& aReader, TInt aId, TResourceType aType)
+/**
+Destroys CLogServResourceInterpreter object deallocating all previously allocated resources
+(the resource file, the memory for the loaded resource strings) 
+*/
+CLogServResourceInterpreter::~CLogServResourceInterpreter()
 	{
-	HBufC8* buf = GetResourceBufferL(aId, aType) ;		
+	iFile.Close();
+	for(TInt i=iStrings.Count()-1;i>=0;--i)
+		{
+		delete iStrings[i].iString;
+		}
+	iStrings.Close();
+    }
 
-	// Resource reader needs to be created with a copy of the cache buffer as otherwise
-	// our cache buffer will be deleted when the resource reader is deleted!
-	aReader.SetBuffer(buf->AllocLC());
-	}
-	
-HBufC8* CLogServResourceInterpreter::GetResourceBufferL(TInt aId, TResourceType aType)
+/**
+Creates a resource reader object for the resource identified by the aId parameter.
+
+@param aReader Output parameter. The resource reader object, created by this call.
+@param aId Resource item identifier.
+
+@leave  KErrNoMemory, an out of memory condition has occurred;
+                      Note that the function may leave with database specific errors and
+                      other system-wide error codes. 
+*/
+void CLogServResourceInterpreter::CreateResourceReaderLC(TResourceReader& aReader, TInt aId)
 	{
-
-	// Attempt to find the requested resource in the cache
-	CResourceStringCacheEntry* cacheEntry = FindCachedResourceString(aId, aType) ;	
-
-	HBufC8* buf ;
-	if (!cacheEntry)
-		{
-		// Not found in cache, load from resource file and add to the
-		// linked list which forms the cache. 
-		buf = ResourceFileForType(aType).AllocReadLC(aId);
-		cacheEntry = CResourceStringCacheEntry::NewL(aId, aType, buf) ;
-		iResourceStringCache.AddLast(*cacheEntry) ;
-		
-		// buf is now the responsibility of iResourceStringCache and
-		// will be tidied up by the destructor...
-		CleanupStack::Pop(buf);
-		}
-	else
-		{
-		buf = cacheEntry->ResourceString();
-		}
-	return buf ;
+	HBufC8* string = GetStringL(aId);		
+	//Resource reader needs to be created with a copy of the string resource as otherwise
+	//our "HBufC8*" string will be deleted when the resource reader is deleted!
+	aReader.SetBuffer(string->AllocLC());
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////
-
-void CLogServResourceInterpreter::LoadResourceFileL(const TDesC& aName, TResourceType aType)
+/**
+Initializes CLogServResourceInterpreter data members with their default values.
+@param aFs Reference to a file session object, used later for reading the content of the resource file.  
+*/
+CLogServResourceInterpreter::CLogServResourceInterpreter(RFs& aFs) :	
+	iFs(aFs), 
+	iStrings(KStringsArrayGranularity)
 	{
-	LOGTEXT3("CLogServResourceInterpreter::LoadResourceFileL(%S, %d)", &aName, aType);
+	}
 
+/**
+Loads the content of the LogWrap resource file.
+*/
+void CLogServResourceInterpreter::ConstructL()
+	{
 	// Find the resource file
-    TFileName fileName;
+  TFileName fileName;
 	fileName.Copy(RProcess().FileName());
 
-    TParse parse;
-    parse.Set(aName, &fileName, NULL);
+  TParse parse;
+  parse.Set(KResourceFileWrapper, &fileName, NULL);
 	fileName = parse.FullName();
 
 	// Get language of resource file
-	BaflUtils::NearestLanguageFile(iFsSession, fileName);
+	BaflUtils::NearestLanguageFile(iFs, fileName);
 
 	// Check the entry exists on this drive (e.g. if we are running the log server
 	// from RAM, then default to the ROM if no RSC on the current drive exists).
 	TEntry fsEntry;
-	TInt err = iFsSession.Entry(fileName, fsEntry);
-	if ( err == KErrNotFound || err == KErrPathNotFound )
+	TInt err = iFs.Entry(fileName, fsEntry);
+	if(err == KErrNotFound || err == KErrPathNotFound)
 		{
 		// Switch to ROM (we might already have been launching from the ROM,
 		// in which case this will have no effect anyway).
 		fileName[0] = 'Z';
 		}
-
-	// Open resource file
-	TResourceFileEntry entry;
-	entry.iType = aType;
-	CleanupClosePushL(entry.iFile);
-
-	LOGTEXT2("CLogServResourceInterpreter::LoadResourceFileL() - localized name is: %S", &fileName);
-	
-	entry.iFile.OpenL(iFsSession, fileName);
-	
-	LOGTEXT("CLogServResourceInterpreter::LoadResourceFileL() - resource file open");
-
-	// I'm leaving this in just in case somebody decides to try and add this code
-	// without realising the consequences...
-#ifdef __CAN_BREAK_BC__
-	//
-	// Can't use BAFL 'NAME' support in resource file, since this
-	// will break data compatibility with old software using the existing
-	// logwrap and logcli RSG header files :((
-	entry.iFile.ConfirmSignatureL();
-	__ASSERT_ALWAYS(entry.iFile.Offset() != 0, Panic(ELogNoResourceName));
-#endif
-
-	User::LeaveIfError(iResourceFiles.Append(entry));
-	CleanupStack::Pop(&entry.iFile);
-
-	LOGTEXT("CLogServResourceInterpreter::LoadResourceFileL() - end");
+	iFile.OpenL(iFs, fileName);
 	}
 
-const RResourceFile& CLogServResourceInterpreter::ResourceFileForType(TResourceType aType) const
+/**
+Attempts to read the resource string, identified by the aId parameter, from 
+the iStrings array. If the resource stringis not there, it will be loaded from the
+resource file and put in iStrings array.
+@param aId Resource string identifier.
+@return HBufC8 object containing the requested string 
+@leave  KErrNoMemory, an out of memory condition has occurred;
+                      Note that the function may leave with database specific errors and
+                      other system-wide error codes. 
+*/
+HBufC8* CLogServResourceInterpreter::GetStringL(TInt aId)
 	{
-	const RResourceFile* ret = NULL;
-	//
-	const TInt count = iResourceFiles.Count();
-	for(TInt i=0; i<count; i++)
+	TLinearOrder<TResourceString> order(&CLogServResourceInterpreter::Compare);
+	//Try to find the requested resource in the cached strings
+	TInt idx = iStrings.FindInOrder(TResourceString(aId, NULL), order);
+	if(idx == KErrNotFound)
 		{
-		const TResourceFileEntry& entry = iResourceFiles[i];
-		if	(entry.iType == aType)
-			{
-			ret = &entry.iFile;
-			break;
-			}
+		//String not in the cache, load it from the resource file
+		iStrings.ReserveL(iStrings.Count() + 1);
+		HBufC8* buf = iFile.AllocReadL(aId);
+		TResourceString entry(aId, buf);
+		#ifdef _DEBUG
+		TInt err = 
+		#endif	
+		iStrings.InsertInOrder(entry, order);
+		__ASSERT_DEBUG(err == KErrNone, User::Invariant());
+		return buf;
 		}
-	__ASSERT_ALWAYS(ret != NULL, Panic(ELogNoResourceForId));
-	return *ret;
+	return iStrings[idx].iString;
 	}
 
+/**
+Compares two iStrings entries.
+Used for sorting/finding entries in iStrings sorted array.
 
-CLogServResourceInterpreter::CResourceStringCacheEntry * CLogServResourceInterpreter::FindCachedResourceString(const TInt aId, TResourceType aType)
+@param  aLeft  Left entry to be compared
+@param  aRight Right entry to be compared
+@return -1 aLeft is less than aRight, 0 entries are equal, 1 aLeft is bigger than aRight 
+*/
+TInt CLogServResourceInterpreter::Compare(const CLogServResourceInterpreter::TResourceString& aLeft, 
+ 										  const CLogServResourceInterpreter::TResourceString& aRight)
 	{
-	CLogServResourceInterpreter::CResourceStringCacheEntry* item ;
-	
-	// Iterate through linked list of cache entries looking for a 
-	// match - if no match found will drop out with a NULL pointer.
-	iResourceStringCacheIter.SetToFirst() ;
-	while ((item = iResourceStringCacheIter++) != NULL)
-		{
-		if ((item->ResourceType() == aType) && (item->ResourceId() == aId))
-			{
-			break ;
-			}
-		};
-	return item ;
+	TInt64 res = (TInt64)aLeft.iId - (TInt64)aRight.iId;
+	return res > 0LL ? 1 : (res < 0LL ? -1 : 0);
 	}
-	
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// -----> CLogServResourceInterpreter::CResourceStringCacheEntry (source)
-/////////////////////////////////////////////////////////////////////////////////////////	
-CLogServResourceInterpreter::CResourceStringCacheEntry::CResourceStringCacheEntry(TInt aResourceId, CLogServResourceInterpreter::TResourceType aType, HBufC8* aResourceString) : iResourceId (aResourceId), iResourceType (aType), iResourceString(aResourceString)
-	{
-	}
-
-
-CLogServResourceInterpreter::CResourceStringCacheEntry::~CResourceStringCacheEntry()
-	{
-	delete iResourceString ;
-	}
-
-
-CLogServResourceInterpreter::CResourceStringCacheEntry* CLogServResourceInterpreter::CResourceStringCacheEntry::NewL(TInt aResourceId, CLogServResourceInterpreter::TResourceType aType, HBufC8* aResourceString)
-	{
-	return new(ELeave) CResourceStringCacheEntry(aResourceId, aType, aResourceString);
-	}
-	
-TUint CLogServResourceInterpreter::CResourceStringCacheEntry::ResourceId(void)
-	{
-	return iResourceId ;
-	}
-	
-CLogServResourceInterpreter::TResourceType CLogServResourceInterpreter::CResourceStringCacheEntry::ResourceType(void)
-	{
-	return iResourceType ;
-	}
-
-HBufC8* CLogServResourceInterpreter::CResourceStringCacheEntry::ResourceString (void)
-	{
-	return iResourceString ;
-	}
-	
-TInt CLogServResourceInterpreter::CResourceStringCacheEntry::Offset() 
-	{
-    return (_FOFF(CLogServResourceInterpreter::CResourceStringCacheEntry, iLink));	
-	}
-

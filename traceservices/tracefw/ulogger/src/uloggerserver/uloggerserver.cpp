@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -636,7 +636,7 @@ TInt CULoggerServer::SetSecondaryFiltering(const TDesC8& aEnabled)
 
 /**
 Function to retrieve the active primary and secondary filters
-This should leave with KErrNotFound if cannot find one or any system wide error codes
+This should return KErrNotFound if cannot find one or return any of the system wide error codes
 */
 TInt CULoggerServer::GetActiveFilters(RArray<TUint32>& aListBuffer,TInt aFilterType)
 	{
@@ -644,7 +644,12 @@ TInt CULoggerServer::GetActiveFilters(RArray<TUint32>& aListBuffer,TInt aFilterT
 	RArray<TPtrC8> aValues;
 	if(aFilterType == 1)
 		{
-		ret = GetValuesL(KPrimaryFilterSection,aValues);
+		TRAPD(err, ret = GetValuesL(KPrimaryFilterSection,aValues));
+		if (err != KErrNone)
+			{
+			return err;
+			}
+		
 		if(ret==KErrNone)	
 			{
 			TInt i =0;
@@ -654,17 +659,29 @@ TInt CULoggerServer::GetActiveFilters(RArray<TUint32>& aListBuffer,TInt aFilterT
 				{
 				TLex8 lex_val(aValues[++i]);	
 				ret = lex_val.Val(int_val,EDecimal);	
-				if(ret==KErrNone)
-					aListBuffer.Append(int_val);
+				if(ret == KErrNone)
+					{
+					ret = aListBuffer.Append(int_val);
+					if (ret != KErrNone)
+						{
+						return ret;
+						}
+					}
 				else
+					{
 					return KErrCorrupt;
+					}
 				i++;		
 				}					
 			}
 		}
 	else if(aFilterType == 2)
 		{
-		ret = GetValuesL(KSecondaryFilterSection,aValues);
+		TRAPD(err, ret = GetValuesL(KSecondaryFilterSection,aValues));
+		if (err != KErrNone)
+			{
+			return err;
+			}
 		if(ret==KErrNone)	
 			{
 			TInt i =0;
@@ -674,17 +691,27 @@ TInt CULoggerServer::GetActiveFilters(RArray<TUint32>& aListBuffer,TInt aFilterT
 				{
 				TLex8 lex_val(aValues[++i]);	
 				ret = lex_val.Val(int_val,EDecimal);	
-				if(ret==KErrNone)
-					aListBuffer.Append(int_val);
+				if(ret == KErrNone)
+					{
+					ret = aListBuffer.Append(int_val);
+					if (ret != KErrNone)
+						{
+						return ret;
+						}
+					}
 				else
+					{
 					return KErrCorrupt;
+					}
 				i++;		
 				}					
 			}
 		else
 			{
 			if(ret==KErrNotFound)//i.e. if there are no values in the array --> change to if(filters.Count = 0)?
+				{
 				ret=KErrNone;
+				}
 			}
 		}
 	return ret;
@@ -1148,20 +1175,37 @@ void CULoggerServer::GetPluginAndSettingsL(TDes8& aPluginName, RPointerArray<TPl
 	}
 
 
+/*
+ * Cleanup RPointerArray<TPluginConfiguration>* object by calling ResetAndDestroy to delete memory
+ * allocated as TPluginConfigurations whose ownership has been passed to the RPointerArray.
+ *
+ */
+void CULoggerServer::CleanupTPluginConfigArray(TAny* aPtr)
+	{
+	RPointerArray<TPluginConfiguration>* ptrArray = reinterpret_cast<RPointerArray<TPluginConfiguration>*>(aPtr);
+	ptrArray->ResetAndDestroy();
+	ptrArray->Close();
+	}
+
+
 void CULoggerServer::InitializeFrameworksL()
 	{
 	//<create plugin allocator (plugins)>
 	//output settings
 	RBuf8 outPluginName;
-	outPluginName.Create(KMaxPluginName);
+	outPluginName.CreateL(KMaxPluginName);
+	CleanupClosePushL(outPluginName);
 	RPointerArray<TPluginConfiguration> outputPluginSettings;
+	CleanupStack::PushL(TCleanupItem(CleanupTPluginConfigArray, &outputPluginSettings));
 	GetPluginAndSettingsL(outPluginName, &outputPluginSettings, EOutputPluginFilter);
 
 	//control settings
 	RBuf8 inputPluginName;
-	inputPluginName.Create(KMaxPluginName);
+	inputPluginName.CreateL(KMaxPluginName);
+	CleanupClosePushL(inputPluginName);
 	RPointerArray<TPluginConfiguration> inputPluginSettings;
-	this->GetPluginAndSettingsL(inputPluginName, &inputPluginSettings, EInputPluginFilter);
+	CleanupStack::PushL(TCleanupItem(CleanupTPluginConfigArray, &inputPluginSettings));
+	GetPluginAndSettingsL(inputPluginName, &inputPluginSettings, EInputPluginFilter);
 
 	#if defined(__LIGHTLOGGER_ENABLED) && defined(__VERBOSE_MODE)
 	__LOG("before creating CPluginAllocator")
@@ -1169,26 +1213,27 @@ void CULoggerServer::InitializeFrameworksL()
 	
 	//create plugin allocator (plugins)
 	if(!iPluginAllocator)
+		{
 		iPluginAllocator = CPluginAllocator::NewL(outPluginName, inputPluginName);
+		}
 
 	#if defined(__LIGHTLOGGER_ENABLED) && defined(__VERBOSE_MODE)
 	__LOG("before creating COutputFramework")
 	#endif
 	//Initialize output framework
 	if(!iOutputFramework)
+		{
 		iOutputFramework = COutputFramework::NewL(*(iPluginAllocator->GetOutputPlugin()), outputPluginSettings);
+		}
 
 	//Initialize Control Framework
 	if(!iInputFramework)
+		{
 		iInputFramework = CInputFramework::NewL(iPluginAllocator->GetInputPlugin(), inputPluginSettings, this);
+		}
 
 	//cleanup
-	outPluginName.Close();
-	outputPluginSettings.ResetAndDestroy();
-	outputPluginSettings.Close();
-	inputPluginName.Close();
-	inputPluginSettings.ResetAndDestroy();
-	inputPluginSettings.Close();
+	CleanupStack::PopAndDestroy(4, &outPluginName); // and outputPluginSettings, inputPluginName and inputPluginSettings
 
 	iDataWatcher = CULoggerWatcher::NewL();	
 	}
@@ -1196,30 +1241,38 @@ void CULoggerServer::InitializeFrameworksL()
 
 void CULoggerServer::PrepareControlDataPayloadL(RBuf8& aPayloadBuf, const RArray<TPtrC8>& aArray)
 	{
-	aPayloadBuf.Create(aArray.Count()*32);
+	aPayloadBuf.CreateL(aArray.Count()*32);
 	for(TInt i=0; i<aArray.Count(); i++)
 		{
 		if(aPayloadBuf.MaxSize() < aPayloadBuf.Length()+aArray[i].Length())
+			{
 			aPayloadBuf.ReAllocL(aPayloadBuf.Length()+(aArray[i].Length()*10));
+			}
 		aPayloadBuf.Append(aArray[i]);
 		if(i < aArray.Count()-1) //skip last sparator as it will be added automatically
+			{
 			aPayloadBuf.Append(DATA_SEPARATOR);
+			}
 		}
 	}
 
 
 void CULoggerServer::PrepareControlDataPayloadL(RBuf8& aPayloadBuf, const RArray<TUint32>& aArray)
 	{
-	aPayloadBuf.Create(aArray.Count()*4);
+	aPayloadBuf.CreateL(aArray.Count()*4);
 	for(TInt i=0; i<aArray.Count(); i++)
 		{
 		TBuf8<64> b;
 		b.Num(aArray[i]);
 		if(aPayloadBuf.MaxSize() < aPayloadBuf.Length()+b.Length())
+			{
 			aPayloadBuf.ReAllocL(aPayloadBuf.Length()+(b.Length()*10));
+			}
 		aPayloadBuf.Append(b);
 		if(i < aArray.Count()-1) //skip last sparator as it will be added automatically
+			{
 			aPayloadBuf.Append(DATA_SEPARATOR);
+			}
 		}
 	}
 
@@ -1355,7 +1408,7 @@ ControlData* CULoggerServer::ProcessCommandL(TCommand aOpCode, RArray<TPtrC8> &a
 			
 				//create string as a payload
 				/*
-				payloadBuf.Create(dupfilterArray.Count()*4);
+				payloadBuf.CreateL(dupfilterArray.Count()*4);
 				for(i=0; i<dupfilterArray.Count(); i++)
 					{
 					TBuf8<32> b;
@@ -1391,7 +1444,7 @@ ControlData* CULoggerServer::ProcessCommandL(TCommand aOpCode, RArray<TPtrC8> &a
 					result.Num(errCode);
 					data = inputData->CreatePackage((void*)result.Ptr(), result.Length());
 					/*
-					payloadBuf.Create(128);
+					payloadBuf.CreateL(128);
 					payloadBuf.Copy(aArguments[i]);
 					man->AppendNewData(ack, (const void*)payloadBuf.Ptr(), payloadBuf.Length());
 					*/

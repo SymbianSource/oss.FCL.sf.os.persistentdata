@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -798,17 +798,28 @@ LOCAL_C void testFileL()
 	TStreamExchange se(&tdb);
 	
 	RShareWriteStream wstream(se);
-	wstream.Open(se);
 	wstream.WriteL(KTestString);
 	wstream.CommitL();
 	wstream.Close();
 	
 	RShareReadStream rstream(se);
-	rstream.Open(se);
 	rstream.ReadL(des, buf->Length());
 	rstream.Close();
 	
 	test( des.Compare(KTestString) );
+
+	RShareWriteStream wstream2;
+	wstream2.Open(se);
+	wstream2.WriteL(KTestString);
+	wstream2.CommitL();
+	wstream2.Close();
+
+	RShareReadStream rstream2;
+	rstream2.Open(se);
+	rstream2.ReadL(des, buf->Length());
+	rstream2.Close();
+
+	test(des.Compare(KTestString));
 	
 	CleanupStack::PopAndDestroy(2, rwbuf);
 	
@@ -936,6 +947,21 @@ LOCAL_C void testTStreamExchangeAndMarkL()
 	test (bytesprocessed == KTestString().Length());
 	User::WaitForRequest(rstatus);
 	test(rstatus == KErrNone);
+	
+	TBool rc = sm == sm2;
+	test(!rc);
+	rc = sm == (const TStreamMark*)&sm2;
+	test(!rc);
+	
+	rc = sm != sm2;
+	test(rc);
+	rc = sm != (const TStreamMark*)&sm2;
+	test(rc);
+	
+	rc = sm.IsWith(se);
+	test(!rc);
+	rc = sm2.IsWith(se);
+	test(rc);
 	
 	TStreamMark sm3(0);
 	TPtr8 des = buf->Des();

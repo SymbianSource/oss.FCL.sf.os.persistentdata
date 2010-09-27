@@ -19,7 +19,7 @@
 REM Central Repository Tests
 #include <centralrepository.iby>
 // batch file that runs all automatic tests
-data=ZSYSTEM\test\CentralRepositoryTests.bat	test\CentralRepositoryTests.bat
+data=ZSYSTEM\test\centralrepositorytests.bat	test\centralrepositorytests.bat
 
 // centrep test dlls
 #include <centreptesthelper.iby>

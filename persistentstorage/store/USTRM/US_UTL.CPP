@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -16,14 +16,18 @@
 #include <s32ucmp.h>
 #include "US_STD.H"
 
-GLDEF_C void Panic(TStreamPanic aPanic)
+#pragma BullseyeCoverage off
+
 //
 // Panic the process with STORE-Stream as the category.
 //
+GLDEF_C void Panic(TStreamPanic aPanic)
 	{
 	_LIT(KCategory,"STORE-Stream");
 	User::Panic(KCategory,aPanic);
 	}
+
+#pragma BullseyeCoverage on
 
 EXPORT_C void TCardinality::ExternalizeL(RWriteStream& aStream) const
 /** Externalises this object to a write stream.

@@ -23,8 +23,7 @@ REM SQLTESTS
 #include <charconv.iby>
 #include <sql.iby>
 
-data=DATAZ_\test\sqlTests.bat                            \test\sqltests.bat
-
+data=DATAZ_\test\sqltests.bat	                         \test\sqltests.bat
 data=DATAZ_\test\contacts_schema_to_vendors.sql          \test\contacts_schema_to_vendors.sql
 data=DATAZ_\test\add_simple_contacts.sql                 \test\add_simple_contacts.sql
 data=DATAZ_\test\contacts_startup_time.sql               \test\contacts_startup_time.sql
@@ -87,6 +86,7 @@ file=ABI_DIR\BUILD_DIR\t_sqldefect2.exe             \test\t_sqldefect2.exe
 file=ABI_DIR\BUILD_DIR\t_sqlprivcage.exe            \test\t_sqlprivcage.exe
 file=ABI_DIR\BUILD_DIR\t_sqlbadclient.exe           \test\t_sqlbadclient.exe
 file=ABI_DIR\BUILD_DIR\t_sqlbur.exe                 \test\t_sqlbur.exe
+file=ABI_DIR\BUILD_DIR\t_sqlbur2.exe                \test\t_sqlbur2.exe
 file=ABI_DIR\BUILD_DIR\t_sqlscalarfullselect.exe    \test\t_sqlscalarfullselect.exe
 file=ABI_DIR\BUILD_DIR\t_sqlfserr.exe               \test\t_sqlfserr.exe
 file=ABI_DIR\BUILD_DIR\t_sqlconfig.exe              \test\t_sqlconfig.exe

@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,12 +15,15 @@
 
 #include "UP_STD.H"
 
-GLDEF_C void Panic(TPagePanic aPanic)
+#pragma BullseyeCoverage off
+
 //
 // Panic the process with STORE-Page as the category.
 //
+GLDEF_C void Panic(TPagePanic aPanic)
 	{
 	_LIT(KCategory,"STORE-Page");
 	User::Panic(KCategory,aPanic);
 	}
 
+#pragma BullseyeCoverage on

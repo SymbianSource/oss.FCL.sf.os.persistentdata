@@ -971,22 +971,19 @@ Creates a single COsLayerData instance.
 	{
 	SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, COSLAYERDATA_CREATE_ENTRY, "OS-Entry;0;COsLayerData::Create"));
 	__ASSERT_DEBUG(!COsLayerData::iOsLayerData, __SQLITEPANIC2(ESqliteOsPanicOsLayerDataExists));
+	COsLayerData::iOsLayerData = new COsLayerData;
 	if(!COsLayerData::iOsLayerData)
 		{
-		COsLayerData::iOsLayerData = new COsLayerData;
-		if(!COsLayerData::iOsLayerData)
-			{
-			SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, COSLAYERDATA_CREATE_EXIT1, "OS-Exit;0;COsLayerData::Create;err=KErrNoMemory"));
-			return KErrNoMemory;	
-			}
-		TInt err = COsLayerData::iOsLayerData->DoCreate();
-		if(err != KErrNone)
-			{
-			delete COsLayerData::iOsLayerData;
-			COsLayerData::iOsLayerData = NULL;
-			SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, COSLAYERDATA_CREATE_EXIT2, "OS-Exit;0;COsLayerData::Create;err=%d", err));
-			return err;
-			}
+		SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, COSLAYERDATA_CREATE_EXIT1, "OS-Exit;0;COsLayerData::Create;err=KErrNoMemory"));
+		return KErrNoMemory;	
+		}
+	TInt err = COsLayerData::iOsLayerData->DoCreate();
+	if(err != KErrNone)
+		{
+		delete COsLayerData::iOsLayerData;
+		COsLayerData::iOsLayerData = NULL;
+		SQLITE_TRACE_OS(OstTrace1(TRACE_INTERNALS, COSLAYERDATA_CREATE_EXIT2, "OS-Exit;0;COsLayerData::Create;err=%d", err));
+		return err;
 		}
 	SQLITE_TRACE_OS(OstTrace0(TRACE_INTERNALS, COSLAYERDATA_CREATE_EXIT3, "OS-Exit;0;COsLayerData::Create;err=KErrNone"));
 	return KErrNone;
@@ -1983,11 +1980,7 @@ call returns the value of TDbFile::iSectorSize.
 	__OS_CALL(EOsFileSectorSize, 0, 0);
 	__OSTIME_COUNTER(TheOsCallTicks[EOsFileSectorSize], ::OsCallProfile(dbFile.iIsJournal, EOsFileSectorSize), 0, 0, aDbFile, 0);
 	__ASSERT_DEBUG(dbFile.iSectorSize > 0, __SQLITEPANIC2(ESqliteOsPanicInternalError));
-	if(dbFile.iSectorSize > 0)
-		{
-		return dbFile.iSectorSize;	
-		}
-	return SQLITE_DEFAULT_SECTOR_SIZE;
+	return dbFile.iSectorSize;
 	}
 
 /**
@@ -2013,11 +2006,7 @@ The DeviceCharacteristics() call returns the value of TDbFile::iDeviceCharacteri
 	__OS_CALL(EOsFileDeviceCharacteristics, 0, 0);
 	__OSTIME_COUNTER(TheOsCallTicks[EOsFileDeviceCharacteristics], ::OsCallProfile(dbFile.iIsJournal, EOsFileDeviceCharacteristics), 0, 0, aDbFile, 0);
 	__ASSERT_DEBUG(dbFile.iDeviceCharacteristics >= 0, __SQLITEPANIC2(ESqliteOsPanicInternalError));
-	if(dbFile.iDeviceCharacteristics >= 0)
-		{
-		return dbFile.iDeviceCharacteristics;	
-		}
-	return 0;
+	return dbFile.iDeviceCharacteristics;	
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2074,6 +2063,28 @@ Collects information about the drive referred by the aDriveNo parameter.
 	return err;		
 	}
 
+//Maps disk sector sizes to SQLITE_IOCAP_ATOMIC<n> constants
+
+struct TSqliteSectorSizeMap
+	{
+	TInt	iSectorSize;
+	TInt	iSqliteSectorSizeConstant;
+	};
+
+//Used in TVfs::DoGetDeviceCharacteristics() to find which SQLITE_IOCAP_ATOMIC<n> constant should be used
+//for the specified sector size
+const TSqliteSectorSizeMap KSqliteSectorSizeMap[] = 
+	{
+		{  512, SQLITE_IOCAP_ATOMIC512},		
+		{ 1024, SQLITE_IOCAP_ATOMIC1K},			
+		{ 2048, SQLITE_IOCAP_ATOMIC2K},			
+		{ 4096, SQLITE_IOCAP_ATOMIC4K},			
+		{ 8192, SQLITE_IOCAP_ATOMIC8K},		
+		{16384, SQLITE_IOCAP_ATOMIC16K},			
+		{32768, SQLITE_IOCAP_ATOMIC32K},			
+		{65536, SQLITE_IOCAP_ATOMIC64K}			
+	};
+
 /**
 Retrieves and returns in a bit set the device characteristics.
 
@@ -2097,35 +2108,13 @@ Retrieves and returns in a bit set the device characteristics.
 		{
 		deviceCharacteristics |= SQLITE_IOCAP_ATOMIC;	
 		}
-	switch(aVolumeInfo.iBlockSize)
+	for(TInt i=0;i<(sizeof(KSqliteSectorSizeMap)/sizeof(KSqliteSectorSizeMap[0]));++i)
 		{
-		case 512:
-			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC512;
+		if(KSqliteSectorSizeMap[i].iSectorSize == aVolumeInfo.iBlockSize)
+			{
+			deviceCharacteristics |= KSqliteSectorSizeMap[i].iSqliteSectorSizeConstant;
 			break;
-		case 1024:
-			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC1K;
-			break;
-		case 2048:
-			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC2K;
-			break;
-		case 4096:
-			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC4K;
-			break;
-		case 8192:
-			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC8K;
-			break;
-		case 16384:
-			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC16K;
-			break;
-		case 32768:
-			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC32K;
-			break;
-		case 65536:
-			deviceCharacteristics |= SQLITE_IOCAP_ATOMIC64K;
-			break;
-		default:
-			//Do nothing. deviceCharacteristics was initialized with 0 at the beginning of the function body.
-			break;
+			}
 		}
 	return deviceCharacteristics;
 	}

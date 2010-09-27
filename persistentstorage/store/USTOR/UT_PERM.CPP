@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -1329,7 +1329,7 @@ void CPermanentStoreCoord::MoveL(TInt aToc,TInt anExtent)
 // -3- clear the dirty bit (1 byte "file write" op). The commit operation has completed successfully;
 MStreamBuf* CPermanentStoreCoord::BeginL(TPermanentStoreHeader& aHeader)
 	{
-	__ASSERT_DEBUG(!aHeader.IsDirty()&&aHeader.BackupToc()==iToc&&iReloc==0,User::Invariant());
+	__ASSERT_DEBUG(!aHeader.IsDirty() && aHeader.BackupToc() == Toc() && iReloc == 0, User::Invariant());
 	MStreamBuf& buf=*Host().HostL();
 	buf.SeekL(buf.EWrite,Base()+KPermanentStoreHeaderOffset);
 	TFileQoS fileQos = FileQoSL();

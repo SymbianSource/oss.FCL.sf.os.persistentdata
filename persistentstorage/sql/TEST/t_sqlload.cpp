@@ -25,10 +25,14 @@
 
 RTest TheTest(_L("t_sqlload test"));
 
+TDriveNumber KTestDrive = EDriveC;
+
 _LIT(KTestDir, "c:\\test\\");
 _LIT(KTestDbName1, "c:\\test\\t_sqlload_1.db");
 _LIT(KTestDbName2, "c:\\test\\t_sqlload_2.db");
 _LIT(KTestDbName3, "c:\\test\\t_sqlload_3.db");
+_LIT(KTestDbName4, "c:\\test\\t_sqlload_4.db");
+_LIT(KTestDbName5, "c:\\test\\t_sqlload_5.db");
 
 //Test thread count
 const TInt KTestThreadCnt = 4;
@@ -67,6 +71,8 @@ const TInt KTestTimeLimit = 60;//seconds
 
 void DeleteTestFiles()
 	{
+	RSqlDatabase::Delete(KTestDbName5);
+	RSqlDatabase::Delete(KTestDbName4);
 	RSqlDatabase::Delete(KTestDbName3);
 	RSqlDatabase::Delete(KTestDbName2);
 	RSqlDatabase::Delete(KTestDbName1);
@@ -127,25 +133,14 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine, TBool aPrintThreadName = EF
 ///////////////////////////////////////////////////////////////////////////////////////
 
 //StatementMaxNumberTest() timeouts in WDP builds.
-//This function is used return the seconds passed from the start of the test case.
-TTimeIntervalSeconds ExecutionTimeSeconds()
+//This function is used to return the seconds passed from the start of the test case.
+TTimeIntervalSeconds ExecutionTimeSeconds(TTime& aStartTime)
 	{
-	struct TStartTime
-		{
-		TStartTime()
-			{
-			iTime.HomeTime();
-			}
-		TTime iTime;
-		};
-	
-	static TStartTime startTime; 
-	
 	TTime currTime;
 	currTime.HomeTime();
 	
 	TTimeIntervalSeconds s;
-	TInt err = currTime.SecondsFrom(startTime.iTime, s);
+	TInt err = currTime.SecondsFrom(aStartTime, s);
 	TEST2(err, KErrNone);
 	return s;
 	}
@@ -159,6 +154,9 @@ void CreateTestDir()
 	err = fs.MkDir(KTestDir);
 	TEST(err == KErrNone || err == KErrAlreadyExists);
 
+	err = fs.CreatePrivatePath(KTestDrive);
+	TEST(err == KErrNone || err == KErrAlreadyExists);
+	
 	fs.Close();
 	}
 
@@ -577,7 +575,7 @@ void SqlLoadTest()
 						the max number of statements to be created is reached (100000).
 						Then the test deletes 1/2 of the created statements objects and
 						after that attempts to execute Next() on the rest of them.
-						Note that the test has a time limit of 500 seconds. Otherwise on some platforms
+						Note that the test has a time limit of 120 seconds. Otherwise on some platforms
 						with WDP feature switched on the test may timeout.
 @SYMTestExpectedResults Test must not fail
 @SYMDEF                 DEF145236
@@ -603,6 +601,9 @@ void StatementMaxNumberTest()
 	RSqlStatement* stmt = new RSqlStatement[KMaxStmtCount];
 	TEST(stmt != NULL);
 
+	TTime startTime;
+	startTime.HomeTime();
+	
 	//Create as many statement objects as possible
 	TInt idx = 0;
 	err = KErrNone;
@@ -613,17 +614,18 @@ void StatementMaxNumberTest()
 			{
 			break;
 			}
+		TTimeIntervalSeconds s = ExecutionTimeSeconds(startTime);
 		if((idx % 100) == 0)
 			{
 			GetHomeTimeAsString(time);
-			TTimeIntervalSeconds s = ExecutionTimeSeconds();
 			TheTest.Printf(_L("=== %S: Create % 5d statements. %d seconds.\r\n"), &time, idx + 1, s.Int());
-			if(s.Int() > KTestTimeLimit)
-				{
-				TheTest.Printf(_L("=== %S: The time limit reached.\r\n"), &time);
-				++idx;//The idx-th statement is valid, the statement count is idx + 1.
-				break;
-				}
+			}
+		if(s.Int() > KTestTimeLimit)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: The time limit reached.\r\n"), &time);
+			++idx;//The idx-th statement is valid, the statement count is idx + 1.
+			break;
 			}
 		}
 	
@@ -653,7 +655,7 @@ void StatementMaxNumberTest()
 		err = stmt[idx].Next();
 		TEST2(err, KSqlAtEnd);
 		GetHomeTimeAsString(time);
-		TTimeIntervalSeconds s = ExecutionTimeSeconds();
+		TTimeIntervalSeconds s = ExecutionTimeSeconds(startTime);
 		if((j % 100) == 0)
 			{
 			TheTest.Printf(_L("=== %S: % 5d statements processed. %d seconds.\r\n"), &time, j + 1, s.Int());
@@ -682,12 +684,280 @@ void StatementMaxNumberTest()
 	TheTest.Printf(_L("=== %S: Test case end\r\n"), &time);
 	}
 
+TInt CreateFileSessions(TInt& aIdx, RFs aFs[], TInt aMaxFsSessCount)
+	{
+	TBuf<30> time;
+	TTime startTime;
+	startTime.HomeTime();
+	//Create as many file session objects as possible
+	TInt err = KErrNone;
+	for(;aIdx<aMaxFsSessCount;++aIdx)
+		{
+		err = aFs[aIdx].Connect();
+		if(err != KErrNone)
+			{
+			break;
+			}
+		TTimeIntervalSeconds s = ExecutionTimeSeconds(startTime);
+		if((aIdx % 500) == 0)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: Create % 5d file sessions. %d seconds.\r\n"), &time, aIdx + 1, s.Int());
+			}
+		if(s.Int() > KTestTimeLimit)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: The time limit reached.\r\n"), &time);
+			++aIdx;//The idx-th file session object is valid, the file session count is idx + 1.
+			break;
+			}
+		}
+	return err;
+	}
+
+/**
+@SYMTestCaseID          PDS-SQL-CT-4237
+@SYMTestCaseDesc        Max file session number test.
+@SYMTestPriority        High
+@SYMTestActions         The test creates as many as possible file session objects. The expected result is
+						that either the file session creation process will fail with KErrNoMemory or
+						the max number of file sessions to be created is reached (100000).
+						Then the test attempts to create a database. If there is no memory, the test
+						closes some of the file session objects. The test also attempts to copy
+						the created database and to delete it after that, both operations performed
+						with all file session objects still open. The expectation is that the test
+						will not crash the SQL server or the client side SQL dll.
+						Note that the test has a time limit of 120 seconds. Otherwise on some platforms
+						with WDP feature switched on the test may timeout.
+@SYMTestExpectedResults Test must not fail
+*/  
+void FileSessionMaxNumberTest()
+	{
+	TBuf<30> time;
+	GetHomeTimeAsString(time);
+	TheTest.Printf(_L("=== %S: Create file sessions\r\n"), &time);
+
+	const TInt KMaxFsCount = 100000;
+	RFs* fs = new RFs[KMaxFsCount];
+	TEST(fs != NULL);
+
+	//Create as many file session objects as possible
+	TInt idx = 0;
+	TInt err = CreateFileSessions(idx, fs, KMaxFsCount);
+	TheTest.Printf(_L("%d created file session objects. Last error: %d.\r\n"), idx, err);
+	TEST(err == KErrNone || err == KErrNoMemory);
+	
+	TBool dbCreated = EFalse;
+	RSqlDatabase db;
+	
+	//An attempt to create a database
+	while(idx > 0 && err == KErrNoMemory)
+		{
+		(void)RSqlDatabase::Delete(KTestDbName1);
+		err = db.Create(KTestDbName1);
+		if(err == KErrNone)
+			{
+			err = db.Exec(_L("CREATE TABLE A(I INTEGER); INSERT INTO A(I) VALUES(1); INSERT INTO A(I) VALUES(2);"));
+			}
+		TheTest.Printf(_L("Database creation. Last error: %d.\r\n"), err);
+		TEST(err == KErrNoMemory || err >= 0);
+		if(err == KErrNoMemory)
+			{
+			fs[--idx].Close();
+			}
+		else
+			{
+			dbCreated = ETrue;
+			}
+		db.Close();
+		}
+
+	if(dbCreated)
+		{
+		//Create again file session objects - as many as possible
+		err = CreateFileSessions(idx, fs, KMaxFsCount);
+		TEST(err == KErrNone || err == KErrNoMemory);
+		//Try to copy the database
+		err = RSqlDatabase::Copy(KTestDbName1, KTestDbName4);
+		TheTest.Printf(_L("Copy database. Last error: %d.\r\n"), err);
+		TEST(err == KErrNone || err == KErrNoMemory);
+		//Try to delete the databases
+		if(err == KErrNone)
+			{
+			err = RSqlDatabase::Delete(KTestDbName4);
+			TheTest.Printf(_L("Delete database copy. Last error: %d.\r\n"), err);
+			TEST(err == KErrNone || err == KErrNoMemory);
+			}
+		err = RSqlDatabase::Delete(KTestDbName1);
+		TheTest.Printf(_L("Delete database. Last error: %d.\r\n"), err);
+		TEST(err == KErrNone || err == KErrNoMemory);
+		}
+	
+	//Cleanup
+	for(TInt i=0;i<idx;++i)
+		{
+		fs[i].Close();
+		if((i % 500) == 0)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: % 5d file sessions closed\r\n"), &time, i + 1);
+			}
+		}
+	delete [] fs;
+	err = RSqlDatabase::Delete(KTestDbName4);
+	TEST(err == KErrNone || err == KErrNotFound);
+	err = RSqlDatabase::Delete(KTestDbName1);
+	TEST(err == KErrNone || err == KErrNotFound);
+	}
+
+TInt CreateSqlConnections(TInt& aIdx, RSqlDatabase aDb[], TInt aMaxSqlConnCount)
+	{
+	TBuf<30> time;
+	TTime startTime;
+	startTime.HomeTime();
+	//Create as many file session objects as possible
+	TInt err = KErrNone;
+	for(;aIdx<aMaxSqlConnCount;++aIdx)
+		{
+		err = aDb[aIdx].Open(KTestDbName1);
+		if(err != KErrNone)
+			{
+			break;
+			}
+		TTimeIntervalSeconds s = ExecutionTimeSeconds(startTime);
+		if((aIdx % 100) == 0)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: Create % 5d sql connections. %d seconds.\r\n"), &time, aIdx + 1, s.Int());
+			}
+		if(s.Int() > KTestTimeLimit)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: The time limit reached.\r\n"), &time);
+			++aIdx;//The idx-th sql connection is valid, the sql connection count is idx + 1.
+			break;
+			}
+		}
+	return err;
+	}
+
+/**
+@SYMTestCaseID          PDS-SQL-CT-4238
+@SYMTestCaseDesc        Max sql connection number test.
+@SYMTestPriority        High
+@SYMTestActions         The test creates as many as possible sql connection objects. The expected result is
+						that either the sql connection creation process will fail with KErrNoMemory or
+						the max number of sql connection to be created is reached (100000).
+						Then the test attempts to create a database. If there is no memory, the test
+						closes some of the sql connection objects. The test also attempts to copy
+						the created database and to delete it after that, both operations performed
+						with all sql connection objects still open. The expectation is that the test
+						will not crash the SQL server or the client side SQL dll.
+						Note that the test has a time limit of 120 seconds. Otherwise on some platforms
+						with WDP feature switched on the test may timeout.
+@SYMTestExpectedResults Test must not fail
+*/  
+void SqlConnectionMaxNumberTest()
+	{
+	TBuf<30> time;
+	GetHomeTimeAsString(time);
+	TheTest.Printf(_L("=== %S: Create sql connections\r\n"), &time);
+
+	(void)RSqlDatabase::Delete(KTestDbName1);
+	RSqlDatabase db1;
+	TInt err = db1.Create(KTestDbName1);//CreateSqlConnections() opens the already existing KTestDbName1 database
+	TEST2(err, KErrNone);
+	
+	const TInt KMaxConnCount = 100000;
+	RSqlDatabase* db = new RSqlDatabase[KMaxConnCount];
+	TEST(db != NULL);
+
+	//Create as many sql connection objects as possible
+	TInt idx = 0;
+	err = CreateSqlConnections(idx, db, KMaxConnCount);
+	TheTest.Printf(_L("%d created sql connection objects. Last error: %d.\r\n"), idx, err);
+	TEST(err == KErrNone || err == KErrNoMemory);
+	
+	TBool dbCreated = EFalse;
+	RSqlDatabase db2;
+	
+	//An attempt to create a database
+	while(idx > 0 && err == KErrNoMemory)
+		{
+		(void)RSqlDatabase::Delete(KTestDbName4);
+		err = db2.Create(KTestDbName4);
+		if(err == KErrNone)
+			{
+			err = db2.Exec(_L("CREATE TABLE A(I INTEGER); INSERT INTO A(I) VALUES(1); INSERT INTO A(I) VALUES(2);"));
+			}
+		TheTest.Printf(_L("Database creation. Last error: %d.\r\n"), err);
+		TEST(err == KErrNoMemory || err >= 0);
+		if(err == KErrNoMemory)
+			{
+			db[--idx].Close();
+			}
+		else
+			{
+			dbCreated = ETrue;
+			}
+		db2.Close();
+		}
+	
+	if(dbCreated)
+		{
+		//Create again sql connection objects - as many as possible
+		err = CreateSqlConnections(idx, db, KMaxConnCount);
+		TEST(err == KErrNone || err == KErrNoMemory);
+		//Try to copy the database
+		err = RSqlDatabase::Copy(KTestDbName4, KTestDbName5);
+		TheTest.Printf(_L("Copy database. Last error: %d.\r\n"), err);
+		TEST(err == KErrNone || err == KErrNoMemory);
+		//Try to delete the databases
+		if(err == KErrNone)
+			{
+			err = RSqlDatabase::Delete(KTestDbName5);
+			TheTest.Printf(_L("Delete database copy. Last error: %d.\r\n"), err);
+			TEST(err == KErrNone || err == KErrNoMemory);
+			}
+		err = RSqlDatabase::Delete(KTestDbName4);
+		TheTest.Printf(_L("Delete database. Last error: %d.\r\n"), err);
+		TEST(err == KErrNone || err == KErrNoMemory);
+		}
+	
+	//Cleanup
+	for(TInt i=0;i<idx;++i)
+		{
+		db[i].Close();
+		if((i % 100) == 0)
+			{
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: % 5d sql connections closed\r\n"), &time, i + 1);
+			}
+		}
+	delete [] db;
+	db1.Close();
+	err = RSqlDatabase::Delete(KTestDbName5);
+	TEST(err == KErrNone || err == KErrNotFound);
+	err = RSqlDatabase::Delete(KTestDbName4);
+	TEST(err == KErrNone || err == KErrNotFound);
+	err = RSqlDatabase::Delete(KTestDbName1);
+	TEST(err == KErrNone || err == KErrNotFound);
+	}
+
 void DoTests()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-1627-0001 SQL server load test "));
 	SqlLoadTest();
 	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4201 Statement max number test"));
 	StatementMaxNumberTest();
+#if defined __WINS__ ||	defined __WINSCW__
+	//The next two tests are likely to timeout on hardware because they create a lot of file sessions and sql connections.
+	//The SQL server heap is 32Mb on hardware but only 6Mb on the Emulator. 
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4237 File session max number test"));
+	FileSessionMaxNumberTest();
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4238 Sql connection max number test"));
+	SqlConnectionMaxNumberTest();
+#endif	
 	}
 
 TInt E32Main()

@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -720,7 +720,6 @@ void CObservable::LoadRepositoryLC(TUid aUid, TBool aFailIfNotFound, CSharedRepo
 		err = KErrNone;
 		}
 	User::LeaveIfError(err);
-	CleanupStack::PushL(aRepository);
 		
 	// Now that we have enough memory for the object and constructed it properly
 	// we try to load it. We trap all errors, either from leaving functions or error code
@@ -742,6 +741,8 @@ void CObservable::LoadRepositoryLC(TUid aUid, TBool aFailIfNotFound, CSharedRepo
 #ifdef CACHE_OOM_TESTABILITY
 				if (!iTrapOOMOnOpen)	
 					{
+					delete aRepository;
+					aRepository = NULL;
 					User::Leave(KErrNoMemory);
 					}
 #endif	
@@ -769,7 +770,13 @@ void CObservable::LoadRepositoryLC(TUid aUid, TBool aFailIfNotFound, CSharedRepo
 		}
 	}
 	// If unhandled, leave
+	if(unifiedErrorCode != KErrNone)
+		{
+		delete aRepository;
+		aRepository = NULL;
+		}
 	User::LeaveIfError(unifiedErrorCode);
+	CleanupStack::PushL(aRepository);
 
 	// Otherwise, finalize calulations
 	TInt lastSize = myHeap.Size();

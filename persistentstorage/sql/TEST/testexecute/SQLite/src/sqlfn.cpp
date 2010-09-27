@@ -83,7 +83,7 @@ CSQLFnStep::CSQLFnStep()
 		__ASSERT_ALWAYS(err == KErrNone, User::Invariant());
     	}
     }
-TVerdict CSQLFnStep::doTestPostambleL()
+TVerdict CSQLFnStep::doTestStepPostambleL()
     {
     // Try to make sure that the database and statement resources have been
     // properly closed (in case of problems).

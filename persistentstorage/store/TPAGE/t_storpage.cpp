@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -235,6 +235,17 @@ LOCAL_C void test3L(RStorePagePool& aPool)
 	const TInt KEntryCount=1000;
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1180 Build set and stream out "));
 	aPool.Create(*TheStore);
+	TBool rc = aPool.HasAvailable();
+	TEST(!rc);
+	rc = aPool.IsEmpty();
+	TEST(rc);
+	TStorePagePoolToken token2(TStorePagePoolToken::EEmpty);
+	token2 = aPool.Token();
+	rc = token2.IsEmpty();
+	TEST(rc);
+	rc = token2.HasAvailable();
+	TEST(!rc);
+	
 	TPagedSet<TInt32> set1;
 	set1.Connect(&aPool);
 
@@ -245,7 +256,7 @@ LOCAL_C void test3L(RStorePagePool& aPool)
 		set1.InsertL(it);
 		}
 	aPool.FlushL();
-
+	
 	RStoreWriteStream out;
 	TStreamId id=out.CreateLC(*TheStore);
 	out<<aPool.Token();

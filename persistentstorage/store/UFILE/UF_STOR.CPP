@@ -27,7 +27,12 @@ EXPORT_C CFileStore* CFileStore::OpenL(RFs& aFs,const TDesC& aName,TUint aFileMo
 
 The resulting file store object is of concrete type, i.e. either CDirectFileStore 
 or CPermanentFileStore. The specific type is determined from the layout information 
-held in the file store.
+held in the file store. Note that if the store object is CPermanentFileStore and the file is writable,
+it is strongly recommended to set EFileWriteDirectIO bit in aFileMode. This is because that
+when the file server write caching is enabled, the order of file write operations is not guaranteed. 
+This could cause data inconsistency in some circumstances, for example, when the power  is lost in
+ the middle of database transaction. Therefore, the file write caching should be switched off to maintain integrity.
+
 
 @param aFs Handle to a file server session.
 @param aName The full path name of the file containing the store.
@@ -46,7 +51,12 @@ and places the pointer onto the cleanup stack.
 
 The resulting file store object is of concrete type, i.e. either CDirectFileStore 
 or CPermanentFileStore. The specific type is determined from the layout information 
-held in the file store.
+held in the file store. Note that if the store object is CPermanentFileStore and the file is writable,
+it is strongly recommended to set EFileWriteDirectIO bit when opening the file. This is because that
+when the file server write caching is enabled, the order of file write operations is not guaranteed. 
+This could cause data inconsistency in some circumstances, for example, when the power  is lost in
+ the middle of database transaction. Therefore, the file write caching should be switched off to maintain integrity.
+
 
 @param aFs Handle to a file server session. 
 @param aName The full path name of the file containing the store. 
@@ -98,6 +108,26 @@ is cleared and is no longer valid:
 	return FromLC(aFile,KDefaultFileStoreFactory);
 	}
 
+/** Opens a file containing a store and constructs an appropriate file store object.
+
+The resulting file store object is of concrete type, i.e. either CDirectFileStore 
+or CPermanentFileStore. The specific type is determined from the layout information 
+held in the file store. Note that if the store object is CPermanentFileStore and the file is writable,
+it is strongly recommended to set EFileWriteDirectIO bit in aFileMode. This is because that
+when the file server write caching is enabled, the order of file write operations is not guaranteed. 
+This could cause data inconsistency in some circumstances, for example, when the power  is lost in
+the middle of database transaction. Therefore, the file write caching should be switched off to maintain integrity.
+
+
+@param aFs Handle to a file server session.
+@param aName The full path name of the file containing the store.
+@param aFileMode The mode in which the file is to be accessed. The mode is 
+defined by the TFileMode type.
+@param TFileStoreFactoryFunction An array of  file store factory function.
+@return A pointer to the new file store object. 
+@see TFileMode
+@see TFileStoreFactoryFunction
+*/
 EXPORT_C CFileStore* CFileStore::OpenL(RFs& aFs,const TDesC& aName,TUint aFileMode,const TFileStoreFactoryFunction aFactory[])
 //
 // Open a file store of any of the types supported by aFactory.
@@ -108,6 +138,26 @@ EXPORT_C CFileStore* CFileStore::OpenL(RFs& aFs,const TDesC& aName,TUint aFileMo
 	return FromL(file,aFactory);
 	}
 
+/** Opens a file containing a store and constructs an appropriate file store object.
+
+The resulting file store object is of concrete type, i.e. either CDirectFileStore 
+or CPermanentFileStore. The specific type is determined from the layout information 
+held in the file store. Note that if the store object is CPermanentFileStore and the file is writable,
+it is strongly recommended to set EFileWriteDirectIO bit in aFileMode. This is because that
+when the file server write caching is enabled, the order of file write operations is not guaranteed. 
+This could cause data inconsistency in some circumstances, for example, when the power  is lost in
+the middle of database transaction. Therefore, the file write caching should be switched off to maintain integrity.
+
+
+@param aFs Handle to a file server session.
+@param aName The full path name of the file containing the store.
+@param aFileMode The mode in which the file is to be accessed. The mode is 
+defined by the TFileMode type.
+@param TFileStoreFactoryFunction An array of file store factory function.
+@return A pointer to the new file store object. 
+@see TFileMode
+@see TFileStoreFactoryFunction
+*/
 EXPORT_C CFileStore* CFileStore::OpenLC(RFs& aFs,const TDesC& aName,TUint aFileMode,const TFileStoreFactoryFunction aFactory[])
 //
 // Open and leave on cleanup stack.
@@ -210,6 +260,26 @@ it closes the associated file. */
 	iBuf.Close();
 	}
 
+/** Opens a file containing a store and constructs an appropriate file store object.
+
+The resulting file store object is of concrete type, i.e. either CDirectFileStore 
+or CPermanentFileStore. The specific type is determined from the layout information 
+held in the file store. Note that if the store object is CPermanentFileStore and the file is writable,
+it is strongly recommended to set EFileWriteDirectIO bit in aFileMode. This is because that
+when the file server write caching is enabled, the order of file write operations is not guaranteed. 
+This could cause data inconsistency in some circumstances, for example, when the power  is lost in
+the middle of database transaction. Therefore, the file write caching should be switched off to maintain integrity.
+
+
+@param aFs Handle to a file server session.
+@param aName The full path name of the file containing the store.
+@param aFileMode The mode in which the file is to be accessed. The mode is 
+defined by the TFileMode type.
+@param TFileStoreFactoryFunction A file store factory function.
+@return A pointer to the new file store object. 
+@see TFileMode
+@see TFileStoreFactoryFunction
+*/
 EXPORT_C CFileStore* CFileStore::OpenL(RFs& aFs,const TDesC& aName,TUint aFileMode,TFileStoreFactoryFunction aFunction)
 //
 // Open a file store using aFunction.
@@ -220,6 +290,26 @@ EXPORT_C CFileStore* CFileStore::OpenL(RFs& aFs,const TDesC& aName,TUint aFileMo
 	return FromL(file,aFunction);
 	}
 
+/** Opens a file containing a store and constructs an appropriate file store object.
+
+The resulting file store object is of concrete type, i.e. either CDirectFileStore 
+or CPermanentFileStore. The specific type is determined from the layout information 
+held in the file store. Note that if the store object is CPermanentFileStore and the file is writable,
+it is strongly recommended to set EFileWriteDirectIO bit in aFileMode. This is because that
+when the file server write caching is enabled, the order of file write operations is not guaranteed. 
+This could cause data inconsistency in some circumstances, for example, when the power  is lost in
+the middle of database transaction. Therefore, the file write caching should be switched off to maintain integrity.
+
+
+@param aFs Handle to a file server session.
+@param aName The full path name of the file containing the store.
+@param aFileMode The mode in which the file is to be accessed. The mode is 
+defined by the TFileMode type.
+@param TFileStoreFactoryFunction A file store factory function.
+@return A pointer to the new file store object. 
+@see TFileMode
+@see TFileStoreFactoryFunction
+*/
 EXPORT_C CFileStore* CFileStore::OpenLC(RFs& aFs,const TDesC& aName,TUint aFileMode,TFileStoreFactoryFunction aFunction)
 //
 // Open and leave on cleanup stack.

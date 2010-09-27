@@ -12,13 +12,6 @@
 //
 // Description:
 //
-// If this test starts failing, then go and check the CentralRepository private data cage 
-// (c:\\private\\10202be9 or z:\\private\\10202be9) if 101f401d.txt file is there.
-// If it is then delete it and try the test again.
-// (The problem is that if there is an existing 101f401d.txt file, then the contact match count value
-// will be loaded from that file, not from the LogEng resource file)
-//
-
 #include <s32file.h>
 #include <s32mem.h>
 #include <e32math.h>
@@ -2490,6 +2483,7 @@ LOCAL_C void TestViewFlagsL(CLogClient& aClient)
 	TEST2(active->iStatus.Int(), KErrNone);
 	TLogId testId = event->Id();
 	event->SetNumber(KNullDesC);
+	TheTest.Printf(_L("  Event flags: 0x%X\r\n"), event->Flags());
 
 	TInt count;
 	for(count = 0; count < KTestEventNum; count++)
@@ -2527,7 +2521,7 @@ LOCAL_C void TestViewFlagsL(CLogClient& aClient)
 	CActiveScheduler::Start();
 	TEST2(active->iStatus.Int(), KErrNone);
 	if( TheMatchingIsEnabled)
-		{
+		{//This check will fail if the first AddEvent() call in this function didn't perform contact matching
 		TEST2(event->Flags(), KLogEventContactSearched);
 		}
 	else

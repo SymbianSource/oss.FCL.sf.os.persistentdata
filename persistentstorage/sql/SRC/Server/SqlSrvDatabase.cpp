@@ -1218,7 +1218,12 @@ void CSqlSrvDatabase::ProcessSettingsL(const TSqlSrvFileData& aFileData, const T
 	TSqlCompactionMode compactionMode = currVacuumMode == ESqliteVacuumOff ? ESqlCompactionManual : ESqlCompactionNotSet;
 	TSqlDbSysSettings dbSettings(iDbHandle);
 	dbSettings.LoadSettingsL(aDbName, storedCollationDllName, storedDbConfigFileVer, compactionMode);
-	__ASSERT_DEBUG(currVacuumMode == ESqliteVacuumOff ? compactionMode == ESqlCompactionManual : 1, __SQLPANIC(ESqlPanicInternalError));
+	if(currVacuumMode == ESqliteVacuumOff && compactionMode != ESqlCompactionManual)
+		{//The database has been opened and the vacuum mode is "off". Then this is a database, not created by SQL 
+		 //server or it is a corrupted database. The compaction mode read from the system table does not match the 
+		 //database vacuum mode. Conclusion: this is a corrupted database.
+		__SQLLEAVE(KErrCorrupt);
+		}
 	if(aFileData.ContainHandles() && aFileData.IsCreated())
 		{
 		compactionMode = aFileData.ConfigParams().iCompactionMode;

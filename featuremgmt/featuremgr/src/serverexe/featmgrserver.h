@@ -226,7 +226,7 @@ NONSHARABLE_CLASS(CFeatMgrServer) :
     private:
 
     /* Clears the feature array ready to re-populate it during a restore operation */
-    void ClearFeatures( void );
+    void ClearFeaturesL( void );
     /* Reloads the feature array and merges features during a restore operation */
     void LoadFeaturesL( void );
     /* Handles any outstanding notifications after a restore operation */

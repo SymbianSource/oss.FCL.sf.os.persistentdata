@@ -27,7 +27,7 @@ public:
     CSQLFnStep();
     ~CSQLFnStep();
     virtual TVerdict doTestStepL();
-    virtual TVerdict doTestPostambleL();
+    virtual TVerdict doTestStepPostambleL();
     
     // This big enumeration defines the values associated with particular
     // actions (as read from a config file and converted to the numeric

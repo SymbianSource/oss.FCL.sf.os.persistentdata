@@ -82,7 +82,7 @@ public:
 	virtual TBool Check(const TSecurityPolicy& aPolicy) const;
 	//Overriding MSqlSrvBurInterface abstract methods
 	virtual RFs& Fs();
-	virtual void GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList);
+	virtual void GetBackUpListL(TSecureId aUid, TDriveNumber aDrive, RArray<HBufC*>& aFileNameList);
 
 private:
 	CSqlServer();
@@ -96,7 +96,7 @@ private:
 	TSqlSrvFileData		iFileData;		//Used as a temporary storage for file data (file name, drive, path, secure uid)
 	RSqlSecurityMap		iSecurityMap;	//Collection of database security policies
 	RSqlDriveSpaceCol	iDriveSpaceCol;	//Collection of "drive space" objects (reserved drive space management)
-	CSqlBackupClient*	iBackupClient; 	// the backup and restore instance
+	CSqlBurEventMonitor* iBurEventMonitor;//Monitors B&R events
 	TFileName			iCollationDllName;//Default collation - dll name - uniquely identifies the collation method
 	RSqlBufFlat  		iFlatBuf;		//general purpose flat buffer. do not keep a state in it between calls!
 	TUint8*				iBuf;			//general purpose buffer. do not keep a state in it between calls!

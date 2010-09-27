@@ -140,7 +140,7 @@ static void CheckEventSecurityPolicies(CLogServSecurity& aLogServSecurity)
 
 static void DoOOMTestL()
 	{
-	CLogServResourceInterpreter* logServRsc = CLogServResourceInterpreter::NewL(TheFileSess);
+  CLogServResourceInterpreter* logServRsc = CLogServResourceInterpreter::NewL(TheFileSess);
 	CleanupStack::PushL(logServRsc);
 	
 	CLogServSecurity* logServSecurity = CLogServSecurity::NewL(*logServRsc);
@@ -159,7 +159,6 @@ static void OOMTest()
 		{
 		__UHEAP_FAILNEXT(count);
 		__UHEAP_MARK;
-		
 		TRAPD(err, ::DoOOMTestL());
 
 		if(err == KErrNoMemory)

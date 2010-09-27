@@ -224,6 +224,10 @@ TInt CSqlCompactEntry::Compact()
 	if(err == KErrNone)
 		{
 		iPageCount -= processedPageCount;
+        if(processedPageCount == 0)
+            {
+            iPageCount = 0;
+            }
 		__ASSERT_DEBUG(iPageCount >= 0, __SQLPANIC(ESqlPanicInternalError));
 		}
 	TBool stopCompaction = err == KSqlErrCorrupt || err == KSqlErrNotDb || err == KErrCorrupt || err == KErrDisMounted;

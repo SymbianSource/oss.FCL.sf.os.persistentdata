@@ -25,6 +25,7 @@
 #include "SqlCompact.h"
 #include "SqlCompactConn.h"
 #include "SqlCompactEntry.h"
+#include "SqlUtil.h"
 
 const TInt KOperationCount = 20;
 const TInt KFreePageThresholdKb = 5;
@@ -220,6 +221,7 @@ public:
 	void OomTest();
 	void FileIoErrTest();
 	void PerformanceTest();
+	void FreePageUpdateTest();
 	
 protected:		
 	virtual void DoCancel();
@@ -232,6 +234,8 @@ private:
 	void Schedule(TCommand aNextCommand, TTimeIntervalMicroSeconds32 aInterval);
 
 	void CreateTestDatabase();
+	void CreateTestDatabase2();
+	void PrepareDb(TBool aNewDb);
 	void InsertTestRecords(TInt aOpCount = KOperationCount);
 	void UpdateTestRecords(TInt aOpCount = KOperationCount);
 	void DeleteTestRecords(TInt aOpCount = KOperationCount);
@@ -244,7 +248,6 @@ private:
 	void DeleteTestEnd();
 	void SingleOpCompactTestBegin();
 	void SingleOpCompactTestEnd();
-
 	void DoOomTest1();
 	void DoOomTest2();
 	void DoOomTest3();
@@ -390,6 +393,51 @@ void CSqlCompactTestActive::InsertTestRecords(TInt aOpCount)
 		::FinalizeStmtHandle(stmtHandle);
 		}
 	}
+
+//Creates a test database (with KDbName name). 
+void CSqlCompactTestActive::CreateTestDatabase2()
+    {
+    //Create the database
+    const TInt KPageSize = 1024;
+    _LIT8(KConfigStr, "page_size=");
+    TBuf8<100> config;
+    config.Copy(KConfigStr);
+    config.AppendNum(KPageSize);
+    TInt err = KErrNone;
+    err = ::CreateDbHandle8(::FileNameZ8(TheDbName), TheDbHandle);
+    TEST2(err, KErrNone);  
+    _LIT8(KCreateTableSql, "CREATE TABLE A(I INTEGER, T TEXT)\x0");
+    err = ::DbExecStmt8(TheDbHandle, KCreateTableSql);
+    TEST2(err, KErrNone);
+    }
+
+//Insert 1000 records. The record size is such that there is only two records per page.
+void CSqlCompactTestActive::PrepareDb(TBool aDeleteRecords)
+    {
+    //Insert records
+    const TInt KRecordCount = 1000;
+    const TInt KTextLen = 400;
+    TBuf<KTextLen> TheText;
+    TBuf<KTextLen + 100> TheSqlBuf;
+    TheText.SetLength(TheText.MaxLength());
+    TheText.Fill(TChar('A'));
+    for(TInt i=0;i<KRecordCount;++i)
+        {
+        TheSqlBuf.Format(_L("INSERT INTO A VALUES(%d, '%S')"), i + 1, &TheText);
+        _LIT(KZero, "\x0");
+        TheSqlBuf.Append(KZero);
+        TInt err = ::DbExecStmt16(TheDbHandle, TheSqlBuf);
+        TEST2(err, KErrNone);
+        }
+    if(aDeleteRecords)
+        {   
+        //Delete all records to make a lot of free pages. 
+        _LIT(KDeleteAll, "DELETE FROM A WHERE 1\x0");
+        TheSqlBuf = KDeleteAll;
+        TInt err = ::DbExecStmt16(TheDbHandle, TheSqlBuf);
+        TEST2(err, KErrNone);
+        }
+    }
 
 void CSqlCompactTestActive::UpdateTestRecords(TInt aOpCount)
 	{
@@ -919,6 +967,50 @@ void CSqlCompactTestActive::PerformanceTest()
 	PrintInfo(processedPages, KMediaTypeNames[driveInfo.iType], start, end);
 	}
 
+/**
+@SYMTestCaseID          PDS-SQL-CT-4239
+@SYMTestCaseDesc        Free page update test.
+                        The test creates a database with some records and deletes them all. The records are inserted such that when
+                        they get deleted, it leaves a great deal of free pages.
+                        Then the test refill the pages which ware empty. After that, the test call ::DbCompact(...) with the number of free
+                        pages previously. The free page count should be updated with "0" since all free pages have been refilled since. 
+@SYMTestPriority        Medium
+@SYMTestExpectedResults Test must not fail
+*/
+void CSqlCompactTestActive::FreePageUpdateTest()
+    {
+     (void)TheFs.Delete(TheDbName);
+    
+    //Create the database with 1000 records and then delete all of them
+    CreateTestDatabase2();
+    
+    CSqlCompactor* compactor = NULL;
+    TRAPD(err, compactor = CSqlCompactor::NewL(&SqlCreateCompactConnL, KCompactStepInterval));
+    TEST2(err, KErrNone);
+    TRAP(err, compactor->AddEntryL(TheDbName, TheCompactionSettings));
+    TEST2(err, KErrNone);
+
+    PrepareDb(ETrue);
+    TInt freePageCount = ::FreePageCount();
+    TEST(freePageCount > KSqlCompactFreePageThresholdKb);
+    TheTest.Printf(_L("   Free pages count = %d\r\n"), freePageCount);
+  
+    //Refill the database
+    PrepareDb(EFalse);
+   
+    CSqlCompactEntry* impl = compactor->iEntries[0];
+    impl->iPageCount = freePageCount;
+    err = impl->Compact();
+    TEST2(err, KErrNone);
+    TEST2(impl->iPageCount, 0);
+
+    compactor->ReleaseEntry(TheDbName);
+    delete compactor;
+    ::CloseDbHandle(TheDbHandle);
+    TheDbHandle = NULL;
+    (void)TheFs.Delete(TheDbName);
+    }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 void DoTests()
@@ -939,6 +1031,9 @@ void DoTests()
 
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4052 Compaction - performance test"));
 	TheTestActive->PerformanceTest();
+	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4239 Free page update test"));
+	TheTestActive->FreePageUpdateTest();
 
 	CActiveScheduler::Start();
 	

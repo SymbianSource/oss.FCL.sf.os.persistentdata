@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -140,8 +140,24 @@ LOCAL_C void testWriteL()
 	testWriteL(*store);
 	CleanupStack::PopAndDestroy();
 //
+	test.Next(_L("Writing to replaced file - 2"));
+	store=CDirectFileStore::ReplaceL(TheFs,parse.NameAndExt(),EFileWrite);
+	CleanupStack::PushL(store);
+	store->SetTypeL(TUidType(KDirectFileStoreLayoutUid,KDirectFileStoreLayoutUid));
+	testWriteL(*store);
+	CleanupStack::PopAndDestroy();
+//
 	test.Next(_L("Writing to temp file"));
 	store=CDirectFileStore::TempLC(TheFs,parse.DriveAndPath(),TheTempFile,EFileWrite);
+	store->SetTypeL(TUidType(store->Layout(),KNullUid,KDirectFileStoreLayoutUid));
+	testWriteL(*store);
+	store->CommitL();
+	CleanupStack::PopAndDestroy();
+	(void)TheFs.Delete(TheTempFile);
+//	
+	test.Next(_L("Writing to temp file - 2"));
+	store=CDirectFileStore::TempL(TheFs,parse.DriveAndPath(),TheTempFile,EFileWrite);
+	CleanupStack::PushL(store);
 	store->SetTypeL(TUidType(store->Layout(),KNullUid,KDirectFileStoreLayoutUid));
 	testWriteL(*store);
 	store->CommitL();
@@ -164,6 +180,10 @@ LOCAL_C void testWriteL()
 	RFile file;
 	test(file.Create(TheFs,parse.NameAndExt(),EFileWrite)==KErrNone);
 	store=CDirectFileStore::NewLC(file);
+	CleanupStack::PopAndDestroy();
+	test(file.Open(TheFs,parse.NameAndExt(),EFileWrite)==KErrNone);
+	store=CDirectFileStore::NewL(file);
+	CleanupStack::PushL(store);
 	store->SetTypeL(KDirectFileStoreLayoutUid);
 	testWriteL(*store);
 	store->CommitL();
@@ -195,6 +215,13 @@ LOCAL_C void testReadL()
 	test.Next(_L("Reading from temp file"));
 	test(file.Open(TheFs,TheTempFile,EFileRead)==KErrNone);
 	store=CDirectFileStore::FromLC(file);
+	testReadL(*store);
+	CleanupStack::PopAndDestroy();
+
+	test.Next(_L("Reading from temp file - 2"));
+	test(file.Open(TheFs,TheTempFile,EFileRead)==KErrNone);
+	store=CDirectFileStore::FromL(file);
+	CleanupStack::PushL(store);
 	testReadL(*store);
 	CleanupStack::PopAndDestroy();
 	}

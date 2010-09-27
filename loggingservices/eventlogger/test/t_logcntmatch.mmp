@@ -20,12 +20,14 @@ CAPABILITY		AllFiles WriteUserData
 
 USERINCLUDE		../test/inc
 USERINCLUDE		../Shared
+USERINCLUDE		../LogServ/inc
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
 SOURCEPATH		../test/src
 SOURCE			t_logcntmatch.cpp 
 SOURCE			t_logutil.cpp
 SOURCE        	t_logutil2.cpp
+SOURCE        	t_logutil3.cpp
 SOURCE			t_logservsession.cpp
 
 LIBRARY			euser.lib 
@@ -33,6 +35,7 @@ LIBRARY			efsrv.lib
 LIBRARY			bafl.lib 
 LIBRARY			logcli.lib 
 LIBRARY			logwrap.lib 
+LIBRARY			centralrepository.lib
 
 VENDORID 0x70000001
 

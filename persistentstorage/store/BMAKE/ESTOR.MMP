@@ -1,4 +1,4 @@
-// Copyright (c) 1997-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1997-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -39,6 +39,9 @@ VENDORID 0x70000001
 UNPAGED
 
 SMPSAFE
+
+//CodeWarrior compilation options - disable the "illegal pragma" warning
+OPTION CW -w noillpragmas
 
 userinclude     ../INC
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN

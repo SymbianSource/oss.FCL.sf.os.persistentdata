@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -21,70 +21,43 @@
 #include <logcli.h>
 
 /**
-Gives an access to the server resource file and maintains a cache of the retrieved resource entries.
+Gives an access to the LogWrap resource file and maintains a cache of the retrieved resource entries.
 
 @internalComponent
 */
 class CLogServResourceInterpreter : public CBase
 	{
 public:
-	enum TResourceType
-		{
-		ELogWrap = 0,
-		ELogServer
-		};
-
-public:
-	static CLogServResourceInterpreter* NewL(RFs& aFsSession);
+	static CLogServResourceInterpreter* NewL(RFs& aFs);
 	~CLogServResourceInterpreter();
-    void CreateResourceReaderLC(TResourceReader& aReader, TInt aId, TResourceType aType) ;//Create a resource reader for a specific resource entry
+    void CreateResourceReaderLC(TResourceReader& aReader, TInt aId);
 
 private:
     /**
+    Resource file item.
+    Holds one resource string identified by an id.
     @internalComponent
     */
-	struct TResourceFileEntry
+	struct TResourceString
 	    {
-		RResourceFile iFile;
-		TResourceType iType;
+		inline TResourceString(TInt aResourceId, HBufC8* aResourceString) :
+			iId(aResourceId),
+			iString(aResourceString)
+			{
+			}
+		TInt		iId;
+		HBufC8*		iString;
 	    };
 
-    /**
-    @internalComponent
-    */
-	class CResourceStringCacheEntry : public CBase
-	    {
-	public:
-		static CResourceStringCacheEntry* NewL(TInt aResourceId, CLogServResourceInterpreter::TResourceType aResourceType, HBufC8* aResourceString);
-		~CResourceStringCacheEntry();
-		TUint ResourceId(void) ;
-		CLogServResourceInterpreter::TResourceType ResourceType(void) ;
-		HBufC8* ResourceString (void) ;
-		static TInt Offset();
-		
-	private:
-		CResourceStringCacheEntry (TInt aResourceId, CLogServResourceInterpreter::TResourceType aType, HBufC8* aResourceString);
-		
-	private :
-		TSglQueLink iLink;
-		TUint iResourceId ;
-		CLogServResourceInterpreter::TResourceType iResourceType ;
-		HBufC8* iResourceString ;
-	    };
-
-    CLogServResourceInterpreter(RFs& aFsSession);
+    CLogServResourceInterpreter(RFs& aFs);
     void ConstructL();
-	void LoadResourceFileL(const TDesC& aName, TResourceType aType);
-	const RResourceFile& ResourceFileForType(TResourceType aType) const;
-	CResourceStringCacheEntry* FindCachedResourceString(const TInt aId, TResourceType aType) ;
-	HBufC8* GetResourceBufferL(TInt aId, TResourceType aType) ;
+	HBufC8* GetStringL(TInt aId);
+	static TInt Compare(const TResourceString& aLeft, const TResourceString& aRight);
 		
 private:
-	RFs& iFsSession;
-	RArray<TResourceFileEntry> iResourceFiles;
-	//Used to cache strings read from resource file
-	TSglQue<CResourceStringCacheEntry> iResourceStringCache;
-	TSglQueIter<CResourceStringCacheEntry> iResourceStringCacheIter;
+	RFs& 					iFs;
+	RResourceFile 			iFile;
+	RArray<TResourceString>	iStrings;
 	};
 
 #endif

@@ -632,7 +632,6 @@ BURStatus CFeatMgrServer::Goto_NormalState( BURStatus /* aCurrent */  )
 BURStatus CFeatMgrServer::Goto_ErrorState( BURStatus aCurrent  )
 	{
 	BURStatus aNewState = EFeatMgrBURState_None;   // fail safe: all roads lead to normal state
-	TInt err( KErrNone );
 	
 	switch( aCurrent )
 		{
@@ -646,8 +645,8 @@ BURStatus CFeatMgrServer::Goto_ErrorState( BURStatus aCurrent  )
 		    iPendingRequests = ETrue;
 		    iFeaturesReady   = EFalse;
 			// re-read the new features;
-			ClearFeatures();
-			TRAP( err, LoadFeaturesL()  );
+			TRAP_IGNORE(ClearFeaturesL() );
+			TRAP_IGNORE(LoadFeaturesL() );
 			// Stop queuing
 			iPluginsReady = ETrue;
 			// commit the pending change requests
@@ -703,19 +702,18 @@ BURStatus CFeatMgrServer::Goto_EndRestoreState( BURStatus /* aCurrent */  )
 	// re-read the new features
     // Only call the next function if the previous one was
     // successfully completed.
-	ClearFeatures();
-	TRAP( err, LoadFeaturesL()  );
-	if( err == KErrNone ) 
+	TRAP(err, ClearFeaturesL() );
+	if (err == KErrNone)
 		{
-		TRAP( err, HandleRestoredNotificationsL() );
+		TRAP(err, LoadFeaturesL() );
 		}
 
-	if( err != KErrNone )
+	if(err == KErrNone) 
 		{
-		// error condition
-		aNewState = EFeatMgrBURState_Error;
+		TRAP(err, HandleRestoredNotificationsL() );
 		}
-	else
+
+	if(err == KErrNone)
 		{
 		// Stop queuing
 		iPluginsReady = ETrue;
@@ -725,6 +723,11 @@ BURStatus CFeatMgrServer::Goto_EndRestoreState( BURStatus /* aCurrent */  )
 		
 		// Change state machine
 		aNewState = EFeatMgrBURState_RestoreEnded;
+		}
+	else
+		{
+		// error condition
+		aNewState = EFeatMgrBURState_Error;
 		}
 	
 	return aNewState;
@@ -784,7 +787,7 @@ void CFeatMgrServer::HandleRestoredNotificationsL( void )
 /**
  * This function will clear features from RAM
  */
-void CFeatMgrServer::ClearFeatures( void )
+void CFeatMgrServer::ClearFeaturesL( void )
 	{
 	// Delete plugin handlers    
     if ( !iPluginsDeleted )
@@ -807,7 +810,7 @@ void CFeatMgrServer::ClearFeatures( void )
 
     if( NULL != iRegistry )
     	{
-        iRegistry->ResetFeatures();
+        iRegistry->ResetFeaturesL();
         }
 
     return;

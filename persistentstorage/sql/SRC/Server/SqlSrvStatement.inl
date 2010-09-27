@@ -88,7 +88,12 @@ inline const TPtrC8 HSqlSrvStmtParamBuf::SetDataL(const TDesC8& aData)
 	iBuf->ResizeL(aData.Length());
 	iBuf->Write(0, aData);
 	//If the size is 0, then return KNullDesC8, where an empty string is hold, not a null one ("" instead of NULL)
-	return iBuf->Size() == 0 ? KNullDesC8() : iBuf->Ptr(0);
+	// was return iBuf->Size() == 0 ? KNullDesC8() : iBuf->Ptr(0);
+	if (iBuf->Size() == 0)
+		{
+		return KNullDesC8();
+		}
+	return iBuf->Ptr(0);
 	}
 
 /**
@@ -102,7 +107,12 @@ inline const TPtrC8 HSqlSrvStmtParamBuf::Data() const
 	{
 	__ASSERT_DEBUG(iBuf != NULL, __SQLPANIC(ESqlPanicInvalidObj));
 	//If the size is 0, then return KNullDesC8, where an empty string is hold, not a null one ("" instead of NULL)
-	return iBuf->Size() == 0 ? KNullDesC8() : iBuf->Ptr(0);
+	// was return iBuf->Size() == 0 ? KNullDesC8() : iBuf->Ptr(0);
+	if (iBuf->Size() == 0)
+		{
+		return KNullDesC8();
+		}
+	return iBuf->Ptr(0);
 	}
 
 /**

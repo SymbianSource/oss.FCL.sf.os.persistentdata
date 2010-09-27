@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -16,6 +16,10 @@
 //
 
 #include "connect/abclient.h"
+
+//The CActiveBackupClient implementation here is used by t_sqlbur and t_sqlbur2 tests.
+//These 2 tests don't link agains the real secure backup client dll, so they use the
+//CActiveBackupClient implementation here.
 
 namespace conn
 	{

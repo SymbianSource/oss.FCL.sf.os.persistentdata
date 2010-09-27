@@ -25,7 +25,7 @@ This test requires a non-rugged drive to store the database file and therefore w
 
 #include <e32test.h>
 #include <f32file.h>
-#include <Sqldb.h>
+#include <sqldb.h>
 
 RTest TheTest(_L("t_sqlfilesrvcrash1 test"));
 

@@ -23,7 +23,7 @@ REM Logeng Test
 #include <logeng.iby>
 
 //for t_logview2
-#include <TIMEZONESERVER.iby>
+#include <timezoneserver.iby>
 
 ECOM_PLUGIN(t_logcntmatchplugin.dll,2000862e.rsc)
 

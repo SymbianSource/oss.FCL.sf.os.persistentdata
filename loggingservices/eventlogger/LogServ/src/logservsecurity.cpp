@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -321,7 +321,7 @@ void TSecurityInfoReader::ReadL()
 	TInt eventTypeCount = GetEventTypeCountL();
 	
 	TResourceReader reader;
-	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_SECURITY, CLogServResourceInterpreter::ELogWrap);
+	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_SECURITY);
 	
 	TInt securityNodeCount = reader.ReadInt16();
 
@@ -357,7 +357,7 @@ in logwrap.rss - see section entitled 'r_log_initial_events'.
 TInt TSecurityInfoReader::GetEventTypeCountL()
 	{
 	TResourceReader reader;
-	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_INITIAL_EVENTS, CLogServResourceInterpreter::ELogWrap);
+	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_INITIAL_EVENTS);
 	TInt count = reader.ReadInt16();
 	CleanupStack::PopAndDestroy();
 	return count;

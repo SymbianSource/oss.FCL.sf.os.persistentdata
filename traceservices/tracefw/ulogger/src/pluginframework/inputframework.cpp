@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -169,25 +169,29 @@ void CInputFramework::RunL()
 		
 		//unpack control data payload into array of strings
 		RArray<TPtrC> array;
-		RPointerArray<HBufC> chunksArray;
-		long i;
-		for(i=0; i<chunks; i++)
+		CleanupClosePushL(array);
+		RPointerArray<HBufC> cleaunpArray;
+		CleanupStack::PushL(TCleanupItem(CleanupHBufCPtrArray, &cleaunpArray));
+
+		for(long i(0); i < chunks; i++)
 			{
-			unsigned long currentChunkSize=0;
+			unsigned long currentChunkSize(0);
 			const void* payloadChunk = iInputData->GetChunk(cData, i, currentChunkSize);
-			if(payloadChunk && currentChunkSize>0)
+			if(payloadChunk && currentChunkSize > 0)
 				{
-				HBufC8 *des8 = HBufC8::NewLC(currentChunkSize+1);
+				HBufC8* des8 = HBufC8::NewLC(currentChunkSize + 1);
 				des8->Des().Copy((unsigned char const*)payloadChunk, currentChunkSize);
-				HBufC *des = HBufC::NewLC(des8->Length());
+				HBufC* des = HBufC::NewLC(des8->Length());
 				des->Des().Copy(*des8);
-				CleanupStack::Pop();//des
-				CleanupStack::PopAndDestroy();//des8
-				chunksArray.AppendL(des);
-				array.Append(des->Des());
+
+				array.AppendL(des->Des());
+				cleaunpArray.AppendL(des);
+
+				CleanupStack::Pop(&des); // passed ownership to cleaunpArray
+				CleanupStack::PopAndDestroy(&des8);
 				
 				#if defined(__LIGHTLOGGER_ENABLED) && defined(__VERBOSE_MODE)
-				__LOGBUF(array[array.Count()-1])
+				__LOGBUF(array[array.Count() - 1])
 				#endif
 				}
 			}
@@ -198,14 +202,52 @@ void CInputFramework::RunL()
 		iCommand->HandleCommandL(array);
 		
 		//cleanup
-		chunksArray.ResetAndDestroy();
-		chunksArray.Close();
-		array.Close();
+		CleanupStack::PopAndDestroy(2, &array); // and TCleanupItem(RPointerArray::ResetAndDestroy, &cleaunpArray)
 		}
 	
 	//continue reading
 	if(iContinueReading)
+		{
 		this->StartReading();
+		}
+	}
+
+/*
+ * Cleanup RPointerArray<HBufC>* object by calling ResetAndDestroy to delete memory
+ * allocated as HBufCs whose ownership has been passed to the RPointerArray.
+ *
+ */
+void CInputFramework::CleanupHBufCPtrArray(TAny* aPtr)
+	{
+	RPointerArray<HBufC>* ptrArray = reinterpret_cast<RPointerArray<HBufC>*>(aPtr);
+	ptrArray->ResetAndDestroy();
+	ptrArray->Close();
+	}
+
+
+/*
+ * Cleanup RPointerArray<HBufC8>* object by calling ResetAndDestroy to delete memory
+ * allocated as HBufCs whose ownership has been passed to the RPointerArray.
+ *
+ */
+void CInputFramework::CleanupHBufC8PtrArray(TAny* aPtr)
+	{
+	RPointerArray<HBufC8>* ptrArray = reinterpret_cast<RPointerArray<HBufC8>*>(aPtr);
+	ptrArray->ResetAndDestroy();
+	ptrArray->Close();
+	}
+
+
+/*
+ * Cleanup ControlData* (non-CBase) object.
+ * ControlData is in fact a typedef of char and so a ControlData* points to a char array.
+ * Such objects are allocated with the standard C++ new[] operator and so delete[] must be used. 
+ *
+ */
+void CInputFramework::CleanupControlData(TAny* aPtr)
+	{
+	ControlData* ctrlData = reinterpret_cast<ControlData*>(aPtr);
+	delete[] ctrlData;
 	}
 
 
@@ -249,7 +291,7 @@ EXPORT_C TInt CInputFramework::DoCommandL(TCommand aCommand, const RArray<TPtrC>
 	
 	//create new array with TPtrC8 values
 	RPointerArray<HBufC8> values8;
-	//CleanupStack::PushL( TCleanupItem(ResetAndDestroyPtrArray8, &values8) );
+	CleanupStack::PushL( TCleanupItem(CleanupHBufC8PtrArray, &values8) );
 	RArray<TPtrC8> array8;
 	CleanupClosePushL(array8);
 	for(TInt i=0; i<aValues.Count(); ++i)
@@ -265,14 +307,16 @@ EXPORT_C TInt CInputFramework::DoCommandL(TCommand aCommand, const RArray<TPtrC>
 	ControlData* ack = iObserver->ProcessCommandL(aCommand, array8);
 
 	//cleanup
-	CleanupStack::PopAndDestroy(); //array8
-	values8.ResetAndDestroy();
-	values8.Close();
-	
+	CleanupStack::PopAndDestroy(2, &values8); // and array8
+
+	// push ack on the stack before doing anything that can leave	
+	CleanupStack::PushL(TCleanupItem(CleanupControlData, ack));
+
 	//prepare acknowledgment
 	TInt ackSize = iInputData->GetSize(ack);
 	RBuf8 ackBuf;
-	ackBuf.Create(ackSize);
+	ackBuf.CreateL(ackSize);
+	CleanupClosePushL(ackBuf);
 	ackBuf.Copy((unsigned char const*)ack, ackSize);
 	
 	#if defined(__LIGHTLOGGER_ENABLED) && defined(__VERBOSE_MODE)
@@ -283,21 +327,28 @@ EXPORT_C TInt CInputFramework::DoCommandL(TCommand aCommand, const RArray<TPtrC>
 	#endif
 	
 	if(iInputPlugin)
+		{
 		iInputPlugin->SendAcknowledgment(ackBuf); //send back acknowledgment
-	ackBuf.Close();
-	delete [] ack;
+		}
+
+	// clean up
+	CleanupStack::PopAndDestroy(2, ack); // and ackBuf
 	iControlData.Zero();
 	iObserver->DoPostProcessing(aCommand);
 
 	if(!iContinueReading || !iInputPlugin)
+		{
 		return KErrGeneral;
+		}
 		
 	/*
 	during 'restart' input framework will be started by observer and we don'e need to restart
 	it in RunL method, this flag will prevent of calling StartReading again.
 	 */
-	if(aCommand == ERestart) 
+	if(aCommand == ERestart)
+		{	
 		iContinueReading = EFalse;
+		}
 		
 	return errCode;
 	}

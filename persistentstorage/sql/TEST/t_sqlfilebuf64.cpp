@@ -1337,6 +1337,225 @@ void TestSetSizeCounter()
     (void)TheFs.Delete(KTestFile);
     }
 
+///////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef _DEBUG
+
+//Panic thread function. 
+//It will cast aData parameter to a TFunctor pointer and call it.
+//The expectation is that the called function will panic and kill the panic thread.
+TInt ThreadFunc(void* aData)
+	{
+	CTrapCleanup* tc = CTrapCleanup::New();
+	TEST(tc != NULL);
+	
+	User::SetJustInTime(EFalse);	// disable debugger panic handling
+	
+	TFunctor* obj = reinterpret_cast<TFunctor*> (aData);
+	TEST(obj != NULL);
+	(*obj)();//call the panic function
+	
+	delete tc;
+	
+	return KErrNone;		
+	}
+
+//Panic test.
+//PanicTest function will create a new thread - panic thread, giving it a pointer to the function which has to
+//be executed and the expectation is that the function will panic and kill the panic thread.
+//PanicTest function will check the panic thread exit code, exit category and the panic code.
+void PanicTest(TFunctor& aFunctor, TExitType aExpectedExitType, const TDesC& aExpectedCategory, TInt aExpectedPanicCode)
+	{
+	RThread thread;
+	_LIT(KThreadName,"SqlFileBufPanicThread");
+	TEST2(thread.Create(KThreadName, &ThreadFunc, 0x2000, 0x1000, 0x10000, (void*)&aFunctor, EOwnerThread), KErrNone);
+	
+	TRequestStatus status;
+	thread.Logon(status);
+	TEST2(status.Int(), KRequestPending);
+	thread.Resume();
+	User::WaitForRequest(status);
+	User::SetJustInTime(ETrue);	// enable debugger panic handling
+
+	TEST2(thread.ExitType(), aExpectedExitType);
+	TEST(thread.ExitCategory() == aExpectedCategory);
+	TEST2(thread.ExitReason(), aExpectedPanicCode);
+	
+	CLOSE_AND_WAIT(thread);
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////     Panic test functions    /////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Panic when calling RFileBuf64::RFileBuf64() with an invalid buffer capacity value.
+class TSqlFileBuf_InvalidCapacity : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(-8192);//panic here - "-8192" - negative buffer capacity
+		}
+	};
+static TSqlFileBuf_InvalidCapacity TheSqlFileBuf_InvalidCapacity;
+
+//Panic when calling RFileBuf64::Create() with an invalid file handle.
+class TSqlFileBuf_InvalidFileHandle1 : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(8192);
+		RFs fs;
+		fbuf.Create(fs, _L("aaa.db"), EFileRead);//panic here - invalid file handle
+		}
+	};
+static TSqlFileBuf_InvalidFileHandle1 TheSqlFileBuf_InvalidFileHandle1;
+
+//Panic when calling RFileBuf64::Create() with an invalid file name.
+class TSqlFileBuf_InvalidFileName1 : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(8192);
+		RFs fs;
+		TInt err = fs.Connect();
+		TEST2(err, KErrNone);
+		fbuf.Create(fs, KNullDesC, EFileRead);//panic here - invalid file name
+		fs.Close();
+		}
+	};
+static TSqlFileBuf_InvalidFileName1 TheSqlFileBuf_InvalidFileName1;
+
+//Panic when calling RFileBuf64::Open() with an invalid file handle.
+class TSqlFileBuf_InvalidFileHandle2 : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(8192);
+		RFs fs;
+		fbuf.Open(fs, _L("aaa.db"), EFileRead);//panic here - invalid file handle
+		}
+	};
+static TSqlFileBuf_InvalidFileHandle2 TheSqlFileBuf_InvalidFileHandle2;
+
+//Panic when calling RFileBuf64::Open() with an invalid file name.
+class TSqlFileBuf_InvalidFileName2 : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(8192);
+		RFs fs;
+		TInt err = fs.Connect();
+		TEST2(err, KErrNone);
+		fbuf.Open(fs, KNullDesC, EFileRead);//panic here - invalid file name
+		fs.Close();
+		}
+	};
+static TSqlFileBuf_InvalidFileName2 TheSqlFileBuf_InvalidFileName2;
+
+//Panic when calling RFileBuf64::Temp() with an invalid file handle.
+class TSqlFileBuf_InvalidFileHandle3 : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(8192);
+		RFs fs;
+		TFileName fname;
+		fbuf.Temp(fs, _L("c:\\test"), fname, EFileRead);//panic here - invalid file handle
+		}
+	};
+static TSqlFileBuf_InvalidFileHandle3 TheSqlFileBuf_InvalidFileHandle3;
+
+//Panic when calling RFileBuf64::AdoptFromClient() with an invalid message handle.
+class TSqlFileBuf_InvalidMessageHandle : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(8192);
+		RMessage2 msg;
+		fbuf.AdoptFromClient(msg, 0, 1);//panic here - invalid message handle
+		}
+	};
+static TSqlFileBuf_InvalidMessageHandle TheSqlFileBuf_InvalidMessageHandle;
+
+//Panic when calling RFileBuf64::Read() with an invalid file position.
+class TSqlFileBuf_InvalidReadPos : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(8192);
+		TBuf8<50> buf;
+		fbuf.Read(-1024, buf);//panic here - invalid file position
+		}
+	};
+static TSqlFileBuf_InvalidReadPos TheSqlFileBuf_InvalidReadPos;
+
+//Panic when calling RFileBuf64::Write() with an invalid file position.
+class TSqlFileBuf_InvalidWritePos : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(8192);
+		TBuf8<50> buf;
+		fbuf.Write(-1024, buf);//panic here - invalid file position
+		}
+	};
+static TSqlFileBuf_InvalidWritePos TheSqlFileBuf_InvalidWritePos;
+
+//Panic when calling RFileBuf64::SetSize() with an invalid file size.
+class TSqlFileBuf_InvalidSize : public TFunctor
+	{
+private:		
+	virtual void operator()()
+		{
+		RFileBuf64 fbuf(8192);
+		TBuf8<50> buf;
+		fbuf.SetSize(-1024);//panic here - invalid file size
+		}
+	};
+static TSqlFileBuf_InvalidSize TheSqlFileBuf_InvalidSize;
+
+#endif //_DEBUG
+
+/**
+@SYMTestCaseID          PDS-SQL-UT-4236
+@SYMTestCaseDesc        RFileBuf64 panic test.
+						The test runs a thread. The thread will create a RFileBuf64 object
+						and put the object in a situation where the file buffer cannot perform
+						its duties anymore and will raise a panic. The test verifies that the file
+						buffer implementation properly detects anomalities such as bad parameters,
+						null handles, etc... 
+@SYMTestActions         RFileBuf64 panic test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority        High
+*/
+void FileBufPanicTest()
+	{
+#ifdef _DEBUG
+	_LIT(KPanicCategory, "FBuf64");
+	PanicTest(TheSqlFileBuf_InvalidCapacity, EExitPanic, KPanicCategory, 1);
+	PanicTest(TheSqlFileBuf_InvalidFileHandle1, EExitPanic, KPanicCategory, 7);
+	PanicTest(TheSqlFileBuf_InvalidFileName1, EExitPanic, KPanicCategory, 10);
+	PanicTest(TheSqlFileBuf_InvalidFileHandle2, EExitPanic, KPanicCategory, 7);
+	PanicTest(TheSqlFileBuf_InvalidFileName2, EExitPanic, KPanicCategory, 10);
+	PanicTest(TheSqlFileBuf_InvalidFileHandle3, EExitPanic, KPanicCategory, 7);
+	PanicTest(TheSqlFileBuf_InvalidMessageHandle, EExitPanic, KPanicCategory, 8);
+	PanicTest(TheSqlFileBuf_InvalidReadPos, EExitPanic, KPanicCategory, 4);
+	PanicTest(TheSqlFileBuf_InvalidWritePos, EExitPanic, KPanicCategory, 4);
+	PanicTest(TheSqlFileBuf_InvalidSize, EExitPanic, KPanicCategory, 5);
+#else //_DEBUG
+	TheTest.Printf(_L("This test can be run in _DEBUG mode only!"));
+#endif//_DEBUG
+	}
+
 void DoTests()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:PDS-SQL-UT-4132 RFileBuf64 write test 1"));
@@ -1384,6 +1603,9 @@ void DoTests()
 	OpenFileIoErrTest();
 	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-CT-4212 RFileBuf64::Write() test"));
 	TestSetSizeCounter();
+
+	TheTest.Next( _L(" @SYMTestCaseID:PDS-SQL-UT-4236 RFileBuf64 panic test"));
+	FileBufPanicTest();
 	}
 
 TInt E32Main()

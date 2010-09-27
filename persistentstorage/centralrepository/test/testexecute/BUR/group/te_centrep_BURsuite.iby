@@ -20,21 +20,21 @@
 #include <testexecute.iby>
 #include <burtestserver.iby>
 
-file=ABI_DIR\BUILD_DIR\te_centrep_BURSuite.exe		System\bin\te_centrep_BURSuite.exe
+file=ABI_DIR\BUILD_DIR\te_centrep_bursuite.exe		System\bin\te_centrep_BURSuite.exe
 file=ABI_DIR\BUILD_DIR\te_centrep_burobserversuite.exe		System\bin\te_centrep_burobserversuite.exe
 
-data=DATAZ_\TEF_CentralRepository\te_centrep_BURSuite.script 	TEF_CentralRepository\te_centrep_BURSuite.Script
-data=DATAZ_\TEF_CentralRepository\BUR.ini 			TEF_CentralRepository\BUR.ini
-data=DATAZ_\TEF_CentralRepository\backup_registration.xml 	TEF_CentralRepository\backup_registration.xml
+data=DATAZ_\tef_centralrepository\te_centrep_BURSuite.script 	TEF_CentralRepository\te_centrep_BURSuite.Script
+data=DATAZ_\tef_centralrepository\bur.ini 			TEF_CentralRepository\BUR.ini
+data=DATAZ_\tef_centralrepository\backup_registration.xml 	TEF_CentralRepository\backup_registration.xml
 
 #ifndef __CENTREPTESTDATA_IBY__
-data=DATAZ_\PRIVATE\10202BE9\BACBACBA.txt PRIVATE\10202BE9\BACBACBA.txt
-data=DATAZ_\PRIVATE\10202BE9\BAC2BAC2.txt PRIVATE\10202BE9\BAC2BAC2.txt
-data=DATAZ_\PRIVATE\10202BE9\BAEBAEBA.txt PRIVATE\10202BE9\BAEBAEBA.txt
+data=DATAZ_\private\10202be9\bacbacba.txt PRIVATE\10202BE9\BACBACBA.txt
+data=DATAZ_\private\10202be9\bac2bac2.txt PRIVATE\10202BE9\BAC2BAC2.txt
+data=DATAZ_\private\10202be9\baebaeba.txt PRIVATE\10202BE9\BAEBAEBA.txt
 #ifdef PDS_TEST_MULTIROFS
-data=DATAZ_\PRIVATE\10202BE9\BACBACBA.txt PRIVATE\10202BE9\BACBACBA.txt[01-00]
-data=DATAZ_\PRIVATE\10202BE9\BAC2BAC2.txt PRIVATE\10202BE9\BAC2BAC2.txt[01-00]
-data=DATAZ_\PRIVATE\10202BE9\BAEBAEBA.txt PRIVATE\10202BE9\BAEBAEBA.txt[01-00]
+data=DATAZ_\private\10202be9\bacbacba.txt PRIVATE\10202BE9\BACBACBA.txt[01-00]
+data=DATAZ_\private\10202be9\bac2bac2.txt PRIVATE\10202BE9\BAC2BAC2.txt[01-00]
+data=DATAZ_\private\10202be9\baebaeba.txt PRIVATE\10202BE9\BAEBAEBA.txt[01-00]
 #endif
 #endif // __CENTREPTESTDATA_IBY__
 #endif // __TE_CENTREP_BUR_SUITE_IBY__

@@ -176,6 +176,7 @@ TInt ThreadFunc1(void* aData)
 				}
 			}
 		//Send arguments
+		//RDebug::Print(_L("##data.iFunction=%d\r\n"), data.iFunction);
 		TRequestStatus stat;
 		sess.Send(data.iFunction, args, stat);
 		if(stat.Int() == KErrServerTerminated)
@@ -186,6 +187,7 @@ TInt ThreadFunc1(void* aData)
 			{
 			if(data.iFunction == ELogOperationInitiate)
 				{
+				//RDebug::Print(_L("##ELogOperationGetResult\r\n"));
 				err = sess.Send(ELogOperationGetResult, args);
 				if(err == KErrServerTerminated)
 					{
@@ -197,10 +199,12 @@ TInt ThreadFunc1(void* aData)
 				//Give some time to the LogEng server to do something with that async request, then cancel it.
 				//Otherwise, on a multi-core hardware, the LogEnd server will end up with a long queue of
 				//pending requests, not cleared if the client side thread is panic'd. It will be a complete chaos.
-				User::After(20000);
+				//RDebug::Print(_L("##data.iFunction=%d, wait and cancel async request\r\n"), data.iFunction);
+				User::After(100000);
 				TRequestStatus* s = &stat;
 				User::RequestComplete(s, KErrCancel);
 				}
+			//RDebug::Print(_L("##---err=%d\r\n"), err);
 			}
 		}
 
@@ -330,8 +334,7 @@ void BadClientTest()
 		// If the Server has crashed then we must fail		
 		if (serverStatus != KRequestPending) 
 			{
-			TheTest.Printf(_L("##Iteration=%d, Function=%d, Status1=%d, Status2=%d\r\n"), data.iIteration, data.iFunction, status.Int(), serverStatus.Int());
-			break;
+			TheTest.Printf(_L("##Iteration=%d, Function=%d, Status=%d, Server Status=%d\r\n"), data.iIteration, data.iFunction, status.Int(), serverStatus.Int());
 			}
 
 		TExitType exitType = thread.ExitType();
@@ -339,12 +342,16 @@ void BadClientTest()
 		thread.Close();
 		User::SetJustInTime(ETrue);
 		
-		if(exitType == EExitPanic)
+		if(exitType == EExitPanic || serverStatus != KRequestPending)
 			{
-			if(exitReason == KPanicCode)
+			if(exitReason == KPanicCode || serverStatus != KRequestPending)
 				{
 				TheTest.Printf(_L("##Server terminated!\r\n"));
-				TheTest.Printf(_L("##Iteration=%d, Function=%d\r\n"), data.iIteration, data.iFunction);
+				TheTest.Printf(_L("##Iteration=%d, Function=%d, iOperationType=%d, iDataSlot1=%d, iDataSlot2=%d\r\n"), 
+						data.iIteration, data.iFunction,
+						TheLogIpcData.iOperationType,
+						TheLogIpcData.iDataSlot1,
+						TheLogIpcData.iDataSlot2);
 				for(TInt i=0;i<KMaxMessageArguments;++i)
 					{
 					TheTest.Printf(_L("##Arg %d, Type %d\r\n"), i + 1, data.iArgType[i]);
@@ -369,7 +376,6 @@ void BadClientTest()
 			}
 		}//for
 	delete p;
-
 
 	// Check to see if the server crashed and not detected by client
 	TEST(serverStatus.Int() == KRequestPending);

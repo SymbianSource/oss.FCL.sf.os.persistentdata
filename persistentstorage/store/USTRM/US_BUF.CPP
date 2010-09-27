@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,9 +15,6 @@
 
 #include "US_STD.H"
 
-EXPORT_C TInt MStreamBuf::Synch()
-
-
 /** Synchronises the stream buffer with the stream, returning any error.
 
 In effect, this ensures that buffered data is delivered to the stream.
@@ -29,12 +26,12 @@ code if a leave occurs.
 codes.
 @see MStreamBuf::SynchL()
 @see MStreamBuf::DoSynchL() */
+EXPORT_C TInt MStreamBuf::Synch()
 	{
 	TRAPD(r,SynchL());
 	return r;
 	}
 
-EXPORT_C void MStreamBuf::Close()
 /** Closes the stream buffer.
 
 This function attempts to synchronise buffered data with the stream before 
@@ -42,20 +39,20 @@ freeing any resources. All errors are ignored.
 
 @see MStreamBuf::Synch()
 @see MStreamBuf::Release() */
+EXPORT_C void MStreamBuf::Close()
 	{
 	Synch();
 	Release();
 	}
 
-EXPORT_C void MStreamBuf::PushL()
 /** Puts a cleanup item for this object onto the cleanup stack.
 
 This allows allocated resources to be cleaned up if a subsequent leave occurs. */
+EXPORT_C void MStreamBuf::PushL()
 	{
 	CleanupReleasePushL(*this);
 	}
 
-EXPORT_C TInt MStreamBuf::Read(TDes8& aDes,TRequestStatus& aStatus)
 /** Reads data, asynchronously, from the stream buffer into the specified descriptor; 
 request completion is guaranteed, even if request initiation fails.
 
@@ -70,11 +67,11 @@ asynchronous request.
 value can be different to the maximum length of the descriptor; this is dependent 
 on the implementation.
 @see MStreamBuf::DoReadL() */
+EXPORT_C TInt MStreamBuf::Read(TDes8& aDes,TRequestStatus& aStatus)
 	{
 	return Read(aDes,aDes.MaxLength(),aStatus);
 	}
 
-EXPORT_C TInt MStreamBuf::Read(TDes8& aDes,TInt aMaxLength,TRequestStatus& aStatus)
 /** Reads data, asynchronously, from the stream buffer into the specified descriptor; 
 request completion is guaranteed, even if request initiation fails.
 
@@ -89,6 +86,7 @@ asynchronous request.
 can be different to the value supplied in aMaxLength; this is dependent on 
 the implementation.
 @see MStreamBuf::DoReadL() */
+EXPORT_C TInt MStreamBuf::Read(TDes8& aDes,TInt aMaxLength,TRequestStatus& aStatus)
 	{
 	TInt len=0;
 	TRAPD(r,len=DoReadL(aDes,aMaxLength,aStatus));
@@ -100,7 +98,6 @@ the implementation.
 	return len;
 	}
 
-EXPORT_C TInt MStreamBuf::ReadL(TDes8& aDes,TRequestStatus& aStatus)
 /** Reads data, asynchronously, from the stream buffer into the specified descriptor.
 
 The function calls the virtual function DoReadL(TDes8&,TInt,TRequestStatus&) 
@@ -116,11 +113,11 @@ asynchronous request.
 value can be different to the maximum length of the descriptor; this is dependent 
 on the implementation.
 @see MStreamBuf::DoReadL() */
+EXPORT_C TInt MStreamBuf::ReadL(TDes8& aDes,TRequestStatus& aStatus)
 	{
 	return DoReadL(aDes,aDes.MaxLength(),aStatus);
 	}
 
-EXPORT_C TInt MStreamBuf::ReadL(MStreamInput& anInput,TInt aMaxLength)
 /** Reads data from the stream buffer into the specified data sink.
 
 The function uses the virtual function DoReadL(MStreamInput&,TStreamTransfer) 
@@ -129,11 +126,11 @@ to implement this behaviour.
 @param anInput The data sink which is the target for the read operation.
 @param aMaxLength The maximum amount of data available to be read.
 @return The amount of data that was not consumed. */
+EXPORT_C TInt MStreamBuf::ReadL(MStreamInput& anInput,TInt aMaxLength)
 	{
 	return aMaxLength-DoReadL(anInput,TStreamTransfer(aMaxLength)).Left();
 	}
 
-EXPORT_C TInt MStreamBuf::Write(const TDesC8& aDes,TRequestStatus& aStatus)
 /** Writes data, asynchronously, from the specified descriptor into the stream buffer; 
 request completion is guaranteed, even if request initiation fails.
 
@@ -149,14 +146,15 @@ asynchronous request.
 This can be different to the value supplied in aMaxLength; this is dependent 
 on the implementation.
 @see MStreamBuf::DoWriteL() */
+EXPORT_C TInt MStreamBuf::Write(const TDesC8& aDes,TRequestStatus& aStatus)
 	{
 	return Write(aDes,aDes.Length(),aStatus);
 	}
 
-EXPORT_C TInt MStreamBuf::Write(const TDesC8& aDes,TInt aMaxLength,TRequestStatus& aStatus)
 //
 // Write up to aMaxLength bytes with guaranteed completion.
 //
+EXPORT_C TInt MStreamBuf::Write(const TDesC8& aDes,TInt aMaxLength,TRequestStatus& aStatus)
 	{
 	TInt len=0;
 	TRAPD(r,len=DoWriteL(aDes,aMaxLength,aStatus));
@@ -168,7 +166,6 @@ EXPORT_C TInt MStreamBuf::Write(const TDesC8& aDes,TInt aMaxLength,TRequestStatu
 	return len;
 	}
 
-EXPORT_C TInt MStreamBuf::WriteL(const TDesC8& aDes,TRequestStatus& aStatus)
 /** Writes data, asynchronously, from the specified descriptor into the stream buffer.
 
 The function calls the virtual function DoWriteL(const TDesC8&,TInt,TRequestStatus&) 
@@ -185,11 +182,11 @@ asynchronous request.
 This can be different to the maximum length of the descriptor; this is dependent 
 on the implementation.
 @see MStreamBuf::DoWriteL() */
+EXPORT_C TInt MStreamBuf::WriteL(const TDesC8& aDes,TRequestStatus& aStatus)
 	{
 	return DoWriteL(aDes,aDes.Length(),aStatus);
 	}
 
-EXPORT_C TInt MStreamBuf::WriteL(MStreamOutput& anOutput,TInt aMaxLength)
 /** Writes data into the stream buffer from the specified data source.
 
 The function calls the virtual function DoWriteL(MStreamOutput&,TStreamTransfer) 
@@ -198,11 +195,11 @@ to implement this behaviour.
 @param anOutput The data source for the write operation.
 @param aMaxLength The maximum amount of data available to be written.
 @return The amount of data that was not consumed. */
+EXPORT_C TInt MStreamBuf::WriteL(MStreamOutput& anOutput,TInt aMaxLength)
 	{
 	return aMaxLength-DoWriteL(anOutput,TStreamTransfer(aMaxLength)).Left();
 	}
 
-EXPORT_C void MStreamBuf::DoRelease()
 /** Frees resources before abandoning the stream buffer.
 
 It is called by Release().
@@ -211,9 +208,10 @@ This implementation is empty, but classes derived from MStreamBuf can provide
 their own implementation, if necessary.
 
 @see MStreamBuf::Release() */
-	{}
+EXPORT_C void MStreamBuf::DoRelease()
+	{	
+	}
 
-EXPORT_C void MStreamBuf::DoSynchL()
 /** Synchronises the stream buffer with the stream, leaving if any error occurs.
 
 In effect, this ensures that buffered data is delivered to the stream.
@@ -224,18 +222,41 @@ This implementation is empty, but classes derived from MStreamBuf can provide
 their own implementation, if necessary.
 
 @see MStreamBuf::SynchL() */
-	{}
+EXPORT_C void MStreamBuf::DoSynchL()
+	{
+	}
 
-EXPORT_C TInt MStreamBuf::DoReadL(TAny*,TInt)
+#pragma BullseyeCoverage off
+
 //
 // Cannot read from this stream buffer.
 //
+EXPORT_C TInt MStreamBuf::DoReadL(TAny*,TInt)
 	{
 	Panic(EStreamCannotRead);
 	return TInt();
 	}
 
-EXPORT_C TInt MStreamBuf::DoReadL(TDes8& aDes,TInt aMaxLength,TRequestStatus& aStatus)
+//
+// Cannot write to this stream buffer.
+//
+EXPORT_C void MStreamBuf::DoWriteL(const TAny*,TInt)
+	{
+	Panic(EStreamCannotWrite);
+	}
+
+//
+// This stream buffer does not support seeking.
+//
+EXPORT_C TStreamPos MStreamBuf::DoSeekL(TMark,TStreamLocation,TInt)
+	{
+	Panic(EStreamCannotSeek);
+	TStreamPos streamPos(-1);
+	return streamPos;
+	}
+
+#pragma BullseyeCoverage on
+
 /** Reads data from the stream buffer into the specified descriptor.
 
 This function is called by ReadL(TDes8&,TInt,TRequestStatus&).
@@ -258,6 +279,7 @@ asynchronous request.
 implementation uses, and returns, the value supplied in aMaxLength. Other 
 implementations may choose to use a different value.
 @see MStreamBuf::ReadL() */
+EXPORT_C TInt MStreamBuf::DoReadL(TDes8& aDes,TInt aMaxLength,TRequestStatus& aStatus)
 	{
 	__ASSERT_DEBUG(aMaxLength<=aDes.MaxLength(),Panic(EStreamReadBeyondEnd));
 	aDes.SetLength(DoReadL((TUint8*)aDes.Ptr(),aMaxLength));
@@ -266,7 +288,6 @@ implementations may choose to use a different value.
 	return aMaxLength;
 	}
 
-EXPORT_C TStreamTransfer MStreamBuf::DoReadL(MStreamInput& anInput,TStreamTransfer aTransfer)
 /** Reads data from the stream into the specified data sink.
 
 It is called by ReadL(MStreamInput&,TStreamTransfer).
@@ -282,19 +303,11 @@ capabilities, and that are derived directly from this class.
 to be read.
 @return A stream transfer object defining the amount of data that was not consumed.
 @see MStreamInput::ReadFromL() */
+EXPORT_C TStreamTransfer MStreamBuf::DoReadL(MStreamInput& anInput,TStreamTransfer aTransfer)
 	{
 	return anInput.ReadFromL(*this,aTransfer);
 	}
 
-EXPORT_C void MStreamBuf::DoWriteL(const TAny*,TInt)
-//
-// Cannot write to this stream buffer.
-//
-	{
-	Panic(EStreamCannotWrite);
-	}
-
-EXPORT_C TInt MStreamBuf::DoWriteL(const TDesC8& aDes,TInt aMaxLength,TRequestStatus& aStatus)
 /** Writes data from the specified descriptor into this stream buffer.
 
 This function is called by WriteL(const TDesC8&,TInt,TRequestStatus&).
@@ -316,6 +329,7 @@ asynchronous request.
 This implementation uses, and returns, the value supplied in aMaxLength. Other 
 implementations may choose to use a different value.
 @see MStreamBuf::WriteL() */
+EXPORT_C TInt MStreamBuf::DoWriteL(const TDesC8& aDes,TInt aMaxLength,TRequestStatus& aStatus)
 	{
 	__ASSERT_DEBUG(aMaxLength<=aDes.Length(),Panic(EStreamWriteBeyondEnd));
 	DoWriteL(aDes.Ptr(),aMaxLength);
@@ -324,31 +338,21 @@ implementations may choose to use a different value.
 	return aMaxLength;
 	}
 
-EXPORT_C TStreamTransfer MStreamBuf::DoWriteL(MStreamOutput& anOutput,TStreamTransfer aTransfer)
 //
 // Default implementation turning around to anOutput.
 //
+EXPORT_C TStreamTransfer MStreamBuf::DoWriteL(MStreamOutput& anOutput,TStreamTransfer aTransfer)
 	{
 	return anOutput.WriteToL(*this,aTransfer);
 	}
 
-EXPORT_C TStreamPos MStreamBuf::DoSeekL(TMark,TStreamLocation,TInt)
-//
-// This stream buffer does not support seeking.
-//
-	{
-	Panic(EStreamCannotSeek);
-	TStreamPos streamPos(-1);
-	return streamPos;
-	}
-
-EXPORT_C TStreamBuf::TStreamBuf()
-	: iRPtr(NULL),iREnd(NULL),iWPtr(NULL),iWEnd(NULL)
 /** Sets the pointers that mark out the read and write areas within the intermediate 
 buffer to null. */
-	{}
+EXPORT_C TStreamBuf::TStreamBuf()
+	: iRPtr(NULL),iREnd(NULL),iWPtr(NULL),iWEnd(NULL)
+	{
+	}
 
-EXPORT_C void TStreamBuf::SetBuf(TArea anArea,TUint8* aPtr,TUint8* anEnd)
 /** Sets the start and end points of the read and/or the write area within the intermediate 
 buffer.
 
@@ -363,6 +367,7 @@ otherwise the function raises a STORE-Stream 17 panic.
 @param anEnd The end point.
 @see MStreamBuf::TRead
 @see MStreamBuf::TWrite */
+EXPORT_C void TStreamBuf::SetBuf(TArea anArea,TUint8* aPtr,TUint8* anEnd)
 	{
 	__ASSERT_ALWAYS(!(anArea&~(ERead|EWrite)),Panic(EStreamAreaInvalid));
 	if (anArea&ERead)
@@ -371,7 +376,6 @@ otherwise the function raises a STORE-Stream 17 panic.
 		SetBuf(EWrite,aPtr,anEnd);
 	}
 
-EXPORT_C void TStreamBuf::SetPtr(TArea anArea,TUint8* aPtr)
 /** Sets the start point of the read and/or the write area within the intermediate 
 buffer.
 
@@ -384,6 +388,7 @@ raises a STORE-Stream 17 panic.
 @param aPtr The start point.
 @see MStreamBuf::TRead
 @see MStreamBuf::TWrite */
+EXPORT_C void TStreamBuf::SetPtr(TArea anArea,TUint8* aPtr)
 	{
 	__ASSERT_ALWAYS(!(anArea&~(ERead|EWrite)),Panic(EStreamAreaInvalid));
 	if (anArea&ERead)
@@ -392,10 +397,10 @@ raises a STORE-Stream 17 panic.
 		SetPtr(EWrite,aPtr);
 	}
 
-EXPORT_C void TStreamBuf::SetEnd(TArea anArea,TUint8* anEnd)
 //
 // Set the end pointer for the buffer area(s) indicated by anArea.
 //
+EXPORT_C void TStreamBuf::SetEnd(TArea anArea,TUint8* anEnd)
 	{
 	__ASSERT_ALWAYS(!(anArea&~(ERead|EWrite)),Panic(EStreamAreaInvalid));
 	if (anArea&ERead)
@@ -404,7 +409,6 @@ EXPORT_C void TStreamBuf::SetEnd(TArea anArea,TUint8* anEnd)
 		SetEnd(EWrite,anEnd);
 	}
 
-EXPORT_C TUint8* TStreamBuf::Ptr(TArea anArea) const
 /** Gets the current start point of the read or write area within the intermediate 
 buffer.
 
@@ -415,6 +419,7 @@ the function raises a STORE-Stream 17 panic.
 @return The start point.
 @see MStreamBuf::TRead
 @see MStreamBuf::TWrite */
+EXPORT_C TUint8* TStreamBuf::Ptr(TArea anArea) const
 	{
 	if (anArea==ERead)
 		return Ptr(ERead);
@@ -423,7 +428,6 @@ the function raises a STORE-Stream 17 panic.
 	return Ptr(EWrite);
 	}
 
-EXPORT_C TUint8* TStreamBuf::End(TArea anArea) const
 /** Gets the current end point of the read or write area within the intermediate 
 buffer.
 
@@ -434,6 +438,7 @@ is to be fetched. This can be either the read area or the write area, as indicat
 by the ERead and EWrite bits. Only one of these can be set, otherwise the 
 function raises a STORE-Stream 17 panic.
 @return The end point. */
+EXPORT_C TUint8* TStreamBuf::End(TArea anArea) const
 	{
 	if (anArea==ERead)
 		return End(ERead);
@@ -442,7 +447,6 @@ function raises a STORE-Stream 17 panic.
 	return End(EWrite);
 	}
 
-EXPORT_C TInt TStreamBuf::Avail(TArea anArea) const
 /** Gets the number of bytes available in the read or write area within the intermediate 
 buffer.
 
@@ -451,6 +455,7 @@ of available bytes is to be fetched. This can be either the read area or the
 write area, as indicated by the ERead and EWrite bits. Only one of these can 
 be set, otherwise the function raises a STORE-Stream 17 panic.
 @return The number of bytes available. */
+EXPORT_C TInt TStreamBuf::Avail(TArea anArea) const
 	{
 	if (anArea==ERead)
 		return Avail(ERead);
@@ -459,7 +464,6 @@ be set, otherwise the function raises a STORE-Stream 17 panic.
 	return Avail(EWrite);
 	}
 
-EXPORT_C TInt TStreamBuf::DoReadL(TAny* aPtr,TInt aMaxLength)
 /** Reads data from the intermediate buffer into the specified memory location.
 
 The function calls the virtual function UnderfLowL() to give concrete implementations 
@@ -474,6 +478,7 @@ the intermediate buffer.
 @return The number of bytes read. This may be less than the amount requested.
 @see MStreamBuf::ReadL()
 @see MStreamBuf::DoReadL() */
+EXPORT_C TInt TStreamBuf::DoReadL(TAny* aPtr,TInt aMaxLength)
 	{
 	__ASSERT_DEBUG(aMaxLength>=0,Panic(EStreamReadLengthNegative));
 	__ASSERT_DEBUG(aMaxLength>0,Panic(EStreamReadNoTransfer));
@@ -505,7 +510,6 @@ the intermediate buffer.
 	return aMaxLength-left;
 	}
 
-EXPORT_C TStreamTransfer TStreamBuf::DoReadL(MStreamInput& anInput,TStreamTransfer aTransfer)
 /** Reads data from the intermediate buffer and, if necessary, any remaining data 
 from the stream to the specified target stream input object.
 
@@ -525,6 +529,7 @@ to be written.
 @return The amount of data that was not consumed.
 @see MStreamInput::ReadFromL()
 @see MStreamInput::PushL() */
+EXPORT_C TStreamTransfer TStreamBuf::DoReadL(MStreamInput& anInput,TStreamTransfer aTransfer)
 	{
 	__ASSERT_DEBUG(aTransfer>0,Panic(EStreamReadNoTransfer));
 	__ASSERT_DEBUG(Ptr(ERead)!=NULL||End(ERead)==NULL,Panic(EStreamCannotRead));
@@ -544,7 +549,6 @@ to be written.
 	return aTransfer;
 	}
 
-EXPORT_C void TStreamBuf::DoWriteL(const TAny* aPtr,TInt aLength)
 /** Writes data from the specified memory location into the intermediate buffer.
 
 The function calls the virtual function OverfLowL() to give concrete implementations 
@@ -559,6 +563,7 @@ to the intermediate buffer.
 @return The number of bytes written.
 @see MStreamBuf::WriteL()
 @see MStreamBuf::DoWriteL() */
+EXPORT_C void TStreamBuf::DoWriteL(const TAny* aPtr,TInt aLength)
 	{
 	__ASSERT_DEBUG(aLength>=0,Panic(EStreamWriteLengthNegative));
 	__ASSERT_DEBUG(aLength>0,Panic(EStreamWriteNoTransfer));
@@ -588,10 +593,10 @@ to the intermediate buffer.
 		};
 	}
 
-EXPORT_C TStreamTransfer TStreamBuf::DoWriteL(MStreamOutput& anOutput,TStreamTransfer aTransfer)
 //
 // Default implementation filling the buffer before turning around to anOutput.
 //
+EXPORT_C TStreamTransfer TStreamBuf::DoWriteL(MStreamOutput& anOutput,TStreamTransfer aTransfer)
 	{
 	__ASSERT_DEBUG(aTransfer>0,Panic(EStreamWriteNoTransfer));
 	__ASSERT_DEBUG(Ptr(EWrite)!=NULL||End(EWrite)==NULL,Panic(EStreamCannotWrite));

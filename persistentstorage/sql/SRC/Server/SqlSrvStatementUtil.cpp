@@ -270,10 +270,7 @@ TInt DbExecStmt8(sqlite3* aDbHandle, const TDesC8& aSqlStmt)
 	TInt err = sqlite3_exec(aDbHandle, reinterpret_cast <const char*> (aSqlStmt.Ptr()), NULL, NULL, NULL);
 
 	err = ::Sql2OsErrCode(err, sqlite3SymbianLastOsError());
-	if(err == KSqlAtEnd)
-		{
-		err = KErrNone;	
-		}
+	__ASSERT_DEBUG(err != KSqlAtEnd, __SQLPANIC2(ESqlPanicInternalError));
 	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, DBEXECSTMT8_EXIT, "Exit;0x%X;DbExecStmt8;err=%d", (TUint)aDbHandle, err));
 	return err;
 	}
@@ -876,20 +873,22 @@ TInt DbCompact(sqlite3* aDbHandle, const TDesC& aDbName, TInt aPageCount, TInt& 
 				{
 				startTicks = User::FastCounter();
 				}
+			
 			while((err = sqlite3_step(stmtHandle)) == SQLITE_ROW)
-				{
-				++aProcessedPageCount;
-				if(aMaxTime > 0 && IsCompactTimeLimitReached(startTicks, User::FastCounter(), aMaxTime))
-					{
-					err = SQLITE_DONE;//The statement execution did not complete because of the time limit
-					break;	
-					}
-				}
-			if(err == SQLITE_ERROR)	//It may be "out of memory" problem
-				{
-				err = sqlite3_reset(stmtHandle);
-				__ASSERT_DEBUG(err != SQLITE_OK, __SQLPANIC2(ESqlPanicInternalError));
-				}
+                {
+                ++aProcessedPageCount;
+                if(aMaxTime > 0 && IsCompactTimeLimitReached(startTicks, User::FastCounter(), aMaxTime))
+                    {
+                    err = SQLITE_DONE;//The statement execution did not complete because of the time limit
+                    break;  
+                    }
+                }
+			
+			if(err == SQLITE_ERROR)  //It may be "out of memory" problem
+                {
+                err = sqlite3_reset(stmtHandle);
+                __ASSERT_DEBUG(err != SQLITE_OK, __SQLPANIC2(ESqlPanicInternalError));
+                }
 			}
 		(void)sqlite3_finalize(stmtHandle);//sqlite3_finalize() fails only if an invalid statement handle is passed.
 		}

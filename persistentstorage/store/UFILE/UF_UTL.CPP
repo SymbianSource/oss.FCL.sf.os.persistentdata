@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -15,14 +15,18 @@
 
 #include "UF_STD.H"
 
-GLDEF_C void Panic(TFilePanic aPanic)
+#pragma BullseyeCoverage off
+
 //
 // Panic the process with STORE-File as the category.
 //
+GLDEF_C void Panic(TFilePanic aPanic)
 	{
 	_LIT(KCategory,"STORE-File");
 	User::Panic(KCategory,aPanic);
 	}
+
+#pragma BullseyeCoverage on
 
 EXPORT_C CFileStore* FileStoreFactory::DirectLC(RFileBuf& aBuf,const TUidType& aType)
 /** Opens an existing direct file store and creates a file store object to represent 

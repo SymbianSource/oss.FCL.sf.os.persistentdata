@@ -51,5 +51,6 @@ file=ABI_DIR\BUILD_DIR\t_storiter.exe       test\t_storiter.exe
 file=ABI_DIR\BUILD_DIR\t_stortoc.exe        test\t_stortoc.exe
 file=ABI_DIR\BUILD_DIR\t_storverify.exe     test\t_storverify.exe
 file=ABI_DIR\BUILD_DIR\t_storbench.exe      test\t_storbench.exe
+file=ABI_DIR\BUILD_DIR\t_storswizzle.exe    test\t_storswizzle.exe
 #endif
 

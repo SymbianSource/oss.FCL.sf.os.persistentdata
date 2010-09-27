@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -122,34 +122,37 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 			{
 			//Set filter 1
 			RArray<TUint32> filterArray;
+			CleanupClosePushL(filterArray);
 
 			TInt elementsCount = aMessage.Int1();
 			if(elementsCount > 0)
 				{
-				HBufC8* desData = HBufC8::NewLC(elementsCount*sizeof(TUint8));
+				HBufC8* desData = HBufC8::NewLC(elementsCount);
 				TPtr8 readPtr(desData->Des());
 				aMessage.ReadL(0, readPtr);
 		
 				CArrayFixFlat<TUint8> *array = new (ELeave) CArrayFixFlat<TUint8>(1);
 				CleanupStack::PushL(array);
 		
-				TUint8 tmp=1;
+				TUint8 tmp(1);
 				InternalizeFromBufL(readPtr, *array, tmp);
 		
-				for(TInt i=0;i<array->Count();++i)
+				for(TInt i(0); i < array->Count(); ++i)
 					{
-					filterArray.Append((TUint32)array->At(i));
+					filterArray.AppendL((TUint32)array->At(i));
 					}
 			
 				error = iServer.SetActiveFilterL(filterArray, EPrimaryFilter);
 
-				CleanupStack::PopAndDestroy(2,desData); //array, desData
-				filterArray.Close();
+				CleanupStack::PopAndDestroy(3, &filterArray); // and array, desData
 				}
 			else
+				{
 				error = KErrArgument;
+				}
 			}
 			break;
+
 		case ERemovePrimaryFilter:
 			{
 			//remove primaryfilters
@@ -157,29 +160,30 @@ void CULoggerSession::ServiceL(const RMessage2& aMessage)
 			if(elementsCount > 0)
 				{
 				RArray<TUint32> filterArray;
-				HBufC8* desData = HBufC8::NewLC(elementsCount*sizeof(TUint8));
+				CleanupClosePushL(filterArray);
+				HBufC8* desData = HBufC8::NewLC(elementsCount);
 				TPtr8 readPtr(desData->Des());
 				aMessage.ReadL(0, readPtr);
 
 				CArrayFixFlat<TUint8> *array = new (ELeave) CArrayFixFlat<TUint8>(1);
 				CleanupStack::PushL(array);
 
-				TUint8 tmp=1;
+				TUint8 tmp(1);
 				InternalizeFromBufL(readPtr, *array, tmp);
 
-				for(TInt i=0;i<array->Count();++i)
+				for(TInt i(0); i < array->Count(); ++i)
 					{
-					filterArray.Append((TUint32)array->At(i));
+					filterArray.AppendL((TUint32)array->At(i));
 					}
 
 				error = iServer.RemoveActiveFilter(filterArray,EPrimaryFilter);
 
-				CleanupStack::PopAndDestroy(2,desData); //array, desData
-				filterArray.Close();
+				CleanupStack::PopAndDestroy(3, &filterArray); // and array, desData
 				}
 			else
+				{
 				error = KErrArgument;
-
+				}
 			}
 			break;
 		

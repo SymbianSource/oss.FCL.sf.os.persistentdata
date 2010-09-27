@@ -103,6 +103,7 @@ PRJ_TESTMMPFILES
 ../TSTRM/t_storconv.mmp
 ../TSTRM/t_storucmp.mmp
 ../TSTRM/t_storstreamperf.mmp
+../TSTRM/t_storswizzle.mmp
 #endif
 
 //PC tool library

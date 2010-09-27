@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -154,6 +154,10 @@ private:
 	//filter related stuff
 	ControlData* SetPrimaryFilters(RArray<TPtrC8> &aArguments);
 	TInt GetValuesL(const TDesC8& aSectionName, RArray<TPtrC8>& aListBuffer);
+
+	// cleanup methods
+	static void CleanupTPluginConfigArray(TAny* aPtr);
+
 private:
 	//data
 	TInt iRunAsService;

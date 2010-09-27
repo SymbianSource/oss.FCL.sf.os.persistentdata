@@ -155,8 +155,11 @@ NONSHARABLE_CLASS(CFeatMgrFeatureRegistry) : public CBase, MSWICallBack
         /**
          * Make a backup of the feature list into member iFeatureListBackup, then reset 
          * the feature list iFeatureList.
+		 *
+		 * Leaves if there is an error during back up, with KErrNoMemory or any of the 
+		 * other system-wide error codes.
          */ 
-        TInt ResetFeatures();
+        void ResetFeaturesL();
         
         /**
 		 * This function will handle the required notifications for new, deleted and changed features

@@ -249,7 +249,10 @@ LOCAL_C void testWriteL()
 	if (file.Replace(TheFs,parse.NameAndExt(),EFileWrite)!=KErrNone)
 		test.Panic(_L("Replacing file"));
 	RFileBuf rbuf(KTestWriteBufSize);
-	rbuf.Attach(file);	
+	RFile file2 = file;//Keep a copy in file2, because Attach() will clear the passed RFile parameter
+	rbuf.Attach(file);
+	rbuf.Detach();
+	rbuf.Reattach(file2);
 	testStreamBufWriteL(rbuf);
 	rbuf.SynchL();
 	rbuf.Close();

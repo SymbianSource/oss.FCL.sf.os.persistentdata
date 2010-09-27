@@ -67,7 +67,8 @@ Virtual method.
 */
 void HSqlSrvStmtParamBuf::DoSynchL()
 	{
-	if(iSynchDone || !iAlive || iStatementFinalized || iBufType != HSqlSrvStmtParamBuf::EBufIpcStream)
+	TBool dontSynch = iSynchDone || !iAlive || iStatementFinalized || iBufType != HSqlSrvStmtParamBuf::EBufIpcStream;
+	if(dontSynch)
 		{
 		return;	
 		}

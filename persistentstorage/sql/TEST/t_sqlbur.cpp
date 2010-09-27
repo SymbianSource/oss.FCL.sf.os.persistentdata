@@ -25,45 +25,93 @@
 
 RTest TheTest(_L("SQL Backup and Restore Test"));
 
-_LIT(KPrivateDir, "C:\\private\\10281e17\\");
+_LIT(KPrivateDir, "\\private\\10281e17\\");
 
-const TUid KClientUid = {0x21212122}; // the data owner's UID
+//Don't forget to update DeleteBackupFiles() implementation if a new uid is added
+const TSecureId KClientUid = 0x21212122; // the data owner's UID
+const TSecureId KZeroFileSizeUid = 0xFFFF4321;
+const TSecureId KTestClientUid1 = 0xFFFF4322;
+const TSecureId KTestClientUid2 = 0xFFFF4323;
+const TSecureId KTestClientUid3 = 0xFFFF4324;
 
 _LIT(KBackupDir, "C:\\TEST\\");
-_LIT(KBackupFile, "C:\\TEST\\Backup.bak");
+_LIT(KBackupFileTemplate, "C:\\TEST\\Backup.bak");
+_LIT(KBackupCopy, "C:\\TEST\\Backup2.bak");
 _LIT(KBackupFile2Z, "Z:\\TEST\\t_sqlbur_backup_ver0.bak");
 _LIT(KBackupFile2, "C:\\TEST\\t_sqlbur_backup_ver0.bak");
+
+_LIT(KZeroSizeFile, "C:\\private\\10281e17\\[FFFF4321]t_sqlbur_zero.db");
+_LIT(KTestFile1, "C:\\private\\10281e17\\[FFFF4322]t_sqlbur_test1.db");
+_LIT(KTestFile1NameOnly, "[FFFF4322]t_sqlbur_test1.db");
+_LIT(KTestFile1Bak, "C:\\private\\10281e17\\bak[FFFF4322]t_sqlbur_test1.db.bak");
+_LIT(KTestDeleteMask1, "C:\\private\\10281e17\\[FFFF4322]*");
+_LIT(KTestDeleteMask2, "*bur_test1.db");
+_LIT(KTestFile2, "\\private\\10281e17\\[FFFF4323]t_sqlbur_test2.db");
+_LIT(KTestFile3, "c:\\private\\10281e17\\[FFFF4324]t_sqlbur_test3.db");
+_LIT(KTestFile4, "c:\\private\\10281e17\\[FFFF4324]t_sqlbur_test4.db");
+
+const TDriveNumber KTestDrive = EDriveC;
 
 const TUint KBufferSize = 2048; // used for reading backup files for validation
 
 static CActiveScheduler* TheScheduler = NULL;
-static CSqlBurTestHarness* TheTestHarness = NULL;
+static CSqlSrvTestBurInterface* TheSqlSrvTestBurInterface = NULL;
 
 /////////////////////////////////////
 
-const TInt KMaxDbFileSize = 10 * 1024;//The max test db file size
-const TInt KTestDbFileCnt = 2;
-
 //Test db files
-_LIT(KTestFileName1,"[21212122]AADB2.db");//Created outside this test app
-_LIT(KTestFileName2,"[21212122]BBDB2.db");//Created outside this test app
 _LIT(KTestDbFileName1,"C:[21212122]AADB2.db");
 _LIT(KTestDbFileName2,"C:[21212122]BBDB2.db");
 
-const TPtrC KTestFileNames[KTestDbFileCnt] = {KTestFileName1(), KTestFileName2()};
-
-static TInt TheDbFileSizes[KTestDbFileCnt];//An array where the real db file size will be stored
-static TUint8 TheDbFileData[KTestDbFileCnt][KMaxDbFileSize];//An array where the original db file content will be stored
+//Temp buffers for storing files content, to be compared with what is received after the restore operation. 10 files max.
+TInt TheFileCount = 0;
+const TInt KMaxDbFileSize = 10 * 1024;//The max test db file size - 10 Kb max.
+static TUint8 TheDbFileData[10][KMaxDbFileSize];//An array where the original db file content will be stored
+static TInt TheDbFileSizes[10];//An array where the real db file size will be stored
 static TUint8 TheBuf[KMaxDbFileSize];
 
 /////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+void DeleteBackupFiles()
+	{
+	TFileName fname;
+	
+	fname.Copy(KBackupFileTemplate);
+	fname.Append((static_cast <TUid> (KClientUid)).Name());
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(fname);
+	
+	fname.Copy(KBackupFileTemplate);
+	fname.Append((static_cast <TUid> (KZeroFileSizeUid)).Name());
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(fname);
+	
+	fname.Copy(KBackupFileTemplate);
+	fname.Append((static_cast <TUid> (KTestClientUid1)).Name());
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(fname);
+	
+	fname.Copy(KBackupFileTemplate);
+	fname.Append((static_cast <TUid> (KTestClientUid2)).Name());
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(fname);
+	
+	fname.Copy(KBackupFileTemplate);
+	fname.Append((static_cast <TUid> (KTestClientUid3)).Name());
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(fname);
+	}
+
 void TestEnvDestroy()
 	{
-	delete TheTestHarness;
-	TheTestHarness = NULL;		
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KBackupCopy);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1Bak);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile3);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile4);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KZeroSizeFile);
+
+	DeleteBackupFiles();
+	
+	delete TheSqlSrvTestBurInterface;
+	TheSqlSrvTestBurInterface = NULL;		
 	
 	delete TheScheduler;
 	TheScheduler = NULL;
@@ -96,32 +144,40 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-//CSqlBurTestHarness - test implementation of the MSqlSrvBurInterface, implemented in the production code by the SQL server.
-CSqlBurTestHarness *CSqlBurTestHarness::New()
+static void DestroyFileList(RArray<HBufC*>& aFileList)
 	{
-	CSqlBurTestHarness* self = new CSqlBurTestHarness;
+	for(TInt i=0;i<aFileList.Count();++i)
+		{
+		delete aFileList[i];
+		}
+	aFileList.Close();
+	}
+
+//CSqlSrvTestBurInterface - test implementation of the MSqlSrvBurInterface, implemented in the production code by the SQL server.
+CSqlSrvTestBurInterface *CSqlSrvTestBurInterface::New()
+	{
+	CSqlSrvTestBurInterface* self = new CSqlSrvTestBurInterface;
 	TEST(self != NULL);
 	self->Construct();
 	return self;
 	}
 
-CSqlBurTestHarness::CSqlBurTestHarness()
+CSqlSrvTestBurInterface::CSqlSrvTestBurInterface()
 	{
 	}
 
-void CSqlBurTestHarness::Construct()
+void CSqlSrvTestBurInterface::Construct()
 	{
 	TInt err = iFs.Connect();
 	TEST2(err, KErrNone);
 	err = iFs.MkDir(KBackupDir);
 	TEST(err == KErrNone || err == KErrAlreadyExists);
-	err = iFs.CreatePrivatePath(EDriveC);
+	err = iFs.CreatePrivatePath(KTestDrive);
 	TEST2(err, KErrNone);
 	}
 
-CSqlBurTestHarness::~CSqlBurTestHarness()
+CSqlSrvTestBurInterface::~CSqlSrvTestBurInterface()
 	{
-	(void)iFs.Delete(KBackupFile);
 	iFs.Close();
 	}
 
@@ -129,51 +185,57 @@ CSqlBurTestHarness::~CSqlBurTestHarness()
 //The array is owned by the caller
 //The SQL server would have the job to get a list of databases owned by
 //the given SID and to determine whether the backup flag is set
-//All databases that satisfy this requirement will be added to the array
-void CSqlBurTestHarness::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
+//All databases that satisfy this requirement will be added to the array.
+void CSqlSrvTestBurInterface::GetBackUpListL(TSecureId aUid, TDriveNumber aDrive, RArray<HBufC*>& aFileList)
 	{
 	if(aUid.iId == 0)
 		{//Simulates that there are no databases for backup
-		aFileList.Reset();
+		DestroyFileList(aFileList);
 		return;
 		}
-	//TheTest.Printf(_L("Getting backup file list for SID=%x\r\n"),aUid);
-	for(TInt i=0;i<KTestDbFileCnt;++i)
-		{
-		TParse parse;
-		parse.Set(KTestFileNames[i], &KPrivateDir, NULL);
-		aFileList.AppendL(parse);
-		}
-	}
-
-//Notification that a backup is starting
-TBool CSqlBurTestHarness::StartBackupL(const RArray<TParse>& /*aFileList*/) 
-	{
-	//TheTest.Printf(_L("Start \"backup\". %d files in the list.\r\n"), aFileList.Count());
-	return ETrue;
-	}
-
-//Notification that a backup has ended
-void CSqlBurTestHarness::EndBackup(const RArray<TParse>& /*aFileList*/)
-	{
-	//TheTest.Printf(_L("End \"backup\". %d files in the list.\r\n"), aFileList.Count());
-	}
-
-//Notification that a restore is starting
-TBool CSqlBurTestHarness::StartRestoreL(TSecureId /*aUid*/) 
-	{
-	//TheTest.Printf(_L("Start \"restore\" for UID=%X\r\n"), aUid);
-	return ETrue;
-	}
-
-//Notification that a restore has ended
-void CSqlBurTestHarness::EndRestore(TSecureId /*aUid*/) 
-	{
-	//TheTest.Printf(_L("End \"restore\" for UID=%X\r\n"), aUid);
-	}
 	
+	TDriveUnit driveUnit(aDrive);
+	TDriveName driveName = driveUnit.Name();
+	TFileName path;
+	path.Copy(driveName);
+	path.Append(KPrivateDir);
+	//Include the aUid and the "*" mask
+	TUidName uidName = (static_cast <TUid> (aUid)).Name();
+	_LIT(KMatchAllDbFiles, "*");
+	TBuf<KMaxUidName + sizeof(KMatchAllDbFiles)> fileNameMask(uidName);
+	fileNameMask.Append(KMatchAllDbFiles);
+	TParse parse;
+	TInt err = parse.Set(path, &fileNameMask, NULL);
+	User::LeaveIfError(err);
+	//Do the search
+	TPtrC fullPath(parse.FullName());
+	CDir* fileNameCol = NULL;
+	err = TheSqlSrvTestBurInterface->Fs().GetDir(fullPath, KEntryAttNormal, ESortNone, fileNameCol);
+	if(err == KErrNotFound)
+		{
+		return;
+		}
+	User::LeaveIfError(err);
+	CleanupStack::PushL(fileNameCol);
+	TInt fileCount = fileNameCol->Count();
+	err = aFileList.Reserve(fileCount);
+	User::LeaveIfError(err);
+	//Append the full database file paths to the file names list.
+	for(TInt i=0;i<fileCount;++i)
+		{
+		const ::TEntry& entry = (*fileNameCol)[i];
+		err = parse.Set(path, &entry.iName, NULL);
+		User::LeaveIfError(err);
+		TPtrC fname(parse.FullName());
+		HBufC* fnameBuf = fname.AllocL();
+		err = aFileList.Append(fnameBuf);
+		User::LeaveIfError(err);
+		}
+	CleanupStack::PopAndDestroy(fileNameCol);
+	}
+
 //Returns the file system resource handle to the caller.
-RFs& CSqlBurTestHarness::Fs()
+RFs& CSqlSrvTestBurInterface::Fs()
 	{
 	return iFs;
 	}
@@ -195,18 +257,54 @@ void TestEnvCreate()
 	
 	CActiveScheduler::Install(TheScheduler);
 
-	TheTestHarness = CSqlBurTestHarness::New();
-	TEST(TheTestHarness != NULL);
+	TheSqlSrvTestBurInterface = CSqlSrvTestBurInterface::New();
+	TEST(TheSqlSrvTestBurInterface != NULL);
+	}
+
+void PrepareSearchPath(TDriveNumber aDrive, TDes& aPath)
+	{
+	TDriveUnit driveUnit(aDrive);
+	TDriveName driveName = driveUnit.Name();
+	aPath.Copy(driveName);
+	aPath.Append(KPrivateDir);
+	}
+
+void PrepareSearchPattern(const TDesC& aPath, TSecureId aUid, TParse& aParse)
+	{
+	TUidName uidName = (static_cast <TUid> (aUid)).Name();
+	_LIT(KMatchAllDbFiles, "*");
+	TBuf<KMaxUidName + sizeof(KMatchAllDbFiles)> fileNameMask(uidName);
+	fileNameMask.Append(KMatchAllDbFiles);
+	TInt err = aParse.Set(aPath, &fileNameMask, NULL);
+	TEST2(err, KErrNone);
 	}
 
 //Reads the content of the db files and stores the content to a global memory buffer.
 //That buffer content will be used later for verification of the restore process.
-void StoreDbContentToBuf(RFs& aFs)
+void StoreDbContentToBuf(RFs& aFs, TDriveNumber aDrive, TSecureId aUid)
 	{
-	for(TInt i=0;i<KTestDbFileCnt;++i)
+	TFileName path;
+	PrepareSearchPath(aDrive, path);
+	TParse parse;
+	PrepareSearchPattern(path, aUid, parse);
+
+	TheFileCount = -1;
+	Mem::FillZ(TheDbFileData, sizeof(TheDbFileData));
+	Mem::FillZ(TheDbFileSizes, sizeof(TheDbFileSizes));
+	
+	CDir* dir = NULL;
+	TInt err = aFs.GetDir(parse.FullName(), KEntryAttNormal, ESortByName, dir);
+	TEST2(err, KErrNone);
+	TheFileCount = dir->Count();
+	for(TInt i=0;i<TheFileCount;++i)
 		{
+		const ::TEntry& entry = (*dir)[i];
+		err = parse.Set(path, &entry.iName, NULL);
+		TEST2(err, KErrNone);
+		TPtrC fname(parse.FullName());
+	
 		RFile dbFile;
-		TInt err = dbFile.Open(aFs, KTestFileNames[i], EFileRead);
+		err = dbFile.Open(aFs, fname, EFileRead);
 		TEST2(err, KErrNone);
 		
 		TInt fileSize = 0;
@@ -223,37 +321,53 @@ void StoreDbContentToBuf(RFs& aFs)
 		
 		dbFile.Close();
 		}
+	delete dir;
 	}
 
 //At the moment when this function is called, the db files content is already restored.
 //The function will open the restored db files and compare their content against the content
 //of the original db files (kept in a global memory buffer).
-void CompareDbContentWithBuf(RFs& aFs)
+void CompareDbContentWithBuf(RFs& aFs, TDriveNumber aDrive, TSecureId aUid)
 	{
-	for(TInt i=0;i<KTestDbFileCnt;++i)
+	TFileName path;
+	PrepareSearchPath(aDrive, path);
+	TParse parse;
+	PrepareSearchPattern(path, aUid, parse);
+	
+	CDir* dir = NULL;
+	TInt err = aFs.GetDir(parse.FullName(), KEntryAttNormal, ESortByName, dir);
+	TEST2(err, KErrNone);
+	TEST2(TheFileCount, dir->Count());
+	for(TInt i=0;i<TheFileCount;++i)
 		{
 		TEST(TheDbFileSizes[i] > 0);
 		
+		const ::TEntry& entry = (*dir)[i];
+		err = parse.Set(path, &entry.iName, NULL);
+		TEST2(err, KErrNone);
+		TPtrC fname(parse.FullName());
+		
 		RFile dbFile;
-		TInt err = dbFile.Open(aFs, KTestFileNames[i], EFileRead);
+		TInt err = dbFile.Open(aFs, fname, EFileRead);
 		TEST2(err, KErrNone);
 		
 		TInt fileSize = 0;
 		err = dbFile.Size(fileSize);
 		TEST2(err, KErrNone);
 		TEST(fileSize > 0);
-		TEST(TheDbFileSizes[i] == fileSize);
+		TEST2(TheDbFileSizes[i], fileSize);
 
 		TPtr8 bufptr(TheBuf, 0, KMaxDbFileSize);
 		err = dbFile.Read(bufptr, fileSize);
 		TEST2(err, KErrNone);
-		TEST(fileSize == bufptr.Length());
+		TEST2(fileSize, bufptr.Length());
 
 		err = Mem::Compare(TheBuf, fileSize, TheDbFileData[i], TheDbFileSizes[i]);
 		TEST2(err, 0);
 
 		dbFile.Close();
 		}
+	delete dir;
 	}
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -261,13 +375,17 @@ void CompareDbContentWithBuf(RFs& aFs)
 //The backup client will return a series of data chunks representing
 //one of more databases for the uid of the data owner.
 //This data is stored in a file on the C drive for the purposes of the test
-TInt TestBackupL(CSqlBackupClient &aBackupClient, RFs& aFs, TInt aDataChunkSize = KBufferSize)
+TInt TestBackupL(CSqlBurCallback &aBackupClient, RFs& aFs, TSecureId aUid, TDriveNumber aDrive, TInt aDataChunkSize = KBufferSize)
 	{
+	TFileName backupFileName;
+	backupFileName.Copy(KBackupFileTemplate);
+	backupFileName.Append((static_cast <TUid> (aUid)).Name());
+	
 	RFile file;
 	CleanupClosePushL(file);
-	TInt err = file.Replace(aFs, KBackupFile, EFileWrite | EFileStream | EFileShareExclusive);
+	TInt err = file.Replace(aFs, backupFileName, EFileWrite | EFileStream | EFileShareExclusive);
 	User::LeaveIfError(err);
-	aBackupClient.InitialiseGetProxyBackupDataL(KClientUid, EDriveC);
+	aBackupClient.InitialiseGetProxyBackupDataL(aUid, aDrive);
 	
 	TBuf8<KBufferSize> buf;
 	TPtr8 ptr((TUint8*)buf.Ptr(), aDataChunkSize);
@@ -290,7 +408,7 @@ TInt TestBackupL(CSqlBackupClient &aBackupClient, RFs& aFs, TInt aDataChunkSize 
 		{
 		User::Leave(KErrEof);
 		}
-	if(!FileExists(aFs, KBackupFile))
+	if(!FileExists(aFs, backupFileName))
 		{
 		User::Leave(KErrNotFound);
 		}
@@ -300,13 +418,17 @@ TInt TestBackupL(CSqlBackupClient &aBackupClient, RFs& aFs, TInt aDataChunkSize 
 
 //This sends the data in chunks form back to the BUR client
 //for nupacking and restoration of the original databases files
-TInt TestRestoreL(CSqlBackupClient &aRestoreClient, RFs& aFs, TInt aDataChunkSize = KBufferSize)
+TInt TestRestoreL(CSqlBurCallback &aRestoreClient, RFs& aFs, TSecureId aUid, TDriveNumber aDrive, TInt aDataChunkSize = KBufferSize)
 	{
+	TFileName backupFileName;
+	backupFileName.Copy(KBackupFileTemplate);
+	backupFileName.Append((static_cast <TUid> (aUid)).Name());
+	
 	RFile file;
 	CleanupClosePushL(file);
-	TInt err = file.Open(aFs, KBackupFile, EFileRead | EFileShareExclusive);
+	TInt err = file.Open(aFs, backupFileName, EFileRead | EFileShareExclusive);
 	User::LeaveIfError(err);
-	aRestoreClient.InitialiseRestoreProxyBaseDataL(KClientUid, EDriveC);
+	aRestoreClient.InitialiseRestoreProxyBaseDataL(aUid, aDrive);
 	
 	TBuf8<KBufferSize> buf;
 	TPtr8 ptr((TUint8*)buf.Ptr(), aDataChunkSize);
@@ -330,18 +452,11 @@ TInt TestRestoreL(CSqlBackupClient &aRestoreClient, RFs& aFs, TInt aDataChunkSiz
 	
 	CleanupStack::PopAndDestroy(&file);
 	
-	aRestoreClient.RestoreComplete(EDriveC);
+	aRestoreClient.RestoreComplete(aDrive);
 	
 	if(!finishedFlag)
 		{
 		User::Leave(KErrEof);
-		}
-	for(TInt i=0;i<KTestDbFileCnt;++i)
-		{
-		if(!FileExists(aFs, KTestFileNames[i]))
-			{
-			User::Leave(KErrNotFound);
-			}
 		}
 		
 	TheTest.Printf(_L("Restore complete. %d bytes processed.\r\n"), count);
@@ -349,12 +464,16 @@ TInt TestRestoreL(CSqlBackupClient &aRestoreClient, RFs& aFs, TInt aDataChunkSiz
 	}
 
 //Verifies the integrity of the backup file.
-void TestArchiveIntegrityL(CSqlBackupClient &aBackupClient, RFs& aFs)
+void TestArchiveIntegrityL(CSqlBurCallback &aBackupClient, RFs& aFs, TSecureId aUid)
 	{
 	RFile bkpFile;
 	CleanupClosePushL(bkpFile);
+
+	TFileName backupFileName;
+	backupFileName.Copy(KBackupFileTemplate);
+	backupFileName.Append((static_cast <TUid> (aUid)).Name());
 	
-	TInt err = bkpFile.Open(aFs, KBackupFile, EFileRead | EFileShareExclusive);
+	TInt err = bkpFile.Open(aFs, backupFileName, EFileRead | EFileShareExclusive);
 	User::LeaveIfError(err);
 	
 	TBuf8<KBufferSize> buf;
@@ -473,9 +592,11 @@ void TestArchiveIntegrityL(CSqlBackupClient &aBackupClient, RFs& aFs)
 		bkpFileSize -= fileSize;
 		
 		// checksum the file
-		TUint32 dbChecksum = aBackupClient.CheckSumL(dbFile) & 0xFFFFFFFF;
+		TUint64 checkSum64 = 0;
+		User::LeaveIfError(aBackupClient.CheckSum(dbFile, checkSum64));
+		TUint32 checksum32 = checkSum64 & 0xFFFFFFFF; 
 		
-		if(checksum != dbChecksum)
+		if(checksum != checksum32)
 			{
 			User::Leave(KErrCorrupt);
 			}
@@ -503,34 +624,30 @@ void TestArchiveIntegrityL(CSqlBackupClient &aBackupClient, RFs& aFs)
 */	
 void FunctionalTest()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4002 Backup: functional test "));
-	
-	CSqlBackupClient* backupClient = NULL;
-	TRAPD(err, backupClient = CSqlBackupClient::NewL(TheTestHarness));
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
 	TEST(backupClient != NULL);
 
 	////////////////////////////////////////
-
-	const TDriveNumber KDrive = EDriveC;
 	
 	//Virtual functions - with default implementation
 	
-	(void)backupClient->GetExpectedDataSize(KDrive);
+	(void)backupClient->GetExpectedDataSize(KTestDrive);
 
-	(void)backupClient->GetDataChecksum(KDrive);
+	(void)backupClient->GetDataChecksum(KTestDrive);
 	
 	TBool finished = EFalse;
 	TPtr8 ptr(0, 0, 0);
-	TRAP(err, backupClient->GetSnapshotDataL(KDrive, ptr, finished));
+	TRAP(err, backupClient->GetSnapshotDataL(KTestDrive, ptr, finished));
 	TEST2(err, KErrNotSupported);
 
-	TRAP(err, backupClient->InitialiseGetBackupDataL(KDrive));
+	TRAP(err, backupClient->InitialiseGetBackupDataL(KTestDrive));
 	TEST2(err, KErrNotSupported);
 
-	TRAP(err, backupClient->InitialiseRestoreBaseDataL(KDrive));
+	TRAP(err, backupClient->InitialiseRestoreBaseDataL(KTestDrive));
 	TEST2(err, KErrNotSupported);
 
-	TRAP(err, backupClient->InitialiseRestoreIncrementDataL(KDrive));
+	TRAP(err, backupClient->InitialiseRestoreIncrementDataL(KTestDrive));
 	TEST2(err, KErrNotSupported);
 
 	TPtrC8 ptr2(KNullDesC8);
@@ -540,7 +657,7 @@ void FunctionalTest()
 	TRAP(err, backupClient->AllSnapshotsSuppliedL());
 	TEST2(err, KErrNone);
 
-	TRAP(err, backupClient->ReceiveSnapshotDataL(KDrive, ptr2, finished));
+	TRAP(err, backupClient->ReceiveSnapshotDataL(KTestDrive, ptr2, finished));
 	TEST2(err, KErrNotSupported);
 
 	backupClient->TerminateMultiStageOperation();
@@ -548,45 +665,47 @@ void FunctionalTest()
 	////////////////////////////////////////
 
 	TInt bytesStored = 0;
-	TRAP(err, bytesStored = TestBackupL(*backupClient, TheTestHarness->Fs()));
+	TRAP(err, bytesStored = TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KClientUid, KTestDrive));
 	TEST2(err, KErrNone);
 
 	TheTest.Next(_L("Archive integrity test"));
 	
-	TRAP(err, TestArchiveIntegrityL(*backupClient, TheTestHarness->Fs()));
+	TRAP(err, TestArchiveIntegrityL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KClientUid));
 	TEST2(err, KErrNone);
 
 	delete backupClient;
 
 	TheTest.Next(_L("Restore: functional test"));
 
-	CSqlBackupClient* restoreClient = NULL;
-	TRAP(err, restoreClient = CSqlBackupClient::NewL(TheTestHarness));
+	CSqlBurCallback* restoreClient = NULL;
+	TRAP(err, restoreClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
 	TEST(restoreClient != NULL);
 
 	TInt bytesRestored = 0;
-	TRAP(err, bytesRestored = TestRestoreL(*restoreClient, TheTestHarness->Fs()));
+	TRAP(err, bytesRestored = TestRestoreL(*restoreClient, TheSqlSrvTestBurInterface->Fs(), KClientUid, KTestDrive));
 	TEST2(err, KErrNone);
 	
 	TEST(bytesRestored == bytesStored);
 
 	delete restoreClient;
 
-	CompareDbContentWithBuf(TheTestHarness->Fs());
+	CompareDbContentWithBuf(TheSqlSrvTestBurInterface->Fs(), KTestDrive, KClientUid);
 	}
 	
-TInt DoBackupL()
+TInt DoBackupL(TDriveNumber aDrive, TSecureId aUid)
 	{
-	CSqlBackupClient* backupClient = CSqlBackupClient::NewLC(TheTestHarness);
-	TInt bytesStored = TestBackupL(*backupClient, TheTestHarness->Fs());
+	CSqlBurCallback* backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface);
+	CleanupStack::PushL(backupClient);
+	TInt bytesStored = TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), aUid, aDrive);
 	CleanupStack::PopAndDestroy(backupClient);
 	return bytesStored;
 	}
 
-TInt DoRestoreL()
+TInt DoRestoreL(TDriveNumber aDrive, TSecureId aUid)
 	{
-	CSqlBackupClient* restoreClient = CSqlBackupClient::NewLC(TheTestHarness);
-	TInt bytesRestored = TestRestoreL(*restoreClient, TheTestHarness->Fs());
+	CSqlBurCallback* restoreClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface);
+	CleanupStack::PushL(restoreClient);
+	TInt bytesRestored = TestRestoreL(*restoreClient, TheSqlSrvTestBurInterface->Fs(), aUid, aDrive);
 	CleanupStack::PopAndDestroy(restoreClient);
 	return bytesRestored;
 	}
@@ -606,7 +725,6 @@ TInt DoRestoreL()
 void OomTest()
 	{
 	///////////////////////////////////////////////////////////////////////////////
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4003 Backup: OOM test "));
 	TInt err = KErrNoMemory;
 	TInt bytesStored = 0;
 	TInt count = 0;
@@ -619,7 +737,7 @@ void OomTest()
 		
 		User::__DbgMarkStart(RHeap::EUser);
 		User::__DbgSetAllocFail(RHeap::EUser,RHeap::EFailNext, count);
-		TRAP(err, bytesStored = DoBackupL());
+		TRAP(err, bytesStored = DoBackupL(KTestDrive, KClientUid));
 		User::__DbgMarkEnd(RHeap::EUser, 0);
 		
 		TInt endProcessHandleCount;
@@ -645,7 +763,7 @@ void OomTest()
 		
 		User::__DbgMarkStart(RHeap::EUser);
 		User::__DbgSetAllocFail(RHeap::EUser,RHeap::EFailNext, count);
-		TRAP(err, bytesRestored = DoRestoreL());
+		TRAP(err, bytesRestored = DoRestoreL(KTestDrive, KClientUid));
 		User::__DbgMarkEnd(RHeap::EUser, 0);
 		
 		TInt endProcessHandleCount;
@@ -659,9 +777,9 @@ void OomTest()
 	User::__DbgSetAllocFail(RHeap::EUser, RAllocator::ENone, 0);
 	TheTest.Printf(_L("OOM restore test succeeded at heap failure rate of %d\r\n"), count);
 	
-	TEST(bytesStored == bytesRestored);
+	TEST2(bytesStored, bytesRestored);
 
-	CompareDbContentWithBuf(TheTestHarness->Fs());
+	CompareDbContentWithBuf(TheSqlSrvTestBurInterface->Fs(), KTestDrive, KClientUid);
 	}
 
 /**
@@ -678,8 +796,6 @@ void OomTest()
 */
 void FunctionalTest2()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4143 Backup&Restore: functional test 2"));
-	
 	TTime now;
 	now.UniversalTime();
 	TInt64 seed = now.Int64();
@@ -700,32 +816,32 @@ void FunctionalTest2()
 	for(TInt i=0;i<KArraySize;++i)
 		{
 		TheTest.Printf(_L(" === Iteration %d, chunk size %d\r\n"), i + 1, dataChunks[i]);
-		CSqlBackupClient* backupClient = NULL;
-		TRAPD(err, backupClient = CSqlBackupClient::NewL(TheTestHarness));
+		CSqlBurCallback* backupClient = NULL;
+		TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
 		TEST(backupClient != NULL);
 
 		TInt bytesStored = 0;
-		TRAP(err, bytesStored = TestBackupL(*backupClient, TheTestHarness->Fs(), dataChunks[i]));
+		TRAP(err, bytesStored = TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KClientUid, KTestDrive, dataChunks[i]));
 		TEST2(err, KErrNone);
 
-		TRAP(err, TestArchiveIntegrityL(*backupClient, TheTestHarness->Fs()));
+		TRAP(err, TestArchiveIntegrityL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KClientUid));
 		TEST2(err, KErrNone);
 
 		delete backupClient;
 
-		CSqlBackupClient* restoreClient = NULL;
-		TRAP(err, restoreClient = CSqlBackupClient::NewL(TheTestHarness));
+		CSqlBurCallback* restoreClient = NULL;
+		TRAP(err, restoreClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
 		TEST(restoreClient != NULL);
 
 		TInt bytesRestored = 0;
-		TRAP(err, bytesRestored = TestRestoreL(*restoreClient, TheTestHarness->Fs(), dataChunks[i]));
+		TRAP(err, bytesRestored = TestRestoreL(*restoreClient, TheSqlSrvTestBurInterface->Fs(), KClientUid, KTestDrive, dataChunks[i]));
 		TEST2(err, KErrNone);
 		
 		TEST(bytesRestored == bytesStored);
 
 		delete restoreClient;
 
-		CompareDbContentWithBuf(TheTestHarness->Fs());
+		CompareDbContentWithBuf(TheSqlSrvTestBurInterface->Fs(), KTestDrive, KClientUid);
 		}
 	}
 
@@ -743,24 +859,22 @@ void FunctionalTest2()
 */
 void LegacyFileFormatTest()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4144 Backup&Restore: legacy file format test"));
-
 	//KBackupFile2 is a database backup file with header version 0.
-	(void)TheTestHarness->Fs().Delete(KBackupFile2);
-	TInt rc = BaflUtils::CopyFile(TheTestHarness->Fs(), KBackupFile2Z, KBackupFile2);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KBackupFile2);
+	TInt rc = BaflUtils::CopyFile(TheSqlSrvTestBurInterface->Fs(), KBackupFile2Z, KBackupFile2);
 	TEST2(rc, KErrNone);
-	(void)TheTestHarness->Fs().SetAtt(KBackupFile2, 0, KEntryAttReadOnly);
+	(void)TheSqlSrvTestBurInterface->Fs().SetAtt(KBackupFile2, 0, KEntryAttReadOnly);
 
 	//Restore the databases from KBackupFile2.
-	CSqlBackupClient* restoreClient = NULL;
-	TRAP(rc, restoreClient = CSqlBackupClient::NewL(TheTestHarness));
+	CSqlBurCallback* restoreClient = NULL;
+	TRAP(rc, restoreClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
 	TEST(restoreClient != NULL);
 
 	RFile file;
-	rc = file.Open(TheTestHarness->Fs(), KBackupFile2, EFileRead | EFileShareExclusive);
+	rc = file.Open(TheSqlSrvTestBurInterface->Fs(), KBackupFile2, EFileRead | EFileShareExclusive);
 	TEST2(rc, KErrNone);
 	
-	TRAP(rc, restoreClient->InitialiseRestoreProxyBaseDataL(KClientUid, EDriveC));
+	TRAP(rc, restoreClient->InitialiseRestoreProxyBaseDataL(KClientUid, KTestDrive));
 	TEST2(rc, KErrNone);
 	
 	TBuf8<KBufferSize> buf;
@@ -784,7 +898,7 @@ void LegacyFileFormatTest()
 	
 	file.Close();	
 	
-	restoreClient->RestoreComplete(EDriveC);
+	restoreClient->RestoreComplete(KTestDrive);
 	
 	TEST(finishedFlag);
 		
@@ -825,7 +939,7 @@ void LegacyFileFormatTest()
 	TEST2(rc, KSqlAtEnd);
 	db.Close();
 
-	(void)TheTestHarness->Fs().Delete(KBackupFile2);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KBackupFile2);
 	}
 		
 /**
@@ -840,13 +954,11 @@ void LegacyFileFormatTest()
 */
 void EmptyBackupFileListTest()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4192 Backup&Restore: empty backup file list"));
-	
-	CSqlBackupClient* backupClient = NULL;
-	TRAPD(err, backupClient = CSqlBackupClient::NewL(TheTestHarness));
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
 	TEST(backupClient != NULL);
 	
-	TRAP(err, backupClient->InitialiseGetProxyBackupDataL(KNullUid, EDriveC));
+	TRAP(err, backupClient->InitialiseGetProxyBackupDataL(KNullUid, KTestDrive));
 	TEST2(err, KErrNone);
 
 	TBuf8<100> buf;
@@ -872,11 +984,9 @@ void EmptyBackupFileListTest()
 */
 void BackupRestoreFileIoErrTest()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4193 Backup: File I/O error simulation test"));
-
 	//Make sure that the database content, just before the backup, will be copied to the test biffers.
 	//The buffers will be used during the restore testing for verification of the database content.
-	StoreDbContentToBuf(TheTestHarness->Fs());
+	StoreDbContentToBuf(TheSqlSrvTestBurInterface->Fs(), KTestDrive, KClientUid);
 	
 	for(TInt fsError=KErrNotFound;fsError>=KErrBadName;--fsError)
 		{
@@ -888,9 +998,9 @@ void BackupRestoreFileIoErrTest()
 		for(;err<KErrNone;++it_cnt1)
 			{
 			__UHEAP_MARK;
-			(void)TheTestHarness->Fs().SetErrorCondition(fsError, it_cnt1);
-			TRAP(err, bytesStored = DoBackupL());
-			(void)TheTestHarness->Fs().SetErrorCondition(KErrNone);
+			(void)TheSqlSrvTestBurInterface->Fs().SetErrorCondition(fsError, it_cnt1);
+			TRAP(err, bytesStored = DoBackupL(KTestDrive, KClientUid));
+			(void)TheSqlSrvTestBurInterface->Fs().SetErrorCondition(KErrNone);
 			__UHEAP_MARKEND;
 			}
 		TEST2(err, KErrNone);
@@ -901,40 +1011,878 @@ void BackupRestoreFileIoErrTest()
 	    for(;err<KErrNone;++it_cnt2)
 			{
 			__UHEAP_MARK;
-			(void)TheTestHarness->Fs().SetErrorCondition(fsError, it_cnt2);
-			TRAP(err, bytesRestored = DoRestoreL());
-			(void)TheTestHarness->Fs().SetErrorCondition(KErrNone);
+			(void)TheSqlSrvTestBurInterface->Fs().SetErrorCondition(fsError, it_cnt2);
+			TRAP(err, bytesRestored = DoRestoreL(KTestDrive, KClientUid));
+			(void)TheSqlSrvTestBurInterface->Fs().SetErrorCondition(KErrNone);
 			__UHEAP_MARKEND;
 			}
 		TEST2(err, KErrNone);
 		
 		TEST2(bytesStored, bytesRestored);
-		CompareDbContentWithBuf(TheTestHarness->Fs());
+		CompareDbContentWithBuf(TheSqlSrvTestBurInterface->Fs(), KTestDrive, KClientUid);
 		
 		TheTest.Printf(_L("Backup&Restore file I/O error simulation test succeeded at backup iteration %d and restore itreration %d\r\n"), it_cnt1 - 1, it_cnt2 - 1);
 		}
 	}
 
+/**
+@SYMTestCaseID			PDS-SQL-UT-4225
+@SYMTestCaseDesc		SQL Backup - zero size file backup.
+						The test executes a backup on a file with zero size.
+@SYMTestActions			SQL Backup - zero size file backup.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+*/
+void BackupZeroSizeFileTest()
+	{
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
+	TEST2(err, KErrNone);
+	TEST(backupClient != NULL);
+	//
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KZeroSizeFile);
+	RFile file;
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KZeroSizeFile, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	file.Close();
+	//
+	TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KZeroFileSizeUid, KTestDrive));
+	TEST2(err, KErrNone);
+	//Write something to the file
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KZeroSizeFile, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData, "123456787989");
+	err = file.Write(KData);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Do the restore. After the restore the file size should be 0.
+	TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KZeroFileSizeUid, KTestDrive));
+	TEST2(err, KErrNone);
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KZeroSizeFile, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	TInt size;
+	err = file.Size(size);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST2(size, 0);
+	//Write something to the file
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KZeroSizeFile, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	err = file.Write(KData);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Call RestoreBaseDataSectionL() with 0 data in the input buffer and finished flag: false.
+	TRAP(err, backupClient->InitialiseRestoreProxyBaseDataL(KZeroFileSizeUid, KTestDrive));
+	TEST2(err, KErrNone);
+	TPtrC8 zeroBuf;
+	TRAP(err, backupClient->RestoreBaseDataSectionL(zeroBuf, EFalse));
+	TEST2(err, KErrNone);
+	//No restore in this case, 
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KZeroSizeFile, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	err = file.Size(size);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST(size > 0);
+	//Call RestoreBaseDataSectionL() with 0 data in the input buffer and finished flag: true.
+	TRAP(err, backupClient->InitialiseRestoreProxyBaseDataL(KZeroFileSizeUid, KTestDrive));
+	TEST2(err, KErrNone);
+	TRAP(err, backupClient->RestoreBaseDataSectionL(zeroBuf, ETrue));
+	TEST2(err, KErrNone);
+	//No restore in this case, 
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KZeroSizeFile, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	err = file.Size(size);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST(size > 0);
+	//
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KZeroSizeFile);
+	delete backupClient;
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4226
+@SYMTestCaseDesc		SQL Restore - corrupted archive 1.
+						The test does a backup of a file with a non-zero size.
+						The the test modifies the archive, simulating a corruption.
+						The the test performs a restore from the archive. The corruption
+						should be detected and reported by SQL B&R code.
+@SYMTestActions			SQL Restore - corrupted archive 1.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+*/
+void CorruptedArchiveTest1()
+	{
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
+	TEST2(err, KErrNone);
+	TEST(backupClient != NULL);
+	//Create the test file that will be sent for backup
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+	RFile file;
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData1, "123456787989");
+	err = file.Write(KData1);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Backup the file
+	TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+	TEST2(err, KErrNone);
+	//Modify the file, which was sent for backup
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData2, "ABCDEFGH");
+	err = file.Write(KData2);
+	TEST2(err, KErrNone);
+	err = file.SetSize(KData2().Length());
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Corrupt the archive
+	TFileName backupFileName;
+	backupFileName.Copy(KBackupFileTemplate);
+	backupFileName.Append((static_cast <TUid> (KTestClientUid1)).Name());
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), backupFileName, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	TInt pos = -3;
+	err = file.Seek(ESeekEnd, pos);
+	TEST2(err, KErrNone);
+	_LIT8(KData3, "ERR");
+	err = file.Write(KData3);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Try to restore the archive
+	TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+	TEST2(err, KErrCorrupt);
+	//Check that the file really has not been restored
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	TBuf8<50> data;
+	err = file.Read(data);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST(data == KData2);
+	//
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+	delete backupClient;
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4227
+@SYMTestCaseDesc		SQL Restore - corrupted archive 2.
+						The test does a backup of a file with a non-zero size.
+						Then the test modifies the archive, byte after byte each step,
+						simulating a corruption.
+						The the test performs a restore from the archive. The corruption
+						should be detected and reported by SQL B&R code.
+@SYMTestActions			SQL Restore - corrupted archive 2.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+*/
+void CorruptedArchiveTest2()
+	{
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
+	TEST2(err, KErrNone);
+	TEST(backupClient != NULL);
+	//Create the test file that will be sent for backup
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+	RFile file;
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData1, "123456787989");
+	err = file.Write(KData1);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Backup the file
+	TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+	TEST2(err, KErrNone);
+	//Modify the file, which was sent for backup
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData2, "ABCDEFGH");
+	err = file.Write(KData2);
+	TEST2(err, KErrNone);
+	err = file.SetSize(KData2().Length());
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Make a copy of the modified file
+	CFileMan* fm = NULL;
+	TRAP(err, fm = CFileMan::NewL(TheSqlSrvTestBurInterface->Fs()));
+	TEST2(err, KErrNone);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1Bak);
+	err = fm->Copy(KTestFile1, KTestFile1Bak);
+	TEST2(err, KErrNone);
+	//Get the archive size
+	TFileName backupFileName;
+	backupFileName.Copy(KBackupFileTemplate);
+	backupFileName.Append((static_cast <TUid> (KTestClientUid1)).Name());
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), backupFileName, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	TInt size = 0;
+	err = file.Size(size);
+	TEST2(err, KErrNone);
+	file.Close();
+	//Save a copy of the archive
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KBackupCopy);
+	err = fm->Copy(backupFileName, KBackupCopy);
+	TEST2(err, KErrNone);
+	//On each iteration step: corrupt the archive and try to do a restore from it.
+	for(TInt i=0;i<size;++i)
+		{
+		//Change 1 byte in the archive
+		err = file.Open(TheSqlSrvTestBurInterface->Fs(), backupFileName, EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		TInt pos = i;
+		err = file.Seek(ESeekStart, pos);
+		TEST2(err, KErrNone);
+		TBuf8<1> byte;
+		err = file.Read(byte);
+		TEST2(err, KErrNone);
+		++byte[0];
+		err = file.Seek(ESeekStart, pos);
+		TEST2(err, KErrNone);
+		err = file.Write(byte);
+		TEST2(err, KErrNone);
+		if(i == (size - 1) && (size & 0x01) == 0)
+			{//Make the file size an odd number, just to test....  
+			err = file.Write(byte);
+			TEST2(err, KErrNone);
+			}
+		err = file.Flush();
+		TEST2(err, KErrNone);
+		file.Close();
+		//Restore
+		TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+		TheTest.Printf(_L("Iteration %d, err=%d\r\n"), i, err);
+		if(err == KErrNone)
+			{
+			//Delete the restored file. The reason that the restore didn't fail is because only the file data is 
+			//protected with checksum. The restore file header - not. The restore completed, the data was restored
+			//to a file with different name. Or even to a file with the same name. Delete created file(s).
+			(void)fm->Delete(KTestDeleteMask1);
+			(void)fm->Delete(KTestDeleteMask2);
+			}
+		else
+			{
+			//The restore completed with an error. The file content is preserved.
+			//Check that the file content is the same. 
+			err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+			TEST2(err, KErrNone);
+			TBuf8<50> data;
+			err = file.Read(data);
+			TEST2(err, KErrNone);
+			file.Close();
+			TEST(data == KData2);
+			}
+		//Restore the file from the backup copy
+		(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+		err = fm->Copy(KTestFile1Bak, KTestFile1);
+		TEST2(err, KErrNone);
+		//Restore the archive from the good copy.
+		(void)TheSqlSrvTestBurInterface->Fs().Delete(backupFileName);
+		err = fm->Copy(KBackupCopy, backupFileName);
+		TEST2(err, KErrNone);
+		}
+	//
+	delete fm;
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1Bak);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KBackupCopy);
+	delete backupClient;
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4228
+@SYMTestCaseDesc		SQL Backup&Restore on a drive different than KTestDrive (C: by default).
+						The test creates one database on KTestDrive and another database 
+						with the same name on a drive different than KTestDrive.
+						Then the test backups the "not KTestDrive" drive and restores
+						the data after that. The test verifies that the backup&restore
+						really impacts only the other drive, not KTestDrive.
+@SYMTestActions			SQL Backup&Restore on a drive different than KTestDrive (C: by default).
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+*/
+void DbDriveTest()
+	{
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
+	TEST2(err, KErrNone);
+	TEST(backupClient != NULL);
+	//
+	TDriveUnit driveUnitDefault(KTestDrive);
+	TDriveName driveNameDefault = driveUnitDefault.Name(); 
+	//Find a r/w drive, different than KTestDrive
+	TInt drive = EDriveA;
+	for(;drive<=EDriveZ;++drive)
+		{
+		if(drive == KTestDrive)
+			{
+			continue;
+			}
+		TDriveInfo driveInfo;
+		err = TheSqlSrvTestBurInterface->Fs().Drive(driveInfo, drive);
+		if(err != KErrNone)
+			{
+			continue;
+			}
+		if(driveInfo.iDriveAtt & KDriveAttRom)
+			{
+			continue;
+			}
+		//
+		TDriveUnit driveUnit(drive);
+		TDriveName driveName = driveUnit.Name();
+		//
+		TVolumeInfo vinfo;
+		err = TheSqlSrvTestBurInterface->Fs().Volume(vinfo, drive);
+		if(err != KErrNone)
+			{
+			TheTest.Printf(_L("Drive %S, RFs::Volume() err=%d\r\n"), &driveName, err);
+			continue;
+			}
+		//R/W drive found.
+		TheTest.Printf(_L("Test drive: %S\r\n"), &driveName);
+		TParse parse;
+		err = parse.Set(KTestFile2, &driveName, 0);
+		TEST2(err, KErrNone);
+		//Create the test file that will be sent for backup
+		TPtrC fname1(parse.FullName());
+		TheTest.Printf(_L("Test file 1: %S\r\n"), &fname1);
+		err = TheSqlSrvTestBurInterface->Fs().MkDirAll(parse.FullName());
+		TEST(err == KErrNone || err == KErrAlreadyExists);
+		(void)TheSqlSrvTestBurInterface->Fs().Delete(parse.FullName());
+		RFile file;
+		err = file.Replace(TheSqlSrvTestBurInterface->Fs(), parse.FullName(), EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		_LIT8(KData1, "123456787989");
+		err = file.Write(KData1);
+		TEST2(err, KErrNone);
+		err = file.Flush();
+		TEST2(err, KErrNone);
+		file.Close();
+		//Create a test file with the same name on drive KTestDrive 
+		err = parse.Set(KTestFile2, &driveNameDefault, 0);
+		TEST2(err, KErrNone);
+		TPtrC fname2(parse.FullName());
+		TheTest.Printf(_L("Test file 2: %S\r\n"), &fname2);
+		(void)TheSqlSrvTestBurInterface->Fs().Delete(parse.FullName());
+		err = file.Replace(TheSqlSrvTestBurInterface->Fs(), parse.FullName(), EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		_LIT8(KData2, "ABCDEFG");
+		err = file.Write(KData2);
+		TEST2(err, KErrNone);
+		err = file.Flush();
+		TEST2(err, KErrNone);
+		file.Close();
+		//Do the backup on "drive"
+		TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid2, (TDriveNumber)drive));
+		TEST2(err, KErrNone);
+		//Modify the file that was sent for backup
+		err = parse.Set(KTestFile2, &driveName, 0);
+		TEST2(err, KErrNone);
+		err = file.Open(TheSqlSrvTestBurInterface->Fs(), parse.FullName(), EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		_LIT8(KData3, "ABCDEFGHYYYYYY");
+		err = file.Write(KData3);
+		TEST2(err, KErrNone);
+		err = file.Flush();
+		TEST2(err, KErrNone);
+		file.Close();
+		//Do the restore on "drive"
+		TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid2, (TDriveNumber)drive));
+		TEST2(err, KErrNone);
+		//Verify the content of the restored file
+		err = parse.Set(KTestFile2, &driveName, 0);
+		TEST2(err, KErrNone);
+		err = file.Open(TheSqlSrvTestBurInterface->Fs(), parse.FullName(), EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		TBuf8<50> data;
+		err = file.Read(data);
+		TEST2(err, KErrNone);
+		file.Close();
+		TEST(data == KData1);
+		//Verify the content of the file on drive KTestDrive. It should be the same as before the backup&restore.
+		err = parse.Set(KTestFile2, &driveNameDefault, 0);
+		TEST2(err, KErrNone);
+		err = file.Open(TheSqlSrvTestBurInterface->Fs(), parse.FullName(), EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		err = file.Read(data);
+		TEST2(err, KErrNone);
+		file.Close();
+		TEST(data == KData2);
+		//Cleanup
+		err = parse.Set(KTestFile2, &driveNameDefault, 0);
+		TEST2(err, KErrNone);
+		(void)TheSqlSrvTestBurInterface->Fs().Delete(parse.FullName());
+		err = parse.Set(KTestFile2, &driveName, 0);
+		TEST2(err, KErrNone);
+		(void)TheSqlSrvTestBurInterface->Fs().Delete(parse.FullName());
+		break;
+		}
+	delete backupClient;
+	if(drive > EDriveZ)
+		{
+		TheTest.Printf(_L("No R/W drive has been found, different than %S\r\n"), &driveNameDefault);
+		}
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4229
+@SYMTestCaseDesc		SQL Backup&Restore with locked file.
+						The test creates two test files on the same drive and with the same uid.
+						Then the test backups the databases. After the backup the test simulates that
+						the first file is "in use". Then the test performs a restore.
+						The expected result: the locked file is not restored but the other file is restored.
+@SYMTestActions			SQL Backup&Restore with locked file.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+*/
+void LockFileTest()
+	{
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
+	TEST2(err, KErrNone);
+	TEST(backupClient != NULL);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile3);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile4);
+	//Create the files. File 1.
+	RFile file;
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile3, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData1, "123456787989");
+	err = file.Write(KData1);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//...file 2
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile4, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData2, "ABCDEF");
+	err = file.Write(KData2);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Backup
+	TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid3, KTestDrive));
+	TEST2(err, KErrNone);
+	//Modify the files. Keep the first file opened.
+	RFile file1;
+	err = file1.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile3, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData3, "YYYYYQQQQQQQQQQQ");
+	err = file1.Write(KData3);
+	TEST2(err, KErrNone);
+	err = file1.Flush();
+	TEST2(err, KErrNone);
+	//...file 2
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile4, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData4, "5545495444j32322332234223432");
+	err = file.Write(KData4);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Restore. The reported error should be KErrInUse.
+	TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid3, KTestDrive));
+	TEST2(err, KErrInUse);
+	//Close file 1 and check the content. It should be the same as after the backup
+	file1.Close();
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile3, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	TBuf8<50> data;
+	err = file.Read(data);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST(data == KData3);
+	//File2:  check the content. It should be the same as before the backup
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile4, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	err = file.Read(data);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST(data == KData2);
+	//
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile4);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile3);
+	delete backupClient;
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4230
+@SYMTestCaseDesc		SQL Backup&Restore with locked file - test 2.
+						The test creates two test files on the same drive and with different uids.
+						Then the test backups the databases. After the backup the test simulates that
+						the first file is "in use". Then the test performs a restore.
+						The expected result: the locked file is not restored but the other file is restored.
+@SYMTestActions			SQL Backup&Restore with locked file - test 2.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+*/
+void LockFileTest2()
+	{
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
+	TEST2(err, KErrNone);
+	TEST(backupClient != NULL);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);//KTestClientUid1 used
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile4);//KTestClientUid3 used
+	//Create the files. File 1.
+	RFile file;
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData1, "123456787989");
+	err = file.Write(KData1);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//...file 2
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile4, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData2, "ABCDEF");
+	err = file.Write(KData2);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Backup
+	TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+	TEST2(err, KErrNone);
+	TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid3, KTestDrive));
+	TEST2(err, KErrNone);
+	//Modify the files. Keep the first file opened.
+	RFile file1;
+	err = file1.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData3, "YYYYYQQQQQQQQQQQ");
+	err = file1.Write(KData3);
+	TEST2(err, KErrNone);
+	err = file1.Flush();
+	TEST2(err, KErrNone);
+	//...file 2
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile4, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData4, "5545495444j32322332234223432");
+	err = file.Write(KData4);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Restore the first file. The reported error should be KErrInUse.
+	TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+	TEST2(err, KErrInUse);
+	//Restore the second file. The reported error should be KErrNone.
+	TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid3, KTestDrive));
+	TEST2(err, KErrNone);
+	//Close file 1 and check the content. It should be the same as after the backup
+	file1.Close();
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	TBuf8<50> data;
+	err = file.Read(data);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST(data == KData3);
+	//File2:  check the content. It should be the same as before the backup
+	err = file.Open(TheSqlSrvTestBurInterface->Fs(), KTestFile4, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	err = file.Read(data);
+	TEST2(err, KErrNone);
+	file.Close();
+	TEST(data == KData2);
+	//
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile4);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+	delete backupClient;
+	}
+
+CDir* GetPrivateDirContent(TDriveNumber aDrive)
+	{
+	TDriveUnit driveUnit(aDrive);
+	TDriveName driveName = driveUnit.Name();
+	TFileName path;
+	path.Copy(driveName);
+	path.Append(KPrivateDir);
+	_LIT(KMatchAllDbFiles, "*");
+	path.Append(KMatchAllDbFiles);
+	//Do the search
+	CDir* fileNameCol = NULL;
+	TInt err = TheSqlSrvTestBurInterface->Fs().GetDir(path, KEntryAttNormal, ESortByName, fileNameCol);
+	TEST2(err, KErrNone);
+	return fileNameCol;
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4231
+@SYMTestCaseDesc		SQL Backup&Restore - directory content test.
+						The test stores into an array information regarding all files in 
+						SQL private datacage. Then the test backups one of the files and modifies
+						the file after that. Then the test does a restore. Expected result - the only
+						modifed file should be the file which was sent for backup.
+@SYMTestActions			SQL Backup&Restore - directory content test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+*/
+void DirectoryContentTest()
+	{
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
+	TEST2(err, KErrNone);
+	TEST(backupClient != NULL);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);//KTestClientUid1 used
+	//Create the file
+	RFile file;
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData1, "123456787989");
+	err = file.Write(KData1);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Store file entries into an array
+	CDir* dirBeforeBackup = GetPrivateDirContent(KTestDrive);
+	//Backup
+	TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+	TEST2(err, KErrNone);
+	//Check dir content
+	CDir* dirAfterBackup = GetPrivateDirContent(KTestDrive);
+	TEST2(dirBeforeBackup->Count(), dirAfterBackup->Count());
+	for(TInt i=0;i<dirBeforeBackup->Count();++i)
+		{
+		const TEntry& entry1 = (*dirBeforeBackup)[i];
+		const TEntry& entry2 = (*dirAfterBackup)[i];
+		TheTest.Printf(_L("Entry1=%S, Entry2=%S\r\n"), &entry1.iName, &entry2.iName);
+		TBool rc = entry1.iAtt == entry2.iAtt;
+		TEST(rc);
+		rc = entry1.iSize == entry2.iSize;
+		TEST(rc);
+		rc = entry1.iModified == entry2.iModified;
+		TEST(rc);
+		rc = entry1.iType == entry2.iType;
+		TEST(rc);
+		rc = entry1.iName == entry2.iName;
+		TEST(rc);
+		}
+	delete dirAfterBackup;
+	//Modify the file
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	_LIT8(KData2, "ABCDEF");
+	err = file.Write(KData2);
+	TEST2(err, KErrNone);
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Restore
+	User::After(2000000);//To force a change in the file time stamp (the restored file time stamp).
+	TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+	TEST2(err, KErrNone);
+	//Check dir content
+	CDir* dirAfterRestore = GetPrivateDirContent(KTestDrive);
+	TEST2(dirBeforeBackup->Count(), dirAfterRestore->Count());
+	for(TInt i=0;i<dirBeforeBackup->Count();++i)
+		{
+		const TEntry& entry1 = (*dirBeforeBackup)[i];
+		const TEntry& entry2 = (*dirAfterRestore)[i];
+		TheTest.Printf(_L("Entry1=%S, Entry2=%S\r\n"), &entry1.iName, &entry2.iName);
+		TBool rc = entry1.iAtt == entry2.iAtt;
+		TEST(rc);
+		rc = entry1.iSize == entry2.iSize;
+		TEST(rc);
+		if(entry1.iName.FindF(KTestFile1NameOnly) >= 0)
+			{
+			rc = entry1.iModified != entry2.iModified;
+			}
+		else
+			{
+			rc = entry1.iModified == entry2.iModified;
+			}
+		TEST(rc);
+		rc = entry1.iType == entry2.iType;
+		TEST(rc);
+		rc = entry1.iName == entry2.iName;
+		TEST(rc);
+		}
+	delete dirAfterRestore;
+	//
+	delete dirBeforeBackup;
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+	delete backupClient;
+	}
+
+/**
+@SYMTestCaseID			PDS-SQL-UT-4232
+@SYMTestCaseDesc		SQL Backup&Restore - large file test.
+						Backup and restore with a file with size bigger than 1 Mb.
+@SYMTestActions			SQL Backup&Restore - large file test.
+@SYMTestExpectedResults Test must not fail
+@SYMTestPriority		High
+*/
+void LargeFileTest()
+	{
+	CSqlBurCallback* backupClient = NULL;
+	TRAPD(err, backupClient = CSqlBurCallback::NewL(*TheSqlSrvTestBurInterface));
+	TEST2(err, KErrNone);
+	TEST(backupClient != NULL);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);//KTestClientUid1 used
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile2);//KTestClientUid2 used
+	//Allocate buffer for the data
+	const TInt KDataBufSize = 100000;
+	HBufC8* dataBuf = HBufC8::New(KDataBufSize);
+	TEST(dataBuf != NULL);
+	TPtr8 dataPtr = dataBuf->Des();
+	//Create file 1
+	const TInt KFileSize1 = 1201345;
+	RFile file;
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile1, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	dataPtr.SetLength(dataPtr.MaxLength());
+	const TChar KChar1(0x5A);
+	dataPtr.Fill(KChar1);
+	TInt len = KFileSize1;
+	while(len > 0)
+		{
+		TInt blockSize = Min(len, dataPtr.MaxLength()); 
+		err = file.Write(dataPtr, blockSize);
+		TEST2(err, KErrNone);
+		len -= blockSize;
+		}
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Create file 2
+	const TInt KFileSize2 = 1387651;
+	err = file.Replace(TheSqlSrvTestBurInterface->Fs(), KTestFile2, EFileRead | EFileWrite);
+	TEST2(err, KErrNone);
+	dataPtr.SetLength(dataPtr.MaxLength());
+	const TChar KChar2(0xD5);
+	dataPtr.Fill(KChar2);
+	len = KFileSize2;
+	while(len > 0)
+		{
+		TInt blockSize = Min(len, dataPtr.MaxLength()); 
+		err = file.Write(dataPtr, blockSize);
+		TEST2(err, KErrNone);
+		len -= blockSize;
+		}
+	err = file.Flush();
+	TEST2(err, KErrNone);
+	file.Close();
+	//Backup
+	TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+	TEST2(err, KErrNone);
+	TRAP(err, TestBackupL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid2, KTestDrive));
+	TEST2(err, KErrNone);
+	//Delete the files
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile2);
+	//Restore
+	TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid1, KTestDrive));
+	TEST2(err, KErrNone);
+	TRAP(err, TestRestoreL(*backupClient, TheSqlSrvTestBurInterface->Fs(), KTestClientUid2, KTestDrive));
+	TEST2(err, KErrNone);
+	//Check restored files content
+	const TPtrC KFileNames[] = {KTestFile1(), KTestFile2()};
+	const TInt KFileSizes[] =  {KFileSize1, KFileSize2};
+	const TChar KSymbols[] =  {KChar1, KChar2};
+	for(TInt i=0;i<(sizeof(KFileNames)/sizeof(KFileNames[i]));++i)
+		{
+		err = file.Open(TheSqlSrvTestBurInterface->Fs(), KFileNames[i], EFileRead);
+		TEST2(err, KErrNone);
+		len = 0;
+		err = file.Size(len);
+		TEST2(err, KErrNone);
+		TEST2(len, KFileSizes[i]);
+		while(len > 0)
+			{
+			TInt blockSize = Min(len, dataPtr.MaxLength());
+			err = file.Read(dataPtr, blockSize);
+			TEST2(err, KErrNone);
+			len -= blockSize;
+			for(TInt j=0;j<dataPtr.Length();++j)
+				{
+				TEST(dataPtr[j] == KSymbols[i]);
+				}
+			}
+		file.Close();
+		}
+	//
+	delete dataBuf;
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile2);
+	(void)TheSqlSrvTestBurInterface->Fs().Delete(KTestFile1);
+	delete backupClient;
+	}
 
 void DoMain()
 	{
 	TestEnvCreate();
 
 	TheTest.Start(_L("Store db content to memory buffer"));
-	StoreDbContentToBuf(TheTestHarness->Fs());
+	StoreDbContentToBuf(TheSqlSrvTestBurInterface->Fs(), KTestDrive, KClientUid);
 		
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4002 Backup: functional test "));
 	FunctionalTest();
 
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-UT-4003 Backup: OOM test "));
 	OomTest();
 
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4143 Backup&Restore: functional test 2"));
 	FunctionalTest2();
 
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4144 Backup&Restore: legacy file format test"));
 	LegacyFileFormatTest();
 	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4192 Backup&Restore: empty backup file list"));
 	EmptyBackupFileListTest();
 	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4193 Backup: File I/O error simulation test"));
 	BackupRestoreFileIoErrTest();
+	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4225 Zero size file - backup test"));	
+	BackupZeroSizeFileTest();
+	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4226 Restore test - corrupted archive 1"));	
+	CorruptedArchiveTest1();
 
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4227 Restore test - corrupted archive 2"));	
+	CorruptedArchiveTest2();
+
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4228 Backup&Restore test on a drive different than KTestDrive (C: by default)"));
+	DbDriveTest();
+	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4229 Backup&Restore test with locked file"));
+	LockFileTest();
+	
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4230 Backup&Restore test with locked file 2"));
+	LockFileTest2();
+
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4231 Backup&Restore - directory content test"));
+	DirectoryContentTest();
+
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-UT-4232 Backup&Restore - large file test"));
+	LargeFileTest();
+	
 	TestEnvDestroy();
 	}
 
@@ -943,7 +1891,7 @@ TInt E32Main()
 	TheTest.Title();
 	
 	CTrapCleanup* tc = CTrapCleanup::New();
-	TEST(tc != NULL);
+	TheTest(tc != NULL);
 	
 	__UHEAP_MARK;
 	

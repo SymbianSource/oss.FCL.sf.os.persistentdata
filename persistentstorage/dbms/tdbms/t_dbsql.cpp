@@ -162,8 +162,8 @@ class TestPredicateBase
 	{
 protected:
 	static void Create(const TText* aType);
-	static void Test(const TSelectTest* aTest,TInt aCount,TInt aRows);
-	static void TestViewL(const TSelectTest* aTest,TInt aCount,TInt aRows);
+	static void Test(const TSelectTest* aTest,TInt aCount,TInt aRows, TBool aLog);
+	static void TestViewL(const TSelectTest* aTest,TInt aCount,TInt aRows, TBool aLog=EFalse);
 	};
 
 // Create the table for the predicate tests
@@ -179,54 +179,93 @@ void TestPredicateBase::Create(const TText* aType)
 	}
 
 // Test the predicate on the table, then on the indexed table
-void TestPredicateBase::Test(const TSelectTest* aTest,TInt aCount,TInt aRows)
+void TestPredicateBase::Test(const TSelectTest* aTest,TInt aCount,TInt aRows, TBool aLog)
 	{
+    if(aLog)
+        {
+        TheTest.Printf(_L("TestPredicateBase::Test\r\n"));
+        }
 	TheTable.Close();
 	TInt r=TheDatabase.Commit();
+	if(aLog)
+        {
+        TheTest.Printf(_L("Commit %d\r\n"), r);
+        }
 	TEST2(r, KErrNone);
-	TRAPD(errCode, TestViewL(aTest,aCount,aRows));
+	TRAPD(errCode, TestViewL(aTest,aCount,aRows, aLog));
+	if(aLog)
+        {
+        TheTest.Printf(_L("TestViewL %d"), errCode);
+        }
+
 	TEST2(errCode, KErrNone);
 	r=TheDatabase.Execute(_L("CREATE INDEX Key ON Compare (Test)"));
+   if(aLog)
+        {
+        TheTest.Printf(_L("Execute %d"), r);
+        }
+
 	TEST2(r, KErrNone);
-	TRAP(errCode,TestViewL(aTest,aCount,aRows));
+	TRAP(errCode,TestViewL(aTest,aCount,aRows, aLog));
+	if(aLog)
+        {
+        TheTest.Printf(_L("TestViewL %d"), errCode);
+	    }
+
 	TEST2(errCode, KErrNone);
 	r=TheDatabase.Execute(_L("DROP TABLE Compare"));
+    if(aLog)
+        {
+        TheTest.Printf(_L("Execute %d"), r);
+        }
+
 	TEST2(r, KErrNone);
 	}
 
 // Test the predicate on the table
-void TestPredicateBase::TestViewL(const TSelectTest* aTest,TInt aCount,TInt aRows)
+void TestPredicateBase::TestViewL(const TSelectTest* aTest,TInt aCount,TInt aRows, TBool /*aLog*/)
 	{
 	TUint rowMask=(2u<<aRows)-1;
 	for (;--aCount>=0;++aTest)
 		{
 		TheSql.Format(_L("SELECT Id FROM Compare WHERE Test %s"),aTest->iSearchCondition);
 		TInt r=TheView.Prepare(TheDatabase,TheSql,TheView.EReadOnly);
-
+		if(r!=KErrNone)
+		    {
+            TheTest.Printf(_L("Prepare r= %d aCount= %d  statement %S\r\n"), r, aCount, &TheSql);
+		    }
+		TEST2(r, KErrNone);
 		TBool ignoreRow0=TheView.Unevaluated();
-		TEST2(r, KErrNone);
 		r=TheView.EvaluateAll();
-		TEST2(r, KErrNone);
+ 		TEST2(r, KErrNone);
 		TUint rows=0;
 		while (TheView.NextL())
 			{
-			TheView.GetL();
+ 			TheView.GetL();
 			rows|=1u<<TheView.ColUint(1);
 			}
 		if (ignoreRow0)
-			TEST((rows&~ROW(0))==(aTest->iResultSet&rowMask&~ROW(0)));
+		    {
+  			TEST((rows&~ROW(0))==(aTest->iResultSet&rowMask&~ROW(0)));
+		    }
 		else
-			TEST(rows==(aTest->iResultSet&rowMask));
+		    {
+ 			TEST(rows==(aTest->iResultSet&rowMask));
+		    }
 		TheView.Close();
 		}
 	}
 
 typedef void (*FSetColL)(TDbColNo aCol,const TAny* aVal);
 
-void WriteRowsL(const TAny* aValues,TInt aRows,TInt aSize,FSetColL aSetColL)
+void WriteRowsL(const TAny* aValues,TInt aRows,TInt aSize,FSetColL aSetColL, TBool aLog)
 	{
 	for (TInt row=0;row<=aRows;++row)
 		{
+        if(aLog)
+            {
+            TheTest.Printf(_L("row = %d"), row);
+            }
 		TheTable.InsertL();
 		TEST(TheTable.ColUint(1)==TUint(row));
 		if (row>0)
@@ -248,9 +287,9 @@ struct SetCol
 	};
 
 template <class T>
-inline void WriteRowsL(const T* aValues,TUint aRows)
+inline void WriteRowsL(const T* aValues,TUint aRows, TBool aLog)
 	{
-	WriteRowsL(aValues,aRows,sizeof(T),&SetCol<T>::SetColL);
+	WriteRowsL(aValues,aRows,sizeof(T),&SetCol<T>::SetColL, aLog);
 	}
 
 template <class T>
@@ -265,8 +304,13 @@ template <class T>
 void TestPredicate<T>::RunL()
 	{
 	Create(T::KType);
-	WriteRowsL(T::KValues,elementsof(T::KValues));
-	Test(T::KTests,elementsof(T::KTests),elementsof(T::KValues));
+	TBool log = EFalse;
+	if((TPtrC(T::KType)).CompareF(_L("TIME"))==0)
+	    {
+        log = ETrue;
+	    }
+	WriteRowsL(T::KValues,elementsof(T::KValues), log);
+	Test(T::KTests,elementsof(T::KTests),elementsof(T::KValues),log);
 	}
 
 struct TypeBit
@@ -744,13 +788,15 @@ _LIT(KTypeTextKTests47, "Z:\\test\\TypeTextKTests47.dat");
 
 static void ReadDesc(TDes& aDes, const TDesC& aFilename, RFs& aFs)
 	{
-	RDebug::Print(_L("---ReadDesc(), aFilename=%S\r\n"), &aFilename);
+    TheTest.Printf(_L("---ReadDesc(), aFilename=%S\r\n"), &aFilename);
 	RFile file;
 	TInt err = file.Open(aFs, aFilename, EFileRead);
+	TheTest.Printf(_L("Open file aFilename=%S err = %d\r\n"), &aFilename, err);
 	TEST2(err, KErrNone);
 
 	TPtr8 ptr(reinterpret_cast<TUint8*>(const_cast<TUint16*>(aDes.Ptr())), aDes.MaxSize());
 	err = file.Read(ptr);
+	TheTest.Printf(_L("Read file aFilename=%S err = %d\r\n"), &aFilename, err);
 	TEST2(err, KErrNone);
 	aDes.SetLength(ptr.Length() / sizeof(TText));
 	file.Close();

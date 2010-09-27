@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -25,7 +25,6 @@
 #include "LogServResourceInterpreter.h"
 #include "LogServCacheConfig.h"
 #include "LogServDatabaseChangeInterface.h"
-#include <logserv.rsg>
 #include <centralrepository.h>
 #include "LogServCacheStrings.h"
 #include "LogServCacheTypes.h"
@@ -88,37 +87,27 @@ static TInt LogGetRepositoryValueL(CRepository& aRepository, TInt aKey)
 	return val;
 	}
 
-//This function reads logeng resource file and returns the integer value of the given resource id. 
-static TInt LogGetResourceValueL(CLogServResourceInterpreter& aResourceInterpreter, TInt aResourceId)
-	{		
-	TResourceReader reader;
-	aResourceInterpreter.CreateResourceReaderLC(reader, aResourceId, CLogServResourceInterpreter::ELogServer);
-	TInt val = reader.ReadInt16();
-	CleanupStack::PopAndDestroy();
-	return val;
-	}
-
-static void LogGetContactmatchCountAndNameFormatL(CLogServResourceInterpreter& aResourceInterpreter, TInt& aContactMatchCount, TLogContactNameFormat& aContactNameFormat)
+static void LogGetContactmatchCountAndNameFormatL(TInt& aContactMatchCount, TLogContactNameFormat& aContactNameFormat)
 	{
 	CRepository* repository = NULL;
 	TRAPD(err, repository = CRepository::NewL(KUidLogengRepository));		
-	if(err == KErrCorrupt)
-		{
-		__ASSERT_DEBUG(!repository, User::Invariant());
-		User::Leave(err);
-		}
-	else if(err == KErrNone)
+	if(err == KErrNone)
 		{
 		CleanupStack::PushL(repository);
 		aContactMatchCount = LogGetRepositoryValueL(*repository, KContactMatchCountRepKey);
 		aContactNameFormat = static_cast <TLogContactNameFormat> (LogGetRepositoryValueL(*repository, KContactNameFormatRepKey));
 		CleanupStack::PopAndDestroy(repository);
 		}
+	else if(err == KErrCorrupt)
+		{
+		__ASSERT_DEBUG(!repository, User::Invariant());
+		User::Leave(err);
+		}
 	else
 		{
 		__ASSERT_DEBUG(!repository, User::Invariant());
-		aContactMatchCount = LogGetResourceValueL(aResourceInterpreter, R_LOG_CONTACT_MATCH_COUNT);
-		aContactNameFormat = static_cast <TLogContactNameFormat> (LogGetResourceValueL(aResourceInterpreter, R_LOG_CONTACT_NAME_FORMAT));
+		aContactMatchCount = KLogContactMatchCount;
+		aContactNameFormat = KLogContactNameFormat;
 		}
 	#ifdef SYSLIBS_TEST
 	LogStoreContactMatchCountAndNameFormatL(aContactMatchCount, aContactNameFormat);
@@ -157,11 +146,11 @@ void CLogAddEvent::ConstructL()
 	{
 	iDuplicate = CLogDuplicate::NewL(iDatabase, Priority());
 	iDuplicateFilter = CLogFilter::NewL();
-	::LogGetContactmatchCountAndNameFormatL(iDatabase.DTIResourceInterface(), iContactMatchCount, iContactNameFormat);
+	::LogGetContactmatchCountAndNameFormatL(iContactMatchCount, iContactNameFormat);
 	}
 
 //This method will open contacts database (if not opened yet), only if the value of 
-//r_log_contact_match_count resource in logserv.rsg resource file is not 0.
+//iContactMatchCount is not 0.
 //Se how iContactMatchCount data member is initialised.
 TBool CLogAddEvent::PerformContactMatchL()
 	{

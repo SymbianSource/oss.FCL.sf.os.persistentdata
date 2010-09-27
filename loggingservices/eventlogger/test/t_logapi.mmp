@@ -22,12 +22,14 @@ CAPABILITY	  	WriteDeviceData ReadDeviceData WriteUserData ReadUserData
 
 USERINCLUDE   	../test/inc
 USERINCLUDE   	../Shared
+USERINCLUDE		../LogServ/inc
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
 SOURCEPATH		../test/src
 SOURCE        	t_logapi.cpp 
 SOURCE        	t_logutil.cpp
 SOURCE        	t_logutil2.cpp
+SOURCE        	t_logutil3.cpp
 SOURCE		  	t_logservsession.cpp
 
 LIBRARY			euser.lib 
@@ -37,6 +39,7 @@ LIBRARY			logcli.lib
 LIBRARY			bafl.lib 
 LIBRARY			edbms.lib 
 LIBRARY			estor.lib
+LIBRARY			centralrepository.lib
 
 #ifdef MMPSWITCH_LOGGING_ENABLED
 LIBRARY			flogger.lib

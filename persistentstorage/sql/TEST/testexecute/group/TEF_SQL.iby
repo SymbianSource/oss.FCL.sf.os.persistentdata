@@ -17,7 +17,7 @@
 #define __TEF_SQL_IBY__
 
 #include <sql.iby>
-#include <te_SQL_suite.iby>
+#include <te_sql_suite.iby>
 
 //Main SQL TEF Scripts
 data=DATAZ_\tef_sql\tef_sql.script 	tef_sql\tef_sql.script

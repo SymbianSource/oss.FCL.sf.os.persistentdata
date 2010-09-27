@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -152,10 +152,14 @@ TBool TUnicodeCompressionState::EncodeAsIs(TUint16 aCode)
 		   (aCode >= 0x0020 && aCode <= 0x007F);
 	}
 
+#pragma BullseyeCoverage off
+
 void TUnicodeCompressionState::Panic(TPanic aPanic)
 	{
 	User::Panic(_L("ucmp"),aPanic);
 	}
+
+#pragma BullseyeCoverage on
 
 EXPORT_C TUnicodeCompressor::TUnicodeCompressor():
 	iInputBufferStart(0),

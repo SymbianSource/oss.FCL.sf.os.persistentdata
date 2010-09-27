@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -22,7 +22,6 @@
 #include "LogServBackupInterface.h"
 #include "LogServResourceInterpreter.h"
 #include "LogServDatabaseChangeInterface.h"
-#include <logserv.rsg>
 #include "LogServSqlStrings.h"
 #include "LOGREPDEFS.H"
 
@@ -493,7 +492,7 @@ void CLogServDatabaseMarshall::CreateTypesL(TBool aReadOnly)
 	{
 	// Get the array size
 	TResourceReader reader;
-	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_INITIAL_EVENTS, CLogServResourceInterpreter::ELogWrap);
+	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_INITIAL_EVENTS);
 
 	// Create them
 	DTICacheTypes().CreateStandardTypesL(reader, aReadOnly);
@@ -505,7 +504,7 @@ void CLogServDatabaseMarshall::CreateIndiciesL()
 	{
 	// Get the array size
 	TResourceReader reader;
-	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_INDEXES, CLogServResourceInterpreter::ELogWrap);
+	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_INDEXES);
 
 	const TInt indexes = reader.ReadInt16();
 
@@ -591,7 +590,7 @@ void CLogServDatabaseMarshall::ReadRepositoryFileConfigurationL(TLogConfig& aCon
 void CLogServDatabaseMarshall::ReadResourceFileConfigurationL(TLogConfig& aConfig) const
 	{	
 	TResourceReader reader;
-	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_INITIAL_CONFIG, CLogServResourceInterpreter::ELogWrap);
+	iResourceInterface.CreateResourceReaderLC(reader, R_LOG_INITIAL_CONFIG);
 	//
 	aConfig.iMaxLogSize = static_cast<TLogSize>(reader.ReadUint16());
 	aConfig.iMaxRecentLogSize = static_cast<TLogRecentSize>(reader.ReadUint8());

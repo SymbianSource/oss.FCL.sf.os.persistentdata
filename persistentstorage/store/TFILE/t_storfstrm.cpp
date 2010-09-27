@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -14,6 +14,7 @@
 //
 
 #include <s32file.h>
+#include <s32mem.h>
 #include <e32test.h>
 
 const TInt KTestCleanupStack=0x20;
@@ -367,6 +368,82 @@ LOCAL_C void DeleteDataFile(const TDesC& aFullName)
 		}
 	}
 
+class RTestReadStream : public RReadStream
+	{
+public:
+	RTestReadStream(MStreamBuf* aSource) :
+		RReadStream(aSource)
+		{
+		}
+	void Attach(MStreamBuf* aSource)
+		{
+		RReadStream::Attach(aSource);
+		}
+	void Detach()
+		{
+		RReadStream::Detach();
+		}
+	};
+
+class RTestWriteStream : public RWriteStream
+	{
+public:
+	RTestWriteStream(MStreamBuf* aSink) :
+		RWriteStream(aSink)
+		{
+		}
+	void Attach(MStreamBuf* aSink)
+		{
+		RWriteStream::Attach(aSink);
+		}
+	void Detach()
+		{
+		RWriteStream::Detach();
+		}
+	};
+
+/**
+@SYMTestCaseID          PDS-STORE-CT-4064
+@SYMTestCaseDesc        RReadStream, RWriteStream, Pop() and Detach() test.
+@SYMTestActions			The test calls Pop() and Detach() methods of RReadStream and RWriteStream classes.         
+@SYMTestPriority        High
+@SYMTestExpectedResults Test must not fail
+*/
+void StreamDetachTestL()
+	{
+	test.Next(_L("@SYMTestCaseID:PDS-STORE-CT-4064: RReadStream, RWriteStream, Pop() and Detach() test"));
+	
+	TBuf8<100> buf;
+	TDesBuf desBuf;
+	desBuf.Set(buf);
+	MStreamBuf* mbuf = &desBuf; 
+	
+	_LIT8(KStr, "1234567890");
+	
+	RTestWriteStream wstrm(mbuf);
+	wstrm.PushL();
+	wstrm.Detach();
+	wstrm.Attach(mbuf);
+	TRAPD(err, wstrm.WriteL(KStr));
+	test(err == KErrNone);
+	TRAP(err, wstrm.CommitL());
+	test(err == KErrNone);
+	wstrm.Pop();
+	wstrm.Close();
+
+	RTestReadStream rstrm(mbuf);
+	rstrm.PushL();
+	rstrm.Detach();
+	rstrm.Attach(mbuf);
+	TBuf8<100> buf2;
+	TRAP(err, rstrm.ReadL(buf2, KStr().Length()));
+	test(err == KErrNone);
+	rstrm.Pop();
+	rstrm.Close();
+	
+	test(KStr() == buf2);
+	}
+
 //
 // Test file-based streams.
 //
@@ -385,6 +462,8 @@ GLDEF_C TInt E32Main()
 	TRAP(r,testSkipL());
 	test(r==KErrNone);
 	TRAP(r,testCopyL());
+	test(r==KErrNone);
+	TRAP(r, StreamDetachTestL());
 	test(r==KErrNone);
 
 	//deletion of data files must be before call to .End() - DEF047652

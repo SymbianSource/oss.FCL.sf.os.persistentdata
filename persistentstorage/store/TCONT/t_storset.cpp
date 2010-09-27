@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -35,11 +35,36 @@ LOCAL_D RTest test(_L("t_storset"));
 */
 LOCAL_C void test1L()
 	{
+	test.Start(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1121 Insertion & Deletion "));
+	
 	const TInt KEntryCount=200;
-
 	TPagedSet<TInt32> set;
 	set.Connect(CMemPagePool::NewLC());
-	test.Start(_L(" @SYMTestCaseID:SYSLIB-STORE-CT-1121 Insertion & Deletion "));
+	//IsIntact() and IsDirty() test
+	TBool rc = set.IsIntact();
+	test(rc);
+	rc = set.IsDirty();
+	test(!rc);
+	set.MarkDirty();
+	rc = set.IsDirty();
+	test(rc);
+	//IsBroken() test
+	rc = set.IsBroken();
+	test(!rc);
+	set.MarkBroken();
+	rc = set.IsBroken();
+	test(!rc);//Empty tree - cannot be marked as broken
+	TInt yy = 10;
+	set.InsertL(yy);
+	set.MarkBroken();
+	rc = set.IsBroken();
+	test(rc);
+	set.RepairL();
+	rc = set.IsBroken();
+	test(!rc);
+	set.ClearL();
+	rc = set.IsBroken();
+	test(!rc);
 
 	TInt32 it=0;
 //*	test(set.InsertL(it));
@@ -131,7 +156,16 @@ LOCAL_C void test2L()
 	Mem::FillZ(checkMap,KEntryCount);
 	TPagedSetIter<TUint32> iter(set);
 	if (iter.ResetL())
-		do	++checkMap[iter.AtL()]; while (iter.NextL());
+		{
+		do	
+			{
+			TUint32 data1 = iter.AtL();
+			++checkMap[data1];
+			TUint32 data2;
+			iter.ExtractAtL(data2);
+			test(data1 == data2);
+			}while(iter.NextL());
+		}
 	for (ii=0;ii<KEntryCount;++ii)
 		test(checkMap[ii]==1);
 	CleanupStack::PopAndDestroy();
@@ -173,6 +207,9 @@ LOCAL_C void test2L()
 	TPagedSetBiIter<TUint32> biter(set);
 	test(biter.FirstL());
 	test(biter.AtL()==jj);
+	TUint32 data; 
+	biter.ExtractAtL(data);
+	test(data == jj);
 	test(!biter.NextL());
 	test(biter.LastL());
 	test(biter.AtL()==jj);
@@ -180,6 +217,8 @@ LOCAL_C void test2L()
 	TPagedSetRIter<TUint32> riter(set);
 	test(riter.ResetL());
 	test(riter.AtL()==jj);
+	riter.ExtractAtL(data);
+	test(data == jj);
 	test(!riter.NextL());
 
 //*	test(set.DeleteL(jj));
@@ -309,6 +348,10 @@ LOCAL_C void test4L()
 		test(err==KErrNone);
 		}
 	test(set.Count()==KEntryCount);
+	TBool rc = set.IsEmpty();
+	test(!rc);
+	set.MarkDirty();
+	set.MarkCurrent();
 	TRAP(err, set.ContainsL(it));
 	test(err==KErrNone);
 	TRAP(err, set.InsertL(it));
@@ -356,7 +399,7 @@ LOCAL_C void test4L()
 	RDesReadStream rts;
 	ptr.Set(buf->Des());
 	rts.Open(ptr);
-		
+
 	CEmbeddedStore* estor = CEmbeddedStore::FromLC(rts);
 	RStoreReadStream rstream;
 	rstream.OpenL(*estor, id);
@@ -379,6 +422,142 @@ LOCAL_C void test4L()
 	CleanupStack::PopAndDestroy();
 	}
 
+/**
+@SYMTestCaseID          PDS-STORE-CT-4065
+@SYMTestCaseDesc        TStreamPos tests.
+@SYMTestActions         Tests operations provided by TStreamPos class. 
+@SYMTestPriority        High
+@SYMTestExpectedResults Test must not fail
+*/
+void StreamPosTest()
+	{
+	TStreamPos pos1;
+	TStreamPos pos2(5);
+	pos1 = pos2;
+	test(pos1 == pos2);
+	
+	pos1 = 5 + pos2;
+	test(pos1 > pos2);
+	test(pos2 < pos1);
+	test(pos2 <= pos1);
+	test(pos1 != pos2);
+	pos1 = pos1 - 5;
+	test(pos1 == pos2);
+	
+	pos2 += 0;
+	test(pos1 == pos2);
+	pos2 -= 0;
+	test(pos1 == pos2);
+	}
+
+struct TTestEntry
+	{
+	inline TTestEntry() :
+		iKey(-1),
+		iData(-1)
+		{
+		}
+	inline TTestEntry(TInt aKey, TInt aData) :
+		iKey(aKey),
+		iData(aData)
+		{
+		}
+	TInt	iKey;
+	TInt	iData;
+	};
+
+/**
+@SYMTestCaseID          PDS-STORE-CT-4066
+@SYMTestCaseDesc        TBtreeFix tests.
+@SYMTestActions         Tests operations provided by TBtreeFix class. 
+@SYMTestPriority        High
+@SYMTestExpectedResults Test must not fail
+*/
+void BTreeFixTestL()
+	{
+	CMemPagePool* pool = CMemPagePool::NewLC();
+		
+	TBtreeToken token(TBtreeToken::EEmpty);
+	TBool rc = token.IsEmpty();
+	test(rc);
+	rc = token.IsIntact();
+	test(rc);
+	
+	TBtreeFix<TTestEntry, TInt> bentry(token, EBtreeSecure);
+	TBtreeKey bkey(sizeof(TInt));
+	bentry.Connect(pool, &bkey);
+	
+	TBtreePos bpos;
+	rc = bentry.FindL(bpos, 1);
+	test(!rc);
+	rc = bentry.InsertL(bpos, TTestEntry(1, 101));
+	test(rc);
+	rc = bentry.FindL(bpos, 1);
+	test(rc);
+	TTestEntry entry1 = bentry.AtL(bpos);
+	test(entry1.iKey == 1 && entry1.iData == 101);
+	const void* key = bkey.Key(&entry1);
+	TInt keyVal = *((const TInt*)key);
+	test.Printf(_L("keyVal=%d\n"), keyVal);
+	
+	rc = bentry.InsertL(bpos, TTestEntry(3, 103));
+	test(rc);
+	rc = bentry.InsertL(bpos, TTestEntry(2, 102));
+	test(rc);
+	
+	rc = bentry.FindL(bpos, 2);
+	test(rc);
+	TTestEntry entry2;
+	bentry.ExtractAtL(bpos, entry2);
+	test(entry2.iKey == 2 && entry2.iData == 102);
+
+	rc = bentry.FindL(bpos, 3);
+	test(rc);
+	TTestEntry entry3;
+	bentry.ExtractAtL(bpos, entry3);
+	test(entry3.iKey == 3 && entry3.iData == 103);
+
+	//==============================================
+	
+	TBtreeMark bmark;
+	if(bentry.ResetL(bmark))
+		{
+		do
+			{
+			TTestEntry entry = bentry.AtL(bmark);
+			test.Printf(_L("AtL(): entry.iKey=%d, entry.iData=%d\n"), entry.iKey, entry.iData);
+			bentry.ExtractAtL(bmark, entry);
+			test.Printf(_L("ExtractAtL(): entry.iKey=%d, entry.iData=%d\n"), entry.iKey, entry.iData);
+			}while(bentry.NextL(bmark));
+		}
+
+	rc = bentry.NextL(bmark);
+	test(!rc);
+
+	//==============================================
+
+	rc = bentry.DeleteL(2);
+	test(rc);
+	rc = bentry.FindL(bpos, 2);
+	test(!rc);
+	rc = bentry.FindL(bpos, 3);
+	test(rc);
+	TRAPD(err, bentry.DeleteAtL(bpos));
+	test(err == KErrNone);
+	rc = bentry.FindL(bpos, 3);
+	test(!rc);
+	
+	bentry.MarkDirty();
+	rc = bentry.IsDirty();
+	test(rc);
+	bentry.MarkCurrent();
+	rc = bentry.IsDirty();
+	test(!rc);
+	
+	bentry.ClearL();
+	CleanupStack::PopAndDestroy(pool);
+	}
+
 LOCAL_C void doMainL()
 	{
 	test.Start(_L("Basic operations"));
@@ -389,6 +568,10 @@ LOCAL_C void doMainL()
 	test3L();
 	test.Next(_L("Forgotten API"));
 	test4L();
+	test.Next(_L("@SYMTestCaseID:PDS-STORE-CT-4065: TStreamPos test"));
+	StreamPosTest();
+	test.Next(_L("@SYMTestCaseID:PDS-STORE-CT-4066: TBtreeFix test"));
+	BTreeFixTestL();
 	test.End();
 	}
 

@@ -211,6 +211,13 @@ CONSECTUTIVE
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\APIBasic2.ini LeaveMethods
 END_TESTCASE SYSLIB-SQL-CIT-1798
 
+RUN_UTILS DeleteFile C:\Leave1.db
+RUN_UTILS DeleteFile C:\MCO1.db
+RUN_UTILS DeleteFile C:\MCO2.db
+RUN_UTILS DeleteFile C:\MCO3.db
+RUN_UTILS DeleteFile C:\MCO4.db
+RUN_UTILS DeleteFile C:\MCO5.db
+
 START_TESTCASE SYSLIB-SQL-CIT-1799
 //! @SYMTestCaseID    SYSLIB-SQL-CIT-1799
 //! @SYMTestCaseDesc  Tests the effect of multiple sequential Creates and Opens.

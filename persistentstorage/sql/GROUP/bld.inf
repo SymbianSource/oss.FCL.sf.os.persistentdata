@@ -119,6 +119,7 @@ t_sqldefect2.mmp
 t_sqlprivcage.mmp
 t_sqlbadclient.mmp
 t_sqlbur.mmp
+t_sqlbur2.mmp
 t_sqlscalarfullselect.mmp
 t_sqlfserr.mmp
 t_sqlconfig.mmp

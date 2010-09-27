@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -208,6 +208,15 @@ LOCAL_C void testWriteL()
 	testWriteL(*store);
 	store->CommitL();
 	CleanupStack::PopAndDestroy();
+	(void)TheFs.Delete(TheTempFile);
+//
+	test.Next(_L("Writing to temp file - 2"));
+	store=CPermanentFileStore::TempL(TheFs,parse.DriveAndPath(),TheTempFile,EFileWrite);
+	CleanupStack::PushL(store);
+	store->SetTypeL(TUidType(store->Layout(),KNullUid,KPermanentFileStoreLayoutUid));
+	testWriteL(*store);
+	store->CommitL();
+	CleanupStack::PopAndDestroy();
 //
 	test.Next(_L("Writing to opened file"));
 	store=CPermanentFileStore::OpenLC(TheFs,parse.NameAndExt(),EFileRead|EFileWrite);
@@ -393,11 +402,16 @@ LOCAL_C void testDetachL()
 	test.Next(_L("Detach the file and discard the store"));
 	RFile file=store->File();
 	store->Detach();
+	store->Reattach(file);
+	RFile& file2 = store->File();
+	test(file2.SubSessionHandle() != KNullHandle);
+	store->Detach();
 	CleanupStack::PopAndDestroy();
 //
 	test.Next(_L("Re-construct the store and check the contents"));
 	store=CFileStore::FromLC(file);
 	testReadL(*store);
+	store->Reset();
 	CleanupStack::PopAndDestroy();
 	}
 /**
@@ -492,7 +506,7 @@ LOCAL_C void testOpenL()
     {    
     _LIT(KFileName,"C:\\t_storfperm.dat");
     
-    test.Next(_L(" @SYMTestCaseID:PDS-STORE-UT-4059 "));
+    test.Next(_L("@SYMTestCaseID:PDS-STORE-UT-4059: CPermanentFileStore::ReplaceL() test"));
     CPermanentFileStore* testStore = CPermanentFileStore::ReplaceL(TheFs, KFileName, EFileWrite|EFileWriteBuffered);
     delete testStore;
     

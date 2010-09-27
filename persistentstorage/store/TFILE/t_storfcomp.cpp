@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -514,10 +514,74 @@ LOCAL_C void DeleteDataFile(const TDesC& aFullName)
 		}
 	}
 
-GLDEF_C TInt E32Main()
+class CTestStreamStore : public CStreamStore
+	{
+public:
+	static CTestStreamStore* NewL();
+	virtual ~CTestStreamStore();
+
+private:
+	CTestStreamStore();
+	virtual MStreamBuf* DoReadL(TStreamId anId) const;
+	virtual MStreamBuf* DoCreateL(TStreamId& anId);
+	
+	};
+
+CTestStreamStore* CTestStreamStore::NewL()
+	{
+	return new (ELeave) CTestStreamStore; 
+	}
+
+CTestStreamStore::~CTestStreamStore()
+	{
+	}
+
+CTestStreamStore::CTestStreamStore()
+	{
+	}
+
+MStreamBuf* CTestStreamStore::DoReadL(TStreamId) const
+	{
+	return NULL;
+	}
+
+MStreamBuf* CTestStreamStore::DoCreateL(TStreamId&)
+	{
+	return NULL;
+	}
+
+/**
+@SYMTestCaseID          PDS-STORE-CT-4063
+@SYMTestCaseDesc        CStreamStore tests.
+@SYMTestActions         CStreamStore provides couple of virtual methods in its private section:
+                        DoExtendL(), DoDeleteL(), DoReplaceL(), DoReclaimL().
+                        They are no-ops and are expected to be overriden in the class derived from
+                        CStreamStore. Their implementations leave with KErrNotsupported. 
+                        The test uses a class derived from CStreamStore, which class does not implement
+                        virtuals mentioned above. These virtuals should leave with KErrNotSupported when called.
+@SYMTestPriority        High
+@SYMTestExpectedResults Test must not fail
+*/
+void TestStreamStoreVirtualsL()
+	{
+	CTestStreamStore* store = CTestStreamStore::NewL();
+	TRAPD(err, store->CommitL());
+	test(err == KErrNone);
+	TRAP(err, store->RevertL());
+	test(err == KErrNotSupported);
+	TRAP(err, store->ReclaimL());
+	test(err == KErrNotSupported);
+	TRAP(err, store->CompactL());
+	test(err == KErrNotSupported);
+	TRAP(err, store->DeleteL(TStreamId(1)));
+	test(err == KErrNotSupported);
+	delete store;
+	}
+
 //
 // Test permanent file store.
 //
+GLDEF_C TInt E32Main()
     {
 	test.Title();
 	setupTestDirectory();
@@ -526,6 +590,9 @@ GLDEF_C TInt E32Main()
 //
 	test.Start(_L("Test compaction"));
 	TRAPD(r,testCompactL());
+	test(r==KErrNone);
+	test.Next(_L("@SYMTestCaseID:PDS-STORE-CT-4063: Test CStreamStore virtuals"));
+	TRAP(r, TestStreamStoreVirtualsL())
 	test(r==KErrNone);
 	
 	//deletion of data files must be before call to .End() - DEF047652

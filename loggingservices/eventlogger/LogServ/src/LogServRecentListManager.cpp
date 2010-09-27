@@ -31,7 +31,7 @@ CLogServRecentListManager::~CLogServRecentListManager()
 void CLogServRecentListManager::ConstructL(CLogServResourceInterpreter& aResourceInterpreter, TInt aResourceId)
 	{
 	TResourceReader reader;
-	aResourceInterpreter.CreateResourceReaderLC(reader, aResourceId, CLogServResourceInterpreter::ELogWrap);
+	aResourceInterpreter.CreateResourceReaderLC(reader, aResourceId);
 	const TInt count = reader.ReadInt16();
 	iLists.ReserveL(count);
 	for(TInt i=0; i<count; i++)

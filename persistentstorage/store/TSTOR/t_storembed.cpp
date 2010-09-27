@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -179,13 +179,23 @@ LOCAL_C void testReadL()
 //
 	test.Next(_L("Reading from root store"));
 	TStreamId root=file->Root();
+	
 	RStoreReadStream stream;
 	stream.OpenLC(*file,root);
 	TBuf8<5> b;
 	stream.ReadL(b);
 	test(b==_L8(" root"));
-	CleanupStack::Pop();
-	CEmbeddedStore* store=CEmbeddedStore::FromLC(stream);
+	CleanupStack::Pop(&stream);
+	CEmbeddedStore* store=CEmbeddedStore::FromL(stream);
+	CleanupStack::PushL(store);
+	testReadL(*store);
+	CleanupStack::PopAndDestroy(store);
+	
+	stream.OpenLC(*file,root);
+	stream.ReadL(b);
+	test(b==_L8(" root"));
+	CleanupStack::Pop(&stream);
+	store=CEmbeddedStore::FromLC(stream);
 	testReadL(*store);
 	CleanupStack::PopAndDestroy();
 //

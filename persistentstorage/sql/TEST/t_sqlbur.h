@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -21,20 +21,16 @@
 
 #include "SqlSrvBurInterface.h"
 
-class CSqlBurTestHarness : public CBase, public MSqlSrvBurInterface
+class CSqlSrvTestBurInterface : public CBase, public MSqlSrvBurInterface
 	{
 	public:
-		static CSqlBurTestHarness* New();
-		virtual ~CSqlBurTestHarness();
-		virtual void GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList);
-		virtual TBool StartBackupL(const RArray<TParse>&aFileList);
-		virtual void EndBackup(const RArray<TParse>&aFileList);
-		virtual TBool StartRestoreL(TSecureId aUid);
-		virtual void EndRestore(TSecureId aUid);
+		static CSqlSrvTestBurInterface* New();
+		virtual ~CSqlSrvTestBurInterface();
 		virtual RFs& Fs();
+		virtual void GetBackUpListL(TSecureId aUid, TDriveNumber aDrive, RArray<HBufC*>& aFileList);
 		
 	private:
-		CSqlBurTestHarness();
+		CSqlSrvTestBurInterface();
 		void Construct();
 		
 	private:

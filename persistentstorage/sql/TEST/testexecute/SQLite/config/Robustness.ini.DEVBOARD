@@ -179,12 +179,12 @@ EndBlock3=
 WaitA0=1
 Delete1=E:\Robustness5.db
 ExpectedError1=KErrNotFound
+DefineConfig2=page_size=1024;
 
-Create2=E:\Robustness5.db
+Create3=E:\Robustness5.db
 // Reserve 100K of space.
-ReserveDriveSpace3=102400
-Exec4=Create Table Sometable(Someint int primary key, Somereal real, Sometext text);
-NoOperation5=
+ReserveDriveSpace4=102400
+Exec5=Create Table Sometable(Someint int primary key, Somereal real, Sometext text);
 
 // Fill the disk to within 100K of full.
 NewBlock6=FillDisk100K

@@ -31,6 +31,8 @@ RUN_SCRIPT Z:\TEF_SQL\Robustness.script
 RUN_SCRIPT Z:\TEF_SQL\Panics.script
 RUN_SCRIPT Z:\TEF_SQL\BasicSQL2.script
 RUN_SCRIPT Z:\TEF_SQL\BasicSQL2-8S.script
-RUN_SCRIPT Z:\TEF_SQL\BUR.script
+// TThe following script is temporally commented to make sure the result in ONB for all other scripts will be shown correctly.
+// Instead, BUR.script will be placed in build script as a separated test script.
+//RUN_SCRIPT Z:\TEF_SQL\BUR.script
 RUN_SCRIPT Z:\TEF_SQL\security.script
 

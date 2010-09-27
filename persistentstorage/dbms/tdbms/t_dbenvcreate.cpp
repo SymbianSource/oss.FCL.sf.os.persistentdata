@@ -23,6 +23,7 @@ static RTest TheTest(_L("t_dbenvcreate: DBMS platform security testing - prepara
 static RDbs TheDbs;
 const TUid KSecureDbUid = {0x11335578};
 const TUid KSecureDbUid2 = {0x11335579};
+const TUid KSecureDbUid3 = {0x1133557A};
 _LIT(KProtDbZName, "z:z.db");
 _LIT(KProtDbCName, "C:z.Db");
 _LIT(KProtDbZName2, "z:TEstDB.dB");
@@ -71,21 +72,28 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 static void DoRun()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-DBMS-CT-0023 Copy protected databases from Z: to C: "));
+	TheDbs.DeleteDatabase(KProtDbCName, KSecureDbUid);
 	TInt err = TheDbs.CopyDatabase(KProtDbZName, KProtDbCName, KSecureDbUid);
+	TheTest.Printf(_L("copy file file from z:z.db to C:z.Db uid = 0x11335578 err = %d"),err);
 	TEST2(err, KErrNone);
+	TheDbs.DeleteDatabase(KProtDbCName2, KSecureDbUid2);
 	err = TheDbs.CopyDatabase(KProtDbZName2, KProtDbCName2, KSecureDbUid2);
+	TheTest.Printf(_L("copy file file from z:TEstDB.dB to c:teSTDB.db uid = 0x11335579 err = %d"),err);
 	TEST2(err, KErrNone);
 
+	TheDbs.DeleteDatabase(KProtDbCName3, KSecureDbUid3);
 	TheTest.Next(_L("Create protected database on C:"));
 	RDbNamedDatabase db;
 	err = db.Create(TheDbs, KProtDbCName3, KProtDbFormat3);
 	TEST2(err, KErrNone);
 	db.Close();
 
+	TheDbs.DeleteDatabase(KProtDbCName4, KSecureDbUid3);
 	err = db.Create(TheDbs, KProtDbCName4, KProtDbFormat3);
 	TEST2(err, KErrNone);
 	db.Close();
 
+	TheDbs.DeleteDatabase(KProtDbCName5, KSecureDbUid3);
 	err = db.Create(TheDbs, KProtDbCName5, KProtDbFormat3);
 	TEST2(err, KErrNone);
 	db.Close();

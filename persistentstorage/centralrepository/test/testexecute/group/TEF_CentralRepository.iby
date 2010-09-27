@@ -24,8 +24,8 @@
 // Note also that all these tests are techview tests.
 
 #ifdef CENTREP_MW_TESTS
-    #include <te_centrep_BURsuite.iby>
-    #include <te_centrep_SWIsuite.iby>
+    #include <te_centrep_bursuite.iby>
+    #include <te_centrep_swisuite.iby>
 #endif // CENTREP_MW_TESTS
     
 #endif // __TEF_CentralRepository_IBY__

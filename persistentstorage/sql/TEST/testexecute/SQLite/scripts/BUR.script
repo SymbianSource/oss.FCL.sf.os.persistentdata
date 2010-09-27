@@ -49,7 +49,9 @@ START_TESTCASE SYSLIB-SQL-CIT-1834
 
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini setup
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini check
 END_TESTCASE SYSLIB-SQL-CIT-1834
 
@@ -67,11 +69,13 @@ START_TESTCASE SYSLIB-SQL-CIT-1835
 //!                  will be generated.
 //!                  
 //! @SYMREQ           REQ5906
-
-	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini setup
+	
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini setup	
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_UTILS DeleteFile c:\private\10281e17\[102827c7]bur.db
 	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini check
 END_TESTCASE SYSLIB-SQL-CIT-1835
 
@@ -92,8 +96,10 @@ START_TESTCASE SYSLIB-SQL-CIT-1836
 
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini setup
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini modify
 	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini check
 END_TESTCASE SYSLIB-SQL-CIT-1836
 
@@ -114,10 +120,12 @@ START_TESTCASE SYSLIB-SQL-CIT-1837
 
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini setup
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_UTILS DeleteFile c:\private\10281e17\[102827c7]bur.db	
 	RUN_UTILS CopyFile z:\TEF_SQL\TestData\[102827c7]corrupt.db c:\private\10281e17\[102827c7]bur.db
 	RUN_UTILS MakeReadWrite c:\private\10281e17\[102827c7]bur.db
 	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini check
 END_TESTCASE SYSLIB-SQL-CIT-1837
 
@@ -139,9 +147,11 @@ START_TESTCASE SYSLIB-SQL-CIT-1838
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini setup
 	RUN_TEST_STEP 100 te_SQL_Suite_cap2 CSQLDDT z:\TEF_SQL\BUR.ini setup2
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_SQL\BUR.ini bur2
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_UTILS DeleteFile c:\private\10281e17\[102827c7]bur.db
 	RUN_UTILS DeleteFile c:\private\10281e17\[102827c8]bur.db
 	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_SQL\BUR.ini bur2
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini check
 	RUN_TEST_STEP 100 te_SQL_Suite_cap2 CSQLDDT z:\TEF_SQL\BUR.ini check2
 END_TESTCASE SYSLIB-SQL-CIT-1838
@@ -164,10 +174,12 @@ START_TESTCASE SYSLIB-SQL-CIT-1839-0001
 
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini setup3
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_UTILS DeleteFile c:\private\10281e17\[102827c7]bur1.db
 	RUN_UTILS DeleteFile c:\private\10281e17\[102827c7]bur2.db
 	RUN_UTILS DeleteFile c:\private\10281e17\[102827c7]bur3.db
 	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini check3
 END_TESTCASE SYSLIB-SQL-CIT-1839-0001
 
@@ -191,8 +203,10 @@ START_TESTCASE SYSLIB-SQL-CIT-4026
 
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini setup4
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_UTILS DeleteFile c:\private\10281e17\[102827c7]118192
 	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_SQL\BUR.ini bur
+	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini wait
 	RUN_TEST_STEP 100 te_SQL_Suite CSQLDDT z:\TEF_SQL\BUR.ini check4
 END_TESTCASE SYSLIB-SQL-CIT-4026
 

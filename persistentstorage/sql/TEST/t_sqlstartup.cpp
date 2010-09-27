@@ -190,19 +190,22 @@ void GetBackupListOomTest()
         TheTest.Printf(_L(" %d"), ++failingAllocationNo);
         OomPreStep(failingAllocationNo);
         const TUid KDbUd = {0x98765432};
-        RArray<TParse> files;
-        TRAP(err, server->GetBackUpListL(KDbUd, files));
+        RArray<HBufC*> files;
+        TRAP(err, server->GetBackUpListL(KDbUd, EDriveC, files));
         fileCnt = files.Count();
         if(err == KErrNone)
         	{
 			//No directories should be returned in the list of files for backup
 			for(TInt i=0;i<fileCnt;++i)
 				{
-				const TParse& parse = files[i];
-				TPtrC fname = parse.FullName();
-				TInt rc = KPrivateSubDir().CompareF(parse.FullName());
+				TPtrC fname = files[i]->Des();
+				TInt rc = KPrivateSubDir().CompareF(fname);
 				TEST(rc != 0);
 				}
+        	}
+        for(TInt j=0;j<files.Count();++j)
+        	{
+			delete files[j];
         	}
         files.Close();
         OomPostStep();
@@ -279,19 +282,22 @@ void GetBackupListFileIoErrorTest()
             TheTest.Printf(_L("%d "), cnt);
             (void)server->Fs().SetErrorCondition(fsError, cnt);
             const TUid KDbUd = {0x98765432};
-            RArray<TParse> files;
-            TRAP(err, server->GetBackUpListL(KDbUd, files));
+            RArray<HBufC*> files;
+            TRAP(err, server->GetBackUpListL(KDbUd, EDriveC, files));
             fileCnt = files.Count(); 
             if(err == KErrNone)
             	{
     			//No directories should be returned in the list of files for backup
     			for(TInt i=0;i<fileCnt;++i)
     				{
-    				const TParse& parse = files[i];
-    				TPtrC fname = parse.FullName();
-    				TInt rc = KPrivateSubDir().CompareF(parse.FullName());
+    				TPtrC fname = files[i]->Des();
+    				TInt rc = KPrivateSubDir().CompareF(fname);
     				TEST(rc != 0);
     				}
+            	}
+            for(TInt j=0;j<files.Count();++j)
+            	{
+				delete files[j];
             	}
             files.Close();
             (void)server->Fs().SetErrorCondition(KErrNone);
@@ -306,6 +312,76 @@ void GetBackupListFileIoErrorTest()
         
     delete server;
     }
+
+/**
+@SYMTestCaseID          PDS-SQL-UT-4224
+@SYMTestCaseDesc        CSqlServer::GetBackUpListL() functional test
+@SYMTestPriority        High
+@SYMTestActions         Calls CSqlServer::GetBackUpListL() and tests the output, when the drive is read-only,
+                        when there is a sub-directory which name is matching the search pattern.
+@SYMTestExpectedResults Test must not fail
+*/  
+void GetBackupListFunctionalTest()
+	{
+    CSqlServer* server = NULL;
+    TRAPD(err, server = CreateSqlServerL());
+    TEST2(err, KErrNone);
+    //Case 1: database with specified uid bellow do exist (on drive C). There will be one subdirectory matching the search pattern. 
+    const TDriveNumber KTestDrvNum1 = EDriveC;
+    const TUid KDbUid = {0x98765432};
+	TDriveUnit testDrive(KTestDrvNum1);
+	TDriveName testDriveName = testDrive.Name();
+	testDriveName.LowerCase(); 
+	//One test directory will be created, which name will be matching the search pattern.
+	//The directory name should not be included in the list with the file names.
+    TFileName testFileName;
+    err = server->Fs().PrivatePath(testFileName);
+    TEST2(err, KErrNone);
+    testFileName.Append(KDbUid.Name());
+    _LIT(KTestPath, "t_startup\\");
+    testFileName.Append(KTestPath);
+    testFileName.Append(_L("t_startup.db"));
+    TParse parse;
+    err = parse.Set(testFileName, &testDriveName, 0);
+    TEST2(err, KErrNone);
+    err = server->Fs().MkDirAll(parse.FullName());
+    TEST(err == KErrNone || err == KErrAlreadyExists);
+    //
+    RArray<HBufC*> files;
+    TRAP(err, server->GetBackUpListL(KDbUid, KTestDrvNum1, files));
+    TEST2(err, KErrNone);
+    TInt fileCnt = files.Count();
+    for(TInt i=0;i<fileCnt;++i)
+    	{
+		TPtrC fname = files[i]->Des();
+		TheTest.Printf(_L("Db: %S\r\n"), &fname);
+		TEST(fname.FindF(KTestPath) < 0);
+		//The name should include the full path + the drive
+		err = parse.Set(fname, 0, 0);
+		TEST2(err, KErrNone);
+		TEST(parse.DrivePresent());
+		TEST(parse.PathPresent());
+		TDriveName driveName(parse.Drive());
+		driveName.LowerCase(); 
+		delete files[i];
+		TEST(driveName == testDriveName);		
+    	}
+    files.Close();
+    //Case 2: drive Z:. No files should be returned.
+    const TDriveNumber KTestDrvNum2 = EDriveZ;
+    TRAP(err, server->GetBackUpListL(KDbUid, KTestDrvNum2, files));
+    TEST2(err, KErrNone);
+    fileCnt = files.Count();
+    TEST2(fileCnt, 0);
+    //Case 3: drive A:. The drive does not exist. No files should be returned.
+    const TDriveNumber KTestDrvNum3 = EDriveA;
+    TRAP(err, server->GetBackUpListL(KDbUid, KTestDrvNum3, files));
+	TheTest.Printf(_L("Drive %d, err=%d\r\n"), KTestDrvNum3, err);
+    fileCnt = files.Count();
+    TEST2(fileCnt, 0);
+    //
+    delete server;
+	}
 
 /**
 @SYMTestCaseID          PDS-SQL-UT-4163
@@ -429,6 +505,9 @@ void DoTests()
     TheTest.Next (_L(" @SYMTestCaseID:PDS-SQL-UT-4162 CSqlServer::GetBackUpListL() file I/O error simulation test"));
     GetBackupListFileIoErrorTest();
 
+    TheTest.Next (_L(" @SYMTestCaseID:PDS-SQL-UT-4224 CSqlServer::GetBackUpListL() functional test"));
+    GetBackupListFunctionalTest();
+    
     TheTest.Next (_L(" @SYMTestCaseID:PDS-SQL-UT-4163 SQL server, UTF conversion test"));
     UtfConversionTest();
 

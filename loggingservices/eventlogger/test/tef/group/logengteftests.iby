@@ -22,9 +22,9 @@
 
 file=ABI_DIR\BUILD_DIR\teflogengbur.exe	sys\bin\teflogengbur.exe
 
-data=EPOCROOT##epoc32\data\z\TEF_LogEng\logengteftests.script	TEF_LogEng\logengteftests.script
-data=EPOCROOT##epoc32\data\z\TEF_LogEng\teflogengbur.script		TEF_LogEng\teflogengbur.script
-data=EPOCROOT##epoc32\data\z\TEF_LogEng\bur_config.ini 			TEF_LogEng\bur_config.ini
-data=EPOCROOT##epoc32\data\z\TEF_LogEng\testdata_config.ini 	TEF_LogEng\testdata_config.ini
+data=EPOCROOT##epoc32\data\z\tef_logeng\logengteftests.script	TEF_LogEng\logengteftests.script
+data=EPOCROOT##epoc32\data\z\tef_logeng\teflogengbur.script		TEF_LogEng\teflogengbur.script
+data=EPOCROOT##epoc32\data\z\tef_logeng\bur_config.ini 			TEF_LogEng\bur_config.ini
+data=EPOCROOT##epoc32\data\z\tef_logeng\testdata_config.ini 	TEF_LogEng\testdata_config.ini
 
 #endif // #ifndef LOGENGTEFTESTS_IBY

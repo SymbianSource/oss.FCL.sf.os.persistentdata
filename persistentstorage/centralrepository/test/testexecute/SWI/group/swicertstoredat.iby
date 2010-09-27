@@ -20,7 +20,7 @@
 #define __SWICERTSTORE_DAT_IBY__
 
 //CertStore
-data=EPOCROOT##Epoc32\data\z\Resource\swicertstore.dat 		Resource\swicertstore.dat
+data=EPOCROOT##epoc32\data\z\resource\swicertstore.dat 		Resource\swicertstore.dat
 
 #endif //__SWICERTSTORE_DAT_IBY__
 

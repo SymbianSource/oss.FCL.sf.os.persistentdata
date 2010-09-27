@@ -520,27 +520,27 @@ TInt CFeatMgrFeatureRegistry::NumberOfSupportedFeatures()
 
 // -----------------------------------------------------------------------------
 
-TInt CFeatMgrFeatureRegistry::ResetFeatures()
+void CFeatMgrFeatureRegistry::ResetFeaturesL()
     {
     FUNC_LOG
     
     // backup the feature list before it is destroyed
     iFeatureListBackup.Reset();
-    TInt count = iFeatureList.Count();
-    
-    for( TInt i=0; i < count; i++ )
-        {
-        iFeatureListBackup.Append( iFeatureList[i] );
-        }
-    
+    const TInt KCount = iFeatureList.Count();
+   	iFeatureListBackup.ReserveL(KCount);
+	for(TInt i(0); i < KCount; i++)
+		{
+		// The main error here would be KErrNoMemory which should not happen as
+		// we have already reserved the space. However, we should still check.
+		iFeatureListBackup.AppendL(iFeatureList[i]);
+		}
+	    
     // destroy the feature list
     iFeatureList.Reset();
     iFeatureList.Close();
     
     iRangeList.Reset();
     iRangeList.Close();
-
-    return( 0 );
     }
 
 /**
@@ -752,8 +752,7 @@ void CFeatMgrFeatureRegistry::ReadFileL( const TDesC& aFullPath )
         	continue;
        		}
         
-        tempFeatureArray.Insert( entry, i);
-        
+		tempFeatureArray.InsertL( entry, i);
         }
 
     // Reserve memory if list still empty
@@ -771,7 +770,7 @@ void CFeatMgrFeatureRegistry::ReadFileL( const TDesC& aFullPath )
         
         if( index == KErrNotFound)
             {
-            User::LeaveIfError( iFeatureList.InsertInOrder( entry, FindByUid ) );
+            iFeatureList.InsertInOrderL( entry, FindByUid );
             }
         else
             {

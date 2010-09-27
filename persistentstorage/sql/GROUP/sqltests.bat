@@ -50,6 +50,7 @@ t_sqldefect2.exe
 t_sqlprivcage.exe
 t_sqlbadclient.exe
 t_sqlbur.exe
+t_sqlbur2.exe
 t_sqlscalarfullselect.exe
 t_sqlfserr.exe
 t_sqlconfig.exe

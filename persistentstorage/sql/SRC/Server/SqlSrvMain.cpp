@@ -39,6 +39,12 @@ static
 #endif
 CSqlServer* TheServer = NULL;//The single CSqlServer instance
 
+#ifdef _DEBUG
+#define __SQLDEBUG_EXPR(expr) expr
+#else
+#define __SQLDEBUG_EXPR(expr)
+#endif
+
 _LIT(KMatchAllDbFiles, "*");
 _LIT(KDefaultICollationDllName, "");
 
@@ -114,7 +120,7 @@ CSqlServer::~CSqlServer()
 	{
 	SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSERVER_CSQLSERVER2_ENTRY, "Entry;0x%x;CSqlServer::~CSqlServer", (TUint)this));
 	delete iCompactor;
-	delete iBackupClient;
+	delete iBurEventMonitor;
 	iDriveSpaceCol.ResetAndDestroy();
 	sqlite3_soft_heap_limit(0);//Set to 0 the soft heap limit
 	iSecurityMap.Close();
@@ -345,7 +351,7 @@ void CSqlServer::ConstructL()
 	//Create an empty "drive space" collection
 	iDriveSpaceCol.Create(fs);
 	// Create the BUR instance
-	iBackupClient=CSqlBackupClient::NewL(this);
+	iBurEventMonitor = CSqlBurEventMonitor::NewL(*this);
 	//Compactor
 	iCompactor = CSqlCompactor::NewL(&SqlCreateCompactConnL, KSqlCompactStepIntervalMs);
 #ifdef _DEBUG
@@ -414,7 +420,9 @@ void CSqlServer::GetCollationDllNameL()
 	TParse fileName;
 	TInt err = extdlocale.GetLocaleDllName(ELocaleCollateSetting, fname);
 	if(err!= KErrNone)
-		iCollationDllName = KDefaultICollationDllName;	
+		{
+		iCollationDllName = KDefaultICollationDllName;
+		}
 	else
 		{
 		//only get the file name + extension 
@@ -435,19 +443,21 @@ void CSqlServer::CacheDbConfigFileNamesL(RFs& aFs, const TDesC& aServerPrivatePa
 	TFileName configFilePath(parseDbConfig.FullName());	// get 'drive:\private path\cfg*' search string
 	CDir* entryList = 0; // memory will be allocated for this in GetDir()
 	TInt err = aFs.GetDir(configFilePath, KEntryAttNormal, ESortByName, entryList);
-	CleanupStack::PushL(entryList);
-	if(!err)
+	if(err == KErrNone)
 		{
-		if(entryList && (entryList->Count() > 0))
+		__ASSERT_DEBUG(entryList != NULL, __SQLPANIC(ESqlPanicInternalError));
+		CleanupStack::PushL(entryList);
+		if(entryList->Count() > 0)
 			{	
 			iDbConfigFiles = CDbConfigFiles::NewL(*entryList);
 			}
+		CleanupStack::PopAndDestroy(entryList);	
 		}
 	else
 		{
 		SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSERVER_CACHEDDBCONFIGFILENAMESL, "0x%X;CSqlServer::CacheDbConfigFileNamesL;GetDir() failed with error code %d", (TUint)this, err));	
+		__ASSERT_DEBUG(!entryList, __SQLPANIC(ESqlPanicInternalError));
 		}
-	CleanupStack::PopAndDestroy(); // entryList	
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -486,74 +496,74 @@ RFs& CSqlServer::Fs()
 	
 /**
 Implements MSqlSrvBurInterface::GetBackupListL().
-Retrieves in aFileList parameter a list of secure database names (full database paths actually) 
+Retrieves in aFileNameList parameter a list of secure database names (full database names, including path) 
 which security UID matches aUid parameter.
-Database files on ROM drive(s) won't be put in aFileList.
+No databases will be included into the list, if the drive is read-only.
 
 @param aUid Database security UID.
-@param aFileList An output parameter. If the function completes successfully, then aFileList will be filled
-				 with all secure database file names which security UID matches aUid parameter.
-				 Database files on ROM drive(s) won't be put in aFileList.
+@param aDrive The drive where the database search will be performed, in the SQL server private data cage.
+@param aFileNameList An output parameter.
+				 Each array entry represents the full name of a database in SQL server private data cage
+				 on the specified drive (aDrive), which uid matches the aUid parameter.
 				 
 @leave KErrNoMemory, an out of memory condition has occured;
 					 Note that the function may leave also with some other database specific or OS specific
 					 error codes.
 */
-void CSqlServer::GetBackUpListL(TSecureId aUid, RArray<TParse>& aFileList)
+void CSqlServer::GetBackUpListL(TSecureId aUid, TDriveNumber aDrive, RArray<HBufC*>& aFileNameList)
 	{
-	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL_ENTRY, "Entry;0x%x;CSqlServer::GetBackUpListL;aUid=0x%X", (TUint)this, (TUint)aUid.iId));
-	aFileList.Reset();
-	TFindFile findFile(iFileData.Fs());
-	CDir* fileNameCol = NULL;
+	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL_ENTRY, "Entry;0x%x;CSqlServer::GetBackUpListL;aDrive=%d;aUid=0x%X", (TUint)this, (TInt)aDrive, (TUint)aUid.iId));
+	__ASSERT_DEBUG(aFileNameList.Count() == 0, __SQLPANIC(ESqlPanicBadArgument));
+	RFs& fs = iFileData.Fs();
+	//No files in the list if aDrive is a read-only drive
+	TDriveInfo driveInfo;
+	__SQLLEAVE_IF_ERROR(fs.Drive(driveInfo, aDrive));
+	if(driveInfo.iDriveAtt & KDriveAttRom)
+		{
+		return;
+		}
+	//Compose the search path
+	TDriveUnit driveUnit(aDrive);
+	TDriveName driveName = driveUnit.Name();
+	TFileName path;
+	path.Copy(driveName);
+	path.Append(iFileData.PrivatePath());
+	//Include the aUid and the "*" mask
 	TUidName uidName = (static_cast <TUid> (aUid)).Name();
 	TBuf<KMaxUidName + sizeof(KMatchAllDbFiles)> fileNameMask(uidName);
 	fileNameMask.Append(KMatchAllDbFiles);
-	//Find all files which name is matching "[aUid]*" pattern.
-	TInt err = findFile.FindWildByDir(fileNameMask, iFileData.PrivatePath(), fileNameCol);
-	if(err == KErrNone)
+	TParse parse;
+	__SQLLEAVE_IF_ERROR(parse.Set(path, &fileNameMask, NULL)); 
+	//Do the search
+	TPtrC fullPath(parse.FullName());
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL_FULLPATH, "Exit;0x%x;CSqlServer::GetBackUpListL;fullPath=%S", (TUint)this, __SQLPRNSTR(fullPath)));
+	CDir* fileNameCol = NULL;
+	TInt err = fs.GetDir(fullPath, KEntryAttNormal, ESortNone, fileNameCol);
+	if(err == KErrNotFound)
 		{
-		//The first set of files, which name is matching "[aUid]*" pattern, is ready.
-		do
-			{
-			__ASSERT_DEBUG(fileNameCol != NULL, __SQLPANIC(ESqlPanicInternalError));
-			CleanupStack::PushL(fileNameCol);
-			const TDesC& file = findFile.File();//"file" variable contains the drive and the path. the file name in "file" is invalid in this case.
-			//Check that the drive, where the database files are, is not ROM drive
-			TParse parse;
-			(void)parse.Set(file, NULL, NULL);//this call can't file, the file name comes from findFile call.
-			TPtrC driveName = parse.Drive();
-			__ASSERT_DEBUG(driveName.Length() > 0, __SQLPANIC(ESqlPanicInternalError));
-			TInt driveNumber = -1;
-			__SQLLEAVE_IF_ERROR(RFs::CharToDrive(driveName[0], driveNumber));
-			TDriveInfo driveInfo;
-			__SQLLEAVE_IF_ERROR(iFileData.Fs().Drive(driveInfo, static_cast <TDriveNumber> (driveNumber)));
-			//If current drive is not ROM drive then process the files
-			if(!(driveInfo.iDriveAtt & KDriveAttRom))
-				{
-				TInt cnt = fileNameCol->Count();
-				//For each found database file, which name is matching "[aUid]*" pattern, do:
-				for(TInt i=0;i<cnt;++i)
-					{
-					const ::TEntry& entry = (*fileNameCol)[i];
-					if(!entry.IsDir())
-						{
-						(void)parse.Set(entry.iName, &file, NULL);//"parse" variable now contains the full file path
-						__SQLTRACE_INTERNALSVAR(TPtrC fname = parse.FullName());
-						SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL, "0x%x;CSqlServer::GetBackUpListL;fname=%S", (TUint)this, __SQLPRNSTR(fname)));
-						__SQLLEAVE_IF_ERROR(aFileList.Append(parse));
-						}
-					}
-				}
-			CleanupStack::PopAndDestroy(fileNameCol);
-			fileNameCol = NULL;
-			} while((err = findFile.FindWild(fileNameCol)) == KErrNone);//Get the next set of files
-		}//end of "if(err == KErrNone)"
-	__ASSERT_DEBUG(!fileNameCol, __SQLPANIC(ESqlPanicInternalError));
-	if(err != KErrNotFound && err != KErrNone)
-		{
-		__SQLLEAVE(err);
+		__ASSERT_DEBUG(!fileNameCol, __SQLPANIC(ESqlPanicInternalError));
+		SQL_TRACE_INTERNALS(OstTrace1(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL_EXIT1, "Exit;0x%x;CSqlServer::GetBackUpListL;no files found", (TUint)this));
+		return;
 		}
-	SQL_TRACE_INTERNALS(OstTraceExt3(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL_EXIT, "Exit;0x%x;CSqlServer::GetBackUpListL;file count=%d;err=%d", (TUint)this, aFileList.Count(), err));
+	__SQLLEAVE_IF_ERROR(err);
+	__ASSERT_DEBUG(fileNameCol != NULL, __SQLPANIC(ESqlPanicInternalError));
+	CleanupStack::PushL(fileNameCol);
+	TInt fileCount = fileNameCol->Count();
+	__SQLLEAVE_IF_ERROR(aFileNameList.Reserve(fileCount));
+	//Append the full database file paths to the file names list.
+	for(TInt i=0;i<fileCount;++i)
+		{
+		const ::TEntry& entry = (*fileNameCol)[i];
+		__ASSERT_DEBUG(!entry.IsDir(), __SQLPANIC(ESqlPanicInternalError));//RFs::GetDir() search attributes exclude directories (see the GetDir() call above).
+		__SQLLEAVE_IF_ERROR(parse.Set(path, &entry.iName, NULL));
+		TPtrC fname(parse.FullName());
+		SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL, "0x%x;CSqlServer::GetBackUpListL;fname=%S", (TUint)this, __SQLPRNSTR(fname)));
+		HBufC* fnameBuf = fname.AllocL();
+		__SQLDEBUG_EXPR(err = )aFileNameList.Append(fnameBuf);
+		__ASSERT_DEBUG(err == KErrNone, __SQLPANIC(ESqlPanicInternalError));
+		}
+	CleanupStack::PopAndDestroy(fileNameCol);
+	SQL_TRACE_INTERNALS(OstTraceExt2(TRACE_INTERNALS, CSQLSERVER_GETBACKUPLISTL_EXIT2, "Exit;0x%x;CSqlServer::GetBackUpListL;file count=%d", (TUint)this, fileCount));
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
