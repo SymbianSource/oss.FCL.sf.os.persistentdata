@@ -296,7 +296,7 @@ void PoulateTempTables(RSqlStatement& aStmt1, RSqlStatement& aStmt2)
 	delete thumbnailBuf;
 	}
 
-void FlushTempTables()
+void FlushTemptTables()
 	{
 	TUint32 fc1 = User::FastCounter();
 	
@@ -358,7 +358,7 @@ void PopulateDb()
 	TEST2(err, KErrNone);
 	
 	PoulateTempTables(stmt1, stmt2);
-	FlushTempTables();
+	FlushTemptTables();
 	
 	stmt2.Close();
 	stmt1.Close();

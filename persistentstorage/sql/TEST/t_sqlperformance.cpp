@@ -1174,10 +1174,12 @@ void SingleDeleteTest()
 	
 void SelectLikeQueryPerfTest()
 {
+	_LIT(KTestDatabase1, "c:\\test\\t_sqldefect_1.db");
+	
 	_LIT8(KServerConfigString1, "encoding =  \"UTF-8\"");
 	//create a sql db file
-	(void)RSqlDatabase::Delete(TheNonSecureDbName);
-	TInt err = TheDb.Create(TheNonSecureDbName, &KServerConfigString1);
+	(void)RSqlDatabase::Delete(KTestDatabase1);
+	TInt err = TheDb.Create(KTestDatabase1, &KServerConfigString1);
 	TEST2(err, KErrNone);
 	
 	//Create a test table and insert some records
@@ -1186,12 +1188,12 @@ void SelectLikeQueryPerfTest()
 	
 	//Add 100 records to the table
 	for(TInt k=0;k<100;++k)
-		{
-		TBuf<100> sql;
-		sql.Format(_L("INSERT INTO A VALUES(%d, 'Dvorák')"), k + 1);
-		err = TheDb.Exec(sql);
-		TEST2(err, 1);
-		}
+	{
+	TBuf<100> sql;
+	sql.Format(_L("INSERT INTO A VALUES(%d, 'Dvorák')"), k + 1);
+	err = TheDb.Exec(sql);
+	TEST2(err, 1);
+	}
 	
 	//Update one record  
 	err = TheDb.Exec(_L("UPDATE A SET Name='dvorak1' WHERE ID = 50"));
@@ -1216,7 +1218,7 @@ void SelectLikeQueryPerfTest()
 	PrintStats(start, end);
 	
 	TheDb.Close();
-	(void)RSqlDatabase::Delete(TheNonSecureDbName);
+	(void)RSqlDatabase::Delete(KTestDatabase1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

@@ -133,11 +133,16 @@ void CLogServResourceInterpreter::LoadResourceFileL(const TDesC& aName, TResourc
 	// Check the entry exists on this drive (e.g. if we are running the log server
 	// from RAM, then default to the ROM if no RSC on the current drive exists).
 	TEntry fsEntry;
-	if	(iFsSession.Entry(fileName, fsEntry) == KErrNotFound)
+	TInt err = iFsSession.Entry(fileName, fsEntry);
+	if	(err == KErrNotFound || err == KErrPathNotFound)
 		{
 		// Switch to ROM (we might already have been launching from the ROM,
 		// in which case this will have no effect anyway).
 		fileName[0] = 'Z';
+		}
+	else
+		{
+		User::LeaveIfError(err);
 		}
 
 	// Open resource file

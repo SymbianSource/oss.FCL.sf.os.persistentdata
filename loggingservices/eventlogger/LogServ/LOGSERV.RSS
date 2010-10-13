@@ -49,7 +49,5 @@ ENUM r_name_format_values
 //
 // By default r_log_contact_name_format value is set to r_western_format.
 // It has to be set to r_chinese_format for chinese builds.
-// The default value is kept here for compatibility reasons. The resource file is not used anymore.
-// The related LogServ confml file is used for loading the default contact name format.
 RESOURCE INT16 r_log_contact_name_format { value = r_western_format; }
 

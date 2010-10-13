@@ -18,11 +18,11 @@
 TARGET        	t_logapi.exe
 TARGETTYPE    	exe
 
-CAPABILITY	  	WriteDeviceData ReadDeviceData WriteUserData ReadUserData AllFiles 
+CAPABILITY	  	WriteDeviceData ReadDeviceData WriteUserData ReadUserData AllFiles
 
 USERINCLUDE   	../test/inc
 USERINCLUDE   	../Shared
-USERINCLUDE		../LogServ/inc
+USERINCLUDE     ../LogServ/inc
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN
 
 SOURCEPATH		../test/src

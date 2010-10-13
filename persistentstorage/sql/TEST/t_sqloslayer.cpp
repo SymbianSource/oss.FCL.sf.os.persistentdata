@@ -403,7 +403,7 @@ void Test3()
 	TUint32 end = User::FastCounter();
 	TInt ms = CalcMs(start, end);
 	TheTest.Printf(_L(" === sqlite3OsSleep() time=%d ms\r\n"), ms);
-	//TEST(ms >= 80 && ms <= 320);// -60%..+60%
+	TEST(ms >= 80 && ms <= 320);// -60%..+60%
 	}
 
 //Lock/unlock tests

@@ -1,5 +1,5 @@
 @rem
-@rem Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
+@rem Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 @rem All rights reserved.
 @rem This component and the accompanying materials are made available
 @rem under the terms of "Eclipse Public License v1.0"
@@ -14,8 +14,8 @@
 @rem Description:
 @rem
 
-t_sqliteapi.exe
-t_sqlitewsd.exe
-t_sqliteperf.exe
-t_sqliteperf2.exe
-t_sqlitedef.exe
+T_SQLITEAPI.EXE
+T_SQLITEWSD.EXE
+T_SQLITEPERF.EXE
+T_SQLITEPERF2.EXE
+T_SQLITEDEF.EXE

@@ -624,8 +624,9 @@ void CSqlBackupClient::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinishe
 						// if we got here, we have a backup of the original database in .db.bak
 						// and the new database in .db
 						}//end of for(...)
+
 					__SQLLEAVE_IF_ERROR(err2);
-					
+
 					// clean up dir
 					//delete dir;
 					CleanupStack::PopAndDestroy(dir);

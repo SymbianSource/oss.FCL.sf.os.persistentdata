@@ -18,6 +18,8 @@
 
 RTest TheTest(_L("t_logcntmatch"));
 
+#ifdef SYSLIBS_TEST
+
 TBool TheMatchingIsEnabled = EFalse;
 //TheContactNameFmt variable must be initialized before tests. 
 //It gives an information what is the contact name format in the logs.
@@ -318,3 +320,12 @@ void doTestsL()
 
 	CleanupStack::PopAndDestroy(client);
 	}
+
+#else //SYSLIBS_TEST
+
+void doTestsL()
+	{
+	TheTest.Start(_L("This test can be run only when built with SYSLIBS_TEST macro defined!"));
+	}
+
+#endif //SYSLIBS_TEST

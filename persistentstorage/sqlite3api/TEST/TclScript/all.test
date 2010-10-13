@@ -1,6 +1,6 @@
 # 2001 September 15
 #
-# Portions Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiaries. All rights reserved.
+# Portions Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiaries. All rights reserved.
 #
 # The author disclaims copyright to this source code.  In place of
 # a legal notice, here is a blessing:
@@ -75,7 +75,7 @@ lappend EXCLUDE fuzz.test
 lappend EXCLUDE fuzz3.test
 lappend EXCLUDE soak.test              ;# Takes a very long time (default 1 hr)
 lappend EXCLUDE fts3.test              ;# Wrapper for muliple fts3*.tests
-lappend EXCLUDE mallocall.test         ;# Wrapper for running all malloc tests
+lappend EXCLUDE mallocAll.test         ;# Wrapper for running all malloc tests
 lappend EXCLUDE speed1.test			   ;# Symbian OS: Excluding all "speed" tests, the first one is crashing all.test.
 lappend EXCLUDE speed1p.test		   ;# Also, these "speed" tests are not that useful for Symbian OS.
 lappend EXCLUDE speed2.test

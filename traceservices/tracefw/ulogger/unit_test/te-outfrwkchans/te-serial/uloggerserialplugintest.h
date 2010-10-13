@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,7 +22,7 @@
 #ifndef __ULOGGERSERIALPLUGINTEST_H__
 #define __ULOGGERSERIALPLUGINTEST_H__
 
-#include <test/tefunit.h>
+#include <tefunit.h>
 #include "uloggerserialplugin.h"
 #include "te_serialsuitestepbase.h"
 	

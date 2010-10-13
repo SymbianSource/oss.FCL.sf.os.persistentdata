@@ -31,7 +31,6 @@ LIBRARY         euser.lib
 LIBRARY         sqlite3.lib
 LIBRARY			efsrv.lib
 
-UID		  0 0x212C3129
 VENDORID 0x70000001
 
 SMPSAFE

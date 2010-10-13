@@ -60,9 +60,6 @@ const TInt KMaxStatementPerThread = 30;
 //Binary data length
 const TInt KBinDataLen = 2003;
 
-//StatementMaxNumberTest() time limit in seconds.
-const TInt KTestTimeLimit = 60;//seconds
-
 ///////////////////////////////////////////////////////////////////////////////////////
 
 void DeleteTestFiles()
@@ -127,8 +124,8 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine, TBool aPrintThreadName = EF
 ///////////////////////////////////////////////////////////////////////////////////////
 
 //StatementMaxNumberTest() timeouts in WDP builds.
-//This function is used return the seconds passed from the start of the test case.
-TTimeIntervalSeconds ExecutionTimeSeconds()
+//This function is used to check whether the time limit is reaqched or not.
+TBool IsTimeLimitReached()
 	{
 	struct TStartTime
 		{
@@ -140,6 +137,7 @@ TTimeIntervalSeconds ExecutionTimeSeconds()
 		};
 	
 	static TStartTime startTime; 
+	const TInt KTestTimeLimit = 150;//seconds
 	
 	TTime currTime;
 	currTime.HomeTime();
@@ -147,7 +145,7 @@ TTimeIntervalSeconds ExecutionTimeSeconds()
 	TTimeIntervalSeconds s;
 	TInt err = currTime.SecondsFrom(startTime.iTime, s);
 	TEST2(err, KErrNone);
-	return s;
+	return s.Int() > KTestTimeLimit;
 	}
 
 void CreateTestDir()
@@ -616,9 +614,8 @@ void StatementMaxNumberTest()
 		if((idx % 100) == 0)
 			{
 			GetHomeTimeAsString(time);
-			TTimeIntervalSeconds s = ExecutionTimeSeconds();
-			TheTest.Printf(_L("=== %S: Create % 5d statements. %d seconds.\r\n"), &time, idx + 1, s.Int());
-			if(s.Int() > KTestTimeLimit)
+			TheTest.Printf(_L("=== %S: Create % 5d statements\r\n"), &time, idx + 1);
+			if(IsTimeLimitReached())
 				{
 				TheTest.Printf(_L("=== %S: The time limit reached.\r\n"), &time);
 				++idx;//The idx-th statement is valid, the statement count is idx + 1.
@@ -652,13 +649,12 @@ void StatementMaxNumberTest()
 		TEST2(err, KSqlAtRow);
 		err = stmt[idx].Next();
 		TEST2(err, KSqlAtEnd);
-		GetHomeTimeAsString(time);
-		TTimeIntervalSeconds s = ExecutionTimeSeconds();
 		if((j % 100) == 0)
 			{
-			TheTest.Printf(_L("=== %S: % 5d statements processed. %d seconds.\r\n"), &time, j + 1, s.Int());
+			GetHomeTimeAsString(time);
+			TheTest.Printf(_L("=== %S: % 5d statements processed\r\n"), &time, j + 1);
 			}
-		if(s.Int() > KTestTimeLimit)
+		if(IsTimeLimitReached())
 			{
 			TheTest.Printf(_L("=== %S: The time limit reached.\r\n"), &time);
 			break;

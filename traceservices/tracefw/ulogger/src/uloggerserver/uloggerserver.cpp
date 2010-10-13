@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -32,18 +32,6 @@
 
 namespace Ulogger {
 
-
-void CleanupPointerArray( TAny* aArray )
-    {
-    static_cast< RPointerArray< TPluginConfiguration >* >( aArray )->ResetAndDestroy();
-    static_cast< RPointerArray< TPluginConfiguration >* >( aArray )->Close();
-    }
-
-void CleanupResetAndDestroyPushL( RPointerArray< TPluginConfiguration >& aArray )
-    {
-    TCleanupItem item( CleanupPointerArray, &aArray );
-    CleanupStack::PushL( item );
-    }
 
 /*Default constructor*/
 CULoggerServer::CULoggerServer(TInt aPriority)
@@ -1160,23 +1148,20 @@ void CULoggerServer::GetPluginAndSettingsL(TDes8& aPluginName, RPointerArray<TPl
 		}
 	}
 
+
 void CULoggerServer::InitializeFrameworksL()
 	{
 	//<create plugin allocator (plugins)>
 	//output settings
 	RBuf8 outPluginName;
 	outPluginName.Create(KMaxPluginName);
-	outPluginName.CleanupClosePushL();
 	RPointerArray<TPluginConfiguration> outputPluginSettings;
-	CleanupResetAndDestroyPushL(outputPluginSettings);
 	GetPluginAndSettingsL(outPluginName, &outputPluginSettings, EOutputPluginFilter);
 
 	//control settings
 	RBuf8 inputPluginName;
 	inputPluginName.Create(KMaxPluginName);
-	inputPluginName.CleanupClosePushL();
 	RPointerArray<TPluginConfiguration> inputPluginSettings;
-	CleanupResetAndDestroyPushL(inputPluginSettings);
 	this->GetPluginAndSettingsL(inputPluginName, &inputPluginSettings, EInputPluginFilter);
 
 	#if defined(__LIGHTLOGGER_ENABLED) && defined(__VERBOSE_MODE)
@@ -1199,8 +1184,14 @@ void CULoggerServer::InitializeFrameworksL()
 		iInputFramework = CInputFramework::NewL(iPluginAllocator->GetInputPlugin(), inputPluginSettings, this);
 
 	//cleanup
-	CleanupStack::PopAndDestroy(4,&outPluginName);
-	iDataWatcher = CULoggerWatcher::NewL();
+	outPluginName.Close();
+	outputPluginSettings.ResetAndDestroy();
+	outputPluginSettings.Close();
+	inputPluginName.Close();
+	inputPluginSettings.ResetAndDestroy();
+	inputPluginSettings.Close();
+
+	iDataWatcher = CULoggerWatcher::NewL();	
 	}
 
 

@@ -296,7 +296,6 @@ defined by the TFileMode type.
 	{
 //  When the file server write caching is enabled, the order of file write operations is not guaranteed. This could cause data inconsistency in some circumstances,
 //  for example, when the power is lost in the middle of a database transaction. Therefore, the file write caching is disabled for this file to maintain integrity.
-	
     if ((aFileMode&EFileWrite) != 0)
         {
         aFileMode |= EFileWriteDirectIO;

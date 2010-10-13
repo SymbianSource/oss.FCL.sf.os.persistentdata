@@ -9,7 +9,6 @@
 // Nokia Corporation - initial contribution.
 //
 // Contributors:
-// NTT DOCOMO, INC - Fix for Bug 3170 "SQL library test T_SQLPERFORMANCE4 fails with USER 84 panic"
 //
 // Description:
 //
@@ -301,12 +300,7 @@ void RunTest()
 			{
 			break;//No more SQL statements
 			}
-		TInt stmtLength = eolPos;
-		while (stmtLength > 0 && (sql[stmtLength-1] == '\r'))
-			{
-			--stmtLength; //Reduce length to remove carriage return characters from the end of the statement string
-			}
-		TPtrC8 sqlStmt8(sql.Ptr(), stmtLength);
+		TPtrC8 sqlStmt8(sql.Ptr(), eolPos - 1);//"eolPos - 1" - to cut off the '\r' character
 		TPtrC8 ptr = sql.Mid(eolPos + 1);//"eolPos + 1" - first character after '\n'
 		sql.Set(const_cast <TUint8*> (ptr.Ptr()), ptr.Length(), ptr.Length());
 		++recordCount;

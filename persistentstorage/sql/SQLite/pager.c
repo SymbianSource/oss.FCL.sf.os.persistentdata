@@ -3062,15 +3062,15 @@ static int pager_write_pagelist(PgHdr *pList){
     assert( p->dirty );
     p->dirty = 0;
   }
-
-  /* If the file has not yet been opened, open it now. */
-  if( !pPager->fd->pMethods ){
-    assert(pPager->tempFile);
-	rc = sqlite3PagerOpentemp(pPager, pPager->fd, pPager->vfsFlags);
-	if( rc ) return rc;
-  }
-
   while( pList ){
+
+    /* If the file has not yet been opened, open it now. */
+    if( !pPager->fd->pMethods ){
+      assert(pPager->tempFile);
+      rc = sqlite3PagerOpentemp(pPager, pPager->fd, pPager->vfsFlags);
+      if( rc ) return rc;
+    }
+
     /* If there are dirty pages in the page cache with page numbers greater
     ** than Pager.dbSize, this means sqlite3PagerTruncate() was called to
     ** make the file smaller (presumably by auto-vacuum code). Do not write
@@ -3655,7 +3655,7 @@ static int pagerAllocatePage(Pager *pPager, PgHdr **ppPg){
    || MEMDB
    || (pPager->lru.pFirstSynced==0 && pPager->doNotSync)
   ){
-    void *pData = 0;                   /* Initialized to placate warning */
+    void *pData;
     if( pPager->nPage>=pPager->nHash ){
       pager_resize_hash_table(pPager,
          pPager->nHash<256 ? 256 : pPager->nHash*2);
