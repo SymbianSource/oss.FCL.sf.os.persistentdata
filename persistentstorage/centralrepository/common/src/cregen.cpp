@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -88,6 +88,12 @@ void CCreGenerator::ExternalizeCre(TUint8 aPersistVersion,const CHeapRepository&
 	{
 	aStream << aPersistVersion;
 	aStream << aRep.iUid ;
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+    if (aPersistVersion>=KPersistFormatSupportsPma)
+        {	
+        aStream << aRep.iKeyspaceType;
+        }
+#endif
 	aStream << aRep.iOwner ;
 	
 	TUint32 count=aRep.iSinglePolicies.Count();
@@ -146,6 +152,16 @@ void CCreGenerator::InternalizeCreL(CHeapRepository& aRep, RReadStream& aStream
  		User::Leave(KErrCorrupt);
  		}
   
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+    if (version>=KPersistFormatSupportsPma)
+        {   
+        aStream >> aRep.iKeyspaceType;
+        }
+    else
+        {
+        aRep.iKeyspaceType = ENonPMAKeyspace;
+        }
+#endif
 	aStream >> aRep.iOwner ;
  
 	TUint32 count;

@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -30,6 +30,10 @@ _LIT(KCInstallFiles,			"c:\\private\\10202BE9\\*.*");
 
 _LIT(KCRomVersionDir,				"c:\\private\\10202BE9\\romversion\\");
 _LIT(KCRomVersionFiles,			"c:\\private\\10202BE9\\romversion\\*.*");
+
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+_LIT(KPMAFiles,           "c:\\private\\10202BE9\\persists\\protected\\*.*");
+#endif
 
 const TInt KGeneralDelay = 2*1000*1000;
 

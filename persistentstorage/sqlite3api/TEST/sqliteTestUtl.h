@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -44,6 +44,13 @@ void PrintIII(const char* fmt, int a1, int a2, int a3);
 void PrintII64I64(const char* fmt, int a1, __int64 a2, __int64 a3);
 void PrintSI(const char* fmt, const char* s, int a1);
 void PrintS(const char* fmt, const char* s);
+
+void ThreadPrint(const char* msg);
+void ThreadPrintI(const char* fmt, int a1);
+void ThreadPrintIII(const char* fmt, int a1, int a2, int a3);
+void ThreadPrintII64I64(const char* fmt, int a1, __int64 a2, __int64 a3);
+void ThreadPrintSI(const char* fmt, const char* s, int a1);
+void ThreadPrintS(const char* fmt, const char* s);
 
 void CreatePrivateDir(void);
 

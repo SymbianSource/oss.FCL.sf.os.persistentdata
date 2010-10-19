@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -65,8 +65,20 @@ RTest TheTest(_L("t_sqlood test"));
 
 _LIT8(KDatabasePageSizeConfig, "page_size=1024");
 
+//The drive that will be used in case if the original drive, where KTestDir is supposed to be created, is not present.
+const TInt KTestDrive2 = EDriveC;
+_LIT(KTestDir2, "c:\\test\\");
+_LIT(KTestDatabase2, "c:\\test\\t_sql_ood.db");
+_LIT(KLargeFileName2, "c:\\test\\DeleteMe");
+
 const TInt KMaxTestRecordsCount = 350;
 TInt TestRecordsCount = 0;
+
+
+TInt TheTestDrive = -1;
+TFileName TheTestDir;
+TFileName TheTestDatabase;
+TFileName TheLargeFileName;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -85,7 +97,7 @@ void DeleteLargeDataFiles()
 	while(err == KErrNone)
 		{
 		TBuf<KMaxFileName> filePath;
-		::AssembleLargeFileName(KLargeFileName, ++i, filePath);
+		::AssembleLargeFileName(TheLargeFileName, ++i, filePath);
 		err = TheFs.Delete(filePath);
 		}
 	}
@@ -94,7 +106,7 @@ void DeleteLargeDataFiles()
 void DeleteTestFiles()
 	{
 	DeleteLargeDataFiles();
-	(void)RSqlDatabase::Delete(KTestDatabase);
+	(void)RSqlDatabase::Delete(TheTestDatabase);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +117,7 @@ void Check1(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Line %d\r\n"), aLine);
+		TheTest.Printf(_L("*** Line %d\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -114,7 +126,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+		TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -129,11 +141,17 @@ void CreateTestEnv()
 	TInt err = TheFs.Connect();
 	TEST2(err, KErrNone);
 
-	err = TheFs.MkDir(KTestDir);
-	if(err != KErrNone)
+	err = TheFs.MkDir(TheTestDir);
+	if(err != KErrNone && err != KErrAlreadyExists)
 	    {
-	    RDebug::Print(_L("*** CreateTestEnv(), RFs::MkDir(), err=%d\r\n"), err);
+		TheTest.Printf(_L("*** CreateTestEnv(), RFs::MkDir(), dir=%S, err=%d.\r\nNext attempt with %S.\r\n"), &TheTestDir, err, &KTestDir2);
+	    TheTestDrive = KTestDrive2;
+		TheTestDir.Copy(KTestDir2);
+		TheTestDatabase.Copy(KTestDatabase2);
+		TheLargeFileName.Copy(KLargeFileName2);
+		err = TheFs.MkDir(TheTestDir);
 	    }
+	TheTest.Printf(_L("*** CreateTestEnv(), RFs::MkDir(), dir=%S, err=%d."), &TheTestDir, err);
 	TEST(err == KErrNone || err == KErrAlreadyExists);
 	}
 
@@ -142,9 +160,11 @@ void CreateTestEnv()
 void FillLargeDataFile(RFile& aFile, TInt aSize)
 	{
 	TInt err = KErrDiskFull;
+	TheTest.Printf(_L("FillLargeDataFile-1\r\n"));
 	while(err == KErrDiskFull)
 		{
 		err = aFile.SetSize(aSize);
+		TheTest.Printf(_L("FillLargeDataFile-2 err=%d aSize=%d\r\n"), err, aSize);
 		aSize -= 100;
 		if(aSize <= 0)
 			{
@@ -158,7 +178,7 @@ void FillLargeDataFile(RFile& aFile, TInt aSize)
 TInt64 FreeDiskSpace()
 	{
 	TVolumeInfo volInfoBefore;
-	TInt err = TheFs.Volume(volInfoBefore, KTestDrive);
+	TInt err = TheFs.Volume(volInfoBefore, TheTestDrive);
 	TEST2(err, KErrNone);
 	return volInfoBefore.iFree;
 	}
@@ -166,13 +186,17 @@ TInt64 FreeDiskSpace()
 //Creates a large data file with aSize size (in bytes).
 void DoCreateLargeFile(const TDesC& aPath, TInt aSize)
 	{
+	TheTest.Printf(_L("DoCreateLargeFile, aPath=%S, aSize=%d\r\n"), &aPath, aSize/1000);
 	RFile file;
 	TInt err = file.Replace(TheFs, aPath, EFileRead | EFileWrite);
+	TheTest.Printf(_L("DoCreateLargeFile, err=%d\r\n"), err);
 	TEST2(err, KErrNone);
 	FillLargeDataFile(file, aSize);
 	err = file.Flush();
+	TheTest.Printf(_L("DoCreateLargeFile, flush err=%d\r\n"), err);
 	TEST2(err, KErrNone);
 	file.Close();
+	TheTest.Printf(_L("DoCreateLargeFile, close\r\n"));
 	}
 
 //Creates enough number of large data files to fill the available disk space.
@@ -181,28 +205,28 @@ void CreateLargeFile()
 	TInt fileNo = 0;
 	const TInt KLargeFileSize = 1000000000;
 	TInt64 diskSpace = ::FreeDiskSpace();
-	RDebug::Print(_L("CreateLargeFile: free space before = %ld\r\n"), diskSpace);
+	TheTest.Printf(_L("CreateLargeFile: free space before = %ld\r\n"), diskSpace);
 	TBuf<KMaxFileName> filePath;
 	while(diskSpace > KLargeFileSize)
 		{
-		AssembleLargeFileName(KLargeFileName, fileNo++, filePath);
+		AssembleLargeFileName(TheLargeFileName, fileNo++, filePath);
 		DoCreateLargeFile(filePath, KLargeFileSize);
 		diskSpace = ::FreeDiskSpace();
-		RDebug::Print(_L("----CreateLargeFile, step %d, free space = %ld\r\n"), fileNo, diskSpace);
+		TheTest.Printf(_L("----CreateLargeFile, step %d, free space = %ld\r\n"), fileNo, diskSpace);
 		}
 	//Reserve almost all disk space, except a small amount - 200 bytes.
 	if(diskSpace > 0)
 		{
-		::AssembleLargeFileName(KLargeFileName, fileNo++, filePath);
+		::AssembleLargeFileName(TheLargeFileName, fileNo++, filePath);
 		const TInt64 KSpaceLeft = 200;
 		TInt64 lastFileSize = diskSpace - KSpaceLeft;
         TInt lastFileSize32 = I64LOW(lastFileSize);
-		RDebug::Print(_L("----file size32 = %d\r\n"), lastFileSize32);
+        TheTest.Printf(_L("----file size32 = %d\r\n"), lastFileSize32);
 		::DoCreateLargeFile(filePath, lastFileSize32);
-		RDebug::Print(_L("----CreateLargeFile, last step (%d), file size = %ld\r\n"), fileNo, lastFileSize);
+		TheTest.Printf(_L("----CreateLargeFile, last step (%d), file size = %ld\r\n"), fileNo, lastFileSize);
 		}
 	diskSpace = ::FreeDiskSpace();
-	RDebug::Print(_L("CreateLargeFile: free space after = %ld\r\n"), diskSpace);
+	TheTest.Printf(_L("CreateLargeFile: free space after = %ld\r\n"), diskSpace);
 	}
 
 
@@ -218,7 +242,7 @@ const TInt KReserveDriveSpaceAmount = 64*1024;
 //Creates and fills with some records a test database
 void CreateAndFillTestDatabase(RSqlDatabase& aDb)
 	{
-	TInt err = aDb.Create(KTestDatabase, &KDatabasePageSizeConfig);
+	TInt err = aDb.Create(TheTestDatabase, &KDatabasePageSizeConfig);
 	TEST2(err, KErrNone);
 	err = aDb.Exec(_L("CREATE TABLE A(Id INTEGER, Data TEXT)"));
 	TEST(err >= 0);
@@ -231,25 +255,25 @@ void CreateAndFillTestDatabase(RSqlDatabase& aDb)
 	TSqlScalarFullSelectQuery q(aDb);
 	TInt pageSize = 0;
 	TRAP(err, pageSize = q.SelectIntL(sql););
-	//RDebug::Print(_L("Error %d Page Size %d"),err,pageSize);
+	//TheTest.Printf(_L("Error %d Page Size %d"),err,pageSize);
 	TEST2(err, KErrNone);
 	TEST(pageSize > 0);
-	//RDebug::Print(_L("Page Size %d"),pageSize);
+	//TheTest.Printf(_L("Page Size %d"),pageSize);
 	
 	//
 	// Find the sector size of this media
 	//
 	TDriveInfo driveInfo;
-	err = TheFs.Drive(driveInfo, KTestDrive);
+	err = TheFs.Drive(driveInfo, TheTestDrive);
 	TEST2(err, KErrNone);
 	TVolumeIOParamInfo volumeInfo;
-	err = TheFs.VolumeIOParam(KTestDrive, volumeInfo);
+	err = TheFs.VolumeIOParam(TheTestDrive, volumeInfo);
 	TEST2(err, KErrNone);
 	TInt sectorSize = volumeInfo.iBlockSize;
-	//RDebug::Print(_L("Sector Size %d"),sectorSize);	
+	//TheTest.Printf(_L("Sector Size %d"),sectorSize);	
 
 	TInt journalHeaderSize = Max(sectorSize, KJournalHeaderSize);
-	//RDebug::Print(_L("Journal Header Size %d"),journalHeaderSize);
+	//TheTest.Printf(_L("Journal Header Size %d"),journalHeaderSize);
 
 	//
 	// Keep adding to database until it is a size such that all the data can still be deleted within the reserved disk space size. 
@@ -265,7 +289,7 @@ void CreateAndFillTestDatabase(RSqlDatabase& aDb)
 		TInt size = aDb.Size();
 		TInt numberOfPages = size/pageSize;
 		TInt predictedJournalSize = journalHeaderSize + numberOfPages * (pageSize + KJournalPageOverhead);
-		//RDebug::Print(_L("Size %d, Pages %d, predictedJournalSize %d"),size, numberOfPages, predictedJournalSize);
+		//TheTest.Printf(_L("Size %d, Pages %d, predictedJournalSize %d"),size, numberOfPages, predictedJournalSize);
 		
 		// Will another page take us over the limit ?
 		if ((predictedJournalSize + (pageSize + KJournalPageOverhead)) >= (KReserveDriveSpaceAmount))
@@ -275,7 +299,7 @@ void CreateAndFillTestDatabase(RSqlDatabase& aDb)
 		}
 	TestRecordsCount = i + 1;
 	
-	//RDebug::Print(_L("TestRecordsCount %d"),TestRecordsCount);
+	//TheTest.Printf(_L("TestRecordsCount %d"),TestRecordsCount);
 	
 	}
 
@@ -307,10 +331,10 @@ TInt DeleteTestRecords(RSqlDatabase& aDb)
 void SimpleCallsTest()
 	{
 	RSqlDatabase db, db2;
-	TInt err = db.Create(KTestDatabase, &KDatabasePageSizeConfig);
+	TInt err = db.Create(TheTestDatabase, &KDatabasePageSizeConfig);
 	TEST2(err, KErrNone);
 
-	err = db2.Open(KTestDatabase);
+	err = db2.Open(TheTestDatabase);
 	TEST2(err, KErrNone);
 	
 	//An attempt to get an access to the reserved space (which is not reserved yet).
@@ -357,7 +381,7 @@ void SimpleCallsTest()
 
 	db2.Close();
 	db.Close();
-	(void)RSqlDatabase::Delete(KTestDatabase);
+	(void)RSqlDatabase::Delete(TheTestDatabase);
 	}
 
 /**
@@ -378,32 +402,32 @@ void SimpleCallsTest()
 void DeleteTransactionTest()
 	{
 	TVolumeIOParamInfo volIoPrm;
-	TInt err = TheFs.VolumeIOParam(KTestDrive, volIoPrm);
+	TInt err = TheFs.VolumeIOParam(TheTestDrive, volIoPrm);
     TEST2(err, KErrNone);
-    RDebug::Print(_L("--Drive %d. BlockSize=%d, ClusterSize=%d, RecReadBufSize=%d, RecWriteBufSize=%d\r\n"), KTestDrive, volIoPrm.iBlockSize, volIoPrm.iClusterSize, volIoPrm.iRecReadBufSize, volIoPrm.iRecWriteBufSize);
+    TheTest.Printf(_L("--Drive %d. BlockSize=%d, ClusterSize=%d, RecReadBufSize=%d, RecWriteBufSize=%d\r\n"), TheTestDrive, volIoPrm.iBlockSize, volIoPrm.iClusterSize, volIoPrm.iRecReadBufSize, volIoPrm.iRecWriteBufSize);
 	/////////////////////////////////////////////////////////
-    RDebug::Print(_L("--Create and fill database \"%S\".\r\n"), &KTestDatabase);
+    TheTest.Printf(_L("--Create and fill database \"%S\".\r\n"), &TheTestDatabase);
 	RSqlDatabase db;
 	CreateAndFillTestDatabase(db);
 	db.Close();//When the database gets closed, the persisted journal file will be deleted.
-    RDebug::Print(_L("--Close and reopen database \"%S\" (in order to get the persisted journal file deleted).\r\n"), &KTestDatabase);
-    err = db.Open(KTestDatabase);
+	TheTest.Printf(_L("--Close and reopen database \"%S\" (in order to get the persisted journal file deleted).\r\n"), &TheTestDatabase);
+    err = db.Open(TheTestDatabase);
     TEST2(err, KErrNone);
-    RDebug::Print(_L("--Reserve disk space for database \"%S\".\r\n"), &KTestDatabase);
+    TheTest.Printf(_L("--Reserve disk space for database \"%S\".\r\n"), &TheTestDatabase);
     err = db.ReserveDriveSpace(0);
 	TEST2(err, KErrNone);
-    RDebug::Print(_L("--Simulate an \"out of disk space\" situation with creating a very large data file, which occupies almost the all the available disk space.\r\n"));
+	TheTest.Printf(_L("--Simulate an \"out of disk space\" situation with creating a very large data file, which occupies almost the all the available disk space.\r\n"));
 	CreateLargeFile();
-	RDebug::Print(_L("--Attempt to delete test data records. The transaction must fail, because of \"out of disk space\".\r\n"));
+	TheTest.Printf(_L("--Attempt to delete test data records. The transaction must fail, because of \"out of disk space\".\r\n"));
 	err = DeleteTestRecords(db);
 	TEST2(err, KErrDiskFull);
-    RDebug::Print(_L("--Get an access to the reserved disk space.\r\n"));
+	TheTest.Printf(_L("--Get an access to the reserved disk space.\r\n"));
 	err = db.GetReserveAccess();
 	TEST2(err, KErrNone);
     TInt64 diskSpace = ::FreeDiskSpace();
-    RDebug::Print(_L("After GetReserveAccess(), free disk space = %ld. Try again \"Delete records\" transaction. The transaction must not fail.\r\n"), diskSpace);
+    TheTest.Printf(_L("After GetReserveAccess(), free disk space = %ld. Try again \"Delete records\" transaction. The transaction must not fail.\r\n"), diskSpace);
 	err = DeleteTestRecords(db);
-	RDebug::Print(_L("--DeleteTestRecords() returned %d error.\r\n"), err);
+	TheTest.Printf(_L("--DeleteTestRecords() returned %d error.\r\n"), err);
 	TEST(err >= 0);
 	//Releases the access to the reserved disk space
 	db.ReleaseReserveAccess();
@@ -421,7 +445,7 @@ void DeleteTransactionTest()
 	TEST2(recCount, 0);
 	stmt.Close();
 	db.Close();
-	(void)RSqlDatabase::Delete(KTestDatabase);
+	(void)RSqlDatabase::Delete(TheTestDatabase);
 	}
 
 //OOD API tests with more than one connection to the same SQL database.
@@ -434,7 +458,7 @@ void MultiDbTest()
 	CreateAndFillTestDatabase(db1);
 
     RSqlDatabase db2;
-    TInt err = db2.Open(KTestDatabase);
+    TInt err = db2.Open(TheTestDatabase);
     TEST2(err, KErrNone);
 
     //Play with "ReserveDriveSpace" on both sessions
@@ -455,7 +479,7 @@ void MultiDbTest()
     TEST2(err, KErrNone);
 
     RSqlDatabase db4;
-    err = db4.Open(KTestDatabase);
+    err = db4.Open(TheTestDatabase);
     TEST2(err, KErrNone);
 
     //Try to reserve space for db4.
@@ -463,7 +487,7 @@ void MultiDbTest()
     TEST2(err, KErrNone);
 
     RSqlDatabase db3;
-    err = db3.Open(KTestDatabase);
+    err = db3.Open(TheTestDatabase);
     TEST2(err, KErrNone);
 
     //Try to reserve space for session db3.
@@ -506,7 +530,7 @@ void MultiDbTest()
 	db2.Close();
 	db1.Close();
 
-	(void)RSqlDatabase::Delete(KTestDatabase);
+	(void)RSqlDatabase::Delete(TheTestDatabase);
     }
 
 void DoTests()
@@ -529,6 +553,11 @@ TInt E32Main()
 
 	__UHEAP_MARK;
 
+	TheTestDrive = KTestDrive;
+	TheTestDir.Copy(KTestDir);
+	TheTestDatabase.Copy(KTestDatabase);
+	TheLargeFileName.Copy(KLargeFileName);
+	
 	CreateTestEnv();
 	DeleteTestFiles();
 	DoTests();

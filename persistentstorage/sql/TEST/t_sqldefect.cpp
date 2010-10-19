@@ -69,7 +69,7 @@ void Check1(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Line %d\r\n"), aLine);
+		TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -78,7 +78,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+		TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -144,7 +144,7 @@ void SqlDetachedDbTest()
 	err = TheDb.Detach(_L("Db2"));
 	TEST(err != KErrNone);
 	TPtrC errMsg = TheDb.LastErrorMessage();
-	RDebug::Print(_L("Detach err: %S\r\n"), &errMsg);
+	TheTest.Printf(_L("Detach err: %S\r\n"), &errMsg);
 
 	err = stmt.Next();
 	TEST2(err, KSqlAtRow);
@@ -1059,7 +1059,7 @@ void DEF115556()
 	err = stmt.Prepare(TheDb, _L("DELETE FROM A WHERE Id1 IN (SELECT Id1 FROM B WHERE Id IN (1,11) UNION SELECT * FROM B WHERE Id1=2 ORDER BY Id ASC LIMIT 1)"));
 	TEST(err != KErrDied);
 	TPtrC errDescr = TheDb.LastErrorMessage();
-	RDebug::Print(_L("\"Stmt prepare\" %d error. Message:\"%S\"\r\n"), err, &errDescr);
+	TheTest.Printf(_L("\"Stmt prepare\" %d error. Message:\"%S\"\r\n"), err, &errDescr);
 	stmt.Close();
 	
 	TheDb.Close();
@@ -1559,7 +1559,7 @@ void PDEF143461L()
     //Test "library routine called out of sequence" error message 
     //If the defect is not fixed then it will panic here   
     TPtrC errMsg = db.LastErrorMessage();
-    RDebug::Print(_L("errMsg=%S\r\n"), &errMsg);
+    TheTest.Printf(_L("errMsg=%S\r\n"), &errMsg);
 
     stmt.Close();
     db.Close();
@@ -1579,7 +1579,7 @@ void PDEF143461L()
         TheTest.Printf(_L("%d    \r"), allocationNo);
         //Test "out of memory" error message, if the defect is not fixed then it will panic here   
         TPtrC errMsg = db.LastErrorMessage();
-        RDebug::Print(_L("errMsg=%S\r\n"), &errMsg);
+        TheTest.Printf(_L("errMsg=%S\r\n"), &errMsg);
         db.Close();
         }
     while (err == KErrNoMemory);

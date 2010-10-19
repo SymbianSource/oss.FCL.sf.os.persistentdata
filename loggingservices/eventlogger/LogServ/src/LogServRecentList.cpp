@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -61,6 +61,7 @@ CLogServRecentList* CLogServRecentList::NewL(TResourceReader& aReader)
 #ifdef SYSLIBS_TEST
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 //Used by the unit tests when SYSLIBS_TEST macro is defined.
 //Creates a complex recent list with a lot of fields.
@@ -110,6 +111,7 @@ void CLogServRecentList::TestConstructL()
 #endif	
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 #endif//SYSLIBS_TEST

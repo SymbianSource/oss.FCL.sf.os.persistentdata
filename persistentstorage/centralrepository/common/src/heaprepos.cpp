@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -161,7 +161,7 @@ TSettingsAccessPolicy* CHeapRepository::GetFallbackAccessPolicy(TUint32 aId
 	return &iDefaultPolicy;
 	}
 
-// this function saves idividual meta as well
+// This function saves individual meta as well.
 TInt CHeapRepository::ReadSettingSavePolicyL(CIniFileIn& aFile,TServerSetting& aSetting, TSettingsAccessPolicy* &aPolicy, TBool& aSingleMetaFound)
 	{
 	TBool singleReadPolicyFound;
@@ -221,6 +221,9 @@ void CHeapRepository::DoCommitChangesToIniFileL(RFs& aFs,const TDesC& aOutFileNa
 	CIniFileOut* out = CIniFileOut::NewLC(aFs,aOutFileName);
 
 	out->WriteHeaderL();
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	out->WriteKeyspaceTypeL(iKeyspaceType);
+#endif
 	out->WriteOwnerSectionL(iOwner);
 	out->WriteTimeStampL(iTimeStamp);
 	out->WriteMetaDataL(iDefaultMeta, iRangeMeta);
@@ -322,6 +325,9 @@ CHeapRepository object.
 void CHeapRepository::ResetContent()
 	{
 	iSettings.Reset();
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC 
+    iKeyspaceType = 0;
+#endif
 	iOwner = KNullUid;
 	iTimeStamp = TTime(0);
 
@@ -376,8 +382,14 @@ void CHeapRepository::SinglePoliciesCleanup(TAny *aPtr)
 	static_cast<RPointerArray<TSettingsAccessPolicy>*>(aPtr)->ResetAndDestroy();
 	}
 
+
 TInt CHeapRepository::ReloadContentExceptSettingsL(CIniFileIn& aIniFile)
 	{
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+    // Check for the "protected" keyword.
+    iKeyspaceType = aIniFile.CheckKeyspaceTypeSectionL();
+#endif
+    
 	// Look for an "owner" section
 	TUint32 uidValue(KNullUid.iUid);
 	TInt err = aIniFile.ReadOwnerSectionL(uidValue);

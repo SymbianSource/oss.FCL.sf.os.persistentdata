@@ -76,11 +76,11 @@ void Check1(TInt aValue, TInt aLine, TBool aPrintThreadName = EFalse)
 			{
 			RThread th;
 			TName name = th.Name();
-			RDebug::Print(_L("*** Thread %S, Line %d\r\n"), &name, aLine);
+			RDebug::Print(_L("*** Thread %S, Line %d. Expression evaluated to false\r\n"), &name, aLine);
 			}
 		else
 			{
-			RDebug::Print(_L("*** Line %d\r\n"), aLine);
+			TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
 			}
 		TheTest(EFalse, aLine);
 		}
@@ -98,7 +98,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine, TBool aPrintThreadName = EF
 			}
 		else
 			{
-			RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+			TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 			}
 		TheTest(EFalse, aLine);
 		}

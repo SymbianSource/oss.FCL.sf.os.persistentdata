@@ -44,6 +44,7 @@ void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DeleteTestFiles();
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -52,7 +53,7 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -61,7 +62,7 @@ void Check2(TInt64 aValue, TInt64 aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Expected error: %ld, got: %ld\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %ld, got: %ld\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -90,7 +91,7 @@ void PrintLastMsgIfError(TInt aErr)
 	if(aErr < 0 && SqlRetCodeClass(aErr) == ESqlDbError)
 		{
 		const TPtrC& msg = TheDb.LastErrorMessage();
-		RDebug::Print(_L("Last error msg: \"%S\"\r\n"), &msg);	
+		TheTest.Printf(_L("Last error msg: \"%S\"\r\n"), &msg);	
 		}
 	}
 
@@ -319,7 +320,7 @@ void BuiltInFunctionsTest()
 	err = stmt.Next();
 	TEST2(err, KSqlAtRow);
 	TInt64 colVal64 = stmt.ColumnInt64(0);
-	RDebug::Print(_L("Last insert row id=%d\r\n"), (TInt)colVal64);
+	TheTest.Printf(_L("Last insert row id=%d\r\n"), (TInt)colVal64);
 	stmt.Close();
 
 	//length() test --------------------------------------------------------
@@ -442,7 +443,7 @@ void BuiltInFunctionsTest()
 	TEST2(err, KSqlAtRow);
 	err = stmt.ColumnText(0, colVal);
 	TEST2(err, KErrNone);
-	RDebug::Print(_L("Database engine version: \"%S\"\r\n"), &colVal);
+	TheTest.Printf(_L("Database engine version: \"%S\"\r\n"), &colVal);
 	stmt.Close();
 
 	//substr() test --------------------------------------------------------

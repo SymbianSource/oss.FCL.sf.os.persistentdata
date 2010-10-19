@@ -16,6 +16,7 @@
 #include <e32test.h>
 #include <bautils.h>
 #include <sqldb.h>
+#include <hal.h>
 #include "t_sqlcmdlineutil.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -29,15 +30,26 @@ TBuf<200> 		TheTestTitle;
 TCmdLineParams 	TheCmdLineParams;
 TBuf8<200> 		TheSqlConfigString;
 
+TBuf<250> 		TheLogLine;
+TBuf8<250> 		TheLogLine8;
+RFile 			TheLogFile; 
+
 _LIT(KUtf8,  "UTF8 ");
 _LIT(KUtf16, "UTF16");
 
 TInt TheBlobSize = 1024 * 256;
+TInt TheDbSize1, TheDbSize2;
+TUint32 TheStartTicks, TheEndTicks;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
 void TestEnvDestroy()
 	{
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		(void)TheLogFile.Flush();
+		TheLogFile.Close();
+		}
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
 	TheFs.Close();
@@ -98,33 +110,65 @@ void TestEnvInit()
 	_LIT(KType11,"Rotating media");
 	TPtrC KMediaTypeNames[] = {KType1(), KType2(), KType3(), KType4(), KType5(), KType6(), KType7(), KType8(), KType9(), KType10(), KType11()};
 	TheTest.Printf(_L("Drive %C: %S. File: \"%S\"\r\n"), 'A' + driveNo, &KMediaTypeNames[driveInfo.iType], &TheDbFileName);
-	}
 	
-void PrintWriteTime(TTimeIntervalMicroSeconds aTime, TTimeIntervalMicroSeconds aWriteTime, TTimeIntervalMicroSeconds aCommitTime)
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		err = TheLogFile.Replace(TheFs, TheCmdLineParams.iLogFileName, EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		LogConfig(TheLogFile, TheCmdLineParams);
+		}
+    }
+	
+//Prints the test case title and execution time in microseconds
+void PrintWriteStats()
 	{
-	TheTest.Printf(_L("####Execution time: %d ms, Write: %d ms, Commit: %d ms\r\n"), 
-		(TInt)(aTime.Int64() / 1000), (TInt)(aWriteTime.Int64() / 1000), (TInt)(aCommitTime.Int64() / 1000));
+	static TInt freq = 0;
+	if(freq == 0)
+		{
+		TEST2(HAL::Get(HAL::EFastCounterFrequency, freq), KErrNone);
+		}
+	TInt64 diffTicks = (TInt64)TheEndTicks - (TInt64)TheStartTicks;
+	if(diffTicks < 0)
+		{
+		diffTicks = KMaxTUint32 + diffTicks + 1;
+		}
+	const TInt KMicroSecIn1Sec = 1000000;
+	TInt32 us = (diffTicks * KMicroSecIn1Sec) / freq;
+	TheTest.Printf(_L("%S, blob: %d Kb, db size before: %d Kb, db size after: %d Kb, %d us\r\n"), 
+		&TheTestTitle, TheBlobSize / 1024, TheDbSize1 / 1024, TheDbSize2 / 1024, us);
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		TheLogLine.Format(_L("%S, blob: %d Kb, db size before: %d Kb, db size after: %d Kb¬%d¬us\r\n"), 
+			&TheTestTitle, TheBlobSize / 1024, TheDbSize1 / 1024, TheDbSize2 / 1024, us);
+		TheLogLine8.Copy(TheLogLine);
+		(void)TheLogFile.Write(TheLogLine8);
+		}
 	}
 
-void PrintReadTime(TTimeIntervalMicroSeconds aPrepareTime, TTimeIntervalMicroSeconds aNextTime, TTimeIntervalMicroSeconds aReadTime)
+//Prints the test case title and execution time in microseconds
+void PrintReadStats()
 	{
-	TInt executionTime = (TInt)(aPrepareTime.Int64() / 1000) + (TInt)(aNextTime.Int64() / 1000) + (TInt)(aReadTime.Int64() / 1000);
-	TheTest.Printf(_L("####Execution time: %d ms, Prepare: %d ms, Next: %d ms, Read: %d ms\r\n"), 
-		executionTime, (TInt)(aPrepareTime.Int64() / 1000), (TInt)(aNextTime.Int64() / 1000), (TInt)(aReadTime.Int64() / 1000));
+	static TInt freq = 0;
+	if(freq == 0)
+		{
+		TEST2(HAL::Get(HAL::EFastCounterFrequency, freq), KErrNone);
+		}
+	TInt64 diffTicks = (TInt64)TheEndTicks - (TInt64)TheStartTicks;
+	if(diffTicks < 0)
+		{
+		diffTicks = KMaxTUint32 + diffTicks + 1;
+		}
+	const TInt KMicroSecIn1Sec = 1000000;
+	TInt32 us = (diffTicks * KMicroSecIn1Sec) / freq;
+	TheTest.Printf(_L("%S, blob: %d Kb, %d us\r\n"), &TheTestTitle, TheBlobSize / 1024, us);
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		TheLogLine.Format(_L("%S, blob: %d Kb¬%d¬us\r\n"), &TheTestTitle, TheBlobSize / 1024, us);
+		TheLogLine8.Copy(TheLogLine);
+		(void)TheLogFile.Write(TheLogLine8);
+		}
 	}
 
-void PrintReadTime(TTimeIntervalMicroSeconds aOpenTime, TTimeIntervalMicroSeconds aReadTime)
-	{
-	TInt executionTime = (TInt)(aOpenTime.Int64() / 1000) + (TInt)(aReadTime.Int64() / 1000);
-	TheTest.Printf(_L("####Execution time: %d ms, Open: %d ms, Read: %d ms\r\n"), 
-		executionTime, (TInt)(aOpenTime.Int64() / 1000), (TInt)(aReadTime.Int64() / 1000));
-	}
-	
-void PrintFileSize(RSqlDatabase& aDb)
-	{
-	TheTest.Printf(_L("####FileSize: %d\r\n"), aDb.Size());
-	}
-		
 ///////////////////////////////////////////////////////////////////////////////////////
 	
 void CreateTestDb()
@@ -136,44 +180,29 @@ void CreateTestDb()
 	TEST2(err, 1);
 	}
 
-void DoWriteBlobIncrL(const TDesC8& aData, 
-					  TTime& aT1, 
-					  TTime& aT2,
-					  TTime& aT3,
-					  TTime& aT4)
+void DoWriteBlobIncrL(const TDesC8& aData)
 	{
-	
 	RSqlBlobWriteStream strm;
 	CleanupClosePushL(strm);
 	
-	aT1.HomeTime();
 	strm.OpenL(TheDb, _L("A"), _L("B"));	
 	strm.WriteL(aData);
-	aT2.HomeTime();
 	
-	aT3.HomeTime();
 	strm.CommitL();
-	aT4.HomeTime();
 	
 	CleanupStack::PopAndDestroy(&strm);
 	}
 	
-void InsertZeroBlob(TBool aDoPrintTime = EFalse)
+void InsertZeroBlob()
 	{
 	TBuf<100> sql;
 	sql.Format(_L("INSERT INTO A VALUES(zeroblob(%d))"), TheBlobSize);
 	
-	TTime t1, t2;
-	t1.HomeTime();
+	TheStartTicks = User::FastCounter();
 	TInt err = TheDb.Exec(sql);
-	t2.HomeTime();
-	TEST2(err, 1);
-	TTimeIntervalMicroSeconds insertTime = t2.MicroSecondsFrom(t1);
+	TheEndTicks = User::FastCounter();
 	
-	if(aDoPrintTime)
-		{
-		PrintWriteTime(insertTime, TTimeIntervalMicroSeconds(0), TTimeIntervalMicroSeconds(0));
-		}
+	TEST2(err, 1);
 	}
 	
 void InsertRealBlob()
@@ -213,13 +242,10 @@ void InsertBlobIncr()
 	dataptr.SetLength(TheBlobSize);
 	dataptr.Fill(TChar('B'));
 	
-	TTimeIntervalMicroSeconds totalTime, writeTime, commitTime;
-
 	TBuf<100> sql;
 	sql.Format(_L("INSERT INTO A VALUES(zeroblob(%d))"), TheBlobSize);
 
-	TTime t1, t2, subt1, subt2, subt3, subt4;
-	t1.HomeTime();
+	TheStartTicks = User::FastCounter();
 	
 	TInt err = TheDb.Exec(_L8("BEGIN"));
 	TEST(err >= 0);
@@ -227,19 +253,13 @@ void InsertBlobIncr()
 	err = TheDb.Exec(sql);
 	TEST2(err, 1);
 	
-	TRAP(err, DoWriteBlobIncrL(dataptr, subt1, subt2, subt3, subt4));
+	TRAP(err, DoWriteBlobIncrL(dataptr));
 	TEST2(err, KErrNone);
 	
 	err = TheDb.Exec(_L8("COMMIT"));
 	TEST(err >= 0);
 		
-	t2.HomeTime();
-	totalTime = t2.MicroSecondsFrom(t1);
-	
-	writeTime = subt2.MicroSecondsFrom(subt1);
-	commitTime = subt4.MicroSecondsFrom(subt3);
-	
-	PrintWriteTime(totalTime, writeTime, commitTime);
+	TheEndTicks = User::FastCounter();
 	
 	delete data;
 	}
@@ -255,16 +275,12 @@ void InsertBlobExec()
 	sql.Replace(0, KStr().Length(), KStr);
 	sql.Append(_L8("')"));
 
-	TTime t1, t2;
+	TheStartTicks = User::FastCounter();
 	
-	t1.HomeTime();		
 	TInt err = TheDb.Exec(sql);
-	t2.HomeTime();
 	TEST2(err, 1);
 
-	TTimeIntervalMicroSeconds totalTime = t2.MicroSecondsFrom(t1);
-	
-	PrintWriteTime(totalTime, TTimeIntervalMicroSeconds(0), TTimeIntervalMicroSeconds(0));
+	TheEndTicks = User::FastCounter();
 	
 	delete buf;	
 	}
@@ -277,10 +293,7 @@ void InsertBlobBindStreamPrm()
 	dataptr.SetLength(TheBlobSize);
 	dataptr.Fill(TChar('A'));
 	
-	TTimeIntervalMicroSeconds totalTime, writeTime, commitTime;
-
-	TTime t1, t2, t3, t4, t5, t6;
-	t1.HomeTime();
+	TheStartTicks = User::FastCounter();
 				
 	RSqlStatement stmt;
 	TInt err = stmt.Prepare(TheDb, _L8("INSERT INTO A VALUES(:Prm)"));
@@ -290,31 +303,20 @@ void InsertBlobBindStreamPrm()
 	err = strm.BindBinary(stmt, 0);
 	TEST2(err, KErrNone);
 	
-	t3.HomeTime();
 	TRAP(err, strm.WriteL(dataptr));
-	t4.HomeTime();
 	TEST2(err, KErrNone);
 	
-	t5.HomeTime();
 	TRAP(err, strm.CommitL());
-	t6.HomeTime();
 	TEST2(err, KErrNone);
 	
 	err = stmt.Exec();	
+	TEST2(err, 1);
 	
 	strm.Close();
 	stmt.Close();	
 	
-	t2.HomeTime();
-	TEST2(err, 1);
+	TheEndTicks = User::FastCounter();
 					
-	totalTime = t2.MicroSecondsFrom(t1);
-	
-	writeTime = t4.MicroSecondsFrom(t3);
-	commitTime = t6.MicroSecondsFrom(t5);
-	
-	PrintWriteTime(totalTime, writeTime, commitTime);
-			
 	delete data;	
 	}
 	
@@ -326,27 +328,18 @@ void UpdateBlobIncr()
 	dataptr.SetLength(TheBlobSize);
 	dataptr.Fill(TChar('A'));
 	
-	TTimeIntervalMicroSeconds totalTime, writeTime, commitTime;
-
-	TTime t1, t2, subt1, subt2, subt3, subt4;
-	t1.HomeTime();
+	TheStartTicks = User::FastCounter();
 	
 	TInt err = TheDb.Exec(_L8("BEGIN"));
 	TEST(err >= 0);
 		
-	TRAP(err, DoWriteBlobIncrL(dataptr, subt1, subt2, subt3, subt4));
+	TRAP(err, DoWriteBlobIncrL(dataptr));
 	TEST2(err, KErrNone);
 	
 	err = TheDb.Exec(_L8("COMMIT"));
 	TEST(err >= 0);
-		
-	t2.HomeTime();
-	totalTime = t2.MicroSecondsFrom(t1);
-	
-	writeTime = subt2.MicroSecondsFrom(subt1);
-	commitTime = subt4.MicroSecondsFrom(subt3);
-	
-	PrintWriteTime(totalTime, writeTime, commitTime);
+			
+	TheEndTicks = User::FastCounter();
 	
 	delete data;
 	}
@@ -362,16 +355,11 @@ void UpdateBlobExec()
 	sql.Replace(0, KStr().Length(), KStr);
 	sql.Append(_L8("'"));
 
-	TTime t1, t2;
-	t1.HomeTime();			
+	TheStartTicks = User::FastCounter();
 	TInt err = TheDb.Exec(sql);	
-	t2.HomeTime();
 	TEST2(err, 1);
+	TheEndTicks = User::FastCounter();
 
-	TTimeIntervalMicroSeconds totalTime = t2.MicroSecondsFrom(t1);
-	
-	PrintWriteTime(totalTime, TTimeIntervalMicroSeconds(0), TTimeIntervalMicroSeconds(0));
-	
 	delete buf;	
 	}
 
@@ -383,10 +371,7 @@ void UpdateBlobBindStreamPrm()
 	dataptr.SetLength(TheBlobSize);
 	dataptr.Fill(TChar('B'));
 	
-	TTimeIntervalMicroSeconds totalTime, writeTime, commitTime;
-
-	TTime t1, t2, t3, t4, t5, t6;
-	t1.HomeTime();
+	TheStartTicks = User::FastCounter();
 				
 	RSqlStatement stmt;
 	TInt err = stmt.Prepare(TheDb, _L8("UPDATE A SET B=(:Prm)"));
@@ -396,31 +381,20 @@ void UpdateBlobBindStreamPrm()
 	err = strm.BindBinary(stmt, 0);
 	TEST2(err, KErrNone);
 	
-	t3.HomeTime();;
 	TRAP(err, strm.WriteL(dataptr));
-	t4.HomeTime();
 	TEST2(err, KErrNone);
 	
-	t5.HomeTime();
 	TRAP(err, strm.CommitL());
-	t6.HomeTime();
 	TEST2(err, KErrNone);
 	
 	err = stmt.Exec();	
+	TEST2(err, 1);
 
 	strm.Close();		
 	stmt.Close();	
 
-	t2.HomeTime();
-	TEST2(err, 1);
+	TheEndTicks = User::FastCounter();
 	
-	totalTime = t2.MicroSecondsFrom(t1);
-	
-	writeTime = t4.MicroSecondsFrom(t3);
-	commitTime = t6.MicroSecondsFrom(t5);
-	
-	PrintWriteTime(totalTime, writeTime, commitTime);
-			
 	delete data;	
 	}
 
@@ -436,125 +410,118 @@ void UpdateBlobBindStreamPrm()
 */
 void BlobWriteTest()
 	{	
-	TheTest.Printf(_L("Blob size=%d Kb\r\n"), TheBlobSize / 1024);
-	
 	//Insert a blob
-	TheTest.Printf(_L("==================================================================\r\n"));
 	
 	CreateTestDb();
-	TheTest.Printf(_L("INSERT zeroblob - RSqlDatabase::Exec()\r\n"));
-	PrintFileSize(TheDb);
-	InsertZeroBlob(ETrue);
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("INSERT zeroblob - RSqlDatabase::Exec()"));
+	TheDbSize1 = TheDb.Size();
+	InsertZeroBlob();
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	PrintWriteStats();
 				
 	CreateTestDb();
-	TheTest.Printf(_L("INSERT blob - RSqlParamWriteStream\r\n"));
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("INSERT blob - RSqlParamWriteStream"));
+	TheDbSize1 = TheDb.Size();
 	InsertBlobBindStreamPrm();
-	PrintFileSize(TheDb);
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	PrintWriteStats();
 	
 	CreateTestDb();
-	TheTest.Printf(_L("INSERT blob - RSqlDatabase::Exec()\r\n"));
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("INSERT blob - RSqlDatabase::Exec()"));
+	TheDbSize1 = TheDb.Size();
 	InsertBlobExec();
-	PrintFileSize(TheDb);
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	PrintWriteStats();
 	
 	CreateTestDb();
-	TheTest.Printf(_L("INSERT blob - RSqlBlobWriteStream + transaction\r\n"));
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("INSERT blob - RSqlBlobWriteStream + transaction"));
+	TheDbSize1 = TheDb.Size();
 	InsertBlobIncr();
-	PrintFileSize(TheDb);
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	PrintWriteStats();
 						
 	// Update a blob 
-	TheTest.Printf(_L("==================================================================\r\n"));
 		
 	CreateTestDb();
-	TheTest.Printf(_L("UPDATE zeroblob - RSqlParamWriteStream\r\n"));
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("UPDATE zeroblob - RSqlParamWriteStream"));
+	TheDbSize1 = TheDb.Size();
 	InsertZeroBlob();
 	UpdateBlobBindStreamPrm();
-	PrintFileSize(TheDb);
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	PrintWriteStats();
 		
 	CreateTestDb();
-	TheTest.Printf(_L("UPDATE blob - RSqlParamWriteStream\r\n"));
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("UPDATE blob - RSqlParamWriteStream"));
+	TheDbSize1 = TheDb.Size();
 	InsertRealBlob();
 	UpdateBlobBindStreamPrm();
-	PrintFileSize(TheDb);
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	PrintWriteStats();
 			
 	CreateTestDb();
-	TheTest.Printf(_L("UPDATE zeroblob - RSqlDatabase::Exec()\r\n"));
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("UPDATE zeroblob - RSqlDatabase::Exec()"));
+	TheDbSize1 = TheDb.Size();
 	InsertZeroBlob();
 	UpdateBlobExec();
-	PrintFileSize(TheDb);
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	PrintWriteStats();
 		
 	CreateTestDb();
-	TheTest.Printf(_L("UPDATE blob - RSqlDatabase::Exec()\r\n"));
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("UPDATE blob - RSqlDatabase::Exec()"));
+	TheDbSize1 = TheDb.Size();
 	InsertRealBlob();
 	UpdateBlobExec();
-	PrintFileSize(TheDb);
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	PrintWriteStats();
 		
 	CreateTestDb();
-	TheTest.Printf(_L("UPDATE zeroblob - RSqlBlobWriteStream + transaction\r\n"));
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("UPDATE zeroblob - RSqlBlobWriteStream + transaction"));
+	TheDbSize1 = TheDb.Size();
 	InsertZeroBlob();
 	UpdateBlobIncr();
-	PrintFileSize(TheDb);
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	PrintWriteStats();
 		
 	CreateTestDb();
-	TheTest.Printf(_L("UPDATE blob - RSqlBlobWriteStream + transaction\r\n"));
-	PrintFileSize(TheDb);
+	TheTestTitle.Copy(_L("UPDATE blob - RSqlBlobWriteStream + transaction"));
+	TheDbSize1 = TheDb.Size();
 	InsertRealBlob();
 	UpdateBlobIncr();
-	PrintFileSize(TheDb);
+	TheDbSize2 = TheDb.Size();
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);	
+	PrintWriteStats();
 	}
 
 void DoReadBlobIncrL(TDes8& aDes, TInt aMaxLength)
 	{
-	TTime t1, t2, t3, t4;
-	
-	TTimeIntervalMicroSeconds openTime, readTime; 
+	TheStartTicks = User::FastCounter();
 	
 	RSqlBlobReadStream strm;
 	CleanupClosePushL(strm);
-	
-	t1.HomeTime();
 	strm.OpenL(TheDb, _L("A"), _L("B"), 1);
-	t2.HomeTime();
-	
-	openTime = t2.MicroSecondsFrom(t1);
-		
-	t3.HomeTime();
 	strm.ReadL(aDes, aMaxLength);
-	t4.HomeTime();
-
-	readTime = t4.MicroSecondsFrom(t3);
-	
-	PrintReadTime(openTime, readTime);
-
 	CleanupStack::PopAndDestroy(&strm);
+
+	TheEndTicks = User::FastCounter();
 	}
 
 void ReadBlobIncr()
@@ -576,63 +543,44 @@ void ReadBlobColDes()
 	TEST(data != NULL);
 	TPtr8 dataptr = data->Des();
 	
-	TTime t1, t2, t3, t4, t5, t6;
-	TTimeIntervalMicroSeconds prepareTime, nextTime, readTime;
+	TheStartTicks = User::FastCounter();
 	
 	RSqlStatement stmt;
-	t1.HomeTime();
 	TInt err = stmt.Prepare(TheDb, _L8("SELECT B FROM A WHERE ROWID=1"));
-	t2.HomeTime();
 	TEST2(err, KErrNone);
-	prepareTime = t2.MicroSecondsFrom(t1);
 
-	t3.HomeTime();
 	err = stmt.Next();
-	t4.HomeTime();
 	TEST2(err, KSqlAtRow);
-	nextTime = t4.MicroSecondsFrom(t3);
 	
-	t5.HomeTime();
 	err = stmt.ColumnBinary(0, dataptr);
-	t6.HomeTime();
 	TEST2(err, KErrNone);
 	TEST2(dataptr.Length(), TheBlobSize);
-	readTime = t6.MicroSecondsFrom(t5);
-		
-	PrintReadTime(prepareTime, nextTime, readTime);
 	stmt.Close();
+
+	TheEndTicks = User::FastCounter();
 	
 	delete data;
 	}
 
 void ReadBlobColPtr()
 	{
-	TTime t1, t2, t3, t4, t5, t6;
-	TTimeIntervalMicroSeconds prepareTime, nextTime, readTime;
+	TheStartTicks = User::FastCounter();
 	
 	RSqlStatement stmt;
-	t1.HomeTime();
 	TInt err = stmt.Prepare(TheDb, _L8("SELECT B FROM A WHERE ROWID=1"));
-	t2.HomeTime();
 	TEST2(err, KErrNone);
-	prepareTime = t2.MicroSecondsFrom(t1);
 	
-	t3.HomeTime();
 	err = stmt.Next();
-	t4.HomeTime();
 	TEST2(err, KSqlAtRow);
-	nextTime = t4.MicroSecondsFrom(t3);
 	
 	TPtrC8 data;
-	t5.HomeTime();
 	err = stmt.ColumnBinary(0, data);
-	t6.HomeTime();
 	TEST2(err, KErrNone);
 	TEST2(data.Length(), TheBlobSize);
-	readTime = t6.MicroSecondsFrom(t5);
 
-	PrintReadTime(prepareTime, nextTime, readTime);
 	stmt.Close();
+
+	TheEndTicks = User::FastCounter();
 	}
 
 void ReadBlobStreamCol()
@@ -641,36 +589,26 @@ void ReadBlobStreamCol()
 	TEST(data != NULL);
 	TPtr8 dataptr = data->Des();
 	
-	TTime t1, t2, t3, t4, t5, t6;
-	TTimeIntervalMicroSeconds prepareTime, nextTime, readTime;
+	TheStartTicks = User::FastCounter();
 	
 	RSqlStatement stmt;
-	t1.HomeTime();
 	TInt err = stmt.Prepare(TheDb, _L8("SELECT B FROM A WHERE ROWID=1"));
-	t2.HomeTime();
 	TEST2(err, KErrNone);
-	prepareTime = t2.MicroSecondsFrom(t1);
 
-	t3.HomeTime();
 	err = stmt.Next();
-	t4.HomeTime();
 	TEST2(err, KSqlAtRow);
-	nextTime = t4.MicroSecondsFrom(t3);
 
 	RSqlColumnReadStream strm;
-	t5.HomeTime();
 	err = strm.ColumnBinary(stmt, 0);
 	TEST2(err, KErrNone);
 	TRAP(err, strm.ReadL(dataptr, TheBlobSize));
-	t6.HomeTime();
 	TEST2(err, KErrNone);
 	TEST2(dataptr.Length(), TheBlobSize);
-	readTime = t6.MicroSecondsFrom(t5);
 
 	strm.Close();
 	stmt.Close();
 	
-	PrintReadTime(prepareTime, nextTime, readTime);
+	TheEndTicks = User::FastCounter();
 		
 	delete data;
 	}
@@ -687,44 +625,40 @@ void ReadBlobStreamCol()
 */
 void BlobReadTest()
 	{
-	TheTest.Printf(_L("Blob size=%d Kb\r\n"), TheBlobSize / 1024);
-	
 	// Insert a blob
-	TheTest.Printf(_L("==================================================================\r\n"));
-	TheTest.Printf(_L("Insert blob\r\n"));
-		
 	CreateTestDb();
-	PrintFileSize(TheDb);
 	InsertBlobExec();
-	PrintFileSize(TheDb);
 	TheDb.Close();
 		
 	// Read the blob
-	TheTest.Printf(_L("==================================================================\r\n"));
 		
-	TheTest.Printf(_L("Read blob - RSqlBlobReadStream\r\n"));	
+	TheTestTitle.Copy(_L("Read blob - RSqlBlobReadStream"));
 	TInt err = TheDb.Open(TheDbFileName);
 	TEST2(err, KErrNone);
 	ReadBlobIncr();
 	TheDb.Close();
+	PrintReadStats();
 
-	TheTest.Printf(_L("Read blob - RSqlStatement::ColumnBinary(TInt, TDes8&)\r\n"));	
+	TheTestTitle.Copy(_L("Read blob - RSqlStatement::ColumnBinary(TInt, TDes8&)"));
 	err = TheDb.Open(TheDbFileName);
 	TEST2(err, KErrNone);
 	ReadBlobColDes();
 	TheDb.Close();
+	PrintReadStats();
 		
-	TheTest.Printf(_L("Read blob - RSqlStatement::ColumnBinary(TInt, TPtrC8&)\r\n"));	
+	TheTestTitle.Copy(_L("Read blob - RSqlStatement::ColumnBinary(TInt, TPtrC8&)"));
 	err = TheDb.Open(TheDbFileName);
 	TEST2(err, KErrNone);
 	ReadBlobColPtr();
 	TheDb.Close();
+	PrintReadStats();
 		
-	TheTest.Printf(_L("Read blob - RSqlColumnReadStream\r\n"));	
+	TheTestTitle.Copy(_L("Read blob - RSqlColumnReadStream"));
 	err = TheDb.Open(TheDbFileName);
 	TEST2(err, KErrNone);
 	ReadBlobStreamCol();
 	TheDb.Close();
+	PrintReadStats();
 		
 	(void)RSqlDatabase::Delete(TheDbFileName);
 	}
@@ -749,9 +683,14 @@ void SequentialWriteTestL()
 	dataPtr.SetLength(KBufLen);
 	dataPtr.Fill('A', KBufLen);	
 	
+	TheTestTitle.Copy(_L("Sequential BLOB writes"));
+	
 	CreateTestDb();
 	InsertZeroBlob(); // insert zeroblob of "TheBlobSize" size
 		
+	TheDbSize1 = TheDb.Size();
+	TheStartTicks = User::FastCounter();
+	
 	RSqlBlobWriteStream strm;
 	strm.OpenL(TheDb, _L("A"), _L("B"));	
 								
@@ -761,36 +700,18 @@ void SequentialWriteTestL()
 	const TInt KItCount = TheBlobSize / KBufLen - 1;
 	for(TInt i = 1; i <= KItCount; ++i)
 		{
-		TheTest.Printf(_L("***Iteration %d\r\n"), i);
-		
-		PrintFileSize(TheDb);
-	
-		TTimeIntervalMicroSeconds writeTime;
-		TTime t1, t2;
-
-		t1.HomeTime();
 		strm.WriteL(dataPtr);
-		t2.HomeTime();		
-
-		writeTime = t2.MicroSecondsFrom(t1);
-							
-		PrintWriteTime(TTimeIntervalMicroSeconds(0), writeTime, TTimeIntervalMicroSeconds(0));		
-		PrintFileSize(TheDb);		
 		}	
-			
-	TTimeIntervalMicroSeconds commitTime;
-	TTime t3, t4;
-	t3.HomeTime();
 	strm.CommitL();
-	t4.HomeTime();	
-	commitTime = t4.MicroSecondsFrom(t3);
-		
-	PrintWriteTime(TTimeIntervalMicroSeconds(0), TTimeIntervalMicroSeconds(0), commitTime);		
-	PrintFileSize(TheDb);		
-			
-	strm.Close();		
+	strm.Close();
+	
+	TheEndTicks = User::FastCounter();
+	TheDbSize2 = TheDb.Size();
+	
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	
+	PrintWriteStats();
 		
 	delete buf;
 	}
@@ -815,10 +736,15 @@ void TransSequentialWriteTestL()
 	TPtr8 dataPtr =	buf->Des();
 	dataPtr.SetLength(KBufLen);
 	dataPtr.Fill('A', KBufLen);	
+
+	TheTestTitle.Copy(_L("Sequential BLOB writes in transaction"));
 	
 	CreateTestDb();
 	InsertZeroBlob(); // insert zeroblob of "TheBlobSize" size
 		
+	TheDbSize1 = TheDb.Size();
+	TheStartTicks = User::FastCounter();
+	
 	RSqlBlobWriteStream strm;
 	strm.OpenL(TheDb, _L("A"), _L("B"));
 	
@@ -831,48 +757,21 @@ void TransSequentialWriteTestL()
 	const TInt KItCount = TheBlobSize / KBufLen - 1;
 	for(TInt i = 1; i <= KItCount; ++i)
 		{
-		TheTest.Printf(_L("***Iteration %d\r\n"), i);
-		
-		PrintFileSize(TheDb);
-	
-		TTimeIntervalMicroSeconds writeTime;
-		TTime t1, t2;
-		
-		t1.HomeTime();
 		strm.WriteL(dataPtr);
-		t2.HomeTime();	
-
-		writeTime = t2.MicroSecondsFrom(t1);
-							
-		PrintWriteTime(TTimeIntervalMicroSeconds(0), writeTime, TTimeIntervalMicroSeconds(0));		
-		PrintFileSize(TheDb);		
 		}	
-		
-	TTimeIntervalMicroSeconds commitTime;
-	TTime t3, t4;
-	
-	t3.HomeTime();
 	strm.CommitL();
-	t4.HomeTime();	
-	commitTime = t4.MicroSecondsFrom(t3);
-
-	PrintWriteTime(TTimeIntervalMicroSeconds(0), TTimeIntervalMicroSeconds(0), commitTime);		
-	PrintFileSize(TheDb);		
-		
-	TTime t5, t6;
-	t5.HomeTime();	
 	err = TheDb.Exec(_L8("COMMIT"));
-	t6.HomeTime();	
 	TEST(err >= 0);
+	strm.Close();
+
+	TheEndTicks = User::FastCounter();
+	TheDbSize2 = TheDb.Size();
 	
-	TTimeIntervalMicroSeconds transCommitTime = t6.MicroSecondsFrom(t5);		
-	PrintWriteTime(TTimeIntervalMicroSeconds(0), TTimeIntervalMicroSeconds(0), transCommitTime);		
-	PrintFileSize(TheDb);	
-			
-	strm.Close();		
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
-		
+
+	PrintWriteStats();
+	
 	delete buf;
 	}
 
@@ -893,46 +792,44 @@ void WholeWriteTestL()
 	TPtr8 dataPtr =	buf->Des();
 	dataPtr.SetLength(bufLen);
 	dataPtr.Fill('Z', bufLen);	
+
+	TheTestTitle.Copy(_L("Whole BLOB write - TSqlBlob::Set()"));
 	
 	CreateTestDb();
 	InsertRealBlob(); // insert blob of "TheBlobSize" size
 			
-	TheTest.Printf(_L("***WholeWriteTestL - %dKb blob \r\n"), TheBlobSize / 1024);		
-	PrintFileSize(TheDb);
+	TheDbSize1 = TheDb.Size();
+	TheStartTicks = User::FastCounter();
 	
-	// TSqlBlob::Set
-	TTimeIntervalMicroSeconds writeTime;
-	TTime t1, t2, t3, t4;
-
-	t1.HomeTime();
 	TSqlBlob::SetL(TheDb, _L("A"), _L("B"), dataPtr);	
-	t2.HomeTime();	
 		
-	writeTime = t2.MicroSecondsFrom(t1);
-								
-	PrintWriteTime(TTimeIntervalMicroSeconds(0), writeTime, TTimeIntervalMicroSeconds(0));		
-	PrintFileSize(TheDb);
+	TheEndTicks = User::FastCounter();
+	TheDbSize2 = TheDb.Size();
+
+	PrintWriteStats();
 	
-	// to avoid caching issues, close and re-create the database for the next part
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);		
+
+	// to avoid caching issues, close and re-create the database for the next part
+	
+	TheTestTitle.Copy(_L("Whole BLOB write - RSqlBlobWriteStream::WriteL()"));
+	
 	CreateTestDb();
 	InsertRealBlob(); // insert blob of "TheBlobSize" size
-	PrintFileSize(TheDb);
 
-	// RSqlBlobWriteStream::WriteL
-	t3.HomeTime();
+	TheDbSize1 = TheDb.Size();
+	TheStartTicks = User::FastCounter();
+	
 	RSqlBlobWriteStream strm;
 	CleanupClosePushL(strm);
 	strm.OpenL(TheDb, _L("A"), _L("B"));	
 	strm.WriteL(dataPtr);
 	CleanupStack::PopAndDestroy(&strm);
-	t4.HomeTime();	
 		
-	writeTime = t4.MicroSecondsFrom(t3);
-							
-	PrintWriteTime(TTimeIntervalMicroSeconds(0), writeTime, TTimeIntervalMicroSeconds(0));		
-	PrintFileSize(TheDb);				
+	TheEndTicks = User::FastCounter();
+	TheDbSize2 = TheDb.Size();
+	PrintWriteStats();
 				
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
@@ -959,38 +856,38 @@ void TransWholeWriteTestL()
 	dataPtr.SetLength(bufLen);
 	dataPtr.Fill('Z', bufLen);	
 	
+	TheTestTitle.Copy(_L("Whole BLOB write - TSqlBlob::Set() in transaction"));
+	
 	CreateTestDb();
 	InsertRealBlob(); // insert blob of "TheBlobSize" size
 	
-	TheTest.Printf(_L("***TransWholeWriteTestL - %dKb blob\r\n"), TheBlobSize / 1024);	
-	PrintFileSize(TheDb);
+	TheDbSize1 = TheDb.Size();
+	TheStartTicks = User::FastCounter();
 		
-	// TSqlBlob::Set
-	TTimeIntervalMicroSeconds writeTime;
-	TTime t1, t2, t3, t4;
-
-	t1.HomeTime();
 	TInt err = TheDb.Exec(_L8("BEGIN"));
 	TEST(err >= 0);		
 	TSqlBlob::SetL(TheDb, _L("A"), _L("B"), dataPtr);			
 	err = TheDb.Exec(_L8("COMMIT"));
-	t2.HomeTime();	
 	TEST(err >= 0);	
 
-	writeTime = t2.MicroSecondsFrom(t1);
-							
-	PrintWriteTime(TTimeIntervalMicroSeconds(0), writeTime, TTimeIntervalMicroSeconds(0));		
-	PrintFileSize(TheDb);	
+	TheEndTicks = User::FastCounter();
+	TheDbSize2 = TheDb.Size();
+
+	PrintWriteStats();
 	
-	// to avoid caching issues, close and re-create the database for the next part
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+
+	// to avoid caching issues, close and re-create the database for the next part
+	
+	TheTestTitle.Copy(_L("Whole BLOB write - RSqlBlobWriteStream::WriteL() in transaction"));
+	
 	CreateTestDb();
 	InsertRealBlob(); // insert blob of "TheBlobSize" size
-	PrintFileSize(TheDb);
 	
-	// RSqlBlobWriteStream::WriteL
-	t3.HomeTime();
+	TheDbSize1 = TheDb.Size();
+	TheStartTicks = User::FastCounter();
+	
 	err = TheDb.Exec(_L8("BEGIN"));
 	TEST(err >= 0);	
 	RSqlBlobWriteStream strm;
@@ -999,13 +896,12 @@ void TransWholeWriteTestL()
 	strm.WriteL(dataPtr);
 	CleanupStack::PopAndDestroy(&strm);
 	err = TheDb.Exec(_L8("COMMIT"));
-	t4.HomeTime();
 	TEST(err >= 0);	
 
-	writeTime = t4.MicroSecondsFrom(t3);
-							
-	PrintWriteTime(TTimeIntervalMicroSeconds(0), writeTime, TTimeIntervalMicroSeconds(0));		
-	PrintFileSize(TheDb);				
+	TheEndTicks = User::FastCounter();
+	TheDbSize2 = TheDb.Size();
+
+	PrintWriteStats();
 				
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
@@ -1031,74 +927,78 @@ void WholeReadTestL()
 	dataPtr.SetLength(bufLen);
 	dataPtr.Fill('A', bufLen);	
 	
+	TheTestTitle.Copy(_L("Whole BLOB read - TSqlBlob::GetLC()"));
+	
 	CreateTestDb();
 	InsertRealBlob(); // insert blob of "TheBlobSize" size
-	
-	TheTest.Printf(_L("***WholeReadTestL - %dKb blob \r\n"), TheBlobSize / 1024);
-	PrintFileSize(TheDb);
-	
-	// TSqlBlob::GetLC
-	TTimeIntervalMicroSeconds readTime;
-	TTime t1, t2, t3, t4, t5, t6;
 
-	t1.HomeTime();
-	HBufC8* readBuf = TSqlBlob::GetLC(TheDb, _L("A"), _L("B"));
-	t2.HomeTime();
-	TEST(readBuf->Des().Compare(buf->Des()) == 0);
+	TheDbSize1 = TheDb.Size();
+	TheStartTicks = User::FastCounter();
 	
-	readTime = t2.MicroSecondsFrom(t1);
-							
-	PrintReadTime(TTimeIntervalMicroSeconds(0), readTime);
-	PrintFileSize(TheDb);				
+	HBufC8* readBuf = TSqlBlob::GetLC(TheDb, _L("A"), _L("B"));
+	TheEndTicks = User::FastCounter();
+	TheDbSize2 = TheDb.Size();
+	
+	TEST(readBuf->Des().Compare(buf->Des()) == 0);
 	CleanupStack::PopAndDestroy(readBuf);
 	
-	// to avoid caching issues, close and re-create the database for the next part
+	PrintReadStats();
+	
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	
+	// to avoid caching issues, close and re-create the database for the next part
+	TheTestTitle.Copy(_L("Whole BLOB read - TSqlBlob::Get()"));
+	
 	CreateTestDb();
 	InsertRealBlob(); // insert blob of "TheBlobSize" size
-	PrintFileSize(TheDb);
 	
-	// TSqlBlob::Get
 	HBufC8* preBuf = HBufC8::NewLC(bufLen);
 	TPtr8 preBufPtr(preBuf->Des());
-	t3.HomeTime();
+	
+	TheDbSize1 = TheDb.Size();
+	TheStartTicks = User::FastCounter();
+	
 	TInt err = TSqlBlob::Get(TheDb, _L("A"), _L("B"), preBufPtr);	
-	t4.HomeTime();
 	TEST2(err, KErrNone);
+	
+	TheEndTicks = User::FastCounter();
+	TheDbSize2 = TheDb.Size();
+	
 	TEST(preBufPtr.Compare(buf->Des()) == 0);
-
-	readTime = t4.MicroSecondsFrom(t3);
-							
-	PrintReadTime(TTimeIntervalMicroSeconds(0), readTime);
-	PrintFileSize(TheDb);				
 	CleanupStack::PopAndDestroy(preBuf);
 	
-	// to avoid caching issues, close and re-create the database for the next part
+	PrintReadStats();
+	
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	
+	// to avoid caching issues, close and re-create the database for the next part
+	TheTestTitle.Copy(_L("Whole BLOB read - RSqlBlobReadStream::ReadL()"));
+	
 	CreateTestDb();
 	InsertRealBlob(); // insert blob of "TheBlobSize" size
-	PrintFileSize(TheDb);
 	
-	// RSqlBlobReadStream::ReadL
 	preBuf = HBufC8::NewLC(bufLen);	
 	TPtr8 preBufP(preBuf->Des());
-	t5.HomeTime();
+	
+	TheDbSize1 = TheDb.Size();
+	TheStartTicks = User::FastCounter();
+	
 	RSqlBlobReadStream strm;
 	CleanupClosePushL(strm);
 	strm.OpenL(TheDb, _L("A"), _L("B"));
 	strm.ReadL(preBufP, bufLen);
 	CleanupStack::PopAndDestroy(&strm);
-	t6.HomeTime();
+
+	TheEndTicks = User::FastCounter();
+	TheDbSize2 = TheDb.Size();
+	
 	TEST(preBufP.Compare(buf->Des()) == 0);
-		
-	readTime = t6.MicroSecondsFrom(t5);
-							
-	PrintReadTime(TTimeIntervalMicroSeconds(0), readTime);
-	PrintFileSize(TheDb);	
 	CleanupStack::PopAndDestroy(preBuf);
-			
+
+	PrintReadStats();
+	
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
 		
@@ -1119,11 +1019,6 @@ void DoTests()
 	TheTest.Next(TheTestTitle);
 	BlobReadTest();
 
-	TheTest.Printf(_L("==================================================================\r\n"));
-	
-	// Bigger blob tests - only on hardware, release mode
-#if !defined __WINS__ && !defined __WINSCW__ && !defined _DEBUG
-	
 	TheBlobSize = 1024 * 1024 + 128 * 1024;//1.125Mb 
 
 	TheTestTitle.Format(_L("@SYMTestCaseID:SYSLIB-SQL-UT-4115 SQL, sequential BLOB writes, performance tests, encoding: \"%S\", page size: %d\r\n"), 
@@ -1157,8 +1052,6 @@ void DoTests()
 	TheTest.Next(TheTestTitle);
 	TRAP(err, WholeReadTestL());
 	TEST2(err, KErrNone);
-	
-#endif//!defined __WINS__ && !defined __WINSCW__ && !defined _DEBUG
 	}
 
 TInt E32Main()

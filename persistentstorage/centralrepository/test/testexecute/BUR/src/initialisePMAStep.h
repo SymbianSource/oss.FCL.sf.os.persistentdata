@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,24 +20,24 @@
 /**
  @file
 */
-#if (!defined __INITAILISE_STEP_H__)
-#define __INITAILISE_STEP_H__
+#if (!defined __INITIALISE_PMA_STEP_H__)
+#define __INITIALISE_PMA_STEP_H__
 #include <test/testexecutestepbase.h>
 #include "Te_centrep_BURSuiteStepBase.h"
 #include "srvreqs.h"
 #include "srvdefs.h"
 #include "cachemgr.h"
 
-class CinitailiseStep : public CTe_centrep_BURSuiteStepBase
+class CinitialisePMAStep : public CTe_centrep_BURSuiteStepBase
 	{
 public:
-	CinitailiseStep();
-	~CinitailiseStep();
+	CinitialisePMAStep();
+	~CinitialisePMAStep();
 	virtual TVerdict doTestStepL();
 
 private:
 	};
 
-_LIT(KinitailiseStep,"initailiseStep");
+_LIT(KinitialisePMAStep,"initialisePMAStep");
 
 #endif

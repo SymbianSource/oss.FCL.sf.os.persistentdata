@@ -336,6 +336,7 @@ const RSqlBufFlat& CSqlSrvStatement::ParamNamesL()
 		const TUint8* name8 = reinterpret_cast <const TUint8*> (sqlite3_bind_parameter_name(iStmtHandle, prmIdx));
 		if(name8)
 			{
+			// coverity[size_error]
 			HBufC* name = CnvUtfConverter::ConvertToUnicodeFromUtf8L(TPtrC8(name8, User::StringLength(name8)));
 			TInt err = it.SetText(name->Des());
 			delete name;
@@ -677,14 +678,14 @@ TPtrC CSqlSrvStatement::ColumnTextL(TInt aColIdx) const
 	if(colType == SQLITE_TEXT)
 		{
 		TInt charLength = (TUint)sqlite3_column_bytes16(iStmtHandle, aColIdx) / sizeof(TUint16);
-        //"charLength == 0" - this might be an indication of an "out of memory" problem, if the column text is in UTF8 format. 
-        //(sqlite3_column_bytes16() may allocate memory for UTF8->UTF16 conversion)
+        // If charLength is 0 then this might be an indication of an "out of memory" problem, if the column text is in UTF8 format. 
+        // sqlite3_column_bytes16() may allocate memory for UTF8->UTF16 conversion.
         if(charLength == 0 && sqlite3_errcode(sqlite3_db_handle(iStmtHandle)) == SQLITE_NOMEM)
             {
             __SQLLEAVE(KErrNoMemory);
             }
-        //sqlite3_column_bytes16() already allocated the needed memory if a UTF8->UTF16 conversion
-        //had to be performed. The sqlite3_column_text16() on the next line is guaranteed to succeed.
+        // sqlite3_column_bytes16() already allocated the needed memory if a UTF8->UTF16 conversion
+        // had to be performed. The sqlite3_column_text16() on the next line is guaranteed to succeed.
         const TUint16* text = reinterpret_cast <const TUint16*> (sqlite3_column_text16(iStmtHandle, aColIdx));
         __ASSERT_DEBUG(text != NULL, __SQLPANIC(ESqlPanicInternalError));
  		res.Set(text, charLength);

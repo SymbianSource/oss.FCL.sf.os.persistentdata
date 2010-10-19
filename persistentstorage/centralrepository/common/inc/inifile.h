@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -57,6 +57,9 @@ public:
 							RRangePolicyArray& aRangePolicies);
 	TInt ReadRdPolicyL(TSecurityPolicy& aReadPolicy);
 	TInt ReadWrPolicyL(TSecurityPolicy& aWritePolicy);
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	TInt CheckKeyspaceTypeSectionL();
+#endif
 	TInt ReadOwnerSectionL(TUint32 &aOwnerUID) ;
 	TInt ReadTimeStampSectionL(TTime &aTimeStamp) ;
 	TInt ReadDefaultMetaSecSectionL(TUint32& aDefaultMeta,
@@ -130,6 +133,9 @@ public:
     void CommitL();
 
 	void WriteHeaderL();
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	void WriteKeyspaceTypeL(TInt8 iKeyspaceType);
+#endif
 	void WriteOwnerSectionL(TUid aOwner);
 	void WriteTimeStampL(const TTime& aTime);
 	void WriteMetaDataL(TUint32 aDefaultMeta,

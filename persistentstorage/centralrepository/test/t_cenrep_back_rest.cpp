@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -89,7 +89,6 @@ LOCAL_C void DeleteFilesL()
 	TInt r = KErrNone;
 
 	r = fm->Delete( KOldInstallFiles );
-#ifndef __WINSCW__
 	if (r == KErrAccessDenied)
 		{
 		// we are not able to delete the files on ARM if their attributes are not set correctly.
@@ -98,12 +97,10 @@ LOCAL_C void DeleteFilesL()
 		User::LeaveIfError(r);
 		r = fm->Delete( KOldInstallFiles );
 		}
-#endif
 	if ( r != KErrNone && r != KErrNotFound && r != KErrPathNotFound )
 		User::Leave(r);
 	
 	r = fm->Delete( KOldPersistFiles );
-#ifndef __WINSCW__
 	if (r == KErrAccessDenied)
 		{
 		// we are not able to delete the files on ARM if their attributes are not set correctly.
@@ -112,7 +109,6 @@ LOCAL_C void DeleteFilesL()
 		User::LeaveIfError(r);
 		r = fm->Delete( KOldPersistFiles );
 		}
-#endif
 	if ( r != KErrNone && r != KErrNotFound && r != KErrPathNotFound )
 		User::Leave(r);
 

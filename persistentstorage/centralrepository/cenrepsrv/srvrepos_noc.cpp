@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -52,6 +52,13 @@ void CServerRepository::OpenL(TUid aUid, MObserver& aObserver, TBool aFailIfNotF
         User::Leave(err);
         }
 	}
+
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+TInt8 CServerRepository::KeyspaceType()
+    {
+    return iRepository->iSimRep->KeyspaceType();
+    }
+#endif
 
 void CServerRepository::Close()
 	{
@@ -223,6 +230,14 @@ void CServerRepository::ResetFromIniFileL(TUint32 aId,
 
 TInt CServerRepository::ResetL(TUint32 aId)
 	{
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC 
+	// A protected repository should never be modified during a reset.   
+    if ( ( iRepository->iSimRep->KeyspaceType() ) == EPMAKeyspace )
+        {
+        return KErrNotSupported;
+        }
+#endif    
+   
 	// not yet supported in transactions
 	ASSERT(!IsInTransaction());
 
@@ -415,7 +430,7 @@ void CServerRepository::ProcessPersistsRepositoriesL(TPersistedRepActions aRomFl
 					    User::LeaveNoMemory();
 					    }
 				      else
-					    {//Dont stop processing the rest of the persisted repositories becos one has a problem.
+					    {// Dont stop processing the rest of the persisted repositories because one has a problem.
 					     __CENTREP_TRACE1("CENTREP: CServerRepository::ProcessPersistsRepositoriesL - Error = %d", err);
 					    }
 				      }
@@ -433,6 +448,11 @@ void CServerRepository::ProcessPersistsRepositoriesL(TPersistedRepActions aRomFl
 
 TInt CServerRepository::RFSRepositoryL()
 	{
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC 
+	// A protected repository should never be modified during RFS.
+    ASSERT( ( iRepository->iSimRep->KeyspaceType() ) != EPMAKeyspace );
+#endif
+    
 	// for each key in combined ROM/Install restore
 	TUid uid = iRepository->Uid();
 
@@ -535,6 +555,11 @@ TInt CServerRepository::RFSRepositoryL()
 	
 TInt CServerRepository::HandleReflashofRepositoryL()
 	{
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+    // A protected repository should not reach this point, due to an earlier check. 
+    __ASSERT_DEBUG( ( iRepository->iSimRep->KeyspaceType() ) == ENonPMAKeyspace, User::Invariant() );
+#endif
+
 	// for each key in persists repository
 	TUid uid = iRepository->Uid();
 
@@ -589,6 +614,14 @@ TInt CServerRepository::HandleReflashofRepositoryL()
 
 TInt CServerRepository::ResetAllL()
 	{
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC    
+	// A protected repository should never be modified during a reset.
+    if ( ( iRepository->iSimRep->KeyspaceType() ) == EPMAKeyspace )
+        {
+        return KErrNotSupported;
+        }
+#endif  
+
 	// not yet supported in transactions
 	ASSERT(!IsInTransaction());
 	// fail all sessions' transactions first
@@ -651,13 +684,36 @@ TInt CServerRepository::ResetAllL()
 void CServerRepository::HandleSWIUpdateL(TUid aUid, TTime aModified, CSessionNotifier &aNotifier)
 	{		
 	// A file create or update has just occurred in the SWI directory. 
-	// Need to check if this is a new install. 
+
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC    
+    // A protected repository should never be modified during SWI.
+	if ( TServerResources::iPMADriveRepositories.FindInOrder( aUid, TLinearOrder<TUid>(TServerResources::CompareUids) ) != KErrNotFound )
+	    {
+        TServerResources::DeleteCentrepFileL(aUid, EInstall, EIni);
+	    TServerResources::DeleteCentrepFileL(aUid, EInstall, ECre);
+        User::Leave(KErrNotSupported);
+	    }
+#endif
 	
+	// Need to check if this is an update to an existing repository.
 	if(TServerResources::PersistsFileExistsL(aUid) ||
 	   TServerResources::RomFileExistsL(aUid))
 		{	
-		// Create a rep using the ROM or persists file
+		// Create a repository using the ROM or persists file.
 		OpenL(aUid, aNotifier);
+		
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+        // Although unlikely, we need to check incase there is a protected
+		// repository in the ROM, but not in the protected area. 
+        if ( ( iRepository->iSimRep->KeyspaceType() ) == EPMAKeyspace )
+            {
+            Close();
+            TServerResources::DeleteCentrepFileL(aUid, EInstall, EIni);
+            TServerResources::DeleteCentrepFileL(aUid, EInstall, ECre);
+            User::Leave(KErrNotSupported);
+            }
+#endif
+		
 		if(iRepository->IsTransactionActive())			
 			{
 			// Fail transactions on any currently open session
@@ -666,6 +722,9 @@ void CServerRepository::HandleSWIUpdateL(TUid aUid, TTime aModified, CSessionNot
 			
 		// Create install rep for merging
  		CSharedRepository *installRep = 0;
+ 		
+ 		// If the repository in the install directory is marked as 'protected',
+ 		//  it will be deleted and KErrNotSupported will be returned.
  		TRAPD( err, TServerResources::iObserver->LoadRepositoryLC(aUid, ETrue, installRep, CIniFileIn::EInstallOnly); CleanupStack::Pop(installRep) );
 	
 		if (err == KErrNone)
@@ -680,10 +739,16 @@ void CServerRepository::HandleSWIUpdateL(TUid aUid, TTime aModified, CSessionNot
         Close();
         User::LeaveIfError(err);
 		}
-	else	// No ROM or persists
+	else	// No ROM or persists repository, installing a new repository.
 		{
-		// Create install rep for persisting
+		// Create install repository for persisting. If the repository in the
+	    // install directory is marked as 'protected', it will be deleted and
+	    // return KErrNotSupported. As protected repositories can installed 
+		// during software install.
 		OpenL(aUid, aNotifier);
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+		__ASSERT_DEBUG(iRepository->iSimRep->KeyspaceType() != EPMAKeyspace, User::Invariant());
+#endif
 		TRAPD(err, iRepository->CommitChangesL());
 	    Close();
 	    User::LeaveIfError(err);
@@ -693,7 +758,13 @@ void CServerRepository::HandleSWIUpdateL(TUid aUid, TTime aModified, CSessionNot
 
 // Handle install directory file delete 
 void CServerRepository::HandleSWIDeleteL(TUid aUid, CSessionNotifier &aNotifier)
-	{			
+	{
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+    // Protected repository files can not be installed, so there should never be
+    // anything to uninstall. 
+    __ASSERT_DEBUG( (TServerResources::iPMADriveRepositories.FindInOrder( aUid, TLinearOrder<TUid>(TServerResources::CompareUids) ) == KErrNotFound), User::Invariant() );
+#endif
+
 	// A file delete has just occurred in the SWI directory. If there is no ROM file
 	// this is a complete uninstall, so delete persists file.Otherwise, do downgrade
 	// merge.
@@ -708,7 +779,7 @@ void CServerRepository::HandleSWIDeleteL(TUid aUid, CSessionNotifier &aNotifier)
 			return;
 			}
 			
-		// Create a rep using the persists file
+		// Create a repository using the persists file.
 		OpenL(aUid, aNotifier);
 		if(iRepository->IsTransactionActive())			
 			{
@@ -716,13 +787,20 @@ void CServerRepository::HandleSWIDeleteL(TUid aUid, CSessionNotifier &aNotifier)
 			iRepository->FailAllTransactions(NULL);
 			}
 		
-		// Create ROM rep for merging
+		// Create a ROM repository for merging.
 	 	CSharedRepository *romRep = 0;
 		TRAPD( err, TServerResources::iObserver->LoadRepositoryLC(aUid, ETrue, romRep, CIniFileIn::ERomOnly); CleanupStack::Pop(romRep) );
-
+		
 		if (err == KErrNone)
-		    {
-            // Perform merge
+		    {    
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+            // Need to check incase it is a protected repository.
+            if ( romRep->iSimRep->KeyspaceType() == EPMAKeyspace )
+                {
+                User::Leave(KErrNotSupported);
+                }
+#endif  
+            // Perform merge of the persists and ROM repositories.
             TRAP( err, iRepository->HandleDeleteMergeL(*romRep) );
 		    }
 		if (romRep!=NULL)
@@ -1008,10 +1086,18 @@ void CServerRepository::RestoreInstallRepositoryL(TUid aUid, CStreamStore& aStor
 void CServerRepository::BackupInstallRepositoryL(TUid aUid, CStreamStore& aStore, TStreamId& aSettingStreamId)
 	{
 	TServerResources::iObserver->LoadRepositoryLC(aUid, EFalse, iRepository, CIniFileIn::EInstallOnly);
-	iUid = aUid;
-	StoreRepositorySettingValuesL(aStore, aSettingStreamId);	
-	CleanupStack::PopAndDestroy(iRepository);
-	iRepository = NULL;
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	// Protected repositories should not be part of Backup and Restore.
+    if (iRepository->iSimRep->KeyspaceType() != EPMAKeyspace)
+        {
+#endif
+        iUid = aUid;
+        StoreRepositorySettingValuesL(aStore, aSettingStreamId);  
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+        }  
+#endif
+        CleanupStack::PopAndDestroy(iRepository);
+        iRepository = NULL;
 	}
 
 TInt CServerRepository::CheckAccessPolicyBeforeMoving(const TClientRequest& aMessage, const TServerSetting* aSourceSetting, 

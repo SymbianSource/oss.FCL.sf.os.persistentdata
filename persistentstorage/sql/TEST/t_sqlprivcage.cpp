@@ -64,7 +64,7 @@ void Check1(TInt aValue, TInt aLine, TBool aPrintThreadName = EFalse)
 			}
 		else
 			{
-			RDebug::Print(_L("*** Line %d\r\n"), aLine);
+			TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
 			}
 		TheTest(EFalse, aLine);
 		}
@@ -82,7 +82,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine, TBool aPrintThreadName = EF
 			}
 		else
 			{
-			RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+			TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 			}
 		TheTest(EFalse, aLine);
 		}
@@ -533,7 +533,7 @@ void TransDbOpTest()
 	ThreadCritSect.Wait();
 	TEST2(MainCritSect.CreateLocal(), KErrNone);
 	MainCritSect.Wait();
-	RDebug::Print(_L("+++:MainThread: Create the worker thread\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create the worker thread\r\n"));
 	_LIT(KThreadName, "WorkThrd");
 	RThread thread;
 	TEST2(thread.Create(KThreadName, &ThreadFunc1, 0x2000, 0x1000, 0x10000, NULL, EOwnerProcess), KErrNone);
@@ -541,9 +541,9 @@ void TransDbOpTest()
 	thread.Logon(status);
 	TEST2(status.Int(), KRequestPending);
 	thread.Resume();
-	RDebug::Print(_L("+++:MainThread: Wait SQL statement(s) to be executed...\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Wait SQL statement(s) to be executed...\r\n"));
 	MainCritSect.Wait();
-	RDebug::Print(_L("+++:MainThread: Notify the worker thread to simulate a crash...\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Notify the worker thread to simulate a crash...\r\n"));
 	ThreadCritSect.Signal();
 	User::WaitForRequest(status);
 	User::SetJustInTime(ETrue);	// enable debugger panic handling

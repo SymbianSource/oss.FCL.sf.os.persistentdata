@@ -62,6 +62,125 @@ centrep_copydatfile.meta       /epoc32/tools/makefile_templates/syslibs/test/cen
 ../data/keyspaces/5155155F.cre						z:/private/10202be9/5155155f.cre
 ../data/keyspaces/51551652.cre						z:/private/10202be9/51551652.cre
 
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+../scripts/te_centrep_swisuite_pma.script           z:/tef_centralrepository/te_centrep_swisuite_pma.script
+../scripts/te_centrep_swisuite_pma_sp.script		z:/tef_centralrepository/te_centrep_swisuite_pma_sp.script
+../scripts/te_centrep_swisuite_pma_pu.script		z:/tef_centralrepository/te_centrep_swisuite_pma_pu.script
+../config/SWI-PMA-SP.ini                            z:/tef_centralrepository/swi-pma-sp.ini
+../config/SWI-PMA-PU.ini                            z:/tef_centralrepository/swi-pma-pu.ini
+
+../pma_data/orig_rep/f1000402.txt                   z:/private/10202be9/f1000402.txt
+../pma_data/orig_rep/f1000403.cre                   z:/private/10202be9/f1000403.cre
+../pma_data/orig_rep/f1000404.txt                   z:/private/10202be9/f1000404.txt
+../pma_data/orig_rep/f1000405.cre                   z:/private/10202be9/f1000405.cre 
+../pma_data/orig_rep/f1000406.pma                   z:/private/10202be9/f1000406.pma
+../pma_data/orig_rep/f1000406.txt                   z:/private/10202be9/f1000406.txt
+../pma_data/orig_rep/f1000407.txt                   z:/private/10202be9/f1000407.txt
+../pma_data/orig_rep/f1000407.crp                   z:/private/10202be9/f1000407.crp
+../pma_data/orig_rep/f1000412.txt                   z:/private/10202be9/f1000412.txt
+../pma_data/orig_rep/f1000413.cre                   z:/private/10202be9/f1000413.cre
+../pma_data/orig_rep/f1000414.txt                   z:/private/10202be9/f1000414.txt
+../pma_data/orig_rep/f1000415.cre                   z:/private/10202be9/f1000415.cre
+../pma_data/orig_rep/f1000416.pma                   z:/private/10202be9/f1000416.pma
+../pma_data/orig_rep/f1000416.txt                   z:/private/10202be9/f1000416.txt
+../pma_data/orig_rep/f1000417.txt                   z:/private/10202be9/f1000417.txt
+../pma_data/orig_rep/f1000417.crp                   z:/private/10202be9/f1000417.crp
+../pma_data/orig_rep/f1000421.txt                   z:/private/10202be9/f1000421.txt
+../pma_data/orig_rep/f1000422.cre                   z:/private/10202be9/f1000422.cre
+../pma_data/orig_rep/f1000423.txt                   z:/private/10202be9/f1000423.txt
+../pma_data/orig_rep/f1000423.pma                   z:/private/10202be9/f1000423.pma
+../pma_data/orig_rep/f1000431.txt                   z:/private/10202be9/f1000431.txt
+../pma_data/orig_rep/f1000432.cre                   z:/private/10202be9/f1000432.cre
+../pma_data/orig_rep/f1000433.txt                   z:/private/10202be9/f1000433.txt
+../pma_data/orig_rep/f1000433.pma                   z:/private/10202be9/f1000433.pma
+
+#if defined(__SERIES60_) && defined(PDS_FULL_UI_TEST)
+../pma_data/rnd_sis/KS401s.sis                       z:/tef_centralrepository/ks401s.sis
+../pma_data/rnd_sis/KS402s.sis                       z:/tef_centralrepository/ks402s.sis
+../pma_data/rnd_sis/KS403s.sis                       z:/tef_centralrepository/ks403s.sis
+../pma_data/rnd_sis/KS404s.sis                       z:/tef_centralrepository/ks404s.sis
+../pma_data/rnd_sis/KS405s.sis                       z:/tef_centralrepository/ks405s.sis
+../pma_data/rnd_sis/KS406s.sis                       z:/tef_centralrepository/ks406s.sis
+../pma_data/rnd_sis/KS407s.sis                       z:/tef_centralrepository/ks407s.sis
+../pma_data/rnd_sis/KS411s.sis                       z:/tef_centralrepository/ks411s.sis
+../pma_data/rnd_sis/KS412s.sis                       z:/tef_centralrepository/ks412s.sis
+../pma_data/rnd_sis/KS413s.sis                       z:/tef_centralrepository/ks413s.sis
+../pma_data/rnd_sis/KS414s.sis                       z:/tef_centralrepository/ks414s.sis
+../pma_data/rnd_sis/KS415s.sis                       z:/tef_centralrepository/ks415s.sis
+../pma_data/rnd_sis/KS416s.sis                       z:/tef_centralrepository/ks416s.sis
+../pma_data/rnd_sis/KS417s.sis                       z:/tef_centralrepository/ks417s.sis
+../pma_data/rnd_sis/KS421s.sis                       z:/tef_centralrepository/ks421s.sis
+../pma_data/rnd_sis/KS422s.sis                       z:/tef_centralrepository/ks422s.sis
+../pma_data/rnd_sis/KS423s.sis                       z:/tef_centralrepository/ks423s.sis
+../pma_data/rnd_sis/KS431s.sis                       z:/tef_centralrepository/ks431s.sis
+../pma_data/rnd_sis/KS432s.sis                       z:/tef_centralrepository/ks432s.sis
+../pma_data/rnd_sis/KS433s.sis                       z:/tef_centralrepository/ks433s.sis
+
+../pma_data/rnd_sis/KP401s.sis                       z:/tef_centralrepository/kp401s.sis
+../pma_data/rnd_sis/KP402s.sis                       z:/tef_centralrepository/kp402s.sis
+../pma_data/rnd_sis/KP403s.sis                       z:/tef_centralrepository/kp403s.sis
+../pma_data/rnd_sis/KP404s.sis                       z:/tef_centralrepository/kp404s.sis
+../pma_data/rnd_sis/KP405s.sis                       z:/tef_centralrepository/kp405s.sis
+../pma_data/rnd_sis/KP406s.sis                       z:/tef_centralrepository/kp406s.sis
+../pma_data/rnd_sis/KP407s.sis                       z:/tef_centralrepository/kp407s.sis
+../pma_data/rnd_sis/KP411s.sis                       z:/tef_centralrepository/kp411s.sis
+../pma_data/rnd_sis/KP412s.sis                       z:/tef_centralrepository/kp412s.sis
+../pma_data/rnd_sis/KP413s.sis                       z:/tef_centralrepository/kp413s.sis
+../pma_data/rnd_sis/KP414s.sis                       z:/tef_centralrepository/kp414s.sis
+../pma_data/rnd_sis/KP415s.sis                       z:/tef_centralrepository/kp415s.sis
+../pma_data/rnd_sis/KP416s.sis                       z:/tef_centralrepository/kp416s.sis
+../pma_data/rnd_sis/KP417s.sis                       z:/tef_centralrepository/kp417s.sis
+../pma_data/rnd_sis/KP421s.sis                       z:/tef_centralrepository/kp421s.sis
+../pma_data/rnd_sis/KP422s.sis                       z:/tef_centralrepository/kp422s.sis
+../pma_data/rnd_sis/KP423s.sis                       z:/tef_centralrepository/kp423s.sis
+../pma_data/rnd_sis/KP431s.sis                       z:/tef_centralrepository/kp431s.sis
+../pma_data/rnd_sis/KP432s.sis                       z:/tef_centralrepository/kp432s.sis
+../pma_data/rnd_sis/KP433s.sis                       z:/tef_centralrepository/kp433s.sis
+#else
+../pma_data/techview_sis/KS401s.sis                  z:/tef_centralrepository/ks401s.sis
+../pma_data/techview_sis/KS402s.sis                  z:/tef_centralrepository/ks402s.sis
+../pma_data/techview_sis/KS403s.sis                  z:/tef_centralrepository/ks403s.sis
+../pma_data/techview_sis/KS404s.sis                  z:/tef_centralrepository/ks404s.sis
+../pma_data/techview_sis/KS405s.sis                  z:/tef_centralrepository/ks405s.sis
+../pma_data/techview_sis/KS406s.sis                  z:/tef_centralrepository/ks406s.sis
+../pma_data/techview_sis/KS407s.sis                  z:/tef_centralrepository/ks407s.sis
+../pma_data/techview_sis/KS411s.sis                  z:/tef_centralrepository/ks411s.sis
+../pma_data/techview_sis/KS412s.sis                  z:/tef_centralrepository/ks412s.sis
+../pma_data/techview_sis/KS413s.sis                  z:/tef_centralrepository/ks413s.sis
+../pma_data/techview_sis/KS414s.sis                  z:/tef_centralrepository/ks414s.sis
+../pma_data/techview_sis/KS415s.sis                  z:/tef_centralrepository/ks415s.sis
+../pma_data/techview_sis/KS416s.sis                  z:/tef_centralrepository/ks416s.sis
+../pma_data/techview_sis/KS417s.sis                  z:/tef_centralrepository/ks417s.sis
+../pma_data/techview_sis/KS421s.sis                  z:/tef_centralrepository/ks421s.sis
+../pma_data/techview_sis/KS422s.sis                  z:/tef_centralrepository/ks422s.sis
+../pma_data/techview_sis/KS423s.sis                  z:/tef_centralrepository/ks423s.sis
+../pma_data/techview_sis/KS431s.sis                  z:/tef_centralrepository/ks431s.sis
+../pma_data/techview_sis/KS432s.sis                  z:/tef_centralrepository/ks432s.sis
+../pma_data/techview_sis/KS433s.sis                  z:/tef_centralrepository/ks433s.sis
+
+../pma_data/techview_sis/KP401s.sis                  z:/tef_centralrepository/kp401s.sis
+../pma_data/techview_sis/KP402s.sis                  z:/tef_centralrepository/kp402s.sis
+../pma_data/techview_sis/KP403s.sis                  z:/tef_centralrepository/kp403s.sis
+../pma_data/techview_sis/KP404s.sis                  z:/tef_centralrepository/kp404s.sis
+../pma_data/techview_sis/KP405s.sis                  z:/tef_centralrepository/kp405s.sis
+../pma_data/techview_sis/KP406s.sis                  z:/tef_centralrepository/kp406s.sis
+../pma_data/techview_sis/KP407s.sis                  z:/tef_centralrepository/kp407s.sis
+../pma_data/techview_sis/KP411s.sis                  z:/tef_centralrepository/kp411s.sis
+../pma_data/techview_sis/KP412s.sis                  z:/tef_centralrepository/kp412s.sis
+../pma_data/techview_sis/KP413s.sis                  z:/tef_centralrepository/kp413s.sis
+../pma_data/techview_sis/KP414s.sis                  z:/tef_centralrepository/kp414s.sis
+../pma_data/techview_sis/KP415s.sis                  z:/tef_centralrepository/kp415s.sis
+../pma_data/techview_sis/KP416s.sis                  z:/tef_centralrepository/kp416s.sis
+../pma_data/techview_sis/KP417s.sis                  z:/tef_centralrepository/kp417s.sis
+../pma_data/techview_sis/KP421s.sis                  z:/tef_centralrepository/kp421s.sis
+../pma_data/techview_sis/KP422s.sis                  z:/tef_centralrepository/kp422s.sis
+../pma_data/techview_sis/KP423s.sis                  z:/tef_centralrepository/kp423s.sis
+../pma_data/techview_sis/KP431s.sis                  z:/tef_centralrepository/kp431s.sis
+../pma_data/techview_sis/KP432s.sis                  z:/tef_centralrepository/kp432s.sis
+../pma_data/techview_sis/KP433s.sis                  z:/tef_centralrepository/kp433s.sis
+#endif
+
+#endif
 
 // Copy in our swicertstore.dat so our signed sis files can install.
 ../data/certstore/swicertstore.dat						z:/resource/swicertstore.dat

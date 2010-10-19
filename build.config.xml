@@ -180,8 +180,8 @@
 				<unit
 					name="burtestserver"
 					unitID="sos.burtestserver.test"
-					bldFile="sf/os/buildtools/toolsandutils/burtestserver/Group"
-					mrp="sf/os/buildtools/toolsandutils/burtestserver/Group/testtools_burtestserver.mrp"
+					bldFile="sf/os/ostesttools/testfws/burtestserver/Group"
+					mrp="sf/os/ostesttools/testfws/burtestserver/Group/testtools_burtestserver.mrp"
 				/>
 			</module>
 		</layer>

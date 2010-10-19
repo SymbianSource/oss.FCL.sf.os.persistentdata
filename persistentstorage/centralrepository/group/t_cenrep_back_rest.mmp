@@ -13,6 +13,11 @@
 // Description:
 //
 
+// This macro switches the PMA drive the 'protected' directory
+// under persists on the system drive, instead of using the
+// protected drive. This is for development purposes only. 
+MACRO SYMBIAN_CENTREP_PMA_TEST
+
 // This is only defined for OOM testing of caching functionality. 
 MACRO CACHE_OOM_TESTABILITY
 

@@ -50,7 +50,7 @@ void Check(TInt aValue, TInt aLine)
     {
     if(!aValue)
         {
-        RDebug::Print(_L("*** Line %d\r\n"), aLine);
+    	TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
         TheTest(EFalse, aLine);
         }
     }
@@ -58,7 +58,7 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
     {
     if(aValue != aExpected)
         {
-        RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+    	TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
         TheTest(EFalse, aLine);
         }
     }

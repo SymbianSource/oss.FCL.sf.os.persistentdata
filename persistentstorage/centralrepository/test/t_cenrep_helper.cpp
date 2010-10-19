@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -121,37 +121,58 @@ EXPORT_C void CleanupCDriveL(TBool aRemoveRomCache)
 	TPtr file(file_buf->Des());
 	file.Copy(KCPersistsFiles);
 	PatchDrive(file);
-	TInt r = fm->Delete(file);
-
-	if (r != KErrNone &&
-		r != KErrNotFound &&
-		r != KErrPathNotFound)
+	TInt r = fm->Attribs(file, 0, KEntryAttReadOnly, TTime(0), 0);
+    if (r != KErrNone && r != KErrNotFound && r != KErrPathNotFound)
+        {
+        User::Leave(r);
+        }
+	r = fm->Delete(file);
+	if (r != KErrNone && r != KErrNotFound && r != KErrPathNotFound)
 		{
 		User::Leave(r);
 		}
-		
-	if(aRemoveRomCache)
+	
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+	file.Copy(KPMAFiles);
+    PatchDrive(file);
+    r = fm->Attribs(file, 0, KEntryAttReadOnly, TTime(0), 0);
+    if (r != KErrNone && r != KErrNotFound && r != KErrPathNotFound)
+        {
+        User::Leave(r);
+        }
+    r = fm->Delete(file);
+    if (r != KErrNone && r != KErrNotFound && r != KErrPathNotFound)
+        {
+        User::Leave(r);
+        }
+#endif		
+
+    if(aRemoveRomCache)
 		{
 		//Delete cached rom version file
 		file.Copy(KCRomVersionFiles);
 		PatchDrive(file);
-		fm->Attribs(file, 0, KEntryAttReadOnly, TTime(0), 0);
+		r = fm->Attribs(file, 0, KEntryAttReadOnly, TTime(0), 0);
+	    if (r != KErrNone && r != KErrNotFound && r != KErrPathNotFound)
+	        {
+	        User::Leave(r);
+	        }
 		r = fm->Delete(file);
-		if (r != KErrNone &&
-			r != KErrNotFound &&
-			r != KErrPathNotFound &&
-			r != KErrPermissionDenied)
+		if (r != KErrNone && r != KErrNotFound && r != KErrPathNotFound && r != KErrPermissionDenied)
 			{
 			User::Leave(r);
 			}
 		
 		// Delete all install files
 		file.Copy(KCInstallFiles);
-		PatchDrive(file);	
+		PatchDrive(file);
+		r = fm->Attribs(file, 0, KEntryAttReadOnly, TTime(0), 0);
+	    if (r != KErrNone && r != KErrNotFound && r != KErrPathNotFound)
+	        {
+	        User::Leave(r);
+	        }
 		r = fm->Delete(file);
-		if (r != KErrNone &&
-			r != KErrNotFound &&
-			r != KErrPathNotFound)
+		if (r != KErrNone && r != KErrNotFound && r != KErrPathNotFound)
 			{
 			User::Leave(r);
 			}
@@ -253,12 +274,12 @@ EXPORT_C void CopyTestFilesL(CFileMan& aFm, const TDesC& aSrc, const TDesC& aDes
 	PatchDrive(dest);
 
 	//copy test files
-	User::LeaveIfError(aFm.Copy(src, dest,CFileMan::ERecurse));
+	User::LeaveIfError(aFm.Copy(src, dest,CFileMan::ERecurse|CFileMan::EOverWrite));
 	aFm.Attribs(dest,
 					KEntryAttArchive,
 					KEntryAttReadOnly,
 					TTime(0),
-					CFileMan::ERecurse);		
+					CFileMan::ERecurse|CFileMan::EOverWrite);		
 	}
 
 //This function prints out the recorded time in milliseconds of aTime.

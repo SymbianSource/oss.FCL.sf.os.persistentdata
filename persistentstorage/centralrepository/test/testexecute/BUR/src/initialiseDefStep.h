@@ -20,8 +20,8 @@
 /**
  @file
 */
-#if (!defined __INITAILISE_DEF_STEP_H__)
-#define __INITAILISE_DEF_STEP_H__
+#if (!defined __INITIALISE_DEF_STEP_H__)
+#define __INITIALISE_DEF_STEP_H__
 #include <test/testexecutestepbase.h>
 #include "Te_centrep_BURSuiteStepBase.h"
 

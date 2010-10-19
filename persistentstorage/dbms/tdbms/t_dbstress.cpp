@@ -608,12 +608,12 @@ GLDEF_C TInt E32Main()
 	TInt err2 = TheFs.Delete(KTestDatabase);
 	if(err2 != KErrNone)
 		{
-		RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err2, &KTestDatabase);
+		TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err2, &KTestDatabase);
 		}
 	err2 = TheFs.Delete(KLogFile);
 	if(err2 != KErrNone)
 		{
-		RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err2, &KLogFile);
+		TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err2, &KLogFile);
 		}
 	TEST2(err, KErrNone);
 //

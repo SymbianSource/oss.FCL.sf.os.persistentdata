@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -40,7 +40,13 @@ EXPORT_C void FeatureManager::InitializeLibL()
 
     if ( !Dll::Tls() )
         {
-        Dll::SetTls( CFeatMgrTlsData::NewL() );
+    	CFeatMgrTlsData* fmgrData = CFeatMgrTlsData::NewL();
+    	TInt err = Dll::SetTls(fmgrData);
+    	if(err != KErrNone)
+    		{
+    		delete fmgrData;
+    		User::Leave(err);
+    		}
         }
 
 	// Increase the client count (self)

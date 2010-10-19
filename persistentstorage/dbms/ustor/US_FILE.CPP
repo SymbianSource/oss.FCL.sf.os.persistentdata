@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -68,7 +68,7 @@ EXPORT_C TInt CDbFileStoreDatabase::Property(CDbDatabase::TProperty aProperty)
 	case CDbDatabase::ESize:
 	case CDbDatabase::EUsage:
 		{
-		TInt size;
+		TInt size = -1;
 		TInt r=STATIC_CAST(CFileStore&,Store()).File().Size(size);
 		if (r<0)
 			return r;

@@ -465,12 +465,10 @@ void CDbConfigFiles::StoreFileNamesL(const CDir& aDirEntries)
 	for(TInt i = aDirEntries.Count() - 1; i >= 0; --i)
 		{
 		const TEntry& entry = aDirEntries[i];
-		if(!entry.IsDir())
-			{
-			HBufC* filename = entry.iName.AllocLC();
-			iConfigFileNames.AppendL(filename);
-			CleanupStack::Pop(); // filename
-			}
+		__ASSERT_DEBUG(!entry.IsDir(), __SQLPANIC(ESqlPanicInternalError));
+		HBufC* filename = entry.iName.AllocLC();
+		iConfigFileNames.AppendL(filename);
+		CleanupStack::Pop(); // filename
 		}
 	}
 	

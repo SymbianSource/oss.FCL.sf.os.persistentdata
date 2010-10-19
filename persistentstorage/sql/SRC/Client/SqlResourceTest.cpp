@@ -24,6 +24,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 #ifdef _DEBUG
 
@@ -277,4 +278,5 @@ EXPORT_C void TSqlResourceTester::SetHeapFailure(TInt, TInt)
 
 #endif//_DEBUG
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on

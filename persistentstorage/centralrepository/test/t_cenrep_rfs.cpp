@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -82,6 +82,13 @@ LOCAL_C void KillC32Exe()
     {
     _LIT( KC32ServerName, "c32exe");
     KillProcess(KC32ServerName); // Don't need to check the return code, it always return KErrNone anyway.
+    User::After(KGeneralDelay);
+    }
+
+LOCAL_C void KillCentrepExe()
+    {
+    _LIT( KCentralRepositoryServerName, "Centralrepositorysrv");
+    KillProcess(KCentralRepositoryServerName); // Don't need to check the return code, it always return KErrNone anyway.
     User::After(KGeneralDelay);
     }
 
@@ -182,7 +189,7 @@ LOCAL_C TInt ReStartServerInSoftResetMode()
 
 LOCAL_C void RestoreFactorySettingsTestL()
 	{
-	TheTest.Start(_L("ResetAllRepositoriesTestL"));
+	TheTest.Start(_L("RestoreFactorySettingsTestL"));
 	TInt r;
 	TInt i;
 	TBuf<20> str;
@@ -247,7 +254,6 @@ LOCAL_C void RestoreFactorySettingsTestL()
 
 	TheTest.End();
 	}
-
 
 
 /**
@@ -634,6 +640,7 @@ LOCAL_C void MainL()
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-0497-0001 Restore Factory Settings tests "));
 	CleanupCDriveL();
 	KillC32Exe(); //Need to kill C32Exe as it is interfering with the test.
+	KillCentrepExe();
 	RestoreFactorySettingsTestL();
 	PDEF105203();
 	RFSRomOnlyL();

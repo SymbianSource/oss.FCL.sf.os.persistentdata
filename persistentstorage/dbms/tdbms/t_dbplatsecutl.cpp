@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -71,11 +71,11 @@ RDbNamedDatabase TDBSCUtils::CreateDatabase(RDbs& aDbs, TUid aPolicyUid, const T
 // Delete secure shared database.
 TInt TDBSCUtils::DeleteDatabase(RDbs& aDbs, TUid aPolicyUid, const TDesC& aDbName)
 	{
-	RDebug::Print(_L("Deleting %X \"%S\" database.\n"), aPolicyUid.iUid, &aDbName);
+	TheDbscUtils.iTest.Printf(_L("Deleting %X \"%S\" database.\n"), aPolicyUid.iUid, &aDbName);
 	TInt err = aDbs.DeleteDatabase(aDbName, aPolicyUid);
 	if(err != KErrNone && err != KErrNotFound) 
 		{
-		RDebug::Print(_L("Error %d deleting \"%S\" database.\n"), err, &aDbName);
+		TheDbscUtils.iTest.Printf(_L("Error %d deleting \"%S\" database.\n"), err, &aDbName);
 		}
 	return err;
 	}
@@ -134,6 +134,7 @@ void TDBSCUtils::Check(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
+		TheDbscUtils.iTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		if(TheDbscUtils.iFunc)
 			{
 			TheDbscUtils.iFunc();
@@ -148,7 +149,7 @@ void TDBSCUtils::Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheDbscUtils.iTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		if(TheDbscUtils.iFunc)
 			{
 			TheDbscUtils.iFunc();

@@ -153,12 +153,14 @@ TBool TUnicodeCompressionState::EncodeAsIs(TUint16 aCode)
 	}
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 void TUnicodeCompressionState::Panic(TPanic aPanic)
 	{
 	User::Panic(_L("ucmp"),aPanic);
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 EXPORT_C TUnicodeCompressor::TUnicodeCompressor():

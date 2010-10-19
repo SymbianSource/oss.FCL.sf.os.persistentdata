@@ -23,6 +23,12 @@ t_cenrep_preq752.exe
 t_cenrep_transactions.exe
 t_cenrep_defects.exe
 t_cenrep_meta.exe
+t_cenrep_pma_array.exe
+t_cenrep_pma_bur.exe
+t_cenrep_pma_fota.exe
+t_cenrep_pma_oom.exe
+t_cenrep_pma_rfs.exe
+t_cenrep_pma_multirofs.exe
 t_cenrep_rfs.exe
 t_cenrep_back_rest.exe
 t_cenrep_back_rest_delete.exe

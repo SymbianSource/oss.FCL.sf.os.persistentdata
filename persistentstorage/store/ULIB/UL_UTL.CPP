@@ -19,6 +19,7 @@
 #if defined (_DEBUG)
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 //
 // Leave to the current control region.
@@ -64,6 +65,7 @@ TAny *Util::__DbgLeaveIfNull(TAny *aPtr,const TDesC8& aFileName,TInt aLineNo)
 	return aPtr;
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 #endif

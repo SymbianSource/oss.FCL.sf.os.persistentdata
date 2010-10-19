@@ -1,0 +1,332 @@
+// Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
+// All rights reserved.
+// This component and the accompanying materials are made available
+// under the terms of "Eclipse Public License v1.0"
+// which accompanies this distribution, and is available
+// at the URL "http://www.eclipse.org/legal/epl-v10.html".
+//
+// Initial Contributors:
+// Nokia Corporation - initial contribution.
+//
+// Contributors:
+//
+// Description:
+// @file
+// 
+//
+
+//! @SYMTestSuiteName PDS-TEF-CENTREP-SWISUITE
+//! @SYMScriptTestEnvironment TEF
+//! @internalComponent
+//! @test
+
+PRINT Run SP (Standard Patch) installation te_centrep_SWI Suite Tests
+
+LOAD_SUITE te_centrep_SWISuite
+
+RUN_UTILS MkDir c:\private\
+RUN_UTILS DeleteFile c:\private\10202be9\f10004*.txt
+RUN_UTILS DeleteFile c:\private\10202be9\f10004*.cre
+RUN_UTILS DeleteFile c:\private\10202be9\persists\f10004*.txt
+RUN_UTILS DeleteFile c:\private\10202be9\persists\f10004*.cre
+RUN_UTILS DeleteFile c:\private\10202be9\persists\protected\f10004*.txt
+RUN_UTILS DeleteFile c:\private\10202be9\persists\protected\f10004*.cre
+
+RUN_UTILS CopyFile z:\private\10202be9\f1000406.pma c:\private\10202be9\persists\protected\f1000406.cre
+RUN_UTILS CopyFile z:\private\10202be9\f1000407.crp c:\private\10202be9\persists\f1000407.cre
+RUN_UTILS CopyFile z:\private\10202be9\f1000416.pma c:\private\10202be9\persists\protected\f1000416.cre
+RUN_UTILS CopyFile z:\private\10202be9\f1000417.crp c:\private\10202be9\persists\f1000417.cre
+RUN_UTILS CopyFile z:\private\10202be9\f1000423.pma c:\private\10202be9\persists\protected\f1000423.cre
+RUN_UTILS CopyFile z:\private\10202be9\f1000433.pma c:\private\10202be9\persists\protected\f1000433.cre
+
+RUN_PROGRAM t_killprocess.exe centralrepositorysrv
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4134
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4134
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS401.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a new 'txt' PMA keyspace (which does not previously exist).
+//! @SYMTestExpectedResults The new keyspace KS401 is not installed
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_NonExist_Rep
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS401
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_NonExist_Rep
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4134
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4135
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4135
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS402.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'txt' PMA keyspace on top of an existing 'txt' Non-PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS402 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_TxtRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS402
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_TxtRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4135
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4136
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4136
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS403.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'txt' PMA keyspace on top of an existing 'cre' Non-PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS403 is not installed
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_CreRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS403
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_CreRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4136
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4137
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4137
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS404.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'txt' PMA keyspace on top of an existing 'txt' PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS404 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_PMATxtRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS404
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_PMATxtRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4137
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4138
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4138
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS405.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'txt' PMA keyspace on top of an existing 'cre' PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS405 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_PMACreRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS405
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_PMACreRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4138
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4139
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4139
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS406.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'txt' PMA keyspace on top of an existing 'cre' PMA keyspace that exists in the PMA drive.
+//! @SYMTestExpectedResults The new keyspace KS406 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_PMACreRep_in_PMADrive
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS406
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_PMACreRep_in_PMADrive
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4139
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4140
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4140
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS407.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'txt' PMA keyspace on top of an existing 'cre' Non-PMA keyspace that exists in the persists folder.
+//! @SYMTestExpectedResults The new keyspace KS407 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_CreRep_in_Persist
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS407
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMATxt_to_CreRep_in_Persist
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4140
+
+
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4141
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4141
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS411.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a new 'cre' PMA keyspace (which does not previously exist).
+//! @SYMTestExpectedResults The new keyspace KS411 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_NonExist_Rep
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS411
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_NonExist_Rep
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4141
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4142
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4142
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS412.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'cre' PMA keyspace on top of an existing 'txt' Non-PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS412 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_TxtRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS412
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_TxtRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4142
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4143
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4143
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS413.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'cre' PMA keyspace on top of an existing 'cre' Non-PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS413 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_CreRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS413
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_CreRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4143
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4144
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4144
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS414.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'cre' PMA keyspace on top of an existing 'txt' PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS414 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_PMATxtRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS414
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_PMATxtRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4144
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4145
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4145
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS415.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'cre' PMA keyspace on top of an existing 'cre' PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS415 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_PMACreRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS415
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_PMACreRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4145
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4146
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4146
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS416.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'cre' PMA keyspace on top of an existing 'cre' PMA keyspace that exists in the PMA drive.
+//! @SYMTestExpectedResults The new keyspace KS416 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_PMACreRep_in_PMADrive
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS416
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_PMACreRep_in_PMADrive
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4146
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4147
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4147
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS417.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'cre' PMA keyspace on top of an existing 'cre' Non-PMA keyspace that exists in the persists folder.
+//! @SYMTestExpectedResults The new keyspace KS407 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_CreRep_in_Persist
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS417
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_PMACre_to_CreRep_in_Persist
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4147
+
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4148
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4148
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS421.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'txt' Non-PMA keyspace on top of an existing 'txt' PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS421 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalTxt_to_PMATxtRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS421
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalTxt_to_PMATxtRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4148
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4149
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4149
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS422.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'txt' Non-PMA keyspace on top of an existing 'cre' PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS422 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalTxt_to_PMACreRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS422
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalTxt_to_PMACreRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4149
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4150
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4150
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS423.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'txt' Non-PMA keyspace on top of an existing 'cre' PMA keyspace that exists in the PMA drive.
+//! @SYMTestExpectedResults The new keyspace KS423 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalTxt_to_PMACreRep_in_PMADrive
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS423
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalTxt_to_PMACreRep_in_PMADrive
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4150
+
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4151
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4151
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS431.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'cre' Non-PMA keyspace on top of an existing 'txt' PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS431 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalCre_to_PMATxtRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS431
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalCre_to_PMATxtRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4151
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4152
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4152
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS432.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'cre' Non-PMA keyspace on top of an existing 'cre' PMA keyspace that exists in ROM.
+//! @SYMTestExpectedResults The new keyspace KS432 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalCre_to_PMACreRep_in_ROM
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS432
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalCre_to_PMACreRep_in_ROM
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4152
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4153
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4153
+//! @SYMTestCaseDesc  Verify that a ‘SP’ installation won't create a new keyspace, KS433.
+//! @SYMTestPriority  High
+//! @SYMTestActions   Install a 'cre' Non-PMA keyspace on top of an existing 'cre' PMA keyspace that exists in the PMA drive.
+//! @SYMTestExpectedResults The new keyspace KS433 is not installed
+
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalCre_to_PMACreRep_in_PMADrive
+    //Delay to get around race condition in SWI
+    DELAY 2500
+    RUN_TEST_STEP 100 te_centrep_SWISuite InstallStep z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_KS433
+    RUN_TEST_STEP 100 te_centrep_SWISuite RepositoryCheck z:\TEF_CentralRepository\SWI-PMA-SP.ini Install_NormalCre_to_PMACreRep_in_PMADrive
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4153
+
+RUN_UTILS DeleteFile c:\private\10202be9\f10004*.txt
+RUN_UTILS DeleteFile c:\private\10202be9\f10004*.cre
+RUN_UTILS DeleteFile c:\private\10202be9\persists\f10004*.txt
+RUN_UTILS DeleteFile c:\private\10202be9\persists\f10004*.cre
+RUN_UTILS DeleteFile c:\private\10202be9\persists\protected\f10004*.txt
+RUN_UTILS DeleteFile c:\private\10202be9\persists\protected\f10004*.cre
+

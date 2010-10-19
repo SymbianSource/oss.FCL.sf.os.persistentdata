@@ -23,7 +23,9 @@
 
 using namespace NCentralRepositoryConstants;
 
-RTest TheTest(_L("Central Repository Tests"));
+RTest TheTest(_L("t_cenrep.exe"));
+
+_LIT( KCentralRepositoryServerName, "Centralrepositorysrv");
 
 TBool OomTesting;
 
@@ -31,10 +33,22 @@ const TUid KUidTestRepository1 = { 0x00000001 };
 const TUid KUidCreTestRepository1 = { 0x22222221 };
 const TUid KUidTestRepository2 = { 0x00000002 };
 
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+const TUid KUidTxtPMATestRepos1   = { 0xf1000111 }; //ROM PMA txt repos
+const TUid KUidCrePMATestRepos1   = { 0xf1000112 }; //ROM PMA cre repos
+const TUid KUidCrePMAinPMADriveTestRepos1   = { 0xf1000113 }; //PMA drive cre repos
+const TUid KUidCorruptRepos1      = { 0xf1000114 }; //Non-PMA Repos in PMA drive
+const TUid KUidCorruptRepos2      = { 0xf1000115 }; //PMA Repos in persist folder
+const TUid KUidTxtInPMADriveRepos1 = { 0xf1000116 }; //TXT Repos in PMA drive
+const TUid KUidPmaTxtInInstallDir1 = { 0xf1000117 }; //TXT Repos in PMA drive
+const TUid KUidPmaCreInInstallDir1 = { 0xf1000118 }; //TXT Repos in PMA drive
+#endif
+
+
 const TUid KUidCorruptRepository = { 0x00000003 };
 const TUid KUidResetTestRepository = { 0x00000004 };
 
-const TUid KUidDriveCRepository = { 0x00000010 };
+const TUid KUidDriveZRepository = { 0x00000010 };
 
 const TUid KUidDriveCOnlyRepository = { 0x00000013 };
 
@@ -102,21 +116,24 @@ const TInt KIntB1_InitialValue = 100;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
-//Test macroses and functions
+//Test macros and functions
 
 LOCAL_C void CheckL(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
 		CleanupCDriveL();
+		User::LeaveIfError(KillProcess(KCentralRepositoryServerName));
 		TheTest(EFalse, aLine);
 		}
 	}
+
 LOCAL_C void CheckL(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
 		CleanupCDriveL();
+		User::LeaveIfError(KillProcess(KCentralRepositoryServerName));
 		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
@@ -157,7 +174,7 @@ LOCAL_C void KillCentRepServerL()
 //previous tests
 LOCAL_C void ResetTestRepositoryL()
 	{
-	CRepository* repository;
+    CRepository* repository(NULL);
 
 	User::LeaveIfNull(repository = CRepository::NewLC(KUidTestRepository1));
 	TInt r = repository->Reset();
@@ -170,8 +187,6 @@ LOCAL_C void ResetTestRepositoryL()
 //back from the Z drive to the c drive
 LOCAL_C void RestoreTestFilesL()
 	{
-	//Delete all files from C:\\private\\10202BE9\\persists\\ dir
-	//and C:\\private\\10202BE9\\ dir
 	CleanupCDriveL();
 
 	RFs fs;
@@ -181,8 +196,9 @@ LOCAL_C void RestoreTestFilesL()
 	CFileMan* fm = CFileMan::NewL(fs);
 	CleanupStack::PushL(fm);
 
-//	_LIT(KPersistTargetPath, "c:\\private\\10202BE9\\persists\\*.txt");
-	_LIT(KPersistTargetPath, "z:\\private\\10202BE9\\*.txt");
+	// The target path's drive will be patched with the correct
+	// system drive in CopyTestFilesL
+	_LIT(KPersistTargetPath, "C:\\private\\10202BE9\\*.txt");
 	_LIT(KPersistSourcePath, "Z:\\private\\10202BE9\\*.txc");
 	_LIT(KInstallTargetPath, "C:\\private\\10202BE9\\*.txt");
 	_LIT(KInstallSourcePath, "Z:\\private\\10202BE9\\*.txi");
@@ -190,6 +206,23 @@ LOCAL_C void RestoreTestFilesL()
 	//copy test files from Z: to C:
 	CopyTestFilesL(*fm,KPersistSourcePath, KPersistTargetPath);
 	CopyTestFilesL(*fm,KInstallSourcePath, KInstallTargetPath);
+	
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+	//Copy cre files to PMA protected folder for testing
+	_LIT(KPMASourcePath, "Z:\\private\\10202BE9\\*.pma");
+	_LIT(KPMATargetPath, "C:\\private\\10202BE9\\persists\\protected\\*.cre");
+    CopyTestFilesL(*fm,KPMASourcePath, KPMATargetPath);
+    
+    //Copy PMA protected cre file to persist folder for testing
+    _LIT(KPMACreSourcePath, "Z:\\private\\10202BE9\\f1000115.crp");
+    _LIT(KPMACreTargetPath, "C:\\private\\10202BE9\\persists\\*.cre");
+    CopyTestFilesL(*fm,KPMACreSourcePath, KPMACreTargetPath);
+    
+    //Copy PMA protected txt file to persist folder for testing
+    _LIT(KPMATxtSourcePath, "Z:\\private\\10202BE9\\f1000116.txp");
+    _LIT(KPMATxtTargetPath, "C:\\private\\10202BE9\\persists\\protected\\*.txt");
+    CopyTestFilesL(*fm,KPMATxtSourcePath, KPMATxtTargetPath);
+#endif
 
 	CleanupStack::PopAndDestroy(2);
 
@@ -206,7 +239,6 @@ LOCAL_C void RestoreTestFilesL()
 */
 LOCAL_C void OpenRepositoryL()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1297 "));
 	CRepository* repositoryA;
 	CRepository* repositoryB;
 
@@ -263,10 +295,17 @@ LOCAL_C void OpenRepositoryL()
 @SYMTestExpectedResults Test must not fail
 @SYMREQ					REQ0000
 */
+/**
+@SYMTestCaseID			PDS-CENTRALREPOSITORY-CT-4114
+@SYMTestCaseDesc		Tests for CRepository's Integer,Real,String's Get and Set functions on PMA keyspace
+@SYMTestPriority		High
+@SYMTestActions			Tests for CRepository::Get(),CRepository::Set() functions
+@SYMTestExpectedResults Test should get the correct value of a setting and set operation must not fail.
+@SYMREQ					REQ42876
+*/
 LOCAL_C void GetSetL(const TUid& aUid)
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1298 "));
-	CRepository* repository;
+    CRepository* repository(NULL);
 	User::LeaveIfNull(repository = CRepository::NewLC(aUid));
 
 	_LIT8(KString12_InitialValue, "string");
@@ -592,8 +631,7 @@ LOCAL_C void GetSetL(const TUid& aUid)
 */
 LOCAL_C void FindL()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1299 "));
-	CRepository* repository;
+	CRepository* repository(NULL);
 	User::LeaveIfNull(repository = CRepository::NewLC(KUidTestRepository1));
 
 	RArray<TUint32> foundIds;
@@ -911,11 +949,21 @@ LOCAL_C void FindL()
 @SYMTestExpectedResults Test must not fail
 @SYMREQ					REQ0000
 */
-LOCAL_C void NotifyL()
+/**
+@SYMTestCaseID			PDS-CENTRALREPOSITORY-CT-4115
+@SYMTestCaseDesc		Tests for CRepository's notification functionality test on PMA keyspaces
+@SYMTestPriority		High
+@SYMTestActions			Tests for CRepository::NotifyRequest() functions
+@SYMTestExpectedResults Notification request of a setting should behave as expected. 
+                        i.e. non-existent setting should return KErrNotFound
+                             Duplicate notification should not be created
+                             Other request should return KErrNone.
+@SYMREQ					REQ42876
+*/
+LOCAL_C void NotifyL(TUid aReposUid)
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1300 "));
-	CRepository* repository;
-	User::LeaveIfNull(repository = CRepository::NewLC(KUidTestRepository1));
+	CRepository* repository(NULL);
+	User::LeaveIfNull(repository = CRepository::NewLC(aReposUid));
 
 	TInt r = KErrNone;
 	TInt intval;
@@ -951,7 +999,7 @@ LOCAL_C void NotifyL()
 	TEST(intStatus==KRequestPending);
 	TEST(realStatus==KRequestPending);
 	TEST(stringStatus==KRequestPending);
-	TEST(thisThread.RequestCount()==0);
+	TEST2(thisThread.RequestCount(),0);
 
 	// First change to setting should cause notification
 	r = repository->Set(KInt1, 0);
@@ -968,7 +1016,7 @@ LOCAL_C void NotifyL()
 	TEST(intStatus==7777);
 	TEST(realStatus==KRequestPending);
 	TEST(stringStatus==KRequestPending);
-	TEST(thisThread.RequestCount()==0);
+	TEST2(thisThread.RequestCount(),0);
 
 
 	// Setting to the same value should not cause a notification
@@ -980,7 +1028,7 @@ LOCAL_C void NotifyL()
 	TEST(intStatus==7777);
 	TEST(realStatus==KRequestPending);
 	TEST(stringStatus==KRequestPending);
-	TEST(thisThread.RequestCount()==0);
+	TEST2(thisThread.RequestCount(),0);
 
 	r = repository->Set(KReal1, 0.0);
 	TEST2(r, KErrNone);
@@ -1140,8 +1188,7 @@ LOCAL_C void NotifyL()
 */
 LOCAL_C void CancelNotificationsL()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-3400 "));
-	CRepository* repository;
+	CRepository* repository(NULL);
 	User::LeaveIfNull(repository = CRepository::NewLC(KUidTestRepository1));
 
 	TInt r = KErrNone;
@@ -1275,10 +1322,20 @@ LOCAL_C void CancelNotificationsL()
 @SYMTestExpectedResults Test must not fail
 @SYMREQ					REQ0000
 */
+/**
+@SYMTestCaseID			PDS-CENTRALREPOSITORY-CT-4116
+@SYMTestCaseDesc		Tests for CRepository's Create and Delete functionality test on PMA keyspaces
+@SYMTestPriority		High
+@SYMTestActions			Test for CRepository::Create(),CRepository::Delete() functions
+@SYMTestExpectedResults Create and Delete of settings should behave as expected. 
+                        i.e. Create should not fail unless setting already exists
+                             Non-existent setting should return KErrNotFound.
+                             Mask deletion should delete only expected settings.
+@SYMREQ					REQ42876
+*/
 LOCAL_C void CreateDeleteL(const TUid& aUid)
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1301 "));
-	CRepository* repository;
+	CRepository* repository(NULL);
 	User::LeaveIfNull(repository = CRepository::NewLC(aUid));
 
 	TInt x;
@@ -1636,7 +1693,6 @@ LOCAL_C void CreateDeleteL(const TUid& aUid)
 */
 LOCAL_C void MultiClientL()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1302 "));
 	CRepository* repository1;
 	User::LeaveIfNull(repository1 = CRepository::NewLC(KUidTestRepository1));
 	CRepository* repository2;
@@ -1687,7 +1743,6 @@ LOCAL_C void MultiClientL()
 */
 LOCAL_C void ResetL()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1303 "));
 	CRepository* repositoryA;
 	User::LeaveIfNull(repositoryA = CRepository::NewLC(KUidTestRepository1));
 
@@ -2001,6 +2056,167 @@ LOCAL_C void ResetCreL()
 	CleanupStack::PopAndDestroy(repositoryA);
 	}
 
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+/**
+@SYMTestCaseID          PDS-CENTRALREPOSITORY-CT-4117
+@SYMTestCaseDesc        Tests for resetting the new changes on CRepository (PMA repository)
+@SYMTestPriority        High
+@SYMTestActions         Tests for CRepository::Reset() function on a PMA repository
+                        Tests for reset on a single setting that exists in the original ROM-based settings.
+                        Tests for reset for a single setting that does not exist in the original ROM-based settings.
+                        Tests for repository-wide reset for a repository that exists on ROM.
+@SYMTestExpectedResults Test must not fail
+@SYMREQ                 REQ42876
+*/
+LOCAL_C void ResetPMAL(TUid aReposUid)
+    {
+    CRepository* repository(NULL);
+    User::LeaveIfNull(repository = CRepository::NewLC(aReposUid));
+
+    //
+    // Test reset on a single setting that exists in the
+    // original ROM-based settings (we'll use KInt1)
+    //
+
+    // Ensure KInt1 is set to a different value to its initial value
+    TInt r = repository->Set(KInt1, KInt1_InitialValue+10);
+    TEST2(r, KErrNone);
+
+    r = repository->Reset(KInt1);
+    TEST2(r, KErrNotSupported);
+
+    // Check KInt1 now still has the new value
+    TInt x;
+    r = repository->Get(KInt1, x);
+    TEST2(r, KErrNone);
+    TEST(x==KInt1_InitialValue+10);
+
+    //
+    // Test reset for a single setting that does not exist
+    // in the original ROM-based settings.
+    // Test repository-wide reset for a repository
+    // that exists on ROM.
+    //
+    const TInt KIntValue = 1234;
+    r = repository->Create(KNewInt, KIntValue);
+    TEST2(r, KErrNone);
+
+    //Reset a setting should fail as it is supported on PMA repositories
+    r = repository->Reset(KNewInt);
+    TEST2(r, KErrNotSupported);
+    
+    //Reset whole repository should fail as it is supported on PMA repositories
+    r = repository->Reset();
+    TEST2(r, KErrNotSupported);
+
+    //Check that KNewInt is still there
+    r = repository->Get(KNewInt, x);
+    TEST2(r, KErrNone);
+    TEST(x==KIntValue);
+
+    CleanupStack::PopAndDestroy(repository);
+    }
+
+/**
+@SYMTestCaseID          PDS-CENTRALREPOSITORY-CT-4118
+@SYMTestCaseDesc        Tests for CentRep's repository type check during opening. 
+@SYMTestPriority        High
+@SYMTestActions         Tests for opening a PMA repository that is stored in persist folder
+                        Tests for opening a non-PMA repository that is stored in PMA drive
+@SYMTestExpectedResults Must return with KErrNotSupported in both cases
+@SYMREQ                 REQ42876
+*/
+LOCAL_C void CorruptPMAL(TUid aReposUid, TInt aExpectedResult)
+    {
+    CRepository* repository(NULL);
+    TRAPD(err, repository = CRepository::NewL(aReposUid));
+    TEST2(err, aExpectedResult);
+    TEST(repository == NULL);
+    
+    // We should only test for KErrNotFound if aExpectedResult is not the same. 
+    // No point to test again for KErrNotFound.
+    if (aExpectedResult != KErrNotFound) 
+        {
+        //The corrupted repository should be deleted, so it should get KErrNotFound
+        TRAP(err, repository = CRepository::NewL(aReposUid));
+        TEST2(err, KErrNotFound);
+        TEST(repository == NULL);
+        }
+
+    }
+
+/**
+@SYMTestCaseID          PDS-CENTRALREPOSITORY-CT-4119
+@SYMTestCaseDesc        Tests for opening PMA txt repos in PMA drive. 
+@SYMTestPriority        High
+@SYMTestActions         Tests for opening PMA txt repos that is stored in PMA drive
+@SYMTestExpectedResults Must return with KErrNotFound
+@SYMREQ                 REQ42876
+*/
+LOCAL_C void OpenTxtInPMAL(TUid aReposUid)
+    {
+    CRepository* repository(NULL);
+    TRAPD(err, repository = CRepository::NewL(aReposUid));
+    
+    TEST2(err, KErrNotFound);
+    TEST(repository == NULL);
+    }
+
+/**
+@SYMTestCaseID          PDS-CENTRALREPOSITORY-CT-4175
+@SYMTestCaseDesc        Tests for opening PMA txt and cre repos in install directory. 
+@SYMTestPriority        High
+@SYMTestActions         Open PMA txt and cre repos in install directory
+@SYMTestExpectedResults Both cases must return with KErrNotSupported and 
+                        the PMA files must be deleted from the install directory
+@SYMREQ                 REQ42876
+*/
+LOCAL_C void OpenPmaRepInInstallDirL()
+    {
+    RFs fs;
+    TEntry entry;
+    CRepository* repository(NULL);
+   
+    TInt err = fs.Connect();
+    TEST2(err, KErrNone);
+    
+    CFileMan* fm = CFileMan::NewL(fs);
+    CleanupStack::PushL(fm);
+    
+    // Copying the test repository files here to the install directory, because 
+    //  if they are copied before the Central Repository server has started, when
+    //  the server starts they will be deleted, as PMA repositories are not
+    //  allowed in the install directory.
+    _LIT(KPMATxtInstallSourcePath, "Z:\\private\\10202BE9\\f1000117.txi");
+    _LIT(KPMATxtInstallTargetPath, "C:\\private\\10202BE9\\f1000117.txt");
+    CopyTestFilesL(*fm,KPMATxtInstallSourcePath, KPMATxtInstallTargetPath);
+    
+    _LIT(KPMACreInstallSourcePath, "Z:\\private\\10202BE9\\f1000118.cri");
+    _LIT(KPMACreInstallTargetPath, "C:\\private\\10202BE9\\f1000118.cre");
+    CopyTestFilesL(*fm,KPMACreInstallSourcePath, KPMACreInstallTargetPath);
+
+    CleanupStack::PopAndDestroy(fm);
+    
+
+    
+    TRAP(err, repository = CRepository::NewL(KUidPmaTxtInInstallDir1));
+    TEST2(err, KErrNotSupported);
+    TEST(repository == NULL);
+    
+    //The PMA txt file in the install directory should be deleted after the open attempt
+    err = fs.Entry(KPMATxtInstallTargetPath,entry);
+    TEST2(err, KErrNotFound);
+        
+    TRAP(err, repository = CRepository::NewL(KUidPmaCreInInstallDir1));
+    TEST2(err, KErrNotSupported);
+    TEST(repository == NULL);
+    
+    //The PMA cre file in the install directory should be deleted after the open attempt
+    err = fs.Entry(KPMACreInstallTargetPath,entry);
+    TEST2(err, KErrNotFound);
+    }
+#endif
+
 /**
 @SYMTestCaseID			SYSLIB-CENTRALREPOSITORY-CT-1304
 @SYMTestCaseDesc		Tests for initialising file searching
@@ -2011,20 +2227,30 @@ LOCAL_C void ResetCreL()
 */
 LOCAL_C void IniFileSearching()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1304 "));
+    RFs fs;
+    User::LeaveIfError(fs.Connect());
+    
+    //The purpose of this test case is to prove that ROM version of the 
+    // keyspace will be used before the install version.
+    // So we want to delete the persisted version here, otherwise it will 
+    // be picked up before the ROM version.
+    _LIT(KReposFileName,"c:\\private\\10202be9\\persists\\00000010.cre");
+    TInt r = fs.Delete(KReposFileName);
+    if (r != KErrNone && r != KErrNotFound && r != KErrPathNotFound)
+        {
+        User::Leave(r);
+        }
+    
 	const TInt KSettingKey = 1;
 
 	_LIT(KDriveZ, "drive z");
 
 	const TInt KBufLen = 7; // = Max of 3 above string lengths
-
-	//
-	// File on drive C should take precedence
-	//
-	CRepository* repository = CRepository::NewL(KUidDriveCRepository);
+	
+	CRepository* repository = CRepository::NewL(KUidDriveZRepository);
 
 	TBuf<KBufLen> str;
-	TInt r = repository->Get(KSettingKey, str);
+	r = repository->Get(KSettingKey, str);
 	TEST2(r, KErrNone);
 	TEST(str==KDriveZ); 
 
@@ -2041,7 +2267,6 @@ LOCAL_C void IniFileSearching()
 */
 LOCAL_C void RepositoryOnDriveC()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1305 "));
 	const TInt KSettingKey = KNonExisitentSetting;
 	const TInt KInitialValue = 10;
 
@@ -2098,7 +2323,6 @@ LOCAL_C void RepositoryOnDriveC()
 */
 LOCAL_C void NotifyOnlyL()
 	{
-	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1656 "));
 	CRepository* repository1;
 	User::LeaveIfNull(repository1 = CRepository::NewLC(KUidTestRepository1));
 
@@ -2215,6 +2439,7 @@ LOCAL_C void NotifyOnlyL()
 	TEST2(r, KErrNone);
 	User::WaitForAnyRequest();
 	TEST(status1==KInt1);
+	User::WaitForAnyRequest();
 	TEST(status3==KInt1);
 	
 	r = repository1->NotifyRequest(KInt1, status1);
@@ -2228,6 +2453,7 @@ LOCAL_C void NotifyOnlyL()
 	TEST2(r, KErrNone);
 	User::WaitForAnyRequest();
 	TEST(status1==KInt1);
+	User::WaitForAnyRequest();
 	TEST(status3==KInt1);
 
 	CleanupStack::PopAndDestroy(3);
@@ -2260,8 +2486,6 @@ LOCAL_C void NotifyOnlyL()
 */
 LOCAL_C void RangeDeleteMetaL()
     {
-    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4113 "));
-
     TUint32 partialKey   = 0x0000004;
     TUint32 mask         = 0xFFFFFFF;
     TUint32 meta = 0;
@@ -2270,7 +2494,7 @@ LOCAL_C void RangeDeleteMetaL()
     TUint32 expectedKeyCount = 1;
     TUint32 error;
 
-    CRepository* repository;
+    CRepository* repository(NULL);
     User::LeaveIfNull(repository = CRepository::NewL(KUidTestRepository3)); // 00000103.txt
     
     repository->StartTransaction(CRepository::EReadWriteTransaction);
@@ -2298,7 +2522,6 @@ LOCAL_C void RangeDeleteMetaL()
     delete repository;
     }
 
-
 /**
 @SYMTestCaseID			SYSLIB-CENTRALREPOSITORY-CT-0494
 @SYMTestCaseDesc		Tests the various functions on CentralRepository
@@ -2314,49 +2537,93 @@ LOCAL_C void FuncTestsL()
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-0494 Open/Close repository "));
 	OpenRepositoryL();
 
-	TheTest.Next(_L("Get/Set .ini"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1298 Get/Set .ini"));
 	GetSetL(KUidTestRepository1);
 
-	TheTest.Next(_L("Get/Set .cre"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1298 Get/Set .cre"));
 	GetSetL(KUidCreTestRepository1);
-
-	TheTest.Next(_L("Find"));
+	
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1299 Find"));
 	FindL();
-
-	TheTest.Next(_L("Notify"));
-	NotifyL();
-
-	TheTest.Next(_L("Create/Delete .ini"));
+	
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1300 Notify"));
+	NotifyL(KUidTestRepository1);
+	
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1301 Create/Delete .ini"));
 	CreateDeleteL(KUidTestRepository1);
 
-	TheTest.Next(_L("Create/Delete .cre"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1301 Create/Delete .cre"));
 	CreateDeleteL(KUidCreTestRepository1);
-
-	TheTest.Next(_L("Initialisation file searching"));
+	
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1304 Initialisation file searching"));
 	IniFileSearching();
-
-	TheTest.Next(_L("Repository on Drive C only"));
+	
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1305 Repository on Drive C only"));
 	RepositoryOnDriveC();
 
-	TheTest.Next(_L("Multiple clients"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1302 Multiple clients"));
 	MultiClientL();
 
-	TheTest.Next(_L("Restore factory settings"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1303 Restore factory settings"));
 	ResetL();
-
+	
 	TheTest.Next(_L("Restore factory settings from binary based rep"));
 	ResetCreL();
-
-	TheTest.Next(_L("Negative testing for the notification cancelling"));
+	
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-3400 Negative testing for the notification cancelling"));
 	CancelNotificationsL();
 
-	TheTest.Next(_L("Notify-only client optimizations"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1656 Notify-only client optimizations"));
 	NotifyOnlyL();
 	
-	TheTest.Next(_L("Meta data after a Range Delete in transaction"));
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4113 Meta data after a Range Delete in transaction"));
     RangeDeleteMetaL();
     
-	TheTest.End();
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+    // The following tests are done on PMA based repositories
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4114 Get/Set PMA .txt in ROM"));
+    GetSetL(KUidTxtPMATestRepos1);
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4114 Get/Set PMA .cre in ROM"));
+    GetSetL(KUidCrePMATestRepos1);
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4114 Get/Set PMA .cre in PMA drive"));
+    GetSetL(KUidCrePMAinPMADriveTestRepos1);
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4115 Notify PMA"));
+    NotifyL(KUidTxtPMATestRepos1);
+        
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4116 Create/Delete PMA .txt in ROM"));
+    CreateDeleteL(KUidTxtPMATestRepos1);
+                
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4116 Create/Delete PMA .cre in ROM"));
+    CreateDeleteL(KUidCrePMATestRepos1);
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4116 Create/Delete PMA .cre in PMA drive"));
+    CreateDeleteL(KUidCrePMAinPMADriveTestRepos1);
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4117 Restore factory settings on PMA repository"));
+    ResetPMAL(KUidTxtPMATestRepos1);
+                
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4117 Restore factory settings on binary based PMA repository"));
+    ResetPMAL(KUidCrePMATestRepos1);
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4118 Opening a non-PMA repos that is in PMA drive"));
+    CorruptPMAL(KUidCorruptRepos1, KErrNotSupported);
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4118 Opening a PMA repos that is in persist folder"));
+    CorruptPMAL(KUidCorruptRepos2, KErrNotFound);
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4119 Opening a txt repos that is in PMA drive"));
+    OpenTxtInPMAL(KUidTxtInPMADriveRepos1);
+    
+    TheTest.Next(_L(" @SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4175 Opening PMA repositories that only exists in the install directory"));
+    OpenPmaRepInInstallDirL();
+
+#endif // SYMBIAN_INCLUDE_APP_CENTRIC
+
+    TheTest.End();
 	}
 
 /**
@@ -2407,15 +2674,15 @@ LOCAL_C void OomTest(void (*testFuncL)())
 
 LOCAL_C void OomTestsL()
 	{
-	TheTest.Start(_L("Open/Close repository"));
+	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1297 Open/Close repository"));
 	OomTest(OpenRepositoryL);
 
-	TheTest.Next(_L("GetSet for KUidTestRepository1"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1298 GetSet for KUidTestRepository1"));
 	GetSetL(KUidTestRepository1);
-	TheTest.Next(_L("GetSet for KUidCreTestRepository1"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1298 GetSet for KUidCreTestRepository1"));
 	GetSetL(KUidCreTestRepository1);
 
-	TheTest.Next(_L("Find"));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-1299 Find"));
 	OomTest(FindL);
 
 	TheTest.End();
@@ -2425,47 +2692,47 @@ LOCAL_C void OomTestsL()
 //It shows that there is approx. 20% (LUBBOCK) performance boost when using simple "Set"
 //operations. It may be even better when using "Commit" functionality.
 static void PerformanceTestL()
-	{
-	CRepository* repository = CRepository::NewL(KUidDriveCOnlyRepository);
-	CleanupStack::PushL(repository);
-	//Test settings IDs
-	const TUint KIntId = 101;
-	const TUint KRealId = 102;
-	const TUint KDes16Id = 103;
-	const TUint KDes8Id = 104;
-	//Create test settings
-	TInt err = repository->Create(KIntId, 1);
-	TEST2(err, KErrNone);
-	err = repository->Create(KRealId, 1.1);
-	TEST2(err, KErrNone);
-	err = repository->Create(KDes16Id, _L16("DES16"));
-	TEST2(err, KErrNone);
-	err = repository->Create(KDes8Id, _L8("DES8"));
-	TEST2(err, KErrNone);
-	//Performance test
-	TBuf16<32> buf16;
-	TBuf8<32> buf8;
-	TUint timeStart = User::TickCount();
-	for(TInt i=0;i<500;++i)
-		{
-		buf16.Zero();
-		buf16.AppendNum(i);
-		buf8.Zero();
-		buf8.AppendNum(i);
+    {
+    CRepository* repository = CRepository::NewL(KUidDriveCOnlyRepository);
+    CleanupStack::PushL(repository);
+    //Test settings IDs
+    const TUint KIntId = 101;
+    const TUint KRealId = 102;
+    const TUint KDes16Id = 103;
+    const TUint KDes8Id = 104;
+    //Create test settings
+    TInt err = repository->Create(KIntId, 1);
+    TEST2(err, KErrNone);
+    err = repository->Create(KRealId, 1.1);
+    TEST2(err, KErrNone);
+    err = repository->Create(KDes16Id, _L16("DES16"));
+    TEST2(err, KErrNone);
+    err = repository->Create(KDes8Id, _L8("DES8"));
+    TEST2(err, KErrNone);
+    //Performance test
+    TBuf16<32> buf16;
+    TBuf8<32> buf8;
+    TUint timeStart = User::TickCount();
+    for(TInt i=0;i<500;++i)
+        {
+        buf16.Zero();
+        buf16.AppendNum(i);
+        buf8.Zero();
+        buf8.AppendNum(i);
 
-		TInt err = repository->Set(KIntId, i);
-		TEST2(err, KErrNone);
-		err = repository->Set(KRealId, (TReal)i);
-		TEST2(err, KErrNone);
-		err = repository->Set(KDes16Id, buf16);
-		TEST2(err, KErrNone);
-		err = repository->Set(KDes8Id, buf8);
-		TEST2(err, KErrNone);
-		}
-	TUint timeEnd = User::TickCount();
-	CleanupStack::PopAndDestroy(repository);
-	TheTest.Printf(_L("\nPerformanceTestL - %d ticks\n"), timeEnd-timeStart);
-	}
+        TInt err = repository->Set(KIntId, i);
+        TEST2(err, KErrNone);
+        err = repository->Set(KRealId, (TReal)i);
+        TEST2(err, KErrNone);
+        err = repository->Set(KDes16Id, buf16);
+        TEST2(err, KErrNone);
+        err = repository->Set(KDes8Id, buf8);
+        TEST2(err, KErrNone);
+        }
+    TUint timeEnd = User::TickCount();
+    CleanupStack::PopAndDestroy(repository);
+    TheTest.Printf(_L("\nPerformanceTestL - %d ticks\n"), timeEnd-timeStart);
+    }
 
 /**
 @SYMTestCaseID			SYSLIB-CENTRALREPOSITORY-CT-0497
@@ -2477,10 +2744,11 @@ static void PerformanceTestL()
 */
 LOCAL_C void MainL()
 	{
-	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-0497 Functional tests "));
+	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-CT-0497 Functional tests "));
+    
 	OomTesting = EFalse;
-	// Existance of caching functionality invalidates some tests and
-	// makes them fail. So cleanup cace.
+	// Existence of caching functionality invalidates some tests and
+	// makes them fail. So cleanup cache.
 	RestoreTestFilesL();
 	FuncTestsL();
 
@@ -2497,23 +2765,31 @@ LOCAL_C void MainL()
 	TheTest.Next(_L("Clean out C: files"));
 	CleanupCDriveL();
 
-	TheTest.End();
-	TheTest.Close();
 	}
 
 TInt E32Main()
 	{
-	__UHEAP_MARK;
-	CTrapCleanup* cleanup = CTrapCleanup::New();
-	if(!cleanup)
-		return KErrNoMemory;
-
-	TRAPD(err, MainL());
-	if (err != KErrNone)
-		User::Panic(_L("Testing failed: "), err);
-
-	delete cleanup;
-	__UHEAP_MARKEND;
-
-	return 0;
+    TheTest.Title ();
+    TheTest.Start(_L("PMA Central Repository API Test"));
+    
+    CTrapCleanup* cleanup = CTrapCleanup::New();
+    TheTest(cleanup != NULL);
+    
+    __UHEAP_MARK;
+    
+    KillProcess(KCentralRepositoryServerName);
+    TRAPD(err, MainL());
+    KillProcess(KCentralRepositoryServerName);
+    
+    TEST2(err, KErrNone);
+    
+    __UHEAP_MARKEND;
+    
+    TheTest.End ();
+    TheTest.Close ();
+    
+    delete cleanup;
+        
+    User::Heap().Check();
+    return KErrNone;
 	}

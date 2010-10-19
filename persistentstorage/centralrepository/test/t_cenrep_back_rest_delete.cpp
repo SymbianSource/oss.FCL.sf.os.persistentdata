@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -75,9 +75,25 @@ LOCAL_C void DeleteFilesL()
 	CleanupStack::PushL( fm );
 
 	TInt r = fm->Delete( KOldInstallFiles );
+	if (r == KErrAccessDenied)
+	        {
+	        // we are not able to delete the files on ARM if their attributes are not set correctly.
+	        // Only set attributes when got KErrAccessDenied because it's time consuming in OOM test.
+	        r = fm->Attribs( KOldInstallFiles, KEntryAttArchive, KEntryAttReadOnly, TTime( 0 ), CFileMan::ERecurse );
+	        User::LeaveIfError(r);
+	        r = fm->Delete( KOldInstallFiles );
+	        }
 	if ( r != KErrNone && r != KErrNotFound && r != KErrPathNotFound )
 		User::Leave(r);
 	r = fm->Delete( KOldPersistFiles );
+	if (r == KErrAccessDenied)
+	        {
+	        // we are not able to delete the files on ARM if their attributes are not set correctly.
+	        // Only set attributes when got KErrAccessDenied because it's time consuming in OOM test.
+	        r = fm->Attribs( KOldPersistFiles, KEntryAttArchive, KEntryAttReadOnly, TTime( 0 ), CFileMan::ERecurse );
+	        User::LeaveIfError(r);
+	        r = fm->Delete( KOldPersistFiles );
+	        }
 	if ( r != KErrNone && r != KErrNotFound && r != KErrPathNotFound )
 		User::Leave(r);
 

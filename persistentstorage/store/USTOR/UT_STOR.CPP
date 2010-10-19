@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -166,6 +166,9 @@ EXPORT_C void CStreamStore::DoDeleteL(TStreamId)
 	__LEAVE(KErrNotSupported);
 	}
 
+#pragma BullseyeCoverage off
+#pragma CTC SKIP
+
 EXPORT_C MStreamBuf* CStreamStore::DoWriteL(TStreamId)
 //
 // Default implementation failing.
@@ -174,6 +177,9 @@ EXPORT_C MStreamBuf* CStreamStore::DoWriteL(TStreamId)
 	__LEAVE(KErrNotSupported);
 	return NULL;
 	}
+
+#pragma CTC ENDSKIP
+#pragma BullseyeCoverage on
 
 EXPORT_C MStreamBuf* CStreamStore::DoReplaceL(TStreamId)
 //

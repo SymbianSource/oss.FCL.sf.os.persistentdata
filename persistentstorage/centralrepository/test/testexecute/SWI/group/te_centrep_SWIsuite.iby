@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -110,6 +110,80 @@ data=DATAZ_\tef_centralrepository\ksy1s.sis 				TEF_CentralRepository\KSY1s.sis
 data=DATAZ_\tef_centralrepository\appy2s.sis 				TEF_CentralRepository\APPY2s.sis
 data=DATAZ_\tef_centralrepository\ksy2s.sis 				TEF_CentralRepository\KSY2s.sis
 
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+data=DATAZ_\PRIVATE\10202BE9\f1000402.txt       PRIVATE\10202BE9\f1000402.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000403.cre       PRIVATE\10202BE9\f1000403.cre
+data=DATAZ_\PRIVATE\10202BE9\f1000404.txt       PRIVATE\10202BE9\f1000404.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000405.cre       PRIVATE\10202BE9\f1000405.cre
+data=DATAZ_\PRIVATE\10202BE9\f1000406.pma       PRIVATE\10202BE9\f1000406.pma
+data=DATAZ_\PRIVATE\10202BE9\f1000406.txt       PRIVATE\10202BE9\f1000406.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000407.txt       PRIVATE\10202BE9\f1000407.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000407.crp       PRIVATE\10202BE9\f1000407.crp
+data=DATAZ_\PRIVATE\10202BE9\f1000412.txt       PRIVATE\10202BE9\f1000412.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000413.cre       PRIVATE\10202BE9\f1000413.cre
+data=DATAZ_\PRIVATE\10202BE9\f1000414.txt       PRIVATE\10202BE9\f1000414.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000415.cre       PRIVATE\10202BE9\f1000415.cre
+data=DATAZ_\PRIVATE\10202BE9\f1000416.pma       PRIVATE\10202BE9\f1000416.pma
+data=DATAZ_\PRIVATE\10202BE9\f1000416.txt       PRIVATE\10202BE9\f1000416.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000417.txt       PRIVATE\10202BE9\f1000417.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000417.crp       PRIVATE\10202BE9\f1000417.crp
+data=DATAZ_\PRIVATE\10202BE9\f1000421.txt       PRIVATE\10202BE9\f1000421.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000422.cre       PRIVATE\10202BE9\f1000422.cre
+data=DATAZ_\PRIVATE\10202BE9\f1000423.txt       PRIVATE\10202BE9\f1000423.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000423.pma       PRIVATE\10202BE9\f1000423.pma
+data=DATAZ_\PRIVATE\10202BE9\f1000431.txt       PRIVATE\10202BE9\f1000431.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000432.cre       PRIVATE\10202BE9\f1000432.cre
+data=DATAZ_\PRIVATE\10202BE9\f1000433.txt       PRIVATE\10202BE9\f1000433.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000433.pma       PRIVATE\10202BE9\f1000433.pma
+
+data=DATAZ_\TEF_CentralRepository\te_centrep_swisuite_pma.script        TEF_CentralRepository\te_centrep_swisuite_pma.script
+data=DATAZ_\TEF_CentralRepository\te_centrep_swisuite_pma_sp.script 	TEF_CentralRepository\te_centrep_swisuite_pma_sp.script
+data=DATAZ_\TEF_CentralRepository\te_centrep_swisuite_pma_pu.script 	TEF_CentralRepository\te_centrep_swisuite_pma_pu.script
+data=DATAZ_\TEF_CentralRepository\SWI-PMA-SP.ini 			TEF_CentralRepository\SWI-PMA-SP.ini
+data=DATAZ_\TEF_CentralRepository\SWI-PMA-PU.ini 			TEF_CentralRepository\SWI-PMA-PU.ini
+
+data=DATAZ_\TEF_CentralRepository\KS401s.sis                TEF_CentralRepository\KS401s.sis
+data=DATAZ_\TEF_CentralRepository\KS402s.sis                TEF_CentralRepository\KS402s.sis
+data=DATAZ_\TEF_CentralRepository\KS403s.sis                TEF_CentralRepository\KS403s.sis
+data=DATAZ_\TEF_CentralRepository\KS404s.sis                TEF_CentralRepository\KS404s.sis
+data=DATAZ_\TEF_CentralRepository\KS405s.sis                TEF_CentralRepository\KS405s.sis
+data=DATAZ_\TEF_CentralRepository\KS406s.sis                TEF_CentralRepository\KS406s.sis
+data=DATAZ_\TEF_CentralRepository\KS407s.sis                TEF_CentralRepository\KS407s.sis
+data=DATAZ_\TEF_CentralRepository\KS411s.sis                TEF_CentralRepository\KS411s.sis
+data=DATAZ_\TEF_CentralRepository\KS412s.sis                TEF_CentralRepository\KS412s.sis
+data=DATAZ_\TEF_CentralRepository\KS413s.sis                TEF_CentralRepository\KS413s.sis
+data=DATAZ_\TEF_CentralRepository\KS414s.sis                TEF_CentralRepository\KS414s.sis
+data=DATAZ_\TEF_CentralRepository\KS415s.sis                TEF_CentralRepository\KS415s.sis
+data=DATAZ_\TEF_CentralRepository\KS416s.sis                TEF_CentralRepository\KS416s.sis
+data=DATAZ_\TEF_CentralRepository\KS417s.sis                TEF_CentralRepository\KS417s.sis
+data=DATAZ_\TEF_CentralRepository\KS421s.sis                TEF_CentralRepository\KS421s.sis
+data=DATAZ_\TEF_CentralRepository\KS422s.sis                TEF_CentralRepository\KS422s.sis
+data=DATAZ_\TEF_CentralRepository\KS423s.sis                TEF_CentralRepository\KS423s.sis
+data=DATAZ_\TEF_CentralRepository\KS431s.sis                TEF_CentralRepository\KS431s.sis
+data=DATAZ_\TEF_CentralRepository\KS432s.sis                TEF_CentralRepository\KS432s.sis
+data=DATAZ_\TEF_CentralRepository\KS433s.sis                TEF_CentralRepository\KS433s.sis
+
+data=DATAZ_\TEF_CentralRepository\KP401s.sis                TEF_CentralRepository\KP401s.sis
+data=DATAZ_\TEF_CentralRepository\KP402s.sis                TEF_CentralRepository\KP402s.sis
+data=DATAZ_\TEF_CentralRepository\KP403s.sis                TEF_CentralRepository\KP403s.sis
+data=DATAZ_\TEF_CentralRepository\KP404s.sis                TEF_CentralRepository\KP404s.sis
+data=DATAZ_\TEF_CentralRepository\KP405s.sis                TEF_CentralRepository\KP405s.sis
+data=DATAZ_\TEF_CentralRepository\KP406s.sis                TEF_CentralRepository\KP406s.sis
+data=DATAZ_\TEF_CentralRepository\KP407s.sis                TEF_CentralRepository\KP407s.sis
+data=DATAZ_\TEF_CentralRepository\KP411s.sis                TEF_CentralRepository\KP411s.sis
+data=DATAZ_\TEF_CentralRepository\KP412s.sis                TEF_CentralRepository\KP412s.sis
+data=DATAZ_\TEF_CentralRepository\KP413s.sis                TEF_CentralRepository\KP413s.sis
+data=DATAZ_\TEF_CentralRepository\KP414s.sis                TEF_CentralRepository\KP414s.sis
+data=DATAZ_\TEF_CentralRepository\KP415s.sis                TEF_CentralRepository\KP415s.sis
+data=DATAZ_\TEF_CentralRepository\KP416s.sis                TEF_CentralRepository\KP416s.sis
+data=DATAZ_\TEF_CentralRepository\KP417s.sis                TEF_CentralRepository\KP417s.sis
+data=DATAZ_\TEF_CentralRepository\KP421s.sis                TEF_CentralRepository\KP421s.sis
+data=DATAZ_\TEF_CentralRepository\KP422s.sis                TEF_CentralRepository\KP422s.sis
+data=DATAZ_\TEF_CentralRepository\KP423s.sis                TEF_CentralRepository\KP423s.sis
+data=DATAZ_\TEF_CentralRepository\KP431s.sis                TEF_CentralRepository\KP431s.sis
+data=DATAZ_\TEF_CentralRepository\KP432s.sis                TEF_CentralRepository\KP432s.sis
+data=DATAZ_\TEF_CentralRepository\KP433s.sis                TEF_CentralRepository\KP433s.sis
+#endif 
 
 
 

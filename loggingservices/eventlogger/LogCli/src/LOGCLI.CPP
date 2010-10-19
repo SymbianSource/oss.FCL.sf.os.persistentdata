@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -426,6 +426,7 @@ EXPORT_C void CLogClient::ClearLog(TInt aRecentList, TSimId aSimId, TRequestStat
 #else //SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 /**
 Not supported. 
@@ -443,6 +444,7 @@ EXPORT_C void CLogClient::ClearLog(TInt, TSimId, TRequestStatus&)
 	__ASSERT_ALWAYS(0, ::Panic(ELogDualSimNotSupported));
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 #endif//SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM
@@ -568,9 +570,11 @@ RLogSession& CLogClient::Session() const
 	}
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 EXPORT_C void CLogClient::CLogBase_Reserved1()
 	{
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on

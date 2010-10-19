@@ -810,6 +810,8 @@ LOCAL_C void TestRecentView1L(CLogClient& aClient)
 	TEST2(view->CountL(), 0);
 	TBool res = view->SetRecentListL(KLogRecentIncomingCalls, active->iStatus);
 	TEST(res);
+	TLogRecentList rlist = view->RecentList();
+	TEST(rlist == KLogRecentIncomingCalls);
 
 	// Move forward
 	count = KTestEventNum;
@@ -5949,7 +5951,18 @@ LOCAL_C void INC136334L(CLogClient& aClient)
 //
 void doTestsL()
 	{
-	TheMatchingIsEnabled = TestUtils::MatchingEnabledL();
+//When SYSLIBS_TEST is defined, the test ECOM contact matching plug-in will be loaded, 
+//otherwise the real contact matching plug-in will be loaded.
+//Therefore, in armv5 urel build, no plug-in will be loaded.
+#ifdef __WINS__
+    TheMatchingIsEnabled = TestUtils::MatchingEnabledL();
+#else 
+    
+#ifdef SYSLIBS_TEST 
+    TheMatchingIsEnabled = TestUtils::MatchingEnabledL();
+#endif
+    
+#endif
 	
 	TestUtils::Initialize(_L("t_logview1"));
 	TestUtils::DeleteDatabaseL();

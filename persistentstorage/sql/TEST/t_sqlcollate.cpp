@@ -39,6 +39,7 @@ void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DeleteTestFiles();
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -47,7 +48,7 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -103,14 +104,14 @@ void CollationTest1L()
 	TEST2(err, KErrNone);
 
 	//Create test database
-	RDebug::Print(_L("###Create test database\r\n"));
+	TheTest.Printf(_L("###Create test database\r\n"));
 	_LIT(KCreateSql, "CREATE TABLE A(Name VARCHAR(100) COLLATE CompareF); CREATE INDEX AIdx ON A(Name COLLATE CompareF);");
 	err = db.Exec(KCreateSql);
 	TEST(err >= 0);
 
 	//Insert some records. The column "Name" of each record contains the same name but the name characters are
 	//variation of upper/lower case letters.
-	RDebug::Print(_L("###Insert some records\r\n"));
+	TheTest.Printf(_L("###Insert some records\r\n"));
 	_LIT(KInsertSql, "INSERT INTO A(Name) VALUES(");
 	//Collation sort order:    KNames[1] KNames[3] KNames[0] KNames[2]
 	//Long "aaaa..." added to the end of each column value because SQLITE may use non-aligned strings
@@ -138,7 +139,7 @@ void CollationTest1L()
 		}
 	
 	//The next "SELECT" statement must return a set containing all table records
-	RDebug::Print(_L("###Select all records\r\n"));
+	TheTest.Printf(_L("###Select all records\r\n"));
 	_LIT(KSelectSql1, "SELECT * FROM A WHERE NAME = 'alex-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'");
 	RSqlStatement stmt;
 	err = stmt.Prepare(db, KSelectSql1);
@@ -148,14 +149,14 @@ void CollationTest1L()
 		{
 		++recCount;
 		TPtrC name = stmt.ColumnTextL(0);
-		RDebug::Print(_L("%S\r\n"), &name);
+		TheTest.Printf(_L("%S\r\n"), &name);
 		}
 	stmt.Close();
 	TEST(recCount == KInsertSqlStmtCnt);
 
 	//The next "SELECT" statement must return a set containing all table records
 	// this tests a LIKE clause with a bound parameter (with wildcards)	
-	RDebug::Print(_L("###Select all records (LIKE with wildcard)\r\n"));
+	TheTest.Printf(_L("###Select all records (LIKE with wildcard)\r\n"));
 	_LIT(KSelectSql1a, "SELECT * FROM A WHERE NAME LIKE :Val");
 	_LIT(KSearchString,"alex-aaaa%");
 	err = stmt.Prepare(db, KSelectSql1a);
@@ -168,14 +169,14 @@ void CollationTest1L()
 		{
 		++recCount;
 		TPtrC name = stmt.ColumnTextL(0);
-		RDebug::Print(_L("%S\r\n"), &name);
+		TheTest.Printf(_L("%S\r\n"), &name);
 		}
 	stmt.Close();
 	TEST(recCount == KInsertSqlStmtCnt);
 
 	//The next "SELECT" statement must return a set containing all table records
 	// this tests a LIKE clause with a bound parameter (with no wildcards)
-	RDebug::Print(_L("###Select all records (LIKE with no wildcard)\r\n"));
+	TheTest.Printf(_L("###Select all records (LIKE with no wildcard)\r\n"));
 	_LIT(KSelectSql1b, "SELECT * FROM A WHERE NAME LIKE :Val");
 	_LIT(KSearchStringA,
 "alex-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
@@ -188,14 +189,14 @@ void CollationTest1L()
 		{
 		++recCount;
 		TPtrC name = stmt.ColumnTextL(0);
-		RDebug::Print(_L("%S\r\n"), &name);
+		TheTest.Printf(_L("%S\r\n"), &name);
 		}
 	stmt.Close();
 	TEST(recCount == KInsertSqlStmtCnt);
 
 	//The next "SELECT" statement must return a row 
 	// this tests a LIKE clause with a bound parameter and funny characters
-	RDebug::Print(_L("###Select one records (LIKE with bound param with URL chars)\r\n"));
+	TheTest.Printf(_L("###Select one records (LIKE with bound param with URL chars)\r\n"));
 	err=db.Exec(_L("INSERT INTO A(Name) VALUES('http://a.b.c#d')"));
 	TEST2(err,1);
 	_LIT(KSelectSql1c, "SELECT * FROM A WHERE NAME LIKE :Val");
@@ -209,14 +210,14 @@ void CollationTest1L()
 		{
 		++recCount;
 		TPtrC name = stmt.ColumnTextL(0);
-		RDebug::Print(_L("%S\r\n"), &name);
+		TheTest.Printf(_L("%S\r\n"), &name);
 		}
 	stmt.Close();
 	TEST(recCount == 1);
 
 	
 	//The next "SELECT" statement must return a set containing all table records, folded comparison used for sorting
-	RDebug::Print(_L("###Select all records, folded string comparison\r\n"));
+	TheTest.Printf(_L("###Select all records, folded string comparison\r\n"));
 	_LIT(KSelectSql2, "SELECT * FROM A WHERE NAME = 'alex-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' ORDER BY NAME COLLATE CompareF");
 	err = stmt.Prepare(db, KSelectSql2);
 	TEST2(err, KErrNone);
@@ -228,14 +229,14 @@ void CollationTest1L()
 		TEST2(err, KSqlAtRow);
 		++recCount;
 		TPtrC name = stmt.ColumnTextL(0);
-		RDebug::Print(_L("%S\r\n"), &name);
+		TheTest.Printf(_L("%S\r\n"), &name);
 		TEST(name == KNames[j]);
 		}
 	stmt.Close();
 	TEST(recCount == KInsertSqlStmtCnt);
 
 	//The next "SELECT" statement must return a set containing all table records, collated comparison used for sorting
-	RDebug::Print(_L("###Select all records, collated string comparison\r\n"));
+	TheTest.Printf(_L("###Select all records, collated string comparison\r\n"));
 	_LIT(KSelectSql3, "SELECT * FROM A ORDER BY NAME COLLATE CompareC3");
 	err = stmt.Prepare(db, KSelectSql3);
 	TEST2(err, KErrNone);
@@ -245,7 +246,7 @@ void CollationTest1L()
 		err = stmt.Next();
 		TEST2(err, KSqlAtRow);
 		TPtrC name = stmt.ColumnTextL(0);
-		RDebug::Print(_L("%S\r\n"), &name);
+		TheTest.Printf(_L("%S\r\n"), &name);
 		TEST(name == sortedNames[k]);
 		}
 		
@@ -260,7 +261,7 @@ void CollationTest1L()
 	TEST2(err, KErrNone);
 	db.Close();
 	
-	RDebug::Print(_L("###Delete test database\r\n"));
+	TheTest.Printf(_L("###Delete test database\r\n"));
 	(void)RSqlDatabase::Delete(KTestDbName1);
 	}
 
@@ -281,13 +282,13 @@ void CollationTest2L()
 	TEST2(err, KErrNone);
 
 	//Create test database
-	RDebug::Print(_L("###Create test database\r\n"));
+	TheTest.Printf(_L("###Create test database\r\n"));
 	_LIT(KCreateSql, "CREATE TABLE A(Name VARCHAR(100) COLLATE CompareC3)");
 	err = db.Exec(KCreateSql);
 	TEST(err >= 0);
 
 	//Insert some records.
-	RDebug::Print(_L("###Insert some records\r\n"));
+	TheTest.Printf(_L("###Insert some records\r\n"));
 	_LIT(KInsertSql, "INSERT INTO A(Name) VALUES(");
 	TPtrC KNames[] = {
 		_L("aAaA"), 
@@ -310,7 +311,7 @@ void CollationTest2L()
 	
 	//The next "SELECT" statement must return a set containing all table 
 	//records which Name column value is bigger than "aaAA"
-	RDebug::Print(_L("###Select all records, which Name column value is bigger than 'aaAA'\r\n"));
+	TheTest.Printf(_L("###Select all records, which Name column value is bigger than 'aaAA'\r\n"));
 	_LIT(KSelectSql2, "SELECT * FROM A WHERE NAME > 'aaAA'");
 	err = stmt.Prepare(db, KSelectSql2);
 	TEST2(err, KErrNone);
@@ -318,7 +319,7 @@ void CollationTest2L()
 	while((err = stmt.Next()) == KSqlAtRow)
 		{
 		TPtrC name = stmt.ColumnTextL(0);
-		RDebug::Print(_L("%S\r\n"), &name);
+		TheTest.Printf(_L("%S\r\n"), &name);
 		TInt res = name.CompareC(KNames[2], 3, NULL); 
 		TEST(res > 0);
 		}
@@ -327,7 +328,7 @@ void CollationTest2L()
 
 	//Cleanup	
 	db.Close();
-	RDebug::Print(_L("###Delete test database\r\n"));
+	TheTest.Printf(_L("###Delete test database\r\n"));
 	(void)RSqlDatabase::Delete(KTestDbName1);
 	}
 
@@ -350,14 +351,14 @@ void CollationTest3L()
 	TEST2(err, KErrNone);
 
 	//Create test database
-	RDebug::Print(_L("###Create test database\r\n"));
+	TheTest.Printf(_L("###Create test database\r\n"));
 	_LIT(KCreateSql, "CREATE TABLE A(Name VARCHAR(100) COLLATE CompareC0)");
 	err = db.Exec(KCreateSql);
 	TEST(err >= 0);
 
 	//Insert some records. Some of the inserted names have accented letters.
 	//But all names are equal if compared at collation level 0.
-	RDebug::Print(_L("###Insert some records\r\n"));
+	TheTest.Printf(_L("###Insert some records\r\n"));
 	_LIT(KInsertSql, "INSERT INTO A(Name) VALUES(");
 	TBuf<10> name1(_L("Dvorak"));
 	TBuf<10> name2;
@@ -395,7 +396,7 @@ void CollationTest3L()
 		}
 
 	//The next "SELECT" statement must return a set, which record count must be matchNameCnt.
-	RDebug::Print(_L("###Select all records, collated string comparison, level 0\r\n"));
+	TheTest.Printf(_L("###Select all records, collated string comparison, level 0\r\n"));
 	_LIT(KSelectSql2, "SELECT * FROM A WHERE NAME = 'dvorak'");
 	RSqlStatement stmt;
 	err = stmt.Prepare(db, KSelectSql2);
@@ -405,7 +406,7 @@ void CollationTest3L()
 	while((err = stmt.Next()) == KSqlAtRow)
 		{
 		TPtrC name = stmt.ColumnTextL(0);
-		RDebug::Print(_L("%S\r\n"), &name);
+		TheTest.Printf(_L("%S\r\n"), &name);
 		TEST(name == KNames[recCount]);
 		++recCount;
 		}
@@ -413,7 +414,7 @@ void CollationTest3L()
 	TEST(recCount == matchNameCnt);
 
 	//The next "SELECT" statement must return an ordered set containing all table records.
-	RDebug::Print(_L("###Select all records, collated string comparison, level 1\r\n"));
+	TheTest.Printf(_L("###Select all records, collated string comparison, level 1\r\n"));
 	_LIT(KSelectSql3, "SELECT * FROM A WHERE NAME = 'dvorak' ORDER BY NAME COLLATE CompareC1 DESC");
 	err = stmt.Prepare(db, KSelectSql3);
 	TEST2(err, KErrNone);
@@ -423,7 +424,7 @@ void CollationTest3L()
 		err = stmt.Next();
 		TEST2(err, KSqlAtRow);
 		TPtrC name = stmt.ColumnTextL(0);
-		RDebug::Print(_L("%S %S\r\n"), &name, &sortedNames[k]);
+		TheTest.Printf(_L("%S %S\r\n"), &name, &sortedNames[k]);
 		TEST(name == sortedNames[KInsertSqlStmtCnt - k - 1]);//descending order
 		}
 	stmt.Close();
@@ -442,7 +443,7 @@ void CollationTest3L()
 	//Cleanup	
 	sortedNames.Close();
 	db.Close();
-	RDebug::Print(_L("###Delete test database\r\n"));
+	TheTest.Printf(_L("###Delete test database\r\n"));
 	(void)RSqlDatabase::Delete(KTestDbName1);
 	}
 
@@ -513,7 +514,7 @@ void LikeTest1()
 	TEST(err != KErrNone);
 	TEST2(::SqlRetCodeClass(err), ESqlDbError);
 	TPtrC errMsg = db.LastErrorMessage();
-	RDebug::Print(_L("!! error=\"%S\"\r\n"), &errMsg);
+	TheTest.Printf(_L("!! error=\"%S\"\r\n"), &errMsg);
 	stmt.Close();
 	//Test case 6 = wild card character used in the search pattern + LIKE + ESCAPE with more than one escape characters
 	err = stmt.Prepare(db, _L("SELECT COUNT(*) FROM A WHERE Name LIKE 't/_sqltest' ESCAPE '1234'"));
@@ -522,7 +523,7 @@ void LikeTest1()
 	TEST(err != KErrNone);
 	TEST2(::SqlRetCodeClass(err), ESqlDbError);
 	errMsg.Set(db.LastErrorMessage());
-	RDebug::Print(_L("!! error=\"%S\"\r\n"), &errMsg);
+	TheTest.Printf(_L("!! error=\"%S\"\r\n"), &errMsg);
 	stmt.Close();
 	//Test case 7 = blank pattern string
 	err = stmt.Prepare(db, _L("SELECT COUNT(*) FROM A WHERE Name LIKE ''"));
@@ -535,7 +536,7 @@ void LikeTest1()
 	
 	//Cleanup	
 	db.Close();
-	RDebug::Print(_L("###Delete test database\r\n"));
+	TheTest.Printf(_L("###Delete test database\r\n"));
 	(void)RSqlDatabase::Delete(KTestDbName1);
 	}
 
@@ -769,7 +770,7 @@ void LikeTest2()
 	stmt.Close();
 	//Cleanup	
 	db.Close();
-	RDebug::Print(_L("###Delete test database\r\n"));
+	TheTest.Printf(_L("###Delete test database\r\n"));
 	(void)RSqlDatabase::Delete(KTestDbName1);
 	}
 

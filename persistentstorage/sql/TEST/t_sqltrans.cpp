@@ -49,7 +49,7 @@ void Check1(TInt aValue, TInt aLine, TBool aPrintThreadName = EFalse)
 			}
 		else
 			{
-			RDebug::Print(_L("*** Line %d\r\n"), aLine);
+			TheTest.Printf(_L("*** Line %d. Expresssion evaluated to false\r\n"), aLine);
 			}
 		TheTest(EFalse, aLine);
 		}
@@ -67,7 +67,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine, TBool aPrintThreadName = EF
 			}
 		else
 			{
-			RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+			TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 			}
 		TheTest(EFalse, aLine);
 		}
@@ -168,26 +168,26 @@ TInt ThreadFunc1(void*)
 */	
 void TransactionTest1()
 	{
-	RDebug::Print(_L("+++:MainThread: Create critical sections\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create critical sections\r\n"));
 	TEST2(ThreadCritSect.CreateLocal(), KErrNone);
 	ThreadCritSect.Wait();
 	TEST2(MainCritSect.CreateLocal(), KErrNone);
 	MainCritSect.Wait();
 	
-	RDebug::Print(_L("+++:MainThread: Create test database\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create test database\r\n"));
 	(void)RSqlDatabase::Delete(KTestDbName);
 	RSqlDatabase db;
 	TInt err = db.Create(KTestDbName);
 	TEST2(err, KErrNone);
 
-	RDebug::Print(_L("+++:MainThread: Create a table in the test database\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create a table in the test database\r\n"));
 	_LIT8(KCreateSql, "CREATE TABLE A(Id INTEGER)");
 	err = db.Exec(KCreateSql);
 	TEST(err >= 0);	
 	
 	db.Close();
 
-	RDebug::Print(_L("+++:MainThread: Create the worker thread\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create the worker thread\r\n"));
 	_LIT(KThreadName, "WorkThrd");
 	RThread thread;
 	TheSqlIdx = 0;
@@ -197,10 +197,10 @@ void TransactionTest1()
 	TEST2(status.Int(), KRequestPending);
 	thread.Resume();
 
-	RDebug::Print(_L("+++:MainThread: Wait SQL statement(s) to be executed...\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Wait SQL statement(s) to be executed...\r\n"));
 	MainCritSect.Wait();
 
-	RDebug::Print(_L("+++:MainThread: Notify the worker thread to panic...\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Notify the worker thread to panic...\r\n"));
 	ThreadCritSect.Signal();
 	
 	User::WaitForRequest(status);
@@ -211,7 +211,7 @@ void TransactionTest1()
 	
 	thread.Close();
 
-	RDebug::Print(_L("+++:MainThread: Check the database content...\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Check the database content...\r\n"));
 	err = db.Open(KTestDbName);
 	TEST2(err, KErrNone);
 	_LIT8(KSelectSql, "SELECT COUNT(*) AS CNT FROM A");

@@ -121,6 +121,8 @@ centreptestdata.iby                                     /epoc32/rom/include/cent
 ../test/11111112.txu            z:/private/10202be9/11111112.txu
 ../test/11111110.cri            z:/private/10202be9/11111110.cri
 ../test/11111110.cru            z:/private/10202be9/11111110.cru
+../test/11111113.txi            z:/private/10202be9/11111113.txi
+../test/11111113.txt            z:/private/10202be9/11111113.txt
 ../test/10057145.txt            z:/private/10202be9/10057145.txt
 ../test/10057522.txt            z:/private/10202be9/10057522.txt
 ../test/10057470.txt            z:/private/10202be9/10057470.txt
@@ -1440,6 +1442,111 @@ centreptestdata_multirofs.iby                               /epoc32/rom/include/
 #endif // SYMBIAN_CENTREP_SUPPORT_MULTIROFS
 
 
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+//Repository files with .pma indicates that they are meant to be in the PMA drive (not in ROM)
+
+../test/pma/pma_array_test/f1000001.txt   z:/private/10202be9/f1000001.txt
+../test/pma/pma_array_test/f1000002.txt   z:/private/10202be9/f1000002.txt
+../test/pma/pma_array_test/f1000003.txt   z:/private/10202be9/f1000003.txt
+../test/pma/pma_array_test/f1000004.txt   z:/private/10202be9/f1000004.txt
+../test/pma/pma_array_test/f1000001.pma   z:/private/10202be9/f1000001.pma
+../test/pma/pma_array_test/f1000002.pma   z:/private/10202be9/f1000002.pma
+../test/pma/pma_array_test/f1000003.pma   z:/private/10202be9/f1000003.pma
+../test/pma/pma_array_test/f1000004.pma   z:/private/10202be9/f1000004.pma
+../test/pma/pma_array_test/f1000005.txt   z:/private/10202be9/f1000005.txt
+../test/pma/pma_array_test/f1000006.txp   z:/private/10202be9/f1000006.txp
+
+../test/pma/pma_api_test/f1000111.txt   z:/private/10202be9/f1000111.txt
+../test/pma/pma_api_test/f1000112.cre   z:/private/10202be9/f1000112.cre
+../test/pma/pma_api_test/f1000113.pma   z:/private/10202be9/f1000113.pma
+../test/pma/pma_api_test/f1000114.pma   z:/private/10202be9/f1000114.pma
+../test/pma/pma_api_test/f1000115.crp   z:/private/10202be9/f1000115.crp
+../test/pma/pma_api_test/f1000116.txp   z:/private/10202be9/f1000116.txp
+../test/pma/pma_api_test/f1000117.txi   z:/private/10202be9/f1000117.txi
+../test/pma/pma_api_test/f1000118.cri   z:/private/10202be9/f1000118.cri
+
+../test/pma/pma_bur_test/f1000200.txt   z:/private/10202be9/f1000200.txt
+../test/pma/pma_bur_test/f1000200.crp   z:/private/10202be9/f1000200.crp
+../test/pma/pma_bur_test/f1000200.pma   z:/private/10202be9/f1000200.pma
+../test/pma/pma_bur_test/f1000201.txt   z:/private/102081e4/f1000201.txt
+../test/pma/pma_bur_test/f1000202.pma   z:/private/10202be9/f1000202.pma
+../test/pma/pma_bur_test/f1000203.crp   z:/private/10202be9/f1000203.crp
+../test/pma/pma_bur_test/f1000204.txi   z:/private/10202be9/f1000204.txi
+../test/pma/pma_bur_test/f1000205.cri   z:/private/10202be9/f1000205.cri
+
+../test/pma/pma_perf_test/f1000301.txt   z:/private/10202be9/f1000301.txt
+../test/pma/pma_perf_test/f1000310.pma   z:/private/10202be9/f1000310.pma
+../test/pma/pma_perf_test/f1000311.pma   z:/private/10202be9/f1000311.pma
+../test/pma/pma_perf_test/f1000312.pma   z:/private/10202be9/f1000312.pma
+../test/pma/pma_perf_test/f1000313.pma   z:/private/10202be9/f1000313.pma
+../test/pma/pma_perf_test/f1000314.pma   z:/private/10202be9/f1000314.pma
+../test/pma/pma_perf_test/f1000315.pma   z:/private/10202be9/f1000315.pma
+../test/pma/pma_perf_test/f1000316.pma   z:/private/10202be9/f1000316.pma
+../test/pma/pma_perf_test/f1000317.pma   z:/private/10202be9/f1000317.pma
+../test/pma/pma_perf_test/f1000318.pma   z:/private/10202be9/f1000318.pma
+../test/pma/pma_perf_test/f1000319.pma   z:/private/10202be9/f1000319.pma
+../test/pma/pma_perf_test/f100031a.pma   z:/private/10202be9/f100031a.pma
+../test/pma/pma_perf_test/f100031b.pma   z:/private/10202be9/f100031b.pma
+../test/pma/pma_perf_test/f100031c.pma   z:/private/10202be9/f100031c.pma
+../test/pma/pma_perf_test/f100031d.pma   z:/private/10202be9/f100031d.pma
+../test/pma/pma_perf_test/f100031e.pma   z:/private/10202be9/f100031e.pma
+../test/pma/pma_perf_test/f100031f.pma   z:/private/10202be9/f100031f.pma
+
+../test/pma/pma_rfs_test/f1000501.txt   z:/private/10202be9/f1000501.txt
+../test/pma/pma_rfs_test/f1000502.txi   z:/private/10202be9/f1000502.txi
+../test/pma/pma_rfs_test/f1000502.pma   z:/private/10202be9/f1000502.pma
+../test/pma/pma_rfs_test/f1000503.txt   z:/private/10202be9/f1000503.txt
+../test/pma/pma_rfs_test/f1000503.txi   z:/private/10202be9/f1000503.txi
+../test/pma/pma_rfs_test/f1000504.txt   z:/private/10202be9/f1000504.txt
+
+../test/pma/pma_fota_test/f1000601.txt   z:/private/10202be9/f1000601.txt
+../test/pma/pma_fota_test/f1000601.txi   z:/private/10202be9/f1000601.txi
+../test/pma/pma_fota_test/f1000601.pma   z:/private/10202be9/f1000601.pma
+../test/pma/pma_fota_test/f1000602.pma   z:/private/10202be9/f1000602.pma
+
+../test/pma/pma_oom_test/f1000700.cri   z:/private/10202be9/f1000700.cri
+../test/pma/pma_oom_test/f1000701.txt   z:/private/10202be9/f1000701.txt
+../test/pma/pma_oom_test/f1000701.txi   z:/private/10202be9/f1000701.txi
+../test/pma/pma_oom_test/f1000702.txt   z:/private/10202be9/f1000702.txt
+
+#ifdef SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+../test/pma/pma_multirofs_test/f1000900.txt         z:/private/10202be9/f1000900.txt
+../test/pma/pma_multirofs_test/f1000900.cre{01-00}  z:/private/10202be9/f1000900.cre[01-00]
+../test/pma/pma_multirofs_test/f1000900.txt{02-00}  z:/private/10202be9/f1000900.txt[02-00]
+../test/pma/pma_multirofs_test/f1000900.cre{03-00}  z:/private/10202be9/f1000900.cre[03-00]
+../test/pma/pma_multirofs_test/f1000901.txt         z:/private/10202be9/f1000901.txt
+../test/pma/pma_multirofs_test/f1000901.txt{01-00}  z:/private/10202be9/f1000901.txt[01-00]
+../test/pma/pma_multirofs_test/f1000902.cre         z:/private/10202be9/f1000902.cre
+../test/pma/pma_multirofs_test/f1000902.cre{01-00}  z:/private/10202be9/f1000902.cre[01-00]
+../test/pma/pma_multirofs_test/f1000903.txt         z:/private/10202be9/f1000903.txt
+../test/pma/pma_multirofs_test/f1000903.cre{01-00}  z:/private/10202be9/f1000903.cre[01-00]
+../test/pma/pma_multirofs_test/f1000904.cre         z:/private/10202be9/f1000904.cre
+../test/pma/pma_multirofs_test/f1000904.txt{01-00}  z:/private/10202be9/f1000904.txt[01-00]
+../test/pma/pma_multirofs_test/f1000905.txt         z:/private/10202be9/f1000905.txt
+../test/pma/pma_multirofs_test/f1000905.txt{01-00}  z:/private/10202be9/f1000905.txt[01-00]
+../test/pma/pma_multirofs_test/f1000906.txt         z:/private/10202be9/f1000906.txt
+../test/pma/pma_multirofs_test/f1000906.txt{01-00}  z:/private/10202be9/f1000906.txt[01-00]
+../test/pma/pma_multirofs_test/f1000907.cre         z:/private/10202be9/f1000907.cre
+../test/pma/pma_multirofs_test/f1000907.cre{01-00}  z:/private/10202be9/f1000907.cre[01-00]
+../test/pma/pma_multirofs_test/f1000908.cre         z:/private/10202be9/f1000908.cre
+../test/pma/pma_multirofs_test/f1000908.cre{01-00}  z:/private/10202be9/f1000908.cre[01-00]
+../test/pma/pma_multirofs_test/f1000909.cre         z:/private/10202be9/f1000909.cre
+../test/pma/pma_multirofs_test/f1000909.txt{01-00}  z:/private/10202be9/f1000909.txt[01-00]
+../test/pma/pma_multirofs_test/f100090a.cre         z:/private/10202be9/f100090a.cre
+../test/pma/pma_multirofs_test/f100090a.txt{01-00}  z:/private/10202be9/f100090a.txt[01-00]
+../test/pma/pma_multirofs_test/f100090b.txt         z:/private/10202be9/f100090b.txt
+../test/pma/pma_multirofs_test/f100090b.cre{01-00}  z:/private/10202be9/f100090b.cre[01-00]
+../test/pma/pma_multirofs_test/f100090c.txt         z:/private/10202be9/f100090c.txt
+../test/pma/pma_multirofs_test/f100090c.cre{01-00}  z:/private/10202be9/f100090c.cre[01-00]
+../test/pma/pma_multirofs_test/f100090d.txt         z:/private/10202be9/f100090d.txt
+../test/pma/pma_multirofs_test/f100090d.cre{01-00}  z:/private/10202be9/f100090d.cre[01-00]
+../test/pma/pma_multirofs_test/f100090d.txt{02-00}  z:/private/10202be9/f100090d.txt[02-00]
+../test/pma/pma_multirofs_test/f100090d.cre{03-00}  z:/private/10202be9/f100090d.cre[03-00]
+#endif // SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+
+#endif // SYMBIAN_INCLUDE_APP_CENTRIC
+
+
 PRJ_TESTMMPFILES
 t_cenrep_helper.mmp               support
 t_cenrep_cache.mmp
@@ -1453,6 +1560,20 @@ t_cenrep_defects.mmp
 t_cenrep_meta.mmp
 t_cenrep_rfs.mmp
 t_cenrep_back_rest.mmp
+
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+t_cenrep_pma_array.mmp
+t_cenrep_pma_bur.mmp
+t_cenrep_pma_fota.mmp
+t_cenrep_pma_oom.mmp
+t_cenrep_pma_rfs.mmp
+
+#ifdef SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+t_cenrep_pma_multirofs.mmp
+#endif // SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+
+#endif // SYMBIAN_INCLUDE_APP_CENTRIC
+
 #ifdef CENTREP_MW_TESTS
     t_cenrep_back_rest_defect.mmp       manual
 #endif // CENTREP_MW_TESTS

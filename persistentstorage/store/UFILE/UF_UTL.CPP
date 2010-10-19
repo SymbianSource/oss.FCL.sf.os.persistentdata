@@ -16,6 +16,7 @@
 #include "UF_STD.H"
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 //
 // Panic the process with STORE-File as the category.
@@ -26,6 +27,7 @@ GLDEF_C void Panic(TFilePanic aPanic)
 	User::Panic(KCategory,aPanic);
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 EXPORT_C CFileStore* FileStoreFactory::DirectLC(RFileBuf& aBuf,const TUidType& aType)

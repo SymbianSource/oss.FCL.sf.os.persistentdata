@@ -67,8 +67,4 @@ data=DATAZ_\test\corruptlogdbu.dat              test\corruptlogdbu.dat
 data=DATAZ_\test\corruptdamagedlogdbu.dat       test\corruptdamagedlogdbu.dat
 data=DATAZ_\test\101f401d_test.txt              test\101f401d_test.txt
 
-//The next line to be uncommented if the testing is performed locally. Otherwise t_logview2 fails - 
-//the following file is missing and needed by the time zone server.
-//data=ZPRIVATE\10202BE9\1020383e.txt           private\10202be9\1020383e.txt
-
 #endif

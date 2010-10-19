@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -48,7 +48,7 @@ START_TESTCASE  SYSLIB-CENTRALREPOSITORY-CIT-0131  //Unchanged
 //!         PREQ908
 
 	RUN_UTILS DeleteFile c:\private\10202be9\persists\bac2bac2.*
-	RUN_TEST_STEP 300 te_centrep_BURSuite initailiseStep 
+	RUN_TEST_STEP 300 te_centrep_BURSuite initialiseStep 
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_CentralRepository\BUR.ini test1
 	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_CentralRepository\BUR.ini test1
  	RUN_TEST_STEP 100 te_centrep_BURSuite compareStep z:\TEF_CentralRepository\BUR.ini step1
@@ -70,7 +70,7 @@ START_TESTCASE SYSLIB-CENTRALREPOSITORY-CIT-0132  //Corrupt
 //! @SYMPREQ PREQ752
 //!         PREQ908
 
-	RUN_TEST_STEP 300 te_centrep_BURSuite initailiseStep 
+	RUN_TEST_STEP 300 te_centrep_BURSuite initialiseStep 
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_CentralRepository\BUR.ini test1
 	RUN_UTILS CopyFile z:\private\10202be9\BADBADBA.txt c:\private\10202be9\BACBACBA.txt
 	RUN_UTILS MakeReadWrite c:\private\10202be9\BACBACBA.txt
@@ -94,7 +94,7 @@ START_TESTCASE  SYSLIB-CENTRALREPOSITORY-CIT-0133 //Modify
 //! @SYMPREQ PREQ752
 //!         PREQ908
 
-	RUN_TEST_STEP 300 te_centrep_BURSuite initailiseStep 
+	RUN_TEST_STEP 300 te_centrep_BURSuite initialiseStep 
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_CentralRepository\BUR.ini test1
 	RUN_TEST_STEP 100 te_centrep_BURSuite modifyStep 	
 	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_CentralRepository\BUR.ini test1
@@ -117,7 +117,7 @@ START_TESTCASE SYSLIB-CENTRALREPOSITORY-CIT-0134 //Delete
 //! @SYMPREQ PREQ752
 //!         PREQ908
 
-	RUN_TEST_STEP 300 te_centrep_BURSuite initailiseStep 
+	RUN_TEST_STEP 300 te_centrep_BURSuite initialiseStep 
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_CentralRepository\BUR.ini test1
 	RUN_UTILS DeleteFile c:\private\10202be9\persists\bacbacba.*
 	//Delay to make sure that cache has been emptied.
@@ -165,7 +165,6 @@ START_TESTCASE   SYSLIB-CENTRALREPOSITORY-CIT-1892 //DEF091759
 //! @SYMTestActions  Fail backup by removing persists directory, observe no panic, restore persists directory
 //! @SYMTestExpectedResults The test must not panic. Backup will fail but Centrep server will handle leave condition gracefully
 //! @SYMDEF DEF091759 
-
 	RUN_UTILS MkDir c:\private\10202be9\temp
 	RUN_UTILS CopyFile c:\private\10202be9\persists\*.* c:\private\10202be9\temp
 	RUN_UTILS DeleteDirectory c:\private\10202be9\persists
@@ -200,7 +199,7 @@ START_TESTCASE  SYSLIB-CENTRALREPOSITORY-CIT-3415 //INC101923
 //! the changes by the restoration and get the new values of changed keys successfully.
 //! @SYMDEF INC101923
 // cenrep notifier does not fire when restoring from backup
-	RUN_TEST_STEP 300 te_centrep_BURSuite initailiseStep 
+	RUN_TEST_STEP 300 te_centrep_BURSuite initialiseStep 
 	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_CentralRepository\BUR.ini test1
 	RUN_TEST_STEP 100 te_centrep_BURSuite modifyStep 	
 	RUN_TEST_STEP 100 te_centrep_burobserversuite RestoreNotificationsInitialiseStep

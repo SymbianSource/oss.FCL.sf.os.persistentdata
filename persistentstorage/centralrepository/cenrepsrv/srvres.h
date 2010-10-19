@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -55,7 +55,9 @@ public:
 										   TUid aUid,   
 										   TCentRepLocation aLocation,
                                            TCentRepFileType aFileType);                                           
-
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	static TInt CompareUids (const TUid& aUid1, const TUid& aUid2);
+#endif
 	static TBool CentrepFileExistsL(TUid aUid, TCentRepLocation aLocation, TCentRepFileType aType);
 	static TBool CentrepFileExistsL(TUid aUid, TCentRepLocation aLocation);
 	static TTime CentrepFileTimeStampL(TUid aUid, TCentRepLocation aLocation);
@@ -68,7 +70,9 @@ public:
 	static void  DeleteCentrepFileL(TUid aUid, TCentRepLocation aLocation, TCentRepFileType aType);
 public:
 	static RFs iFs;
-	
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	static HBufC* iPmaDirectory;
+#endif
 	static HBufC* iRomDirectory;
 	static HBufC* iDataDirectory;
 	static HBufC* iInstallDirectory;
@@ -77,7 +81,9 @@ public:
 	static HBufC* iCreExt;
 	static HBufC* iTrnsExt;
 	static TUint8 iPersistsVersion;
-
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	static RArray<TUid> iPMADriveRepositories;
+#endif	
 	static RArray<TOwnerIdMapping> iOwnerIdLookUpTable;
 
 	static CRepositoryCacheManager* iCacheManager;

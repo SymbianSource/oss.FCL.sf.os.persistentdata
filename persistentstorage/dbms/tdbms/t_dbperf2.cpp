@@ -152,6 +152,7 @@ static void Check(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		CloseAll();
 		DeleteFile(TheDatabaseFileName);
 		DeleteFile(TheTestFileName);

@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -21,7 +21,9 @@
 #include <bafl/sysutil.h>
 #endif
 RFs TServerResources::iFs;
-
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+HBufC* TServerResources::iPmaDirectory;
+#endif
 HBufC* TServerResources::iRomDirectory;
 HBufC* TServerResources::iDataDirectory;
 HBufC* TServerResources::iInstallDirectory;
@@ -35,6 +37,9 @@ HBufC* TServerResources::iTrnsExt;
 TUint8 TServerResources::iPersistsVersion;
 
 RArray<TOwnerIdMapping> TServerResources::iOwnerIdLookUpTable;
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+RArray<TUid> TServerResources::iPMADriveRepositories;
+#endif
 
 CRepositoryCacheManager* TServerResources::iCacheManager;
 CObservable* TServerResources::iObserver;
@@ -196,6 +201,13 @@ void TServerResources::CreateRepositoryFileNameL(HBufC*& aFullFileName,
 	        directory.Copy(iDataDirectory->Des());
 	        }
 	    	break;
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+        case EPma:
+            {
+            directory.Copy(iPmaDirectory->Des());               
+            }
+            break;
+#endif
 	    case EInstall:
 	        {
 	        directory.Copy(iInstallDirectory->Des());
@@ -253,10 +265,15 @@ void TServerResources::CreateRepositoryFileNameL(HBufC*& aFullFileName,
 
 void TServerResources::InitialiseL()
 	{
-#ifndef SYMBIAN_CENTREP_SUPPORT_MULTIROFS
-	iPersistsVersion = KPersistFormatVersion;	// Version 0 of persists
-#else
-	iPersistsVersion = KPersistFormatSupportsIndMetaIndicator;
+    
+#ifndef SYMBIAN_INCLUDE_APP_CENTRIC
+    #ifndef SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+        iPersistsVersion = KPersistFormatVersion;	// Version 1 of persists
+    #else
+        iPersistsVersion = KPersistFormatSupportsIndMetaIndicator; // Version 2 of persists. 
+    #endif	
+#else	
+    iPersistsVersion = KPersistFormatSupportsPma; // Version 3 of persists.	
 #endif	
 	User::LeaveIfError(iFs.Connect());
 
@@ -264,11 +281,18 @@ void TServerResources::InitialiseL()
 	_LIT(KDriveMask, "_:");
 	TDriveName systemDrive(KDriveMask);
 	systemDrive[0] = 'A' + static_cast<TInt>(RFs::GetSystemDrive());
-		
-	_LIT(KRomDrive, "z:");			// This may not always be z:
-	_LIT(KPersistsDir, "persists\\");
+
+	_LIT(KRomDrive, "z:");                 // This may not always be z:
+	_LIT(KPersistsDir, "persists\\");      // Location of persisted keyspaces.
 	_LIT(KBURDir, "bur\\");
 
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+#ifdef SYMBIAN_CENTREP_PMA_TEST
+    _LIT(KProtectedDir, "protected\\");    // Location of the PMA keyspaces, when SYMBIAN_CENTREP_PMA_TEST is defined.            
+#else
+    _LIT(KPmaDrive, "g:");                 // Protected Memory Area (PMA) drive. 
+#endif
+#endif
 	
 	// File extensions
 	
@@ -318,10 +342,10 @@ void TServerResources::InitialiseL()
 		{
 		User::Leave(r);		
 		}
+
 	//
 	// Writeable-drive data directory
 	//
-
 	iDataDirectory = HBufC::NewL(systemDrive.Length()+pathLen+KPersistsDir().Length());
 	ptr.Set(iDataDirectory->Des());
 	ptr.Append(systemDrive);
@@ -332,8 +356,60 @@ void TServerResources::InitialiseL()
 	if(r!=KErrNone && r!=KErrAlreadyExists)
 		User::Leave(r);
 
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
 	//
-	// Writeable-drive backup/restore directory
+    // Protected Memory Area (PMA) drive cenrep directory.
+	//
+#ifdef SYMBIAN_CENTREP_PMA_TEST
+	// Should ONLY be used during development. 
+	iPmaDirectory = HBufC::NewL(systemDrive.Length()+pathLen+KPersistsDir().Length()+KProtectedDir().Length());
+    ptr.Set(iPmaDirectory->Des());
+	ptr.Append(systemDrive);
+    ptr.Append(path);    
+    ptr.Append(KPersistsDir);	
+    ptr.Append(KProtectedDir);		
+#else
+	// Should be used for production devices.
+    iPmaDirectory = HBufC::NewL(KPmaDrive().Length()+pathLen);
+    ptr.Set(iPmaDirectory->Des()); 
+    ptr.Append(KPmaDrive);
+    ptr.Append(path);    
+#endif
+
+    r = iFs.MkDirAll(*iPmaDirectory);
+    if(r!=KErrNone && r!=KErrAlreadyExists)
+        {
+#ifdef SYMBIAN_CENTREP_PMA_TEST
+        User::Leave(r); 
+#else
+        // Must panic the server if the drive is not available.
+        Panic(EPmaDriveNotAvailable);
+#endif     
+        }
+
+    // Generate PMA drive array.
+    TFileName searchFileFormat;
+    searchFileFormat.Append(*(TServerResources::iPmaDirectory));
+    searchFileFormat.Append(_L("????????.cre"));
+    CDir* entryList=NULL;
+    User::LeaveIfError(TServerResources::iFs.GetDir(searchFileFormat,KEntryAttNormal,ESortByName,entryList));
+    CleanupStack::PushL(entryList);
+    iPMADriveRepositories.Reset();
+    TInt fileCount = entryList->Count();
+    TLex parser;
+    TUint32 uidNum;
+    for (TInt i=0; i<fileCount; i++)
+        {
+        parser.Assign((*entryList)[i].iName.Left(8));
+        User::LeaveIfError(parser.Val(uidNum,EHex));
+        iPMADriveRepositories.InsertInOrder( TUid::Uid(uidNum), TLinearOrder<TUid>(TServerResources::CompareUids) );
+        }
+    CleanupStack::PopAndDestroy(entryList);
+
+#endif // SYMBIAN_INCLUDE_APP_CENTRIC
+	
+	//
+	// Writeable-drive backup/restore directory.
 	//
 	iBURDirectory = HBufC::NewL(systemDrive.Length()+pathLen+KBURDir().Length());
 	ptr.Set(iBURDirectory->Des());
@@ -373,8 +449,8 @@ void TServerResources::InitialiseL()
 	CleanupStack::Pop();
 	
 	iOwnerIdLookUpTable.Reset();
-
 	}
+
 
 void TServerResources::Close()
 	{
@@ -383,6 +459,9 @@ void TServerResources::Close()
 	delete iInstallDirectory;
 	delete iDataDirectory;
 	delete iRomDirectory;
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	delete iPmaDirectory;
+#endif
 	delete iBURDirectory;
 	delete iIniExt;
 	delete iCreExt;
@@ -393,12 +472,18 @@ void TServerResources::Close()
 	iInstallDirectory=NULL;
 	iDataDirectory=NULL;
 	iRomDirectory=NULL;
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	iPmaDirectory=NULL;
+#endif
 	iBURDirectory=NULL;	
 	iIniExt=NULL;	
 	iCreExt=NULL;	
 	iTrnsExt=NULL;	
 	
 	iOwnerIdLookUpTable.Close() ;
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	iPMADriveRepositories.Close();
+#endif
 	}
 	
 TInt TServerResources::GetUid(TEntry& aEntry, TUid& aUid)
@@ -419,6 +504,18 @@ TInt TServerResources::GetUid(TEntry& aEntry, TUid& aUid)
 			
 	return KErrNone;
 	}
+
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+TInt TServerResources::CompareUids (const TUid& aUid1, const TUid& aUid2) 
+	{
+	if (aUid1.iUid < aUid2.iUid)
+		return -1 ;
+	else if (aUid1.iUid > aUid2.iUid)
+		return 1 ;
+	else
+		return 0 ;
+	}
+#endif
 
 TInt TOwnerIdMapping::CompareUids (const TOwnerIdMapping& aOwnerIdMapping1, const TOwnerIdMapping& aOwnerIdMapping2) 
 	{

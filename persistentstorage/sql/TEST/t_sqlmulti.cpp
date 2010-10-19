@@ -43,11 +43,11 @@ void Check1(TInt aValue, TInt aLine, TBool aPrintThreadName = EFalse)
 			{
 			RThread th;
 			TName name = th.Name();
-			RDebug::Print(_L("*** Thread %S, Line %d\r\n"), &name, aLine);
+			RDebug::Print(_L("*** Thread %S, Line %d. Expression evaluated to false\r\n"), &name, aLine);
 			}
 		else
 			{
-			RDebug::Print(_L("*** Line %d\r\n"), aLine);
+			TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
 			}
 		TheTest(EFalse, aLine);
 		}
@@ -65,7 +65,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine, TBool aPrintThreadName = EF
 			}
 		else
 			{
-			RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+			TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 			}
 		TheTest(EFalse, aLine);
 		}
@@ -111,7 +111,7 @@ void TestMultiConnSameThread()
 	TEST2(err, KErrNone);
 
 	//Create test database
-	RDebug::Print(_L("###Create test database\r\n"));
+	TheTest.Printf(_L("###Create test database\r\n"));
 	_LIT8(KCreateSql, "CREATE TABLE A(Id INTEGER PRIMARY KEY AUTOINCREMENT, Data INTEGER)");
 	err = db1.Exec(KCreateSql);
 	TEST(err >= 0);
@@ -122,7 +122,7 @@ void TestMultiConnSameThread()
 	TEST2(err, KErrNone);
 	
 	//Insert some records using both connections
-	RDebug::Print(_L("###Insert some records\r\n"));
+	TheTest.Printf(_L("###Insert some records\r\n"));
 	const TInt KRecNum = 100;
 	_LIT8(KInsertSql, "INSERT INTO A(Data) VALUES(");
 	for(TInt i=0;i<KRecNum;++i)
@@ -134,13 +134,13 @@ void TestMultiConnSameThread()
 		if(err < 0)
 			{
 			TPtrC msg = (i%2) ? db1.LastErrorMessage() : db2.LastErrorMessage();
-			RDebug::Print(_L("##Db Error msg: \"%S\"\n\r"), &msg);
+			TheTest.Printf(_L("##Db Error msg: \"%S\"\n\r"), &msg);
 			}
 		TEST2(err, 1);
 		}
 		
 	//Check the database content
-	RDebug::Print(_L("###Check the database content\r\n"));
+	TheTest.Printf(_L("###Check the database content\r\n"));
 	_LIT8(KSelectSql, "SELECT * FROM A");
 	RSqlStatement stmt;
 	err = stmt.Prepare(db1, KSelectSql);
@@ -161,7 +161,7 @@ void TestMultiConnSameThread()
 	//Cleanup	
 	db2.Close();
 	db1.Close();
-	RDebug::Print(_L("###Delete the test database\r\n"));
+	TheTest.Printf(_L("###Delete the test database\r\n"));
 	(void)RSqlDatabase::Delete(KTestDbName1);
 	}
 
@@ -251,13 +251,13 @@ TInt ThreadFunc(void* aData)
 void TestMultiConnDiffThread()
 	{
 	//Create a test database
-	RDebug::Print(_L("+++:MainThread: Create test database\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create test database\r\n"));
 	RSqlDatabase db;
 	TInt err = db.Create(KTestDbName1);
 	TEST2(err, KErrNone);
 	
 	//Create a test table
-	RDebug::Print(_L("+++:MainThread: Create a table in the test database\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create a table in the test database\r\n"));
 	_LIT8(KCreateSql, "CREATE TABLE A(Id INTEGER PRIMARY KEY)");
 	err = db.Exec(KCreateSql);
 	TEST(err >= 0);
@@ -283,7 +283,7 @@ void TestMultiConnDiffThread()
 			TInt low = 1;
 			TInt high = KRange;
 			
-			RDebug::Print(_L("+++:MainThread: Test: thread count %d, records %d, trans type %d, isolation level: %S\r\n"), 
+			TheTest.Printf(_L("+++:MainThread: Test: thread count %d, records %d, trans type %d, isolation level: %S\r\n"), 
 									KThreadCnt, KRange, transType, &KIsolationLevelName[isolLevel]);
 									
 			RThread thread[KThreadCnt];
@@ -320,7 +320,7 @@ void TestMultiConnDiffThread()
 				}
 
 			//Check that all records which are esupposed to be in the database, are there.
-			RDebug::Print(_L("+++:MainThread: Check that all records have been written\r\n"));
+			TheTest.Printf(_L("+++:MainThread: Check that all records have been written\r\n"));
 			_LIT8(KSelectSql1, "SELECT COUNT(*) FROM A;");
 			RSqlStatement stmt;
 			err = stmt.Prepare(db, KSelectSql1);
@@ -332,7 +332,7 @@ void TestMultiConnDiffThread()
 			stmt.Close();
 			
 			//Check that all records have expected column values.
-			RDebug::Print(_L("+++:MainThread: Check that all records have expected column values\r\n"));
+			TheTest.Printf(_L("+++:MainThread: Check that all records have expected column values\r\n"));
 			_LIT8(KSelectSql2, "SELECT * FROM A;");
 			err = stmt.Prepare(db, KSelectSql2);
 			TEST2(err, KErrNone);
@@ -346,7 +346,7 @@ void TestMultiConnDiffThread()
 			stmt.Close();
 
 			//Prepare for the next test run - delete all records.
-			RDebug::Print(_L("+++:MainThread: Delete all records\r\n"));
+			TheTest.Printf(_L("+++:MainThread: Delete all records\r\n"));
 			_LIT8(KDeleteSql, "DELETE FROM A");
 			err = db.Exec(KDeleteSql);
 			TEST(err >= 0);
@@ -354,7 +354,7 @@ void TestMultiConnDiffThread()
 		}//end of "for(TInt transType=0;transType<KTransTypeCnt;++transType)"
 		
 	db.Close();
-	RDebug::Print(_L("+++:MainThread: Delete the test database\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Delete the test database\r\n"));
 	(void)RSqlDatabase::Delete(KTestDbName1);
 	}
 
@@ -428,27 +428,27 @@ TInt UpdateThreadFunc(void*)
 */	
 void TestIsolationLevel()
 	{
-	RDebug::Print(_L("+++:MainThread: Create critical sections\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create critical sections\r\n"));
 	TEST2(UpdateThreadCrS.CreateLocal(), KErrNone);
 	UpdateThreadCrS.Wait();
 	TEST2(MainThreadCrS.CreateLocal(), KErrNone);
 	MainThreadCrS.Wait();
 	
-	RDebug::Print(_L("+++:MainThread: Create test database\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create test database\r\n"));
 	RSqlDatabase db;
 	TInt err = db.Create(KTestDbName1);
 	TEST2(err, KErrNone);
 
-	RDebug::Print(_L("+++:MainThread: Set the isolation level to \"Read uncommitted\"\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Set the isolation level to \"Read uncommitted\"\r\n"));
 	err = db.SetIsolationLevel(RSqlDatabase::EReadUncommitted);
 	TEST2(err, KErrNone);
 	
-	RDebug::Print(_L("+++:MainThread: Create a table in the test database\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create a table in the test database\r\n"));
 	_LIT8(KCreateSql, "CREATE TABLE A(Id INTEGER)");
 	err = db.Exec(KCreateSql);
 	TEST(err >= 0);
 
-	RDebug::Print(_L("+++:MainThread: Insert one record in the table\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Insert one record in the table\r\n"));
 	_LIT8(KInsertSql, "INSERT INTO A(Id) VALUES(");
 	TBuf8<64> sql(KInsertSql);
 	sql.AppendNum((TInt64)KInitialValue);
@@ -456,7 +456,7 @@ void TestIsolationLevel()
 	err = db.Exec(sql);
 	TEST2(err, 1);
 
-	RDebug::Print(_L("+++:MainThread: Create the \"update\" thread\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Create the \"update\" thread\r\n"));
 	_LIT(KThreadName, "UpdTh");
 	RThread thread;
 	TEST2(thread.Create(KThreadName, &UpdateThreadFunc, 0x2000, 0x1000, 0x10000, NULL, EOwnerThread), KErrNone);
@@ -465,10 +465,10 @@ void TestIsolationLevel()
 	TEST2(status.Int(), KRequestPending);
 	thread.Resume();
 
-	RDebug::Print(_L("+++:MainThread: Wait for record update completion...\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Wait for record update completion...\r\n"));
 	MainThreadCrS.Wait();
 
-	RDebug::Print(_L("+++:MainThread: Read the record and check the data...\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Read the record and check the data...\r\n"));
 	_LIT8(KSelectSql, "SELECT * FROM A");
 	RSqlStatement stmt;
 	err = stmt.Prepare(db, KSelectSql);
@@ -479,13 +479,13 @@ void TestIsolationLevel()
 	TEST(val == KUpdatedValue);
 	stmt.Close();
 
-	RDebug::Print(_L("+++:MainThread: Notify the update thread that it can rollback\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Notify the update thread that it can rollback\r\n"));
 	UpdateThreadCrS.Signal();
 
-	RDebug::Print(_L("+++:MainThread: Wait for  rollback  completion...\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Wait for  rollback  completion...\r\n"));
 	MainThreadCrS.Wait();
 
-	RDebug::Print(_L("+++:MainThread: Read the record and check the data...\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Read the record and check the data...\r\n"));
 	err = stmt.Prepare(db, KSelectSql);
 	TEST2(err, KErrNone);
 	err = stmt.Next();
@@ -498,10 +498,10 @@ void TestIsolationLevel()
 	thread.Close();
 
 	db.Close();
-	RDebug::Print(_L("+++:MainThread: Delete the test database\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Delete the test database\r\n"));
 	(void)RSqlDatabase::Delete(KTestDbName1);
 
-	RDebug::Print(_L("+++:MainThread: Close critical sections\r\n"));
+	TheTest.Printf(_L("+++:MainThread: Close critical sections\r\n"));
 	MainThreadCrS.Close();
 	UpdateThreadCrS.Close();
 	}

@@ -18,6 +18,8 @@ TARGETTYPE    exe
 
 CAPABILITY	  WriteDeviceData ReadDeviceData WriteUserData ReadUserData
 
+//The code coverage drops without the next line because the inlined functions will be taken from the "systeminclude"
+USERINCLUDE 	../LogCli/inc
 USERINCLUDE   ../test/inc
 USERINCLUDE   ../Shared
 OS_LAYER_SYSTEMINCLUDE_SYMBIAN

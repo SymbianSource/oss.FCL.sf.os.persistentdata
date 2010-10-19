@@ -77,6 +77,7 @@ void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DeleteTestFiles();
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -85,7 +86,7 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -121,7 +122,7 @@ template <class DES, class BUF> void ExecSqlStmtOnDb(RSqlDatabase& aDb, const TD
 	if(rc < 0 && SqlRetCodeClass(rc) == ESqlDbError)
 		{
 		TPtrC msg = aDb.LastErrorMessage();
-		RDebug::Print(_L("Execute SQL error - '%S'\r\n"), &msg);
+		TheTest.Printf(_L("Execute SQL error - '%S'\r\n"), &msg);
 		}
 	if(aExpectedError < 0)
 		{
@@ -144,7 +145,7 @@ template <class DES, class BUF>  RSqlStatement PrepareSqlStmt(RSqlDatabase& aDb,
 	if(rc != KErrNone && SqlRetCodeClass(rc) == ESqlDbError)
 		{
 		TPtrC msg = aDb.LastErrorMessage();
-		RDebug::Print(_L("Execute SQL error - '%S'\r\n"), &msg);
+		TheTest.Printf(_L("Execute SQL error - '%S'\r\n"), &msg);
 		}
 	TEST2(rc, aExpectedError);
 	return stmt;
@@ -156,7 +157,7 @@ void ExecSqlStmt(RSqlDatabase& aDb, RSqlStatement& aStmt, TInt aExpectedError)
 	if(rc < 0 && SqlRetCodeClass(rc) == ESqlDbError)
 		{
 		TPtrC msg = aDb.LastErrorMessage();
-		RDebug::Print(_L("Execute SQL error - '%S'\r\n"), &msg);
+		TheTest.Printf(_L("Execute SQL error - '%S'\r\n"), &msg);
 		}
 	if(aExpectedError < 0)
 		{
@@ -287,7 +288,7 @@ void OpenCloseDatabaseTest()
 	fs.FileSystemName(filesysname,(TInt) EDriveC);
     fs.Close();
 
-	RDebug::Print(_L("file system name = %S"), &filesysname);
+    TheTest.Printf(_L("file system name = %S"), &filesysname);
 	TInt maxFileName = KMaxFileName -40;//"-40" because the SQLITE engine creates a journal file if begins
 	                                                 //a transaction. The name of the journal file is 
 	                                                 //"<dbFileName>-journal.<ext>". It is obvious that if the 

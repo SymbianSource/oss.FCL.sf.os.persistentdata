@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -32,6 +32,9 @@ class TServerSetting
 	friend class RSettingsArray;
 #if defined(SYMBIAN_CENTREP_SUPPORT_MULTIROFS) && defined(CENTRAL_REPOSITORY_SERVER_TESTING)	
 	friend class CenrepSrvOOMTest;
+    #if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+	friend class CenrepSrvPmaMultiRofsTest;
+    #endif 
 #endif	
 public:
 	enum TType { EInt	  = 0x00000000, 

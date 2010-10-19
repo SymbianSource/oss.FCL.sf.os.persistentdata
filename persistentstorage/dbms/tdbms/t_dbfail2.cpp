@@ -34,7 +34,7 @@ GLDEF_C void PrepareDbFmtString()
 LOCAL_C void DbCreate2L()
 	{
 	User::LeaveIfError(TheDatabase.Create(TheDbs, KTestDatabase2, TheFormat2));
-	RDebug::Print(_L("Secure shared database created.\n"));
+	test.Printf(_L("Secure shared database created.\n"));
 	}
 
 LOCAL_C void DbDatabaseNamesL()
@@ -46,22 +46,22 @@ LOCAL_C void DbDatabaseNamesL()
 	for(i=0;i<cnt;++i)
 		{
 		const TDesC& name = (*dbNames)[i];
-		RDebug::Print(_L("%02d. %S\n"), i + 1, &name);
+		test.Printf(_L("%02d. %S\n"), i + 1, &name);
 		}
 	delete dbNames;
-	RDebug::Print(_L("Secure shared database - DatabaseNamesL().\n"));
+	test.Printf(_L("Secure shared database - DatabaseNamesL().\n"));
 	}
 
 LOCAL_C void DbCopyDatabaseL()
 	{
 	User::LeaveIfError(TheDbs.CopyDatabase(KTestDatabase2, KTestDatabase3, KPolicyUid));
-	RDebug::Print(_L("Secure shared database - CopyDatabase().\n"));
+	test.Printf(_L("Secure shared database - CopyDatabase().\n"));
 	}
 
 LOCAL_C void DbDeleteDatabaseL()
 	{
 	User::LeaveIfError(TheDbs.DeleteDatabase(KTestDatabase2, KPolicyUid));
-	RDebug::Print(_L("Secure shared database - DeleteDatabase().\n"));
+	test.Printf(_L("Secure shared database - DeleteDatabase().\n"));
 	}
 
 LOCAL_C void DbOpen2L()
@@ -70,7 +70,7 @@ LOCAL_C void DbOpen2L()
 	CleanupClosePushL(TheDatabase);
 	delete TheDatabase.TableNamesL();	// force a schema load
 	CleanupStack::Pop();
-	RDebug::Print(_L("Secure shared database - Open().\n"));
+	test.Printf(_L("Secure shared database - Open().\n"));
 	}
 
 GLDEF_C void TestOpen2()

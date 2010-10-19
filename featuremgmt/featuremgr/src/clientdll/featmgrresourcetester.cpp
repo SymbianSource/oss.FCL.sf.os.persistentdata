@@ -23,6 +23,8 @@
 extern CFeatMgrTlsData* TlsData();
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
+
 
 /** 
 */
@@ -69,4 +71,5 @@ EXPORT_C void TFeatMgrResourceTester::SetHeapFailure(TInt aAllocFailType, TInt a
 #endif    
     }
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on

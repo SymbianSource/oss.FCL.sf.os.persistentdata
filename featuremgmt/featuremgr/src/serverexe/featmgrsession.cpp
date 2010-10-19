@@ -549,6 +549,7 @@ void CFeatMgrSession::DispatchMessageL( const RMessage2& aMessage )
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
     	    
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
     	    
         case EFeatMgrResourceMark:
             ResourceCountMarkStart();
@@ -601,6 +602,7 @@ void CFeatMgrSession::DispatchMessageL( const RMessage2& aMessage )
     	    break;
     	    }
     	    
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
     	    
 #endif

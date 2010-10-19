@@ -16,6 +16,7 @@
 #include "UT_STD.H"
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 //
 // Panic the process with STORE-Store as the category.
@@ -26,6 +27,7 @@ GLDEF_C void Panic(TStorePanic aPanic)
 	User::Panic(KCategory,aPanic);
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 EXPORT_C void TStreamId::InternalizeL(RReadStream& aStream)

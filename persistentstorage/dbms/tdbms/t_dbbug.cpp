@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -359,7 +359,6 @@ void Defect_COMBBAR_463J5D::KillDbmsServer()
     {
     _LIT(KDbmsServer,"edbsrv.exe");
      TFullName name;
-    //RDebug::Print(_L("Find and kill \"%S\" process.\n"), &aProcessName);
     TBuf<64> pattern(KDbmsServer);
     TInt length = pattern.Length();
     pattern += _L("*");
@@ -376,7 +375,6 @@ void Defect_COMBBAR_463J5D::KillDbmsServer()
                 {
                 // If the found name is other valid application name
                 // starting with aProcessName string.
-                //RDebug::Print(_L(":: Process name: \"%S\".\n"), &name);
                 continue;
                 }
             }
@@ -384,7 +382,6 @@ void Defect_COMBBAR_463J5D::KillDbmsServer()
         if (proc.Open(name) == KErrNone)
             {
             proc.Kill(0);
-            //RDebug::Print(_L("\"%S\" process killed.\n"), &name);
             }
         proc.Close();
         }
@@ -593,23 +590,23 @@ LOCAL_C void DeleteDataFile(const TDesC& aFullName)
 		TEntry entry;
 		if(fsSession.Entry(aFullName, entry) == KErrNone)
 			{
-			RDebug::Print(_L("Deleting \"%S\" file.\n"), &aFullName);
+			test.Printf(_L("Deleting \"%S\" file.\n"), &aFullName);
 			err = fsSession.SetAtt(aFullName, 0, KEntryAttReadOnly);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
+				test.Printf(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
 				}
 			err = fsSession.Delete(aFullName);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
+				test.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
 				}
 			}
 		fsSession.Close();
 		}
 	else
 		{
-		RDebug::Print(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
+		test.Printf(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
 		}
 	}
 

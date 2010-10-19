@@ -19,6 +19,7 @@
 
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 /**
 Initializes TSqlResourceProfiler data members with their default values.
@@ -157,4 +158,5 @@ EXPORT_C TInt TSqlResourceProfiler::Query(TSqlResourceProfiler::TSqlCounter aCou
 
 #endif//_SQLPROFILER
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on

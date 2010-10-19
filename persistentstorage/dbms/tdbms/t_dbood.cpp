@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -88,6 +88,16 @@ static TColDef const KColDefs[]=
 
 #endif
 
+//The drive that will be used in case if the original drive, where KTestDir is supposed to be created, is not present. 
+const TInt KTestDrive2 = EDriveC;
+_LIT(KTestDatabase2, "C:\\DBMS-TST\\T_DbmsOOD.DB");
+_LIT(KLargeFileName2, "C:\\DBMS-TST\\DeleteMe");
+
+TInt TheTestDrive = -1;
+TFileName TheTestDatabase;
+TFileName TheLargeFileName;
+
+	
 static void AssembleLargeFileName(const TDesC& aFileName, TInt aFileNumber, TDes& aResultPath)
 	{
 	_LIT(KFormatStr, "%S.%03d");
@@ -109,23 +119,23 @@ static TInt DeleteDataFile(const TDesC& aFullName)
 		err = fsSession.Entry(aFullName, entry);
 		if(err == KErrNone)
 			{
-			RDebug::Print(_L("Deleting \"%S\" file.\n"), &aFullName);
+			TheTest.Printf(_L("Deleting \"%S\" file.\n"), &aFullName);
 			err = fsSession.SetAtt(aFullName, 0, KEntryAttReadOnly);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
+				TheTest.Printf(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
 				}
 			err = fsSession.Delete(aFullName);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
+				TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
 				}
 			}
 		fsSession.Close();
 		}
 	else
 		{
-		RDebug::Print(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
+		TheTest.Printf(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
 		}
 	return err;
 	}
@@ -136,7 +146,7 @@ static void DeleteLargeDataFiles()
 	for(TInt i=0;i<1000;++i)
 		{
 		TBuf<KMaxFileName> filePath;
-		AssembleLargeFileName(KLargeFileName, i, filePath);
+		AssembleLargeFileName(TheLargeFileName, i, filePath);
 		if(DeleteDataFile(filePath) != KErrNone)
 			{
 			break;
@@ -152,7 +162,7 @@ static void DeleteDataFiles()
 		TheDb.Close();
 		}
 	TheDbSession.Close();
-	DeleteDataFile(KTestDatabase);
+	DeleteDataFile(TheTestDatabase);
 	DeleteLargeDataFiles();
 	}
 
@@ -164,6 +174,7 @@ static void Check(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		DeleteDataFiles();
 		TheTest(EFalse, aLine);
 		}
@@ -173,7 +184,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		DeleteDataFiles();
 		TheTest(EFalse, aLine);
 		}
@@ -190,10 +201,14 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 //TheFs.Connect() has to be called already.
 static void SetupTestDirectory()
     {
-	TInt err = TheFs.MkDir(KTestDatabase);
-	if(err != KErrNone)
+	TInt err = TheFs.MkDir(TheTestDatabase);
+	if(err != KErrNone && err != KErrAlreadyExists)
 	    {
-	    RDebug::Print(_L("*** SetupTestDirectory(), RFs::MkDir(), err=%d\r\n"), err);
+		TheTest.Printf(_L("*** SetupTestDirectory(), RFs::MkDir(), drive=%d, err=%d.\r\nNext attempt with drive %d.\r\n"), TheTestDrive, err, KTestDrive2);
+	    TheTestDrive = KTestDrive2;
+		TheTestDatabase.Copy(KTestDatabase2);
+		TheLargeFileName.Copy(KLargeFileName2);
+		err = TheFs.MkDir(TheTestDatabase);
 	    }
 	TEST(err == KErrNone || err == KErrAlreadyExists);
 	}
@@ -201,7 +216,7 @@ static void SetupTestDirectory()
 //Leaves with info message printed out
 static void LeaveL(TInt aError, TInt aLine)
 	{
-	RDebug::Print(_L("*** Leave. Error: %d, Line: %d\r\n"), aError, aLine);
+	TheTest.Printf(_L("*** Leave. Error: %d, Line: %d\r\n"), aError, aLine);
 	User::Leave(aError);
 	}
 
@@ -240,7 +255,7 @@ static void FillLargeDataFileL(RFile& aFile, TInt aSize)
 static TInt64 FreeDiskSpaceL()
 	{
 	TVolumeInfo volInfoBefore;
-	LEAVE_IF_ERROR(TheFs.Volume(volInfoBefore, KTestDrive));
+	LEAVE_IF_ERROR(TheFs.Volume(volInfoBefore, TheTestDrive));
 	return volInfoBefore.iFree;
 	}
 
@@ -262,13 +277,13 @@ static void CreateLargeFileL()
 	TInt fileNo = 0;
 	const TInt KLargeFileSize = 1000000000;
 	TInt64 diskSpace = FreeDiskSpaceL();
-	RDebug::Print(_L("CreateLargeFileL: free space before = %ld\n"), diskSpace);
+	TheTest.Printf(_L("CreateLargeFileL: free space before = %ld\n"), diskSpace);
 	TBuf<KMaxFileName> filePath;
     const TInt64 KMinDiskSpace = 200;
 	//Reserve almost all disk space, except a small amount - 200 bytes.
 	while(diskSpace > KMinDiskSpace)
 		{
-		AssembleLargeFileName(KLargeFileName, fileNo++, filePath);
+		AssembleLargeFileName(TheLargeFileName, fileNo++, filePath);
 		TInt fileSize = KLargeFileSize;
         if(diskSpace < (TInt64)KLargeFileSize)
             {
@@ -277,17 +292,17 @@ static void CreateLargeFileL()
             }
 		DoCreateLargeFileL(filePath, fileSize);
 		diskSpace = FreeDiskSpaceL();
-		RDebug::Print(_L("----CreateLargeFileL, step %d, free space = %ld\n"), fileNo, diskSpace);
+		TheTest.Printf(_L("----CreateLargeFileL, step %d, free space = %ld\n"), fileNo, diskSpace);
 		}
 	diskSpace = FreeDiskSpaceL();
-	RDebug::Print(_L("CreateLargeFileL: free space after = %ld\n"), diskSpace);
+	TheTest.Printf(_L("CreateLargeFileL: free space after = %ld\n"), diskSpace);
 	}
 
 //Reserves disk space for TheDbSession instance.
 //TheDbSession instance has to be connected already.
 static void ReserveDiskSpace()
 	{
-	TInt err = TheDbSession.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+	TInt err = TheDbSession.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
 	TEST2(err, KErrNone);
 	}
 
@@ -295,14 +310,14 @@ static void ReserveDiskSpace()
 //TheDbSession instance has to be connected already.
 static void FreeReservedSpace()
 	{
-	TheDbSession.FreeReservedSpace(KTestDrive);
+	TheDbSession.FreeReservedSpace(TheTestDrive);
 	}
 
 //Gets an access to the reserved disk space for TheDbSession instance.
 //TheDbSession instance has to be connected already.
 static void UnlockReservedSpace()
 	{
-	TInt err = TheDbSession.GetReserveAccess(KTestDrive);
+	TInt err = TheDbSession.GetReserveAccess(TheTestDrive);
 	TEST2(err, KErrNone);
 	}
 
@@ -310,7 +325,7 @@ static void UnlockReservedSpace()
 //TheDbSession instance has to be connected already.
 static void LockReservedSpace()
 	{
-	(void)TheDbSession.ReleaseReserveAccess(KTestDrive);
+	(void)TheDbSession.ReleaseReserveAccess(TheTestDrive);
 	}
 
 //Creates the test DBMS session
@@ -327,12 +342,12 @@ static void CreateTestDbSession()
 static void CreateTestDatabase(RDbs& aDbs, RDbNamedDatabase& aDb)
 	{
 	//Create the test database.
-	TInt err = aDb.Replace(TheFs, KTestDatabase);
+	TInt err = aDb.Replace(TheFs, TheTestDatabase);
 	TEST2(err, KErrNone);
 	TheDb.Close();
 	//Open it now using DBMS session (so, on DBMS server side), because we want to test
 	//server side RFs sessions - handling "out of disk space" situations.
-	err = aDb.Open(aDbs, KTestDatabase);
+	err = aDb.Open(aDbs, TheTestDatabase);
 	TEST2(err, KErrNone);
 	}
 
@@ -412,37 +427,37 @@ static void SimpleCallsL()
 	LEAVE_IF_ERROR(dbs.Connect());
 
 	//Reserve disk space
-	TInt err = dbs.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+	TInt err = dbs.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
 	TEST2(err, KErrNone);
 
 	//An attempt to re-reserve it
-   	err = dbs.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+   	err = dbs.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
 	TEST2(err, KErrInUse);
 
 	//Get an access to the reserved disk space
-	err = dbs.GetReserveAccess(KTestDrive);
+	err = dbs.GetReserveAccess(TheTestDrive);
 	TEST2(err, KErrNone);
 
 	//An attempt to get an access to the reserved space twice.
-	err = dbs.GetReserveAccess(KTestDrive);
+	err = dbs.GetReserveAccess(TheTestDrive);
 	TEST2(err, KErrInUse);
 
 	//This call must fail, because it tries to get an access to the reserved space of
 	//not the same drive, for which ReserveDriveSpace() was called.
-	err = dbs.GetReserveAccess(KTestDrive + 1);
+	err = dbs.GetReserveAccess(TheTestDrive + 1);
 	TEST(err != KErrNone);
 
-	(void)dbs.ReleaseReserveAccess(KTestDrive);
+	(void)dbs.ReleaseReserveAccess(TheTestDrive);
 
 	//An attempt to release the reserved space twice. This call will panic in debug mode.
-	//(void)dbs.ReleaseReserveAccess(KTestDrive);
+	//(void)dbs.ReleaseReserveAccess(TheTestDrive);
 
 	//Cancel reserving an additional disk space
-	dbs.FreeReservedSpace(KTestDrive);
+	dbs.FreeReservedSpace(TheTestDrive);
 
 	//Cancel reserving an additional disk space twice
     //This call will panic in debug mode.
-	//dbs.FreeReservedSpace(KTestDrive);
+	//dbs.FreeReservedSpace(TheTestDrive);
 
 	CleanupStack::PopAndDestroy(&dbs);
 	}
@@ -460,9 +475,9 @@ static void SimpleCallsL()
 static void TransactionTestL()
 	{
     TVolumeIOParamInfo volIoPrm;
-    TInt err = TheFs.VolumeIOParam(KTestDrive, volIoPrm);
+    TInt err = TheFs.VolumeIOParam(TheTestDrive, volIoPrm);
     TEST2(err, KErrNone);
-    RDebug::Print(_L("--Drive %d. BlockSize=%d, ClusterSize=%d, RecReadBufSize=%d, RecWriteBufSize=%d\r\n"), KTestDrive, volIoPrm.iBlockSize, volIoPrm.iClusterSize, volIoPrm.iRecReadBufSize, volIoPrm.iRecWriteBufSize);
+    TheTest.Printf(_L("--Drive %d. BlockSize=%d, ClusterSize=%d, RecReadBufSize=%d, RecWriteBufSize=%d\r\n"), TheTestDrive, volIoPrm.iBlockSize, volIoPrm.iClusterSize, volIoPrm.iRecReadBufSize, volIoPrm.iRecWriteBufSize);
     /////////////////////////////////////////////////////////
 	CreateTestDbSession();
     //Rserve disk space
@@ -471,21 +486,21 @@ static void TransactionTestL()
 	CreateTestDatabase(TheDbSession, TheDb);
 	CreateTestTableL(TheDb);
 	AddTestDataL(TheDb);
-    RDebug::Print(_L("--Simulate an \"out of disk space\" situation with creating a very large data file, which occupies almost the all the available disk space.\r\n"));
+	TheTest.Printf(_L("--Simulate an \"out of disk space\" situation with creating a very large data file, which occupies almost the all the available disk space.\r\n"));
 	CreateLargeFileL();
-    RDebug::Print(_L("--Attempt to delete test data records. The transaction must fail, because of \"out of disk space\".\r\n"));
+	TheTest.Printf(_L("--Attempt to delete test data records. The transaction must fail, because of \"out of disk space\".\r\n"));
     TInt64 diskSpace = FreeDiskSpaceL();
-	RDebug::Print(_L("--Attempt to delete test data records. Free disk space = %ld\n"), diskSpace);
+    TheTest.Printf(_L("--Attempt to delete test data records. Free disk space = %ld\n"), diskSpace);
 	TRAP(err, DeleteRecordsL());
-	RDebug::Print(_L("--DeleteRecordsL() returned %d error\r\n"), err);
+	TheTest.Printf(_L("--DeleteRecordsL() returned %d error\r\n"), err);
 	TEST(err != KErrNone);
-    RDebug::Print(_L("--The attempt failed with err=%d. Get an access to the reserved disk space.\r\n"), err);
+	TheTest.Printf(_L("--The attempt failed with err=%d. Get an access to the reserved disk space.\r\n"), err);
     UnlockReservedSpace();
-	RDebug::Print(_L("--Try again with getting an access to the reserved disk space.\n"));
+    TheTest.Printf(_L("--Try again with getting an access to the reserved disk space.\n"));
     diskSpace = FreeDiskSpaceL();
-    RDebug::Print(_L("After GetReserveAccess(), free disk space = %ld\r\n"), diskSpace);
+    TheTest.Printf(_L("After GetReserveAccess(), free disk space = %ld\r\n"), diskSpace);
 	DeleteRecordsL();
-	RDebug::Print(_L("--\"Delete\" transaction was completed successfully.\n"));
+	TheTest.Printf(_L("--\"Delete\" transaction was completed successfully.\n"));
     //Free the resources, used in the test
 	DeleteLargeDataFiles();
 	LockReservedSpace();
@@ -514,7 +529,7 @@ static void TwoSessTestL()
 
     RDbNamedDatabase db1;
     CleanupClosePushL(db1);
-	TInt err = db1.Open(dbSess1, KTestDatabase);
+	TInt err = db1.Open(dbSess1, TheTestDatabase);
 	TEST2(err, KErrNone);
 
 	RDbTable tbl1;
@@ -528,7 +543,7 @@ static void TwoSessTestL()
 
     RDbNamedDatabase db2;
     CleanupClosePushL(db2);
-	err = db2.Open(dbSess2, KTestDatabase);
+	err = db2.Open(dbSess2, TheTestDatabase);
 	TEST2(err, KErrNone);
 
 	RDbTable tbl2;
@@ -585,20 +600,20 @@ static void TwoSessTest2L()
     LEAVE_IF_ERROR(dbSess2.Connect());
 
     //Play with "ReserveDriveSpace" on both sessions
-    TInt err = dbSess1.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+    TInt err = dbSess1.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
     TEST2(err, KErrNone);
-    err = dbSess2.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+    err = dbSess2.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
     TEST2(err, KErrNone);
-    dbSess2.FreeReservedSpace(KTestDrive);
-    err = dbSess2.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+    dbSess2.FreeReservedSpace(TheTestDrive);
+    err = dbSess2.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
     TEST2(err, KErrNone);
 
     //Get an access to the reserved space through session 2
-	err = dbSess2.GetReserveAccess(KTestDrive);
+	err = dbSess2.GetReserveAccess(TheTestDrive);
     TEST2(err, KErrNone);
     //Free/re-reserve disk space for session 1.
-    dbSess1.FreeReservedSpace(KTestDrive);
-    err = dbSess1.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+    dbSess1.FreeReservedSpace(TheTestDrive);
+    err = dbSess1.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
     TEST2(err, KErrNone);
 
     //Create session4
@@ -607,7 +622,7 @@ static void TwoSessTest2L()
     LEAVE_IF_ERROR(dbSess4.Connect());
 
     //Try to reserve space for session 4.
-    err = dbSess4.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+    err = dbSess4.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
     TEST2(err, KErrNone);
 
     //Create session3
@@ -615,41 +630,41 @@ static void TwoSessTest2L()
     CleanupClosePushL(dbSess3);
     LEAVE_IF_ERROR(dbSess3.Connect());
     //Try to reserve space for session 3.
-    err = dbSess3.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+    err = dbSess3.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
     TEST2(err, KErrNone);
 
     //Release and free session 2 access to the reserved space.
-    (void)dbSess2.ReleaseReserveAccess(KTestDrive);
-    dbSess2.FreeReservedSpace(KTestDrive);
+    (void)dbSess2.ReleaseReserveAccess(TheTestDrive);
+    dbSess2.FreeReservedSpace(TheTestDrive);
 
-    dbSess3.FreeReservedSpace(KTestDrive);
+    dbSess3.FreeReservedSpace(TheTestDrive);
     CleanupStack::PopAndDestroy(&dbSess3);
 
-    dbSess4.FreeReservedSpace(KTestDrive);
+    dbSess4.FreeReservedSpace(TheTestDrive);
     CleanupStack::PopAndDestroy(&dbSess4);
 
     //Get an access to the reserved space through session 2.
     //But it was freed, so the call will fail.
-	err = dbSess2.GetReserveAccess(KTestDrive);
+	err = dbSess2.GetReserveAccess(TheTestDrive);
     TEST(err != KErrNone);
 
     //Free/re-reserve disk space for session 1.
-    dbSess1.FreeReservedSpace(KTestDrive);
-    err = dbSess1.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+    dbSess1.FreeReservedSpace(TheTestDrive);
+    err = dbSess1.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
     TEST2(err, KErrNone);
 
     //Grant/release the access to the reserved space for session 1.
-	err = dbSess1.GetReserveAccess(KTestDrive);
+	err = dbSess1.GetReserveAccess(TheTestDrive);
     TEST2(err, KErrNone);
-    (void)dbSess1.ReleaseReserveAccess(KTestDrive);
+    (void)dbSess1.ReleaseReserveAccess(TheTestDrive);
 
     //Grant an access to the reserved space for session 2.
     //The call will fail because there is no reserved disk space for session 2.
-	err = dbSess2.GetReserveAccess(KTestDrive);
+	err = dbSess2.GetReserveAccess(TheTestDrive);
     TEST(err != KErrNone);
 
     //Free the reserved space - session 1
-    dbSess1.FreeReservedSpace(KTestDrive);
+    dbSess1.FreeReservedSpace(TheTestDrive);
 
     CleanupStack::PopAndDestroy(&dbSess2);
     CleanupStack::PopAndDestroy(&dbSess1);
@@ -670,10 +685,10 @@ static void OOMTest1()
 	dbs.ResourceMark();
 	for(TInt count=1;;++count)
 		{
-        RDebug::Print(_L("OOMTest1. Count=%d\n"), count);
+		TheTest.Printf(_L("OOMTest1. Count=%d\n"), count);
 		dbs.SetHeapFailure(RHeap::EFailNext, count);
 
-		TInt ret = dbs.ReserveDriveSpace(KTestDrive, KReservedSpaceSize);
+		TInt ret = dbs.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize);
 
 		if(ret == KErrNoMemory)
 			{
@@ -681,7 +696,7 @@ static void OOMTest1()
 			}
 		else if(ret == KErrNone)
 			{
-			dbs.FreeReservedSpace(KTestDrive);
+			dbs.FreeReservedSpace(TheTestDrive);
 			break;
 			}
 		else
@@ -706,14 +721,14 @@ static void OOMTest2()
     {
     RDbs dbs;
     TEST2(dbs.Connect(), KErrNone);
-	TEST2(dbs.ReserveDriveSpace(KTestDrive, KReservedSpaceSize), KErrNone);
+	TEST2(dbs.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize), KErrNone);
 	dbs.ResourceMark();
 	for(TInt count=1;;++count)
 		{
-        RDebug::Print(_L("OOMTest2. Count=%d\n"), count);
+		TheTest.Printf(_L("OOMTest2. Count=%d\n"), count);
 		dbs.SetHeapFailure(RHeap::EFailNext, count);
 
-		TInt ret = dbs.GetReserveAccess(KTestDrive);
+		TInt ret = dbs.GetReserveAccess(TheTestDrive);
 
 		if(ret == KErrNoMemory)
 			{
@@ -721,7 +736,7 @@ static void OOMTest2()
 			}
 		else if(ret == KErrNone)
 			{
-			(void)dbs.ReleaseReserveAccess(KTestDrive);
+			(void)dbs.ReleaseReserveAccess(TheTestDrive);
 			break;
 			}
 		else
@@ -730,7 +745,7 @@ static void OOMTest2()
 			}
 		}
 
-	dbs.FreeReservedSpace(KTestDrive);
+	dbs.FreeReservedSpace(TheTestDrive);
     dbs.SetHeapFailure(RHeap::ENone, 0);
     dbs.Close();
     }
@@ -743,7 +758,7 @@ static TInt ThreadFunc(void*)
 	//Create DBMS session. Reserve drive space.
     RDbs dbs;
     TEST2(dbs.Connect(), KErrNone);
-	TEST2(dbs.ReserveDriveSpace(KTestDrive, KReservedSpaceSize), KErrNone);
+	TEST2(dbs.ReserveDriveSpace(TheTestDrive, KReservedSpaceSize), KErrNone);
 	//Panic thread. See DBMS server behaviour - will it panic or not?
 	//If DBMS server panics in _DEBUG mode - DEF057265 is not properly fixed.
 	User::Panic(_L("Simulate DBMS client failuer"), 0);
@@ -813,6 +828,10 @@ TInt E32Main()
 	CTrapCleanup* trapCleanup = CTrapCleanup::New();
 	TEST(trapCleanup != NULL);
 
+	TheTestDrive = KTestDrive;
+	TheTestDatabase.Copy(KTestDatabase);
+	TheLargeFileName.Copy(KLargeFileName);
+	
 	DeleteLargeDataFiles();
 
 	TInt err = TheFs.Connect();

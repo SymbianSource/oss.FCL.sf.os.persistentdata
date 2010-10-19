@@ -1,3 +1,20 @@
+##
+# This is Default Licence added by TraceCompiler
+# Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
+# All rights reserved.
+# This component and the accompanying materials are made available
+# under the terms of "Eclipse Public License v1.0"
+# which accompanies this distribution, and is available
+# at the URL "http://www.eclipse.org/legal/epl-v10.html".
+#
+# Initial Contributors:
+# Nokia Corporation - initial contribution.
+#
+# Contributors:
+#
+# Description: 
+#
+##
 #Fixed group and trace id definitions. If this file is removed, the identifiers are rebuilt.
 [GROUP]TRACE_ERROR=0x82
 [GROUP]TRACE_FATAL=0x81
@@ -25,6 +42,7 @@
 [TRACE]TRACE_INTERNALS[0x88]_CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL3=0x2c
 [TRACE]TRACE_INTERNALS[0x88]_CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL4=0x2d
 [TRACE]TRACE_INTERNALS[0x88]_CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL5=0x2e
+[TRACE]TRACE_INTERNALS[0x88]_CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL5A=0xad
 [TRACE]TRACE_INTERNALS[0x88]_CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL6=0x2f
 [TRACE]TRACE_INTERNALS[0x88]_CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL7=0x30
 [TRACE]TRACE_INTERNALS[0x88]_CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL8=0x31

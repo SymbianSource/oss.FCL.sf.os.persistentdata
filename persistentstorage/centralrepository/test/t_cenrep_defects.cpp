@@ -36,6 +36,11 @@ RTest TheTest(_L("Central Repository Defect Tests"));
 
 _LIT( KCentralRepositoryServerName, "Centralrepositorysrv");
 
+//Burst rate for __UHEAP_SETBURSTFAIL
+#ifdef _DEBUG
+const TInt KBurstRate = 20;
+#endif
+
 const TUid KUidDEF060843LRepository1    = { 0x00000001 };
 const TUid KUidRep1						= { 0x00000100 };
 const TUid KUidDEF053500LTestRepository = { 0x00000102 };
@@ -2457,7 +2462,7 @@ LOCAL_C void MergerArrayTestL(const RSettingsArray aPersistRef[], const RSetting
 			
 			if(aOOMMode)
 				{
-				__UHEAP_SETFAIL(RHeap::EFailNext, ++count);
+				__UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, ++count, KBurstRate);
 				}
 			
 			error = persist.MergeArray(change, deleted, KMergerTypes[i]);
@@ -2465,7 +2470,7 @@ LOCAL_C void MergerArrayTestL(const RSettingsArray aPersistRef[], const RSetting
 			if (aOOMMode)
 				{
 				TEST(KErrNone == error || KErrNoMemory == error);
-				__UHEAP_SETFAIL(RHeap::ENone, 0);
+				__UHEAP_RESET;
 				}
 			else 
 				{

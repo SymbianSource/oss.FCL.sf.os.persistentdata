@@ -16,6 +16,7 @@
 #include "UM_STD.H"
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 //
 // Panic the process with STORE-Memory as the category.
@@ -26,6 +27,7 @@ GLDEF_C void Panic(TMemPanic aPanic)
 	User::Panic(KCategory,aPanic);
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 HBufBuf* HBufBuf::NewL(CBufBase& aBuf,TInt aPos,TInt aMode)

@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -45,6 +45,18 @@ const TUint8 KPersistFormatSupportsDeletedSettings = 1 ;
 	const TInt KErrMultiRofsTypeOverride=			-30003;
 	const TInt KErrMultiRofsIllegalRofs=			-30004;
 #endif
+
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+    const TUint8 KPersistFormatSupportsPma = 3;
+
+    enum  TKeyspaceType
+        {
+        ENonPMAKeyspace,
+        EPMAKeyspace
+        };
+    
+#endif
+	
 namespace NCentralRepositoryResources
 {
     enum  TCentRepLocation
@@ -52,6 +64,9 @@ namespace NCentralRepositoryResources
         EPersists,
         EInstall,
         ERom
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+        ,EPma
+#endif
         };
     
     enum  TCentRepFileType

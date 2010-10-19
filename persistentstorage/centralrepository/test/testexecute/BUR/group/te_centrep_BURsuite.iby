@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009-2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -26,6 +26,16 @@ file=ABI_DIR\BUILD_DIR\te_centrep_burobserversuite.exe		System\bin\te_centrep_bu
 data=DATAZ_\tef_centralrepository\te_centrep_BURSuite.script 	TEF_CentralRepository\te_centrep_BURSuite.Script
 data=DATAZ_\tef_centralrepository\bur.ini 			TEF_CentralRepository\BUR.ini
 data=DATAZ_\tef_centralrepository\backup_registration.xml 	TEF_CentralRepository\backup_registration.xml
+
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+data=DATAZ_\tef_centralRepository\te_centrep_bursuite_pma.script  TEF_CentralRepository\te_centrep_bursuite_pma.script
+data=DATAZ_\tef_centralRepository\pma_bur.ini       TEF_CentralRepository\PMA_BUR.ini
+
+data=DATAZ_\PRIVATE\10202BE9\f1000200.txt PRIVATE\10202BE9\f1000200.txt
+data=DATAZ_\PRIVATE\10202BE9\f1000200.crp PRIVATE\10202BE9\f1000200.crp
+data=DATAZ_\PRIVATE\10202BE9\f1000200.pma PRIVATE\10202BE9\f1000200.pma
+
+#endif //SYMBIAN_INCLUDE_APP_CENTRIC
 
 #ifndef __CENTREPTESTDATA_IBY__
 data=DATAZ_\private\10202be9\bacbacba.txt PRIVATE\10202BE9\BACBACBA.txt

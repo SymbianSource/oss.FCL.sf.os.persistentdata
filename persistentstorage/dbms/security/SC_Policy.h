@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -80,7 +80,6 @@ NONSHARABLE_CLASS(CDbPolicy) : public CPolicyBase
 	{
 public:
 	static CDbPolicy* NewLC(const RPolicyCollection& aPolicyCollection);
-	inline static CDbPolicy* NewL(const RPolicyCollection& aPolicyCollection);
 	virtual ~CDbPolicy();
 	virtual TBool Check(const RMessage2& aMessage, TPolicyType aPolicyType) const; 
 	virtual void InvariantL() const;
@@ -104,9 +103,6 @@ public:
 	static CTblPolicy* NewLC(const TDesC& aTblName, 
 							 const RPolicyCollection& aPolicyCollection,
 							 const CDbPolicy* aDbPolicy);
-	inline static CTblPolicy* NewL(const TDesC& aTblName, 
-								   const RPolicyCollection& aPolicyCollection,
-								   const CDbPolicy* aDbPolicy);
 	virtual ~CTblPolicy();
 	virtual TBool Check(const RMessage2& aMessage, TPolicyType aPolicyType) const; 
 	virtual TInt Get(TPolicyType aPolicyType, TSecurityPolicy& aPolicy) const;
@@ -149,7 +145,6 @@ class TPolicyDomainReader
 	{
 public:
 	inline TPolicyDomainReader(const CPolicyDomain& aPolicyDomain);
-	inline TUid Uid() const;
 	inline const CDbPolicy& DbPolicy() const;
 	inline void ResetTblPos() const;
 	inline TInt TblPolicyCount() const;
@@ -226,7 +221,6 @@ NONSHARABLE_CLASS(CPolicyDomain) : public CBase
 	friend class TPolicyDomainReader;
 public:
 	static CPolicyDomain* NewLC(TUid aUid, MPolicyDomainLoader& aPDLoader);
-	inline static CPolicyDomain* NewL(TUid aUid, MPolicyDomainLoader& aPDLoader);
 	virtual ~CPolicyDomain();
 	void ExternalizeL(MPolicyDomainPersister& aPDPersister) const;
 

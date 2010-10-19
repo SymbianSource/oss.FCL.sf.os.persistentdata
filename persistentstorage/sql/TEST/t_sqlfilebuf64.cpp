@@ -80,7 +80,7 @@ void Check1(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		TestEnvDestroy();
-		RDebug::Print(_L("*** Line %d\r\n"), aLine);
+		TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -89,7 +89,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		TestEnvDestroy();
-		RDebug::Print(_L("*** Line %d, Expected result: %d, got: %d\r\n"), aLine, aExpected, aValue);
+		TheTest.Printf(_L("*** Line %d, Expected result: %d, got: %d\r\n"), aLine, aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}

@@ -17,6 +17,7 @@
 #include "US_STD.H"
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 //
 // Panic the process with STORE-Stream as the category.
@@ -27,6 +28,7 @@ GLDEF_C void Panic(TStreamPanic aPanic)
 	User::Panic(KCategory,aPanic);
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 EXPORT_C void TCardinality::ExternalizeL(RWriteStream& aStream) const

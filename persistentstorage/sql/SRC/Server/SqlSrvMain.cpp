@@ -338,12 +338,9 @@ void CSqlServer::ConstructL()
 		
 	//Set the soft heap limit (iFileData.ConfigParams() returns now a reference to the config file params, including the soft heap limit, if set)
 	const TSqlSrvConfigParams& configParams = iFileData.ConfigParams();
-	if(configParams.iSoftHeapLimitKb > 0)
-		{
-		__ASSERT_DEBUG(configParams.iSoftHeapLimitKb >= TSqlSrvConfigParams::KMinSoftHeapLimitKb &&
-		            configParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb, __SQLPANIC(ESqlPanicInternalError));
-		sqlite3_soft_heap_limit(configParams.iSoftHeapLimitKb * 1024);
-		}
+	__ASSERT_DEBUG(configParams.iSoftHeapLimitKb >= TSqlSrvConfigParams::KMinSoftHeapLimitKb &&
+				configParams.iSoftHeapLimitKb <= TSqlSrvConfigParams::KMaxSoftHeapLimitKb, __SQLPANIC(ESqlPanicInternalError));
+	sqlite3_soft_heap_limit(configParams.iSoftHeapLimitKb * 1024);
 	//Enable shared cache
 	(void)sqlite3SymbianLastOsError();//clear last OS error
 	TInt err = sqlite3_enable_shared_cache(static_cast <TInt> (EEnableSharedCache));

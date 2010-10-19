@@ -22,6 +22,14 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+//In order to be able to compile the test, the following variables are defined (used inside the OS porting layer, when _SQLPROFILER macro is defined)
+#ifdef _SQLPROFILER
+TInt TheSqlSrvProfilerFileRead = 0;
+TInt TheSqlSrvProfilerFileWrite = 0;
+TInt TheSqlSrvProfilerFileSync = 0;
+TInt TheSqlSrvProfilerFileSetSize = 0;
+#endif
+
 RSqlDatabase TheDb;
 RTest TheTest(_L("t_sqlcorrupt test"));
 
@@ -52,7 +60,7 @@ void Check1(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Boolean expression evaluated to false. Line %d\r\n"), aLine);
+		TheTest.Printf(_L("*** Expression evaluated to false. Line %d\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -61,7 +69,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+		TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -442,7 +450,7 @@ void DoTestsL()
 TInt E32Main()
 	{
 	TheTest.Title();
-	
+
 	CTrapCleanup* tc = CTrapCleanup::New();
 	TheTest(tc != NULL);
 	

@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -910,23 +910,23 @@ LOCAL_C void DeleteDataFile(const TDesC& aFullName)
 		TEntry entry;
 		if(fsSession.Entry(aFullName, entry) == KErrNone)
 			{
-			RDebug::Print(_L("Deleting \"%S\" file.\n"), &aFullName);
+			test.Printf(_L("Deleting \"%S\" file.\n"), &aFullName);
 			err = fsSession.SetAtt(aFullName, 0, KEntryAttReadOnly);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
+				test.Printf(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
 				}
 			err = fsSession.Delete(aFullName);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
+				test.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
 				}
 			}
 		fsSession.Close();
 		}
 	else
 		{
-		RDebug::Print(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
+		test.Printf(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
 		}
 	}
 

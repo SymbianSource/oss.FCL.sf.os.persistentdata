@@ -68,7 +68,7 @@ void Check1(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		RestoreOriginalDb();
-		RDebug::Print(_L("*** Line %d\r\n"), aLine);
+		TheTest.Printf(_L("*** Line %d\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -77,7 +77,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		RestoreOriginalDb();
-		RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+		TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -220,10 +220,10 @@ void ReadWriteDatabaseTest()
 	TEST2(colType, ESqlInt);
 	err = stmt.Next();
 	TEST2(err, KSqlAtRow);
-	RDebug::Print(_L("Value=%d\r\n"), stmt.ColumnInt(0));
+	TheTest.Printf(_L("Value=%d\r\n"), stmt.ColumnInt(0));
 	err = stmt.Next();
 	TEST2(err, KSqlAtRow);
-	RDebug::Print(_L("Value=%d\r\n"), stmt.ColumnInt(0));
+	TheTest.Printf(_L("Value=%d\r\n"), stmt.ColumnInt(0));
 	stmt.Close();
 	//Attempt to read the system data
 	err = stmt.Prepare(TheDb, _L("SELECT * FROM SQLITE_MASTER"));
@@ -233,7 +233,7 @@ void ReadWriteDatabaseTest()
 	TPtrC p;
 	err = stmt.ColumnText(0, p);
 	TEST2(err, KErrNone);
-	RDebug::Print(_L("Value=%S\r\n"), &p);
+	TheTest.Printf(_L("Value=%S\r\n"), &p);
 	stmt.Close();
 	
 	NonSecureDbTest();

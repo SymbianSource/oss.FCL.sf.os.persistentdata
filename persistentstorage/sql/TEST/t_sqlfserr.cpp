@@ -75,6 +75,7 @@ void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DestroyTestEnv();
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -83,7 +84,7 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -94,14 +95,14 @@ void SqliteCheck(sqlite3* aDbHandle, TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** SQLITE: Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** SQLITE: Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		if(aDbHandle)
 			{
 			const char* errMsg = sqlite3_errmsg(aDbHandle);
 			TPtrC8 ptr8((const TUint8*)errMsg, strlen(errMsg));
 			TBuf<200> buf;
 			buf.Copy(ptr8);
-			RDebug::Print(_L("*** SQLITE error message: \"%S\"\r\n"), &buf);
+			TheTest.Printf(_L("*** SQLITE error message: \"%S\"\r\n"), &buf);
 			}
 		DestroyTestEnv();
 		TheTest(EFalse, aLine);

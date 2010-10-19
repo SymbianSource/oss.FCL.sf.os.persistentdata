@@ -615,6 +615,7 @@ TInt RFeatMgrClient::SWIEnd() const
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 /** 
 */
@@ -684,6 +685,7 @@ TInt RFeatMgrClient::CountAllocCells( void ) const
     return sizePckg();
     }
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 #endif

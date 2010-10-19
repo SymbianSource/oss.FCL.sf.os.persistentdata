@@ -106,7 +106,7 @@ void CSqlBurEventMonitor::ConstructL()
 
 /** 
 RunL() is called when the value of the {KUidSystemCategory, KUidBackupRestoreKey} gets changed.
-That indicates: a backup or a restore is about to begin.
+That indicates: a backup or a restore is about to begin or about to end.
 
 How the function works:
  - When a backup or restore notification is received, the function will subscribe again for notifications from
@@ -251,7 +251,7 @@ void CSqlBurEventMonitor::DestroyContent()
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////   CSqlBackupClient    /////////////////////////////////////////////////////////////
+///////////////////////////////   CSqlBurCallback    //////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -468,7 +468,7 @@ void CSqlBurCallback::GetBackupDataSectionL(TPtr8& aBuffer, TBool& aFinishedFlag
 					fileSize,					// %16lx
 					fname.Length(),				// %8x
 					&fname);					// %S
-				SQL_TRACE_BUR(OstTraceExt4(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETBACKUPDATASECTIONL5, "0x%X;CSqlBackupClient::GetBackupDataSectionL;fileName=%S;hdrPtr=|%S|;fileSize=%lld", (TUint)this, __SQLPRNSTR(fname), __SQLPRNSTR(iBuffer), fileSize));
+				SQL_TRACE_BUR(OstTraceExt4(TRACE_INTERNALS, CSQLBACKUPCLIENT_GETBACKUPDATASECTIONL5, "0x%X;CSqlBurCallback::GetBackupDataSectionL;fileName=%S;hdrPtr=|%S|;fileSize=%lld", (TUint)this, __SQLPRNSTR(fname), __SQLPRNSTR(iBuffer), fileSize));
 				
 				// we need it to look like an 8bit buffer
 				TPtr8 hdrPtr8((TUint8*)iBuffer.Ptr(), iBuffer.Size(), iBuffer.Size());
@@ -838,7 +838,7 @@ void CSqlBurCallback::RestoreBaseDataSectionL(TDesC8& aInBuffer, TBool aFinished
 				__SQLLEAVE_IF_ERROR(iParse.Set(fileNameMask, &iRestoreDir, 0));
 				CDir* dir = NULL;
 				TPtrC searchPattern(iParse.FullName());
-				SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL55, "0x%X;CSqlBurCallback::RestoreBaseDataSectionL;search pattern=%S", (TUint)this, __SQLPRNSTR(searchPattern)));
+				SQL_TRACE_BUR(OstTraceExt2(TRACE_INTERNALS, CSQLBACKUPCLIENT_RESTOREBASEDATASECTONL5A, "0x%X;CSqlBurCallback::RestoreBaseDataSectionL;search pattern=%S", (TUint)this, __SQLPRNSTR(searchPattern)));
 				restoreErr = iInterface.Fs().GetDir(searchPattern, KEntryAttNormal, ESortNone, dir);
 				if(restoreErr == KErrNone)
 					{

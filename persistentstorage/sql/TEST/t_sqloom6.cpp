@@ -65,7 +65,7 @@ void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Expresssion evaluated to false\r\n"));
+		TheTest.Printf(_L("*** Expresssion evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -74,7 +74,7 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -199,6 +199,7 @@ void ColumnNameOomTest()
     TInt err = TheDb.Open(KDbFile);
     TEST2(err, KErrNone);
     
+    TPtrC name;
     TInt failingAllocationNo = 0;
     err = KErrNoMemory;
     while(err == KErrNoMemory)
@@ -212,7 +213,6 @@ void ColumnNameOomTest()
             goto LabelOomPostStep;
             }
         
-        TPtrC name;
         err = TheStmt.ColumnName(0, name);
         if(err != KErrNone)
             {
@@ -282,6 +282,7 @@ void ParameterNameOomTest()
     TInt err = TheDb.Open(KDbFile);
     TEST2(err, KErrNone);
     
+    TPtrC name;
     TInt failingAllocationNo = 0;
     err = KErrNoMemory;
     while(err == KErrNoMemory)
@@ -295,7 +296,6 @@ void ParameterNameOomTest()
             goto LabelOomPostStep;
             }
         
-        TPtrC name;
         err = TheStmt.ParameterName(0, name);
         if(err != KErrNone)
             {
@@ -365,6 +365,7 @@ void ColumnTextOomTest()
     TInt err = TheDb.Open(KDbFile);
     TEST2(err, KErrNone);
     
+    TPtrC data;
     TInt failingAllocationNo = 0;
     err = KErrNoMemory;
     while(err == KErrNoMemory)
@@ -383,7 +384,6 @@ void ColumnTextOomTest()
             goto LabelStmtClose;
             }
         
-        TPtrC data;
         err = TheStmt.ColumnText(0, data);
         if(err != KErrNone)
             {
@@ -453,8 +453,11 @@ void TextColumnReadStreamOomTest()
     TInt err = TheDb.Open(KDbFile);
     TEST2(err, KErrNone);
     
+    TBuf<50> data;
+    RSqlColumnReadStream strm;
     TInt failingAllocationNo = 0;
     err = KErrNoMemory;
+    TInt len = -1;
     while(err == KErrNoMemory)
         {
         TheTest.Printf(_L(" %d"), ++failingAllocationNo);
@@ -471,13 +474,11 @@ void TextColumnReadStreamOomTest()
             goto LabelCloseStmt;
             }
         
-        RSqlColumnReadStream strm;
         err = strm.ColumnText(TheStmt, 0);
         if(err != KErrNone)
             {
             goto LabelCloseStmt;
             }
-        TBuf<50> data;
         TRAP(err, strm.ReadL(data, 11));
         strm.Close();
         if(err != KErrNone)
@@ -504,7 +505,6 @@ void TextColumnReadStreamOomTest()
             {
             goto LabelCloseStmt;
             }
-        TInt len = -1;
         TRAP(err, len = strm.Source()->SizeL());//The column value is with 0 length
         strm.Close();
         if(err != KErrNone)
@@ -636,6 +636,7 @@ void DeclaredColumnTypeOomTest()
     TInt err = TheDb.Open(KDbFile);
     TEST2(err, KErrNone);
     
+    TSqlColumnType colType = ESqlNull;
     TInt failingAllocationNo = 0;
     err = KErrNoMemory;
     while(err == KErrNoMemory)
@@ -649,7 +650,6 @@ void DeclaredColumnTypeOomTest()
             goto LabelOomPostStep;
             }
         
-        TSqlColumnType colType = ESqlNull;
         err = TheStmt.DeclaredColumnType(0, colType);
         if(err != KErrNone)
             {

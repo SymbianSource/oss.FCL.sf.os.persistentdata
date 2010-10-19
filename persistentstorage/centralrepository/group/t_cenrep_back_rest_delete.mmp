@@ -13,6 +13,11 @@
 // Description:
 //
 
+// This macro switches the PMA drive the 'protected' directory
+// under persists on the system drive, instead of using the
+// protected drive. This is for development purposes only. 
+MACRO SYMBIAN_CENTREP_PMA_TEST
+
 CAPABILITY AllFiles ReadDeviceData WriteDeviceData
 VENDORID 0x70000001
 

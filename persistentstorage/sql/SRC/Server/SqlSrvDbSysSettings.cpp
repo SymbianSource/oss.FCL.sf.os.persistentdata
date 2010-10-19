@@ -638,6 +638,7 @@ void TSqlDbSysSettings::DoExecuteDbConfigFileOpsL(RFs& aFs, const TDesC& aConfig
 	__SQLLEAVE_IF_ERROR(file.Read(bufPtr));
 
 	//Convert buffer to Unicode for processing (the configuration file is expected to be ASCII or UTF-8)
+	// coverity[size_error]
 	HBufC16* buf16 = CnvUtfConverter::ConvertToUnicodeFromUtf8L(bufPtr);
 	CleanupStack::PushL(buf16);			
 	TPtrC16 ptr16 = buf16->Des();

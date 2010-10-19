@@ -31,7 +31,7 @@ _LIT(KTestDbName2, "c:[1111D1C1]t_sqlbadclient.db");
 #if defined __WINS__ || defined __WINSCW__
 const TInt KTestIterCount = 5000;
 #else
-const TInt KTestIterCount = 4000;
+const TInt KTestIterCount = 2000;
 #endif
 const TInt KMaxDesArgLen = 1000;
 enum TArgType 
@@ -67,6 +67,9 @@ struct TThreadData
 
 _LIT(KPanicCategory, "SrvTerm");
 _LIT(KPanicCategory2, "InvArg");
+_LIT(KPanicCategory3, "SessConn");
+_LIT(KPanicCategory4, "TcNull");
+_LIT(KPanicCategory5, "ThrDNull");
 const TInt KPanicCode = 1111;
 const TInt KPanicCode2 = 2222;
 
@@ -81,46 +84,26 @@ void DeleteTestFiles()
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 //Test macros and functions
-void Check1(TInt aValue, TInt aLine, TBool aPrintThreadName = EFalse)
+void Check1(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
 		DeleteTestFiles();
-		if(aPrintThreadName)
-			{
-			RThread th;
-			TName name = th.Name();
-			RDebug::Print(_L("*** Thread %S, Line %d\r\n"), &name, aLine);
-			}
-		else
-			{
-			RDebug::Print(_L("*** Line %d\r\n"), aLine);
-			}
+		TheTest.Printf(_L("*** Line %d. Expression evaluated to false.\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
-void Check2(TInt aValue, TInt aExpected, TInt aLine, TBool aPrintThreadName = EFalse)
+void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		if(aPrintThreadName)
-			{
-			RThread th;
-			TName name = th.Name();
-			RDebug::Print(_L("*** Thread %S, Line %d Expected error: %d, got: %d\r\n"), &name, aLine, aExpected, aValue);
-			}
-		else
-			{
-			RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
-			}
+		TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
 #define TEST(arg) ::Check1((arg), __LINE__)
 #define TEST2(aValue, aExpected) ::Check2(aValue, aExpected, __LINE__)
-#define TTEST(arg) ::Check1((arg), __LINE__, ETrue)
-#define TTEST2(aValue, aExpected) ::Check2(aValue, aExpected, __LINE__, ETrue)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -255,14 +238,16 @@ TInt SendReceive(RTestSqlDbSession aSession, TInt aFunction, TIpcArgs& aArgs)
 
 void PrintIterationCount(TInt aIteration)
 	{
-	if((aIteration % 100) == 0)
+	static TInt lastIteration = 0;
+	if((aIteration - lastIteration) >= 100)
 		{
+		lastIteration = aIteration;
 		TTime time;
 		time.HomeTime();
 		TDateTime dt = time.DateTime();
 		TBuf<16> tbuf;
 		tbuf.Format(_L("%02d:%02d:%02d.%06d"), dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond());
-		RDebug::Print(_L("-----[%S] Test iterations: %d\r\n"), &tbuf, aIteration);
+		TheTest.Printf(_L("-----[%S] Test iterations: %d\r\n"), &tbuf, aIteration);
 		}
 	}
 
@@ -277,20 +262,28 @@ TInt ThreadFunc1(void* aData)
 	__UHEAP_MARK;
 	
 	CTrapCleanup* tc = CTrapCleanup::New();
-	TTEST(tc != NULL);
+	if(!tc)
+		{
+		User::Panic(KPanicCategory4, KErrNoMemory);
+		}
 
 	TThreadData* p = static_cast <TThreadData*> (aData);
-	TTEST(p != NULL);
+	if(!p)
+		{
+		User::Panic(KPanicCategory5, KErrArgument);
+		}
 	TThreadData& data = *p;
 
 	TVersion sqlSoftwareVersion(KSqlMajorVer, KSqlMinorVer, KSqlBuildVer);
 	RTestSqlDbSession sess;
 	TInt err = sess.Connect(sqlSoftwareVersion);
-	TTEST2(err, KErrNone);
+	if(err != KErrNone)
+		{
+		User::Panic(KPanicCategory3, err);
+		}
 
 	while(++data.iIteration <= KTestIterCount)
 		{
-		PrintIterationCount(data.iIteration);
 		TIpcArgs args;
 		do
 			{

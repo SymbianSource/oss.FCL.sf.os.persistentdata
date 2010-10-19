@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -89,18 +89,15 @@ static void DestroyTestEnv()
 
 static void PrintErrMsg()
 	{
-	TBuf<256> buf;
 	if(TheDb)
 		{
 		const char* msg = sqlite3_errmsg(TheDb);	
-		buf.Copy(TPtrC8((const TUint8*)msg));
-		RDebug::Print(_L("*** Db1 err msg: \"%S\"\r\n"), &buf);
+		PrintS("*** Db1 err msg: \"%s\"\r\n", msg);
 		}
 	if(TheDb2)
 		{
 		const char* msg = sqlite3_errmsg(TheDb2);	
-		buf.Copy(TPtrC8((const TUint8*)msg));
-		RDebug::Print(_L("*** Db2 err msg: \"%S\"\r\n"), &buf);
+		PrintS("*** Db2 err msg: \"%s\"\r\n", msg);
 		}
 	}
 
@@ -110,6 +107,7 @@ static void Check(TInt aValue, TInt aLine)
 		{
 		PrintErrMsg();
 		DestroyTestEnv();
+		Print("*** Expression evaluated to false!\r\n");
 		TestTestLine(EFalse, aLine);
 		}
 	}
@@ -119,7 +117,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 		{
 		PrintErrMsg();
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		PrintIII("*** Expected error: %d, got: %d. Ignore: %d\r\n", aExpected, aValue, 0);
 		TestTestLine(EFalse, aLine);
 		}
 	}
@@ -181,7 +179,7 @@ void FileHandleTest()
 	// shared page cache mode only if the threads share the same heap.
 	// The database file handle will be shared between threads.
 	////////////////////////////////////////////////////////////
-	RDebug::Print(_L("*** Shared heap\r\n"));	
+	Print("*** Shared heap\r\n");	
 	RThread thr;
     err = thr.Create(_L("TestThr"), &ThreadFunc, KDefaultStackSize, NULL, NULL);
 	TEST2(err, KErrNone);
@@ -226,10 +224,10 @@ void FileHandleTest()
 */
 void DEF121506()
 	{
-	RDebug::Print(_L("Iteration: \r\n"));
+	Print("Iteration: \r\n");
 	for (TInt it = 1;  ; ++it)
 		{
-		RDebug::Print(_L("%d "), it);
+		PrintI("%d ", it);
 		TInt c1 = User::CountAllocCells();
  		__UHEAP_SETFAIL(RHeap::EDeterministic, it);
 		
@@ -252,12 +250,12 @@ void DEF121506()
  		TInt c2 = User::CountAllocCells();
  		if (c1 != c2)
 			{	
-			RDebug::Print(_L("\r\n*** OOM Test failed\r\n"));
+			Print("\r\n*** OOM Test failed\r\n");
 			TEST(EFalse);
 			} 		
  		else if (err == SQLITE_OK) 
  			{
- 			RDebug::Print(_L("\r\n*** OOM Test passed\r\n"));
+ 			Print("\r\n*** OOM Test passed\r\n");
  			break; 			
  			}
  		TEST2(err, SQLITE_NOMEM);

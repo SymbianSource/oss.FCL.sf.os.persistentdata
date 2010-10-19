@@ -966,7 +966,7 @@ LOCAL_C void testTStreamExchangeAndMarkL()
 	TStreamMark sm3(0);
 	TPtr8 des = buf->Des();
 	bytesprocessed = sm3.ReadL(se, des, des.MaxLength(), rstatus);
-	RDebug::Printf("Written: %d, Length: %d",bytesprocessed,des.MaxLength());
+	test.Printf(_L("Written: %d, Length: %d\r\n"),bytesprocessed,des.MaxLength());
 	test (bytesprocessed == des.MaxLength());
 	User::WaitForRequest(rstatus);
 	test(rstatus == KErrNone);
@@ -975,7 +975,7 @@ LOCAL_C void testTStreamExchangeAndMarkL()
 	buf->Des().Zero();
 	des.Set(buf->Des());
 	bytesprocessed = sm4.ReadL(se, des, rstatus);
-	RDebug::Printf("Written: %d, Length: %d",bytesprocessed,des.MaxLength());
+	test.Printf(_L("Written: %d, Length: %d\r\n"),bytesprocessed,des.MaxLength());
 	test (bytesprocessed == des.MaxLength());
 	sm4.ExtractL(se);
 	User::WaitForRequest(rstatus);
@@ -983,7 +983,7 @@ LOCAL_C void testTStreamExchangeAndMarkL()
 	
 	TStreamMark sm5(0);
 	bytesprocessed = sm5.WriteL(se, KTestString(), rstatus);
-	RDebug::Printf("Written: %d, Length: %d",bytesprocessed,KTestString().Length());
+	test.Printf(_L("Written: %d, Length: %d\r\n"),bytesprocessed,KTestString().Length());
 	test (bytesprocessed == KTestString().Length());
 	User::WaitForRequest(rstatus);
 	test(rstatus == KErrNone);
@@ -1085,7 +1085,7 @@ LOCAL_C void testMBtreeKeyL()
 		User::SetJustInTime(ETrue);	// enable debugger panic handling
 		test(thread.ExitType() == EExitPanic);
 		test(thread.ExitReason() == EInvalidKeyComparison );
-		RDebug::Printf("Thread %d paniced as design with correct panic code", i);
+		test.Printf(_L("Thread %d paniced as design with correct panic code\r\n"), i);
 		}
 	
 	test.Next(_L("MBtreeKey Comparators"));

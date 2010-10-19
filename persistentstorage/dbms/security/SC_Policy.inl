@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -42,19 +42,6 @@ inline CDbPolicy::CDbPolicy()
 	{
 	}
 
-/**
-Standard phase-one CDbPolicy factory method.
-@param aPolicyCollection A collection of R/W/S policies.
-@return A pointer to just created CDbPolicy instance.
-@leave System-wide error codes, including KErrNoMemory
-*/
-inline CDbPolicy* CDbPolicy::NewL(const RPolicyCollection& aPolicyCollection)
-	{
-	CDbPolicy* policy = CDbPolicy::NewLC(aPolicyCollection);
-	CleanupStack::Pop(policy);
-	return policy;
-	}
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 //class CTblPolicy
 
@@ -64,23 +51,6 @@ inline CTblPolicy::CTblPolicy(const CDbPolicy* aDbPolicy) :
 	iDbPolicy(aDbPolicy)
 	{
 	__ASSERT(iDbPolicy);
-	}
-
-/**
-Standard phase-one CTblPolicy factory method.
-@param aTblName The name of the table, access to which is controlled by the supplied policies
-@param aPolicyCollection A collection of R/W/S policies.
-@param aDbPolicy The related for the table database policy.
-@return A pointer to just created CTblPolicy instance.
-@leave System-wide error codes, including KErrNoMemory
-*/
-inline CTblPolicy* CTblPolicy::NewL(const TDesC& aTblName, 
-									const RPolicyCollection& aPolicyCollection,
-									const CDbPolicy* aDbPolicy)
-	{
-	CTblPolicy* policy = CTblPolicy::NewLC(aTblName, aPolicyCollection, aDbPolicy);
-	CleanupStack::Pop(policy);
-	return policy;
 	}
 
 /**
@@ -108,22 +78,6 @@ inline CPolicyDomain::CPolicyDomain(TUid aUid) :
 	iUid(aUid),
 	iTPCollection(KTblPolicyCollGranularity)
 	{
-	}
-
-/**
-Standard phase-one CPolicyDomain factory method.
-@param aUid The format uid of the databases, access to which is controlled by security policies
-@param aPDLoader The interface, which actual implementation is used to load the related set
-                 of security policies into CPolicyDomain collection. Currently CPolicyDomain
-				 policy collection can be loaded from a text or binary policy file.
-@return A pointer to just created CPolicyDomain instance.
-@leave System-wide error codes, including KErrNoMemory
-*/
-inline CPolicyDomain* CPolicyDomain::NewL(TUid aUid, MPolicyDomainLoader& aPDLoader)
-	{
-	CPolicyDomain* domain = CPolicyDomain::NewLC(aUid, aPDLoader);
-	CleanupStack::Pop(domain);
-	return domain;
 	}
 
 /**
@@ -199,14 +153,6 @@ inline TPolicyDomainReader::TPolicyDomainReader(const CPolicyDomain& aPolicyDoma
 	iPolicyDomain(aPolicyDomain),
 	iIndex(0)
 	{
-	}
-
-/**
-@return The UID of the related CPolicyDomain object.
-*/
-inline TUid TPolicyDomainReader::Uid() const
-	{
-	return iPolicyDomain.Uid();
 	}
 
 /**

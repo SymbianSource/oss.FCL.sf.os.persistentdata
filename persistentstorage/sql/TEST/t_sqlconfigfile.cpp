@@ -51,7 +51,6 @@ TInt KillProcess(const TDesC& aProcessName);
 TInt KillProcess(const TDesC& aProcessName)
 	{
 	TFullName name;
-	//RDebug::Print(_L("Find and kill \"%S\" process.\n"), &aProcessName);
 	TBuf<64> pattern(aProcessName);
 	TInt length = pattern.Length();
 	pattern += _L("*");
@@ -68,7 +67,6 @@ TInt KillProcess(const TDesC& aProcessName)
 				{
 				// If the found name is other valid application name
 				// starting with aProcessName string.
-				//RDebug::Print(_L(":: Process name: \"%S\".\n"), &name);
 				continue;
 				}
 			}
@@ -76,7 +74,6 @@ TInt KillProcess(const TDesC& aProcessName)
 		if (proc.Open(name) == KErrNone)
 			{
 			proc.Kill(0);
-			//RDebug::Print(_L("\"%S\" process killed.\n"), &name);
 			}
 		proc.Close();
 		}
@@ -100,6 +97,7 @@ void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DestroyTestEnv();
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -108,7 +106,7 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}

@@ -21,6 +21,8 @@
 
 RTest 			TheTest(_L("t_sqlperformance3 test"));
 RSqlDatabase 	TheDb;
+RFile 			TheLogFile; 
+RFs				TheFs;
 
 _LIT(KDbName, 	"c:\\test\\t_sqlperformance3.db");
 
@@ -63,8 +65,14 @@ void CalcIterationsCount()
 
 void TestEnvDestroy()
 	{
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		(void)TheLogFile.Flush();
+		TheLogFile.Close();
+		}
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
+	TheFs.Close();
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -101,12 +109,16 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 
 void TestEnvInit()
 	{
-	RFs fs;
-	TInt err = fs.Connect();
+	TInt err = TheFs.Connect();
 	TEST2(err, KErrNone);
-	err = fs.MkDirAll(TheDbFileName);
+	err = TheFs.MkDirAll(TheDbFileName);
 	TEST(err == KErrNone || err == KErrAlreadyExists);
-	fs.Close();
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		err = TheLogFile.Replace(TheFs, TheCmdLineParams.iLogFileName, EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		LogConfig(TheLogFile, TheCmdLineParams);
+		}
 	}
 
 TInt TimeDiffUs(TUint32 aStartTicks, TUint32 aEndTicks)
@@ -1077,6 +1089,61 @@ void PrintResults()
 	TheTest.Printf(_L("==HarvestUpdateObjImage, time=%d us\r\n"), TheHarvestUpdateObjImageTime);
 	TheTest.Printf(_L("==HarvestUpdateObj, time=%d us\r\n"), TheHarvestUpdateObjTime);
 	TheTest.Printf(_L("==Harvest, time=%d us\r\n"), TheHarvestTime);
+	
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		TBuf8<200> buf;
+		buf.Format(_L8("Fast counter frequency¬%d¬Hz\r\n"), TheFastCounterFreq);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Create database¬%d¬us\r\n"), TheCreateDbCreateConnTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Open database¬%d¬us\r\n"), TheCreateDbOpenConnTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("'SELECT max(seq) FROM SQLITE_SEQUENCE'¬%d¬us\r\n"), TheLastItemIdTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("'SELECT COUNT(*) FROM MdE_Preferences'¬%d¬us\r\n"), TheTableExistsTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("MDE tables creation¬%d¬us\r\n"), TheMdeTablesCreationTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("'SELECT last_insert_rowid()'¬%d¬us\r\n"), TheLastInsertedRowIdTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("1.Create tables¬%d¬us\r\n"), TheCreateTables1Time);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("2.Create tables¬%d¬us\r\n"), TheCreateTables2Time);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("3.Create tables¬%d¬us\r\n"), TheCreateTables3Time);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("InsertEventRelation¬%d¬us\r\n"), TheInsertEventRelationTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Create triggers¬%d¬us\r\n"), TheCreateTriggersTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("DeleteObjectProperty¬%d¬us\r\n"), TheDeleteObjPropertyTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("InsertCol2Property¬%d¬us\r\n"), TheInsertCol2PropTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("The create transaction¬%d¬us\r\n"), TheTransactionTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Database create schema¬%d¬us\r\n"), TheDbCreateTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("HarvestSelect¬%d¬us\r\n"), TheHarvestSelectTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("HarvestInsertObjImage¬%d¬us\r\n"), TheHarvestInsertObjImageTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("HarvestSelect2¬%d¬us\r\n"), TheHarvestSelect2Time);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("HarvestSelect3¬%d¬us\r\n"), TheHarvestSelect3Time);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("HarvestSelect4¬%d¬us\r\n"), TheHarvestSelect4Time);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("HarvestInsertEvent¬%d¬us\r\n"), TheHarvestInsertEventTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("HarvestUpdateObjImage¬%d¬us\r\n"), TheHarvestUpdateObjImageTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("HarvestUpdateObj¬%d¬us\r\n"), TheHarvestUpdateObjTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Harvest¬%d¬us\r\n"), TheHarvestTime);
+		(void)TheLogFile.Write(buf);
+		}
 	}
 
 void DoTestsL()
@@ -1110,7 +1177,6 @@ TInt E32Main()
 
 	TheTest.Printf(_L("==Databases: %S\r\n"), &TheDbFileName); 
 	
-	TestEnvDestroy();
 	TestEnvInit();
 	TRAPD(err, DoTestsL());
 	TestEnvDestroy();

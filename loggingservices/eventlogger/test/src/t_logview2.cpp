@@ -4472,15 +4472,11 @@ LOCAL_C void DEF066296L(CLogClient& aClient)
 LOCAL_C void DEF087459L(CLogClient& aClient)
 	{
 	TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-LOGENG-CT-1807 "));
-	RTz tz;				
-	TInt err = tz.Connect();
-	TEST2(err, KErrNone);
-	CleanupClosePushL(tz);
-	TTime now, saveNow;
-	
+
 	// Get and print current home time and save it
+	TTime now;
 	now.HomeTime();
-	saveNow=now;
+	TTime saveNow(now);
 	
 	TBuf<0x80> testString;
 	now.FormatL(testString,(_L("%H:%T %1\\%2\\%3 %E")));
@@ -4493,10 +4489,10 @@ LOCAL_C void DEF087459L(CLogClient& aClient)
 	midnight.SetMinute(30);
 	midnight.SetSecond(0);
 	midnight.SetMicroSecond(0);
-	
-	TTime newTime=midnight;
 
-	err = tz.SetHomeTime(midnight);
+	TTime midnightTTime = midnight;
+
+	TInt err = User::SetHomeTime(midnightTTime);
 	TEST2(err, KErrNone);
 
 	// Get and print new home time
@@ -4508,13 +4504,13 @@ LOCAL_C void DEF087459L(CLogClient& aClient)
 	DEF066296L(aClient);
 	
 	// Restore and print hometime
-	err = tz.SetHomeTime(saveNow);
+	err = User::SetHomeTime(saveNow);
 	TEST2(err, KErrNone);
+
+	// Get and print new home time
 	now.HomeTime();
 	now.FormatL(testString,(_L("%H:%T %1\\%2\\%3 %E")));
 	TheTest.Printf(_L("Restored home time to - %S\n"), &testString);
-	
-	CleanupStack::PopAndDestroy(); //tz
 	}
 
 /**

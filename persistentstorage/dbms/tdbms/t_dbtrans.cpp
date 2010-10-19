@@ -91,7 +91,7 @@ static void Check(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
-		TheTest.Printf(_L("*** Boolean expression evaluated to false!\r\n"));
+		TheTest.Printf(_L("*** Expression evaluated to false!\r\n"));
 		DestroyTestEnv();
 		TheTest(EFalse, aLine);
 		}

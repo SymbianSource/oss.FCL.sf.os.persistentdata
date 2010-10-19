@@ -29,6 +29,7 @@ LIBRARY			efsrv.lib
 LIBRARY			sqldb.lib 
 LIBRARY			bafl.lib 
 LIBRARY			estor.lib 
+LIBRARY			hal.lib 
 
 VENDORID		0x70000001
 

@@ -103,7 +103,7 @@ CThread::~CThread()
 	TInt err = iFs.Delete(KLogFile);
 	if(err != KErrNone)
 		{
-		RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err, &KLogFile);
+		TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &KLogFile);
 		}
 	iFs.Close();
 	}

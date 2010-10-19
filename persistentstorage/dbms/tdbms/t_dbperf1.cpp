@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -18,6 +18,7 @@
 #include <bautils.h>
 #include <hal.h>
 #include <d32dbms.h>
+#include "t_dbcmdlineutil.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -52,6 +53,12 @@ enum TCompactDbOption
 	ECompactAtEnd
 	};
 	
+TCmdLineParams TheCmdLineParams;
+RFile TheLogFile; 
+TBuf<250> TheLogLine;
+TBuf8<250> TheLogLine8;
+TBuf<200> TheTestTitle;
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 void TestEnvDestroy()
@@ -59,6 +66,11 @@ void TestEnvDestroy()
 	TheDbs.Close();
 	TheFs.Delete(TheNonSecureDbName2);
 	TheFs.Delete(TheNonSecureDbName);
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		(void)TheLogFile.Flush();
+		TheLogFile.Close();
+		}
 	TheFs.Close();
 	}
 
@@ -70,7 +82,7 @@ void Check1(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		TestEnvDestroy();
-		TheTest.Printf(_L("*** Line %d\r\n"), aLine);
+		TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -95,6 +107,13 @@ void TestEnvInit()
 
 	err = TheFs.MkDir(TheNonSecureDbName);
 	TEST(err == KErrNone || err == KErrAlreadyExists);
+
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		err = TheLogFile.Replace(TheFs, TheCmdLineParams.iLogFileName, EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		LogConfig(TheLogFile, TheCmdLineParams);
+		}
 	
 	err = TheDbs.Connect();
 	TEST2(err, KErrNone);
@@ -157,36 +176,15 @@ void PrintStats(TUint32 aStartTicks, TUint32 aEndTicks)
 		}
 	const TInt KMicroSecIn1Sec = 1000000;
 	TInt32 us = (diffTicks * KMicroSecIn1Sec) / freq;
-	TheTest.Printf(_L("####Execution time: %d ms\r\n"), us / 1000);
+	TheTest.Printf(_L("%S: %d us\r\n"), &TheTestTitle, us);
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		TheLogLine.Format(_L("%S¬%d¬us\r\n"), &TheTestTitle, us);
+		TheLogLine8.Copy(TheLogLine);
+		(void)TheLogFile.Write(TheLogLine8);
+		}
 	}
 	
-void PrintFileSize(const TDesC& aFileName)
-	{
-	RFile file;
-	TInt err = file.Open(TheFs, aFileName, EFileRead);
-	TEST2(err, KErrNone);
-	TInt size = 0;
-	err = file.Size(size);
-	TEST2(err, KErrNone);
-	TheTest.Printf(_L("####FileSize: %d\r\n"), size);
-	file.Close();
-	}
-
-void PrintString(const TDesC& aStr)
-	{
-	TheTest.Printf(_L("Str begin~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n"));
-	TPtrC ptr(aStr);
-	while(ptr.Length() > 0)
-		{
-		TPtrC ptr2;
-		TInt len = Min(ptr.Length(), 60);
-		ptr2.Set(ptr.Left(len));
-		TheTest.Printf(_L("%S\r\n"), &ptr2);
-		ptr.Set(ptr.Mid(len));
-		}
-	TheTest.Printf(_L("Str end~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n"));
-	}
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////     DBMS SERVER performance tests
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -398,18 +396,6 @@ public:
 //Executes SQL script
 void ExecuteSqlScript(RDbDatabase& aDb, const TDesC& aScriptFileName, TCompactDbOption aCompactDbOpt)
 	{
-	if(aCompactDbOpt == ECompactAfterCommit)
-		{
-		TheTest.Printf(_L("===Execute DB script: Compact after COMMIT\r\n"));	
-		}
-	else if(aCompactDbOpt == ECompactAtEnd)
-		{
-		TheTest.Printf(_L("===Execute DB script: Compact at end\r\n"));	
-		}
-	else
-		{
-		TheTest.Printf(_L("===Execute DB script: No compaction\r\n"));	
-		}
 	HBufC* fullDbScript = ReadSqlScript(aScriptFileName);
 	TUint32 start = User::FastCounter();
 	TPtrC ptr(fullDbScript->Des());
@@ -425,10 +411,6 @@ void ExecuteSqlScript(RDbDatabase& aDb, const TDesC& aScriptFileName, TCompactDb
 			{
 			TheTest.Printf(_L("###ERROR 'Out of memory'! The test cannot be completed!\r\n"));
 			return;	
-			}
-		if(rc != 1)	
-			{
-			PrintString(sql);
 			}
 		TEST2(rc, 1);
 		if((stmtCnt % 200) == 0) //~16 transactions (~3270 statements total)
@@ -455,7 +437,6 @@ void ExecuteSqlScript(RDbDatabase& aDb, const TDesC& aScriptFileName, TCompactDb
 	TUint32 end = User::FastCounter();
 	PrintStats(start, end);
 	delete fullDbScript;
-	TheTest.Printf(_L("###Processed records: %d\r\n"), stmtCnt);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -463,7 +444,6 @@ void ExecuteSqlScript(RDbDatabase& aDb, const TDesC& aScriptFileName, TCompactDb
 //"INSERT" test function
 void InsertTest(TTestType aTestType, const TDesC& aDbFileName, TCompactDbOption aCompactDbOpt)
 	{
-	TheTest.Printf(_L("\"Insert\" test\r\n"));
 	RDbDatabase db = TDbHelper::Open(aTestType, aDbFileName);
 	ExecuteSqlScript(db, KFillDbScript, aCompactDbOpt);
 	RDbTable tbl;
@@ -480,23 +460,6 @@ void InsertTest(TTestType aTestType, const TDesC& aDbFileName, TCompactDbOption 
 //"UPDATE" test function
 void UpdateTest(TTestType aTestType, const TDesC& aDbFileName, const TDesC& aUpdateSql, TCompactDbOption aCompactDbOpt)
 	{
-	if(aCompactDbOpt == ECompactAfterEvery10Rec)
-		{
-		TheTest.Printf(_L("===Update: Compact after every 10 records\r\n"));	
-		}
-	else if(aCompactDbOpt == ECompactAfterEveryUpd)
-		{
-		TheTest.Printf(_L("===Update: Compact after every update\r\n"));	
-		}
-	else if(aCompactDbOpt == ECompactAtEnd)
-		{
-		TheTest.Printf(_L("===Update: Compact at end\r\n"));	
-		}
-	else
-		{
-		TheTest.Printf(_L("===Update: No compaction\r\n"));	
-		}
-	TheTest.Printf(_L("\"Update\" test\r\n"));
 	RDbDatabase db = TDbHelper::Open(aTestType, aDbFileName);
 
 	TUint32 start = User::FastCounter();
@@ -505,10 +468,6 @@ void UpdateTest(TTestType aTestType, const TDesC& aDbFileName, const TDesC& aUpd
 		TBuf<200> sql;
 		sql.Format(aUpdateSql, &KFirstName, id, &KLastName, id, &KCompanyName, id, id);
 		TInt rc = db.Execute(sql);
-		if(rc != 1)	
-			{
-			PrintString(sql);
-			}
 		TEST2(rc, 1);
 		if(aCompactDbOpt == ECompactAfterEveryUpd || (aCompactDbOpt == ECompactAfterEvery10Rec && (updateOpCnt % 10) == 0))
 			{
@@ -529,7 +488,6 @@ void UpdateTest(TTestType aTestType, const TDesC& aDbFileName, const TDesC& aUpd
 //"SELECT" test function
 void SelectTestL(TTestType aTestType, const TDesC& aDbFileName, const TDesC& aSelectSql)
 	{
-	TheTest.Printf(_L("\"Select\" test\r\n"));
 	RDbDatabase db = TDbHelper::Open(aTestType, aDbFileName);
 	TDbQuery query(aSelectSql);
 	RDbView view;
@@ -564,15 +522,6 @@ void SelectTestL(TTestType aTestType, const TDesC& aDbFileName, const TDesC& aSe
 //"DELETE" test function
 void DeleteTest(TTestType aTestType, const TDesC& aDbFileName, const TDesC& aDeleteSql, TCompactDbOption aCompactDbOpt)
 	{
-	if(aCompactDbOpt == ECompactAtEnd)
-		{
-		TheTest.Printf(_L("===Delete: Compact at end\r\n"));	
-		}
-	else
-		{
-		TheTest.Printf(_L("===Delete: No compaction\r\n"));	
-		}
-	TheTest.Printf(_L("\"Delete\" test\r\n"));
 	RDbDatabase db = TDbHelper::Open(aTestType, aDbFileName);
 	TUint32 start = User::FastCounter();
 	TInt rc = db.Execute(aDeleteSql);
@@ -609,107 +558,79 @@ void DoTestsL()
 	CleanupStack::PushL(fm);
 
 	//==================================== CLIENT ==========================================================
-	TheTest.Printf(_L("DBMS, insert, UTF16 SQL strings, non-secure db, client, no db compaction\r\n"));
+	TheTestTitle.Copy(_L("DBMS, insert, UTF16 SQL strings, non-secure db, client, no db compaction"));
 	TDbHelper::CreateL(TheNonSecureDbName);
 	InsertTest(EClientDbTest, TheNonSecureDbName, ENoCompaction);
-	PrintFileSize(TheNonSecureDbName);
 	
-	TheTest.Printf(_L("DBMS, insert, UTF16 SQL strings, non-secure db, client, db compaction at end\r\n"));
+	TheTestTitle.Copy(_L("DBMS, insert, UTF16 SQL strings, non-secure db, client, db compaction at end"));
 	TDbHelper::CreateL(TheNonSecureDbName);
 	InsertTest(EClientDbTest, TheNonSecureDbName, ECompactAtEnd);
-	PrintFileSize(TheNonSecureDbName);
 	
-	TheTest.Printf(_L("DBMS, insert, UTF16 SQL strings, non-secure db, client, db compaction after commit\r\n"));
+	TheTestTitle.Copy(_L("DBMS, insert, UTF16 SQL strings, non-secure db, client, db compaction after commit"));
 	TDbHelper::CreateL(TheNonSecureDbName);
 	InsertTest(EClientDbTest, TheNonSecureDbName, ECompactAfterCommit);
-	PrintFileSize(TheNonSecureDbName);
 
 	TInt err = fm->Copy(TheNonSecureDbName, TheNonSecureDbName2);
 	TEST2(err, KErrNone);
 	
-	TheTest.Printf(_L("DBMS, update, UTF16 SQL strings, non-secure db, client, no db compaction\r\n"));
+	TheTestTitle.Copy(_L("DBMS, update, UTF16 SQL strings, non-secure db, client, no db compaction"));
 	UpdateTest(EClientDbTest, TheNonSecureDbName, KUpdateSql(), ENoCompaction);
-	PrintFileSize(TheNonSecureDbName);
 	err = fm->Copy(TheNonSecureDbName2, TheNonSecureDbName);
 	TEST2(err, KErrNone);
 	
-	TheTest.Printf(_L("DBMS, update, UTF16 SQL strings, non-secure db, client, db compaction at end\r\n"));
+	TheTestTitle.Copy(_L("DBMS, update, UTF16 SQL strings, non-secure db, client, db compaction at end"));
 	UpdateTest(EClientDbTest, TheNonSecureDbName, KUpdateSql(), ECompactAtEnd);
-	PrintFileSize(TheNonSecureDbName);
 	err = fm->Copy(TheNonSecureDbName2, TheNonSecureDbName);
 	TEST2(err, KErrNone);
 
-	TheTest.Printf(_L("DBMS, update, UTF16 SQL strings, non-secure db, client, db compaction after every 10 records\r\n"));
+	TheTestTitle.Copy(_L("DBMS, update, UTF16 SQL strings, non-secure db, client, db compaction after every 10 records"));
 	UpdateTest(EClientDbTest, TheNonSecureDbName, KUpdateSql(), ECompactAfterEvery10Rec);
-	PrintFileSize(TheNonSecureDbName);
-//L	err = fm->Copy(TheNonSecureDbName2, TheNonSecureDbName);
-//L	TEST2(err, KErrNone);
 	
-//L	TheTest.Printf(_L("DBMS, update, UTF16 SQL strings, non-secure db, client, db compaction after every update\r\n"));
-//L	UpdateTest(EClientDbTest, TheNonSecureDbName, KUpdateSql(), ECompactAfterEveryUpd);
-//L	PrintFileSize(TheNonSecureDbName);
-	
-	TheTest.Printf(_L("DBMS, select, UTF16 SQL strings, non-secure db, client\r\n"));
+	TheTestTitle.Copy(_L("DBMS, select, UTF16 SQL strings, non-secure db, client"));
 	SelectTestL(EClientDbTest, TheNonSecureDbName, KSelectSql());
 
-	TheTest.Printf(_L("DBMS, delete, UTF16 SQL strings, non-secure db, client\r\n"));
+	TheTestTitle.Copy(_L("DBMS, delete, UTF16 SQL strings, non-secure db, client"));
 	DeleteTest(EClientDbTest, TheNonSecureDbName, KDeleteSql(), ECompactAtEnd);
-	PrintFileSize(TheNonSecureDbName);
 
 	//==================================== SERVER ==========================================================
 
-	TheTest.Printf(_L("DBMS, insert, UTF16 SQL strings, non-secure db, server, no db compaction\r\n"));
+	TheTestTitle.Copy(_L("DBMS, insert, UTF16 SQL strings, non-secure db, server, no db compaction"));
 	TDbHelper::CreateL(TheNonSecureDbName);
 	InsertTest(EServerDbTest, TheNonSecureDbName, ENoCompaction);
-	PrintFileSize(TheNonSecureDbName);
 	
-	TheTest.Printf(_L("DBMS, insert, UTF16 SQL strings, non-secure db, server, db compaction at end\r\n"));
+	TheTestTitle.Copy(_L("DBMS, insert, UTF16 SQL strings, non-secure db, server, db compaction at end"));
 	TDbHelper::CreateL(TheNonSecureDbName);
 	InsertTest(EServerDbTest, TheNonSecureDbName, ECompactAtEnd);
-	PrintFileSize(TheNonSecureDbName);
 
-	TheTest.Printf(_L("DBMS, insert, UTF16 SQL strings, non-secure db, server, db compaction after commit\r\n"));
+	TheTestTitle.Copy(_L("DBMS, insert, UTF16 SQL strings, non-secure db, server, db compaction after commit"));
 	TDbHelper::CreateL(TheNonSecureDbName);
 	InsertTest(EServerDbTest, TheNonSecureDbName, ECompactAfterCommit);
-	PrintFileSize(TheNonSecureDbName);
 
 	err = fm->Copy(TheNonSecureDbName, TheNonSecureDbName2);
 	TEST2(err, KErrNone);
 
-	TheTest.Printf(_L("DBMS, update, UTF16 SQL strings, non-secure db, server, no db compaction\r\n"));
+	TheTestTitle.Copy(_L("DBMS, update, UTF16 SQL strings, non-secure db, server, no db compaction"));
 	UpdateTest(EServerDbTest, TheNonSecureDbName, KUpdateSql(), ENoCompaction);
-	PrintFileSize(TheNonSecureDbName);
 	err = fm->Copy(TheNonSecureDbName2, TheNonSecureDbName);
 	TEST2(err, KErrNone);
 	
-	TheTest.Printf(_L("DBMS, update, UTF16 SQL strings, non-secure db, server, db compaction at end\r\n"));
+	TheTestTitle.Copy(_L("DBMS, update, UTF16 SQL strings, non-secure db, server, db compaction at end"));
 	UpdateTest(EServerDbTest, TheNonSecureDbName, KUpdateSql(), ECompactAtEnd);
-	PrintFileSize(TheNonSecureDbName);
 	err = fm->Copy(TheNonSecureDbName2, TheNonSecureDbName);
 	TEST2(err, KErrNone);
 
-	TheTest.Printf(_L("DBMS, update, UTF16 SQL strings, non-secure db, server, db compaction after every 10 records\r\n"));
+	TheTestTitle.Copy(_L("DBMS, update, UTF16 SQL strings, non-secure db, server, db compaction after every 10 records"));
 	UpdateTest(EServerDbTest, TheNonSecureDbName, KUpdateSql(), ECompactAfterEvery10Rec);
-	PrintFileSize(TheNonSecureDbName);
-//L	err = fm->Copy(TheNonSecureDbName2, TheNonSecureDbName);
-//L	TEST2(err, KErrNone);
-
-//L	TheTest.Printf(_L("DBMS, update, UTF16 SQL strings, non-secure db, server, db compaction after every update\r\n"));
-//L	UpdateTest(EServerDbTest, TheNonSecureDbName, KUpdateSql(), ECompactAfterEveryUpd);
-//L	PrintFileSize(TheNonSecureDbName);
 	
-	TheTest.Printf(_L("DBMS, select, UTF16 SQL strings, non-secure db, server\r\n"));
+	TheTestTitle.Copy(_L("DBMS, select, UTF16 SQL strings, non-secure db, server"));
 	SelectTestL(EServerDbTest, TheNonSecureDbName, KSelectSql());
 
-	TheTest.Printf(_L("DBMS, delete, UTF16 SQL strings, non-secure db, server\r\n"));
+	TheTestTitle.Copy(_L("DBMS, delete, UTF16 SQL strings, non-secure db, server"));
 	DeleteTest(EServerDbTest, TheNonSecureDbName, KDeleteSql(), ECompactAtEnd);
-	PrintFileSize(TheNonSecureDbName);
 	
 	//======================================================================================================
 	CleanupStack::PopAndDestroy(fm);
 	}
-
-//Usage: "t_dbperf1 [<drive letter>:]"
 
 TInt E32Main()
 	{
@@ -717,20 +638,12 @@ TInt E32Main()
 	
 	CTrapCleanup* tc = CTrapCleanup::New();
 
-	//Construct test database file names, using the passed as an optional argument drive letter 
-	TFileName fname;
-	TParse parse;
-	User::CommandLine(fname);
-	
+	GetCmdLineParams(TheTest, _L("t_dbperf1"), TheCmdLineParams);
 	_LIT(KNonSecureDbName, "c:\\test\\t_dbperf1_1.db");
-	parse.Set(fname, &KNonSecureDbName, 0);
-	const TDesC& dbFilePath1 = parse.FullName();
-	TheNonSecureDbName.Copy(dbFilePath1);
-
+	PrepareDbName(KNonSecureDbName, TheCmdLineParams.iDriveName, TheNonSecureDbName);
 	_LIT(KNonSecureDbName2, "c:\\test\\t_dbperf1_2.db");
-	parse.Set(fname, &KNonSecureDbName2, 0);
-	const TDesC& dbFilePath2 = parse.FullName();
-	TheNonSecureDbName2.Copy(dbFilePath2);
+	PrepareDbName(KNonSecureDbName2, TheCmdLineParams.iDriveName, TheNonSecureDbName2);
+	TheTest.Printf(_L("==Databases: %S, %S\r\n"), &TheNonSecureDbName, &TheNonSecureDbName2); 
 	
 	__UHEAP_MARK;
 	
@@ -740,12 +653,13 @@ TInt E32Main()
 	TEST2(err, KErrNone);
 	
 	__UHEAP_MARKEND;
+
+	User::Heap().Check();
 	
 	TheTest.End();
 	TheTest.Close();
 	
 	delete tc;
 
-	User::Heap().Check();
 	return KErrNone;
 	}

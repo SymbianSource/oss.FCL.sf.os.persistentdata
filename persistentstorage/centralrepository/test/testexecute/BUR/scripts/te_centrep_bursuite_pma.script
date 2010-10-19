@@ -1,0 +1,103 @@
+// Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
+// All rights reserved.
+// This component and the accompanying materials are made available
+// under the terms of "Eclipse Public License v1.0"
+// which accompanies this distribution, and is available
+// at the URL "http://www.eclipse.org/legal/epl-v10.html".
+//
+// Initial Contributors:
+// Nokia Corporation - initial contribution.
+//
+// Contributors:
+//
+// Description:
+//
+
+//! @file
+//! @SYMTestSuiteName SYSLIB-CENTRALREPOSITORY-TE_CENTREP_BURSUITE
+//! @SYMScriptTestEnvironment this script requires Techview ROM for BURTestserver dependency. BURTestserver must be built for this test to run.
+//! @internalComponent
+//! @test
+
+
+PRINT Run te_centrep_bursuite_pma.script Tests
+
+LOAD_SUITE te_centrep_BURSuite
+LOAD_SUITE te_centrep_burobserversuite -SharedData
+LOAD_SUITE BURTestServer
+
+// Create spoof SID and copy backup registration file
+
+RUN_UTILS MkDir c:\private\
+RUN_UTILS MkDir c:\private\0AB7E57C\
+RUN_UTILS CopyFile z:\TEF_CentralRepository\backup_registration.xml c:\private\0AB7E57C\backup_registration.xml
+
+RUN_PROGRAM t_deletefileallfiles.exe c:\private\10202be9\persists\protected\f1000200.*
+RUN_PROGRAM t_deletefileallfiles.exe c:\private\10202be9\persists\f1000200.*
+RUN_PROGRAM t_killprocess.exe centralrepositorysrv
+DELAY 2000
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4131 //Modify
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4131
+//! @SYMTestCaseDesc Test Backup & Restore functionality, when repository modified
+//! @SYMTestPriority High
+//! @SYMTestActions  Create repository, backup, modify, restore, check values
+//! @SYMTestExpectedResults Repository should not be backed-up therefore restore should not have any effect.
+
+	RUN_TEST_STEP 300 te_centrep_BURSuite initialisePMAStep
+	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_CentralRepository\PMA_BUR.ini test1
+	RUN_TEST_STEP 100 te_centrep_BURSuite modifyPMAStep
+	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_CentralRepository\PMA_BUR.ini test1
+ 	RUN_TEST_STEP 100 te_centrep_BURSuite comparePMAStep z:\TEF_CentralRepository\PMA_BUR.ini step1
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4131 //Modify
+
+RUN_PROGRAM t_deletefileallfiles.exe c:\private\10202be9\persists\protected\f1000200.*
+RUN_PROGRAM t_killprocess.exe centralrepositorysrv
+DELAY 2000
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4132 //Delete
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4132
+//! @SYMTestCaseDesc Test Backup & Restore functionality, when repository deleted
+//! @SYMTestPriority High
+//! @SYMTestActions  Create repository, backup, delete, restore, check values
+//! @SYMTestExpectedResults Repository should not be backed-up therefore restore should not restored the missing repository.
+
+	RUN_TEST_STEP 300 te_centrep_BURSuite initialisePMAStep
+	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_CentralRepository\PMA_BUR.ini test1
+	RUN_PROGRAM t_deletefileallfiles.exe c:\private\10202be9\persists\protected\f1000200.*
+//Delay to make sure that cache has been emptied.
+	DELAY 8000
+	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_CentralRepository\PMA_BUR.ini test1
+ 	RUN_TEST_STEP 100 te_centrep_BURSuite comparePMAStep z:\TEF_CentralRepository\PMA_BUR.ini step2
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4132 //Delete
+
+RUN_PROGRAM t_deletefileallfiles.exe c:\private\10202be9\persists\protected\f1000200.*
+RUN_PROGRAM t_killprocess.exe centralrepositorysrv
+DELAY 2000
+
+START_TESTCASE PDS-CENTRALREPOSITORY-CT-4133 //Restore
+//! @SYMTestCaseID PDS-CENTRALREPOSITORY-CT-4133
+//! @SYMTestCaseDesc Test Backup & Restore functionality, try to restore a repository that exists in PMA drive
+//! @SYMTestPriority High
+//! @SYMTestActions  - Create non-PMA repository, backup, delete that rep, restore, check values
+//!                  - delete that repository and create PMA repository with same id
+//!                  - Try to restore the earlier backed-up repository and check values
+//! @SYMTestExpectedResults PMA repository should not be affected by the restore
+wh
+    RUN_UTILS CopyFile z:\private\10202be9\f1000200.crp c:\private\10202be9\persists\f1000200.cre
+	RUN_TEST_STEP -1 BURTestServer TestBackup z:\TEF_CentralRepository\PMA_BUR.ini test1
+	RUN_PROGRAM t_deletefileallfiles.exe c:\private\10202be9\persists\f1000200.*
+	
+    RUN_UTILS CopyFile z:\private\10202be9\f1000200.pma c:\private\10202be9\persists\protected\f1000200.cre
+	RUN_PROGRAM t_killprocess.exe centralrepositorysrv
+// Wait for the server to start up
+	DELAY 2000
+	RUN_TEST_STEP -1 BURTestServer TestRestore z:\TEF_CentralRepository\PMA_BUR.ini test1
+ 	
+     RUN_TEST_STEP 100 te_centrep_BURSuite comparePMAStep z:\TEF_CentralRepository\PMA_BUR.ini step3
+END_TESTCASE PDS-CENTRALREPOSITORY-CT-4133 //Delete
+
+RUN_PROGRAM t_deletefileallfiles.exe c:\private\10202be9\persists\protected\f1000200.*
+RUN_PROGRAM t_deletefileallfiles.exe c:\private\0AB7E57C\backup_registration.xml
+
+PRINT Completed te_centrep_bursuite_pma.script Tests

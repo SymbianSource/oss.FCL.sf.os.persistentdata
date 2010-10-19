@@ -34,6 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 #ifdef _DEBUG
 
@@ -147,6 +148,7 @@ inline void CSqlSrvSession::DbSetDelayedAllocFail()
 
 #endif//_DEBUG
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -486,6 +488,7 @@ void CSqlSrvSession::ServiceError(const RMessage2& aMessage, TInt aError)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 /**
 Retrieves the counter values for the specified profiling counter.
@@ -523,6 +526,7 @@ void CSqlSrvSession::ProfilerQueryL(const RMessage2& aMessage)
 		}				
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1655,6 +1659,9 @@ CSqlSecurityPolicy* CSqlSrvSession::CreateSecurityPolicyL(const TDesC8& aSecurit
 	return dbPolicy;
 	}
 
+#pragma BullseyeCoverage off
+#pragma CTC SKIP
+
 /**
 Reports how many objects are allocated by the client.
 If the database connection is not in a test mode, the allocated memory cells count will be ignored.
@@ -1663,6 +1670,9 @@ TInt CSqlSrvSession::CountResources()
 	{
 	return iStatements.Count() + iIpcStreams.Count() + (iDbResourceTestMode ? User::CountAllocCells() : 0);
 	}
+
+#pragma CTC ENDSKIP
+#pragma BullseyeCoverage on
 
 /**
 Extracts from aMessage:

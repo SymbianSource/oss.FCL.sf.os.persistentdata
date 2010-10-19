@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -553,6 +553,9 @@ CDbTableDatabase::CIncremental* CDbTableDatabase::OpenAlterTableL(const TDesC& a
 	return CAlterTable::NewL(Transaction(),tDef,aNewDef,aStep);
 	}
 
+#pragma BullseyeCoverage off
+#pragma CTC SKIP
+
 //
 // Reserved for future development
 //
@@ -566,3 +569,6 @@ EXPORT_C void CDbTableDatabase::Reserved_1()
 EXPORT_C void CDbTableDatabase::Reserved_2()
 	{
     }
+
+#pragma CTC ENDSKIP
+#pragma BullseyeCoverage on

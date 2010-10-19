@@ -36,6 +36,7 @@ LIBRARY			sqldb.lib
 LIBRARY			bafl.lib 
 LIBRARY 		estor.lib 
 LIBRARY			estlib.lib 
+LIBRARY			hal.lib 
 STATICLIBRARY	sqlite.lib 
 
 UID				0 0x08770000

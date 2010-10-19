@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -34,6 +34,12 @@ static const TInt KSignatureLen = 6;
 _LIT(KVersion, "version");
 static const TInt KVersionLen = 7;
 static const TUint KCurrentVersion = 1;
+
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+//Repository (ini) file - type string (PMA/Protected keyspace)
+_LIT(KKeyspaceProtectedTag, "protected");
+static const TInt KKeyspaceProtectedTagLen = 9;
+#endif
 
 //Repository (ini) file - supported types names
 _LIT(KTypeInt, "int");
@@ -672,6 +678,42 @@ TInt CIniFileIn::ReadRangeMetaDefaultsL(RDefaultMetaArray& aDefaultMetaRanges)
 		}
 	return KErrNone;
 }
+
+
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+/**
+Check for a Keyspace Type Tag from ini file to see if it is a
+protected repository/keyspace or not. 
+
+@internalTechnology
+@return 1 if found.
+        KErrNone if not found.
+*/
+TInt CIniFileIn::CheckKeyspaceTypeSectionL()
+    {
+    TBuf<KBufLen> buf;
+
+    SkipComments();
+    
+    // We will need this section later to write the out file...
+    iLex.Mark(iMainSectionMark);
+    
+    iLex.Mark();
+    iLex.SkipCharacters();
+    
+    if( iLex.TokenLength()==KKeyspaceProtectedTagLen && ( buf.CopyLC(iLex.MarkedToken()), buf.Compare(KKeyspaceProtectedTag) == 0 ) )
+        {
+        // "protected" keyword found.
+        iLex.Mark(iMainSectionMark);
+        return EPMAKeyspace; // 1
+        }
+
+    // "protected" keyword not found.
+    iLex.UnGetToMark();
+    return ENonPMAKeyspace;  // 0
+    }
+#endif
+
 
 /**
 Read Owner section from ini file and extract owner UID 
@@ -2071,7 +2113,25 @@ void CIniFileOut::WriteHeaderL()
 	buf.Append(KCrNl);
 	WriteLineL(buf);
 	}
-	
+
+
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+/**
+Writes "protected" to a repository file if it is a protected/PMA repository.
+*/
+void CIniFileOut::WriteKeyspaceTypeL(TInt8 iKeyspaceType)
+    {
+    if (iKeyspaceType == EPMAKeyspace)
+        {
+        WriteLineL(KKeyspaceProtectedTag());
+        TBuf<5> buf;
+        buf.Append(KCrNl);
+        WriteLineL(buf);
+        }
+    }
+#endif
+
+
 /**
 Writes owner section to repository file.
 */

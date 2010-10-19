@@ -21,7 +21,7 @@ static void GetCmdLine(RTest& aTest, const TDesC& aTestName, TDes& aCmdLine)
 	aCmdLine.TrimAll();
 	if(aCmdLine.Length() == 0)
 		{
-		aTest.Printf(_L("Usage: %S [ [/enc=<16/8>] /drv=<drive letter>:] [/page=<512/1024/2048/4096/8192/16384/32768>] ] [/cache=<number>] [/hlimit=<Kb>]\r\n"), &aTestName);
+		aTest.Printf(_L("Usage: %S [ [/enc=<16/8>] /drv=<drive letter>:] [/page=<512/1024/2048/4096/8192/16384/32768>] ] [/cache=<number>] [/hlimit=<Kb>] [/logfile=<log file name>]\r\n"), &aTestName);
 		return;
 		}
 	aCmdLine.Append(TChar('/'));
@@ -149,6 +149,10 @@ static void ExtractParamNamesAndValues(const RArray<TPtrC>& aPrmNames, const RAr
 				aCmdLineParams.iSoftHeapLimitKb = softHeapLimit;
 				}
 			}
+		else if(aPrmNames[i].CompareF(_L("logfile")) == 0)
+			{
+			aCmdLineParams.iLogFileName.Copy(aPrmValues[i]);
+			}
 		}
 	}
 
@@ -186,6 +190,15 @@ static void PrepareSqlConfigString(RTest& aTest, const TCmdLineParams& aCmdLineP
 	else
 		{
 		aTest.Printf(_L("--PRM--Soft heap limit: default\r\n"));
+		}
+	
+	if(aCmdLineParams.iLogFileName.Length() > 0)
+		{
+		aTest.Printf(_L("--PRM--Log file name: %S\r\n"), &aCmdLineParams.iLogFileName);
+		}
+	else
+		{
+		aTest.Printf(_L("--PRM--Test output: to screen only\r\n"));
 		}
 	}
 
@@ -286,7 +299,7 @@ void PrepareDbName(const TDesC& aDeafultDbName, const TDriveName& aDriveName, TD
 	aDbName.Copy(dbFilePath);
 	}
 
-void SetSoftHeapLimit(TInt aSoftHeapLimit)
+void SetSoftHeapLimit(RTest& aTest, TInt aSoftHeapLimit)
 	{
 	if(aSoftHeapLimit > 0)
 		{
@@ -295,12 +308,12 @@ void SetSoftHeapLimit(TInt aSoftHeapLimit)
 		configBuf.Format(_L("soft_heap_limit_kb=%d"), aSoftHeapLimit);
 		ReplaceConfigFile(configBuf);
 #else
-		RDebug::Print(_L("The soft heap limit cannot be set if \"SQL_SOFT_HEAP_LIMIT_TEST\" macro is not defined!\r\n"));
+		aTest.Printf(_L("The soft heap limit cannot be set if \"SQL_SOFT_HEAP_LIMIT_TEST\" macro is not defined!\r\n"));
 #endif
 		}
 	else if(aSoftHeapLimit < 0)
 		{
-		RDebug::Print(_L("Soft heap limit of %d Kb cannot be set!\r\n"), aSoftHeapLimit);
+		aTest.Printf(_L("Soft heap limit of %d Kb cannot be set!\r\n"), aSoftHeapLimit);
 		}
 	}
 
@@ -311,3 +324,37 @@ void ResetSoftHeapLimit()
 #endif
 	}
 
+void LogConfig(RFile& aLogFile, const TCmdLineParams& aCmdLineParams)
+	{
+	TBuf8<100> buf;
+	if(aCmdLineParams.iDbEncoding == TCmdLineParams::EDbUtf8)
+		{
+		buf.Copy(_L8("Database Encoding:UTF8\r\n"));
+		}
+	else
+		{
+		buf.Copy(_L8("Database Encoding:UTF16\r\n"));
+		}
+	(void)aLogFile.Write(buf);
+	
+	buf.Format(_L8("Database page size:%d\r\n"), aCmdLineParams.iPageSize);
+	(void)aLogFile.Write(buf);
+	
+	buf.Format(_L8("Database cache size:%d\r\n"), aCmdLineParams.iCacheSize);
+	(void)aLogFile.Write(buf);
+	
+	buf.Format(_L8("Database drive:%S\r\n"), &aCmdLineParams.iDriveName);
+	(void)aLogFile.Write(buf);
+
+	if(aCmdLineParams.iSoftHeapLimitKb > 0)
+		{
+		buf.Format(_L8("Soft heap limit:%d Kb\r\n"), aCmdLineParams.iSoftHeapLimitKb);
+		}
+	else
+		{
+		buf.Format(_L8("Soft heap limit: default\r\n"));
+		}
+	(void)aLogFile.Write(buf);
+	buf.Format(_L8("\r\n\r\n"));
+	(void)aLogFile.Write(buf);
+	}

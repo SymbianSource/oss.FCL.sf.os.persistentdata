@@ -16,6 +16,7 @@
 #include "UC_STD.H"
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 //
 // Panic the process with STORE-Container as the category.
@@ -26,4 +27,5 @@ GLDEF_C void Panic(TContainerPanic aPanic)
 	User::Panic(KCategory,aPanic);
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on

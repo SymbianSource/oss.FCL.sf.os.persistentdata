@@ -16,6 +16,7 @@
 #include "UP_STD.H"
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 //
 // Panic the process with STORE-Page as the category.
@@ -26,4 +27,5 @@ GLDEF_C void Panic(TPagePanic aPanic)
 	User::Panic(KCategory,aPanic);
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on

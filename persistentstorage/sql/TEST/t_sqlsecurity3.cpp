@@ -67,7 +67,7 @@ void Check1(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		RestoreOriginalDb();
-		RDebug::Print(_L("*** Line %d\r\n"), aLine);
+		TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -76,7 +76,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		RestoreOriginalDb();
-		RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+		TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -149,7 +149,7 @@ void WriteOnlyDatabaseTest()
 	TPtrC p;
 	err = stmt.ColumnText(0, p);
 	TEST2(err, KErrNone);
-	RDebug::Print(_L("Value=%S\r\n"), &p);
+	TheTest.Printf(_L("Value=%S\r\n"), &p);
 	stmt.Close();
 	
 	TheDb.Close();

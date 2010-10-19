@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -85,6 +85,7 @@ static void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DeleteTestFiles();
+		Print("*** Expression evaluated to false\r\n");
 		TestTestLine(EFalse, aLine);
 		}
 	}
@@ -93,7 +94,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		PrintIII("*** Expected error: %d, got: %d. Ignore: %d\r\n", aExpected, aValue, 0);
 		TestTestLine(EFalse, aLine);
 		}
 	}
@@ -105,7 +106,6 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 static TInt KillProcess(const TDesC& aProcessName)
 	{
 	TFullName name;
-	//RDebug::Print(_L("Find and kill \"%S\" process.\n"), &aProcessName);
 	TBuf<64> pattern(aProcessName);
 	TInt length = pattern.Length();
 	pattern += _L("*");
@@ -122,7 +122,6 @@ static TInt KillProcess(const TDesC& aProcessName)
 				{
 				// If the found name is other valid application name
 				// starting with aProcessName string.
-				//RDebug::Print(_L(":: Process name: \"%S\".\n"), &name);
 				continue;
 				}
 			}
@@ -130,7 +129,6 @@ static TInt KillProcess(const TDesC& aProcessName)
 		if (proc.Open(name) == KErrNone)
 			{
 			proc.Kill(0);
-			//RDebug::Print(_L("\"%S\" process killed.\n"), &name);
 			}
 		proc.Close();
 		}

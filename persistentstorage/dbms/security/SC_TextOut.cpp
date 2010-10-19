@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -17,6 +17,9 @@
 
 #include "SC_Strings.h"
 #include "SC_TextOut.h"
+
+#pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 namespace DBSC
 {
@@ -139,3 +142,6 @@ void CPDTextPersister::WritePolicyCollection(const CPolicyBase::RPolicyCollectio
 	}
 
 } //end of - namespace DBSC
+
+#pragma CTC ENDSKIP
+#pragma BullseyeCoverage on

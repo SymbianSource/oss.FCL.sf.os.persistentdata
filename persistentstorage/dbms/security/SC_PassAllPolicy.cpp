@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -36,6 +36,9 @@ TBool CPassAllPolicy::Check(const RMessage2&, TPolicyType) const
 	return ETrue;
 	}
 
+#pragma BullseyeCoverage off
+#pragma CTC SKIP
+
 //The method initializes aPolicy parameter with "EAlwaysPass" type policy instance and
 //returns KErrNone.
 TInt CPassAllPolicy::Get(TPolicyType, TSecurityPolicy& aPolicy) const
@@ -44,6 +47,9 @@ TInt CPassAllPolicy::Get(TPolicyType, TSecurityPolicy& aPolicy) const
 	aPolicy = TSecurityPolicy(TSecurityPolicy::EAlwaysPass);
 	return KErrNone;
 	}
+
+#pragma CTC ENDSKIP
+#pragma BullseyeCoverage on
 
 #ifdef __DBDUMP__
 void CPassAllPolicy::Dump(RFile& aFile) const

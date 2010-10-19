@@ -105,6 +105,7 @@ static void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DeleteTestFiles();
+		TheTest.Printf(_L("*** Expresssion evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -113,7 +114,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -137,19 +138,19 @@ static void CreatePrivateDirs()
 
 static void PrintConfig(const TDesC& aDbFilePath)
 	{
-	RDebug::Print(_L("================= Configuration ================\r\n"));	
-	RDebug::Print(_L("Cache page size %dK, pages %d, total %dK\r\n"), SQLITE_DEFAULT_PAGE_SIZE/1024, SQLITE_DEFAULT_CACHE_SIZE, SQLITE_DEFAULT_PAGE_SIZE * SQLITE_DEFAULT_CACHE_SIZE/1024);	
-	RDebug::Print(_L("Temp cache page size %dK, pages %d, total %dK\r\n"), SQLITE_DEFAULT_PAGE_SIZE/1024, SQLITE_DEFAULT_TEMP_CACHE_SIZE, SQLITE_DEFAULT_PAGE_SIZE * SQLITE_DEFAULT_TEMP_CACHE_SIZE/1024);	
+	TheTest.Printf(_L("================= Configuration ================\r\n"));	
+	TheTest.Printf(_L("Cache page size %dK, pages %d, total %dK\r\n"), SQLITE_DEFAULT_PAGE_SIZE/1024, SQLITE_DEFAULT_CACHE_SIZE, SQLITE_DEFAULT_PAGE_SIZE * SQLITE_DEFAULT_CACHE_SIZE/1024);	
+	TheTest.Printf(_L("Temp cache page size %dK, pages %d, total %dK\r\n"), SQLITE_DEFAULT_PAGE_SIZE/1024, SQLITE_DEFAULT_TEMP_CACHE_SIZE, SQLITE_DEFAULT_PAGE_SIZE * SQLITE_DEFAULT_TEMP_CACHE_SIZE/1024);	
 	_LIT(K1, "On");
 	_LIT(K2, "Off");
-	RDebug::Print(_L("Autovacuum: %S\r\n"), SQLITE_DEFAULT_AUTOVACUUM ? &K1 : &K2);	
+	TheTest.Printf(_L("Autovacuum: %S\r\n"), SQLITE_DEFAULT_AUTOVACUUM ? &K1 : &K2);	
 	#ifdef SQLITE_DEBUG
-		RDebug::Print(_L("Debug: On\r\n"));	
+	TheTest.Printf(_L("Debug: On\r\n"));	
 	#else
-		RDebug::Print(_L("Debug: Off\r\n"));	
+	TheTest.Printf(_L("Debug: Off\r\n"));	
 	#endif
-	RDebug::Print(_L("Db file: %S\r\n"), &aDbFilePath);
-	RDebug::Print(_L("================================================\r\n"));	
+	TheTest.Printf(_L("Db file: %S\r\n"), &aDbFilePath);
+	TheTest.Printf(_L("================================================\r\n"));	
 	}
 	
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -165,9 +166,9 @@ static TInt callback(void */*NotUsed*/, TInt argc, char **argv, char **azColName
 		TheBuf2.Append(_L(" = "));
 		TheBuf1.Copy(colVal);
 		TheBuf2.Append(TheBuf1);
-    	RDebug::Print(_L("%S\r\n"), &TheBuf2);
+		TheTest.Printf(_L("%S\r\n"), &TheBuf2);
 		}
-  	RDebug::Print(_L("\n"));
+	TheTest.Printf(_L("\r\n"));
   	return 0;
 	}
 
@@ -213,7 +214,7 @@ static void DoTests1()
   	if(rc)
   		{
   		TPtrC p = ConvertToUtf16(sqlite3_errmsg(TheDb1));
-  		RDebug::Print(_L("Can't open database, err %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("Can't open database, err %d, msg: %S\r\n"), rc, &p);
     	TEST(0);
   		}
 
@@ -221,7 +222,7 @@ static void DoTests1()
   	if(rc)
   		{
   		TPtrC p = ConvertToUtf16(sqlite3_errmsg(TheDb1));
-  		RDebug::Print(_L("Can't create collation, err %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("Can't create collation, err %d, msg: %S\r\n"), rc, &p);
     	TEST(0);
   		}
 
@@ -229,7 +230,7 @@ static void DoTests1()
   	if(rc)
   		{
   		TPtrC p = ConvertToUtf16(sqlite3_errmsg(TheDb1));
-  		RDebug::Print(_L("Can't create collation, err %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("Can't create collation, err %d, msg: %S\r\n"), rc, &p);
     	TEST(0);
   		}
 
@@ -237,7 +238,7 @@ static void DoTests1()
   	if(rc)
   		{
   		TPtrC p = ConvertToUtf16(sqlite3_errmsg(TheDb1));
-  		RDebug::Print(_L("Can't create UDF, err %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("Can't create UDF, err %d, msg: %S\r\n"), rc, &p);
     	TEST(0);
   		}
 
@@ -272,7 +273,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
     	TEST(0);
 		}
@@ -298,7 +299,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
     	TEST(0);
 		}
@@ -307,7 +308,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
     	TEST(0);
 		}
@@ -320,7 +321,7 @@ static void DoTests1()
 		if(rc != SQLITE_OK)
 			{
 	  		TPtrC p = ConvertToUtf16(zErrMsg);
-	  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+	  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
 	    	sqlite3_free(zErrMsg);
     		TEST(0);
 			}
@@ -331,7 +332,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -341,7 +342,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -353,7 +354,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -362,7 +363,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -371,7 +372,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -380,7 +381,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -389,7 +390,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -398,7 +399,7 @@ static void DoTests1()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -419,7 +420,7 @@ static void DoTests2()
   	if(rc != SQLITE_OK)
   		{
   		TPtrC p = ConvertToUtf16(sqlite3_errmsg(TheDb1));
-  		RDebug::Print(_L("Can't open database, err %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("Can't open database, err %d, msg: %S\r\n"), rc, &p);
     	TEST(0);
   		}
   		
@@ -427,7 +428,7 @@ static void DoTests2()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -440,7 +441,7 @@ static void DoTests2()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -449,7 +450,7 @@ static void DoTests2()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -462,7 +463,7 @@ static void DoTests2()
 		if(rc != SQLITE_OK)
 			{
 	  		TPtrC p = ConvertToUtf16(zErrMsg);
-	  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+	  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
 	    	sqlite3_free(zErrMsg);
 	   		TEST(0);
 			}
@@ -472,7 +473,7 @@ static void DoTests2()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -481,7 +482,7 @@ static void DoTests2()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -490,7 +491,7 @@ static void DoTests2()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -499,7 +500,7 @@ static void DoTests2()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -508,7 +509,7 @@ static void DoTests2()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -517,7 +518,7 @@ static void DoTests2()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\r\n"), rc, &p);
     	sqlite3_free(zErrMsg);
    		TEST(0);
 		}
@@ -539,7 +540,7 @@ static void AccentedColumnNamesTestL()
   	if(rc != SQLITE_OK)
   		{
   		TPtrC p = ConvertToUtf16(sqlite3_errmsg(TheDb1));
-  		RDebug::Print(_L("Can't open database, err %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("Can't open database, err %d, msg: %S\r\n"), rc, &p);
     	TEST(0);
   		}
 	
@@ -555,7 +556,7 @@ static void AccentedColumnNamesTestL()
 		{
 		const void* errMsgZ = sqlite3_errmsg16(TheDb1);
 		TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-		RDebug::Print(_L("'sqlite3_prepare16_v2()' failed, err %d, error msg: \"%S\"\r\n"), rc, &msg);
+		TheTest.Printf(_L("'sqlite3_prepare16_v2()' failed, err %d, error msg: \"%S\"\r\n"), rc, &msg);
     	TEST(0);
 		}
 	rc = sqlite3_step(stmtHandle);
@@ -571,7 +572,7 @@ static void AccentedColumnNamesTestL()
 		{
 		const void* errMsgZ = sqlite3_errmsg16(TheDb1);
 		TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-		RDebug::Print(_L("'sqlite3_prepare16_v2()' failed, err %d, error msg: \"%S\"\r\n"), rc, &msg);
+		TheTest.Printf(_L("'sqlite3_prepare16_v2()' failed, err %d, error msg: \"%S\"\r\n"), rc, &msg);
     	TEST(0);
 		}
 
@@ -698,7 +699,7 @@ static void PrintFileSize(const TDesC& aPath)
 	TInt size = 0;
 	TEST2(file.Size(size), KErrNone);
 	file.Close();
-	RDebug::Print(_L("File \"%S\", size: %d\r\n"), &aPath, size);
+	TheTest.Printf(_L("File \"%S\", size: %d\r\n"), &aPath, size);
 	}
 
 //Executes 8-bit SQL statement	
@@ -715,14 +716,14 @@ static void ExecSql(sqlite3* aDbHandle, const char* aSqlStmt, const TDesC& aMsg)
 		{
 		TPtrC8 ptr8((const TUint8*)errMsg, strlen(errMsg));
 		TheBuf1.Copy(ptr8);
-		RDebug::Print(_L("'sqlite3_exec()' failed, err %d, error msg: \"%S\"\t\n"), rc, &TheBuf1);
+		TheTest.Printf(_L("'sqlite3_exec()' failed, err %d, error msg: \"%S\"\t\n"), rc, &TheBuf1);
 		TEST(0);
 		}
 	TTime t2;
 	t2.UniversalTime();
 	TTimeIntervalMicroSeconds diffTime = t2.MicroSecondsFrom(t1); 
 	diffTime = diffTime.Int64() / 1000;
-	RDebug::Print(_L("%S, time: %d ms\r\n"), &aMsg, (TInt)diffTime.Int64());
+	TheTest.Printf(_L("%S, time: %d ms\r\n"), &aMsg, (TInt)diffTime.Int64());
 	}
 
 //This function searches aString argument for ';' occurences.
@@ -796,7 +797,7 @@ static void ExecSql16(sqlite3* aDbHandle, TDes& aSqlStmtZ, const TDesC& aMsg)
 			{
 			const void* errMsgZ = sqlite3_errmsg16(aDbHandle);
 			TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-			RDebug::Print(_L("'sqlite3_exec16()' failed, err %d, error msg: \"%S\"\t\n"), err, &msg);
+			TheTest.Printf(_L("'sqlite3_exec16()' failed, err %d, error msg: \"%S\"\t\n"), err, &msg);
 			TEST(0);
 			}
 		}
@@ -804,7 +805,7 @@ static void ExecSql16(sqlite3* aDbHandle, TDes& aSqlStmtZ, const TDesC& aMsg)
 	t2.UniversalTime();
 	TTimeIntervalMicroSeconds diffTime = t2.MicroSecondsFrom(t1); 
 	diffTime = diffTime.Int64() / 1000;
-	RDebug::Print(_L("%S, time: %d ms\r\n"), &aMsg, (TInt)diffTime.Int64());
+	TheTest.Printf(_L("%S, time: %d ms\r\n"), &aMsg, (TInt)diffTime.Int64());
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -962,71 +963,71 @@ static void SearchDbTest16(const TDesC& aDbFilePath)
 	TBuf<KMaxFileName + 1> fname;
 	fname.Copy(aDbFilePath);
 	//Open database
-	RDebug::Print(_L("Open database\r\n"));
+	TheTest.Printf(_L("Open database\r\n"));
 	sqlite3 *dbHandle = NULL;
 	TInt rc = sqlite3_open16(fname.PtrZ(), &dbHandle);//!!!!16-bit encoding!!!!!
 	if(rc != SQLITE_OK)
 		{
 		const void* errMsgZ = sqlite3_errmsg16(dbHandle);
 		TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-		RDebug::Print(_L("'sqlite3_open()' failed, file %S, err %d, error msg: \"%S\"\t\n"), &aDbFilePath, rc, &msg);
+		TheTest.Printf(_L("'sqlite3_open()' failed, file %S, err %d, error msg: \"%S\"\t\n"), &aDbFilePath, rc, &msg);
 		TEST(0);
 		}
 	TEST(dbHandle != NULL);
 	//Create "CompareF" collation	
-	RDebug::Print(_L("Create \"CompareF\" collation\r\n"));
+	TheTest.Printf(_L("Create \"CompareF\" collation\r\n"));
 	_LIT(KCmpF, "CmpF16\x0");
 	rc = sqlite3_create_collation16(dbHandle, (const char*)(KCmpF().Ptr()), SQLITE_UTF16 | SQLITE_UTF16_ALIGNED, NULL, &CmpF16);
   	if(rc)
   		{
 		const void* errMsgZ = sqlite3_errmsg16(dbHandle);
 		TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-		RDebug::Print(_L("Err=%S\r\n"), &msg);
+		TheTest.Printf(_L("Err=%S\r\n"), &msg);
 		TEST(0);
   		}
 	//Create "CompareC" collation	
-	RDebug::Print(_L("Create \"CompareC\" collation\r\n"));
+  	TheTest.Printf(_L("Create \"CompareC\" collation\r\n"));
 	_LIT(KCmpC, "CmpC16\x0");
 	rc = sqlite3_create_collation16(dbHandle, (const char*)(KCmpC().Ptr()), SQLITE_UTF16 | SQLITE_UTF16_ALIGNED, NULL, &CmpC16);
   	if(rc)
   		{
 		const void* errMsgZ = sqlite3_errmsg16(dbHandle);
 		TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-		RDebug::Print(_L("Err=%S\r\n"), &msg);
+		TheTest.Printf(_L("Err=%S\r\n"), &msg);
 		TEST(0);
   		}
 	//Create database schema
 	TheCmpFCallCnt = TheCmpCCallCnt = 0;
-	RDebug::Print(_L("Create database schema\r\n"));
+	TheTest.Printf(_L("Create database schema\r\n"));
 	HBufC16* createSqlZ = ReadSQL16(_L("z:\\test\\contacts_schema_to_vendors.sql"));
 	TPtr sql = createSqlZ->Des();
 	ExecSql16(dbHandle, sql, _L("Create schema"));
 	delete createSqlZ;
-	RDebug::Print(_L("CmpF() call cnt %d, CmpC() call cnt %d\r\n"), TheCmpFCallCnt, TheCmpCCallCnt);
+	TheTest.Printf(_L("CmpF() call cnt %d, CmpC() call cnt %d\r\n"), TheCmpFCallCnt, TheCmpCCallCnt);
 	//Add 1001 "simple" contacts
 	TheCmpFCallCnt = TheCmpCCallCnt = 0;
-	RDebug::Print(_L("Add 1001 \"simple\" contacts\r\n"));
+	TheTest.Printf(_L("Add 1001 \"simple\" contacts\r\n"));
 	HBufC16* addSqlZ = ReadSQL16(KSimpleContactsSqlFile);
-	RDebug::Print(_L("--\r\n"));
+	TheTest.Printf(_L("--\r\n"));
 	sql.Set(addSqlZ->Des());
 	ExecSql16(dbHandle, sql, _L("Add simple contacts"));
 	delete addSqlZ;
-	RDebug::Print(_L("CmpF() call cnt %d, CmpC() call cnt %d\r\n"), TheCmpFCallCnt, TheCmpCCallCnt);
+	TheTest.Printf(_L("CmpF() call cnt %d, CmpC() call cnt %d\r\n"), TheCmpFCallCnt, TheCmpCCallCnt);
 	//Print the number of records
-	RDebug::Print(_L("Print the number of records\r\n"));
+	TheTest.Printf(_L("Print the number of records\r\n"));
 	TBuf<40> testSql(_L("SELECT COUNT(*) FROM CONTACTS"));
 	testSql.Append(TChar(0));
 	ExecSql16(dbHandle, testSql, _L("--"));
 	
 	//Create index: "First name, Last name"
 	TheCmpFCallCnt = TheCmpCCallCnt = 0;
-	RDebug::Print(_L("Create index: \"First name, Last name\"\r\n"));
+	TheTest.Printf(_L("Create index: \"First name, Last name\"\r\n"));
 	TBuf<100> createIndexStmt(_L("CREATE INDEX Idx1 ON identitytable(cm_firstname COLLATE CmpC16, cm_lastname COLLATE CmpC16)"));
 	createIndexStmt.Append(TChar(0));
 	ExecSql16(dbHandle, createIndexStmt, _L("Create index"));
-	RDebug::Print(_L("CmpF() call cnt %d, CmpC() call cnt %d\r\n"), TheCmpFCallCnt, TheCmpCCallCnt);
+	TheTest.Printf(_L("CmpF() call cnt %d, CmpC() call cnt %d\r\n"), TheCmpFCallCnt, TheCmpCCallCnt);
 
-	RDebug::Print(_L("Close database\r\n"));
+	TheTest.Printf(_L("Close database\r\n"));
    	sqlite3_close(dbHandle);
 
 	PrintFileSize(aDbFilePath);
@@ -1061,63 +1062,63 @@ static void SearchDbTest8(const TDesC& aDbFilePath, const TDesC& aAddContactsFil
 	TBuf8<KMaxFileName + 1> fname;
 	fname.Copy(aDbFilePath);
 	
-	RDebug::Print(_L("%S\r\n"), &aMsg);
-	RDebug::Print(_L("Open database\r\n"));
+	TheTest.Printf(_L("%S\r\n"), &aMsg);
+	TheTest.Printf(_L("Open database\r\n"));
 	sqlite3 *dbHandle = NULL;
 	TInt rc = sqlite3_open((const char*)fname.PtrZ(), &dbHandle);
 	if(rc != SQLITE_OK)
 		{
 		const void* errMsgZ = sqlite3_errmsg16(dbHandle);
 		TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-		RDebug::Print(_L("'sqlite3_open()' failed, file %S, err %d, error msg: \"%S\"\r\n"), &aDbFilePath, rc, &msg);
+		TheTest.Printf(_L("'sqlite3_open()' failed, file %S, err %d, error msg: \"%S\"\r\n"), &aDbFilePath, rc, &msg);
 		TEST(0);
 		}
 	TEST(dbHandle != NULL);
 	
-	RDebug::Print(_L("Create 'CompareF' collation\r\n"));
+	TheTest.Printf(_L("Create 'CompareF' collation\r\n"));
 	_LIT8(KCmpF, "CmpF8\x0");
 	rc = sqlite3_create_collation(dbHandle, (const char*)(KCmpF().Ptr()), SQLITE_UTF8, NULL, &CmpF8);
   	if(rc)
   		{
 		const void* errMsgZ = sqlite3_errmsg16(dbHandle);
 		TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-		RDebug::Print(_L("'sqlite3_create_collation()' failed, file %S, err %d, error msg: \"%S\"\r\n"), &aDbFilePath, rc, &msg);
+		TheTest.Printf(_L("'sqlite3_create_collation()' failed, file %S, err %d, error msg: \"%S\"\r\n"), &aDbFilePath, rc, &msg);
 		TEST(0);
   		}
 
-	RDebug::Print(_L("Create 'CompareC' collation\r\n"));
+  	TheTest.Printf(_L("Create 'CompareC' collation\r\n"));
 	_LIT8(KCmpC, "CmpC8\x0");
 	rc = sqlite3_create_collation(dbHandle, (const char*)(KCmpC().Ptr()), SQLITE_UTF8, NULL, &CmpC8);
   	if(rc)
   		{
 		const void* errMsgZ = sqlite3_errmsg16(dbHandle);
 		TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-		RDebug::Print(_L("'sqlite3_create_collation()' failed, file %S, err %d, error msg: \"%S\"\r\n"), &aDbFilePath, rc, &msg);
+		TheTest.Printf(_L("'sqlite3_create_collation()' failed, file %S, err %d, error msg: \"%S\"\r\n"), &aDbFilePath, rc, &msg);
 		TEST(0);
   		}
 
-	RDebug::Print(_L("Create database schema\r\n"));
+  	TheTest.Printf(_L("Create database schema\r\n"));
 	char* createSqlZ = ReadSQL2(_L("z:\\test\\contacts_schema_to_vendors.sql"));
 	ExecSql(dbHandle, createSqlZ, _L("Create schema"));
 	delete [] createSqlZ;
 
-	RDebug::Print(_L("Add 1001 contacts\r\n"));
+	TheTest.Printf(_L("Add 1001 contacts\r\n"));
 	char* addSqlZ = ReadSQL2(aAddContactsFile);
 	ExecSql(dbHandle, addSqlZ, _L("Add contacts"));
 	delete [] addSqlZ;
 
-	RDebug::Print(_L("Print the number of records\r\n"));
+	TheTest.Printf(_L("Print the number of records\r\n"));
 	const char testSql[] = {"SELECT COUNT(*) FROM CONTACTS"};
 	ExecSql(dbHandle, testSql, _L("SELECT COUNT(*)"));
 	
-	RDebug::Print(_L("Create index (using 'CompareF' collation): 'FirstName, Surname'\r\n"));
+	TheTest.Printf(_L("Create index (using 'CompareF' collation): 'FirstName, Surname'\r\n"));
 	_LIT8(KCreateIndexStmt, "CREATE INDEX Idx1 ON identitytable(cm_firstname COLLATE CmpF8, cm_lastname COLLATE CmpF8)\x0");
 	ExecSql(dbHandle, (const char*)(KCreateIndexStmt().Ptr()), _L("Create index"));
-	RDebug::Print(_L("CompareF() called %d times\r\n"), TheCmpFCallCnt);
+	TheTest.Printf(_L("CompareF() called %d times\r\n"), TheCmpFCallCnt);
 
 /* BEGIN OF - TEST CASE 1 "Select all contacts which first name begins with 'a' " */	
 
-	RDebug::Print(_L("Prepare 'Select all contacts where the first name begins with 'A'' SQL string\r\n"));
+	TheTest.Printf(_L("Prepare 'Select all contacts where the first name begins with 'A'' SQL string\r\n"));
 	_LIT8(KSearchStmt, "SELECT cm_firstname, cm_lastname FROM identitytable WHERE cm_firstname LIKE 'A%'\x0");
 	sqlite3_stmt* stmtHandle = NULL;
 	const char* stmtTailZ = NULL;
@@ -1132,9 +1133,9 @@ static void SearchDbTest8(const TDesC& aDbFilePath, const TDesC& aAddContactsFil
 	TTimeIntervalMicroSeconds diffTime = t2.MicroSecondsFrom(t1); 
 	diffTime = diffTime.Int64() / 1000;
 	TInt t = (TInt)diffTime.Int64();
-	RDebug::Print(_L("'Prepare SQL statement' time: %d ms\r\n"), t);
+	TheTest.Printf(_L("'Prepare SQL statement' time: %d ms\r\n"), t);
 
-	RDebug::Print(_L("Step the prepared SQL statement\r\n"));
+	TheTest.Printf(_L("Step the prepared SQL statement\r\n"));
 	TInt totalCmpFCnt = 0;
 	t1.UniversalTime();
 	TheCmpFCallCnt = 0;
@@ -1147,7 +1148,7 @@ static void SearchDbTest8(const TDesC& aDbFilePath, const TDesC& aAddContactsFil
 		//const TUint8* surname = sqlite3_column_text(stmtHandle, 1);
 		//p.Set(surname, strlen((const char*)surname));
 		//TBuf<100> p2; p2.Copy(p);
-		//RDebug::Print(_L("Found rec: %S, %S\r\n"), &p1, &p2);
+		//TheTest.Printf(_L("Found rec: %S, %S\r\n"), &p1, &p2);
 		++recordCnt;
 		}
 	totalCmpFCnt += TheCmpFCallCnt;
@@ -1156,8 +1157,8 @@ static void SearchDbTest8(const TDesC& aDbFilePath, const TDesC& aAddContactsFil
 	diffTime = t2.MicroSecondsFrom(t1); 
 	diffTime = diffTime.Int64() / 1000;
 	t = (TInt)diffTime.Int64();
-	RDebug::Print(_L("'Stepping' time: %d ms, found records: %d\r\n"), t, recordCnt);
-	RDebug::Print(_L("Total 'search' ('CompareF' used) operations=%d\r\n"), totalCmpFCnt);
+	TheTest.Printf(_L("'Stepping' time: %d ms, found records: %d\r\n"), t, recordCnt);
+	TheTest.Printf(_L("Total 'search' ('CompareF' used) operations=%d\r\n"), totalCmpFCnt);
 
 	sqlite3_finalize(stmtHandle);
 	stmtHandle = NULL;
@@ -1166,7 +1167,7 @@ static void SearchDbTest8(const TDesC& aDbFilePath, const TDesC& aAddContactsFil
 
 /*	BEGIN OF - TEST CASE 2 "Do 100 searches in 1001 contacts" */
 
-	RDebug::Print(_L("Prepare 'SELECT FirstName, Surname...' SQL string\r\n"));
+	TheTest.Printf(_L("Prepare 'SELECT FirstName, Surname...' SQL string\r\n"));
 	_LIT8(KSearchStmt2, "SELECT cm_firstname, cm_lastname FROM identitytable WHERE cm_firstname = :Prm1 AND cm_lastname = :Prm2\x0");
 	stmtHandle = NULL;
 	stmtTailZ = NULL;
@@ -1179,14 +1180,14 @@ static void SearchDbTest8(const TDesC& aDbFilePath, const TDesC& aAddContactsFil
 	diffTime = t2.MicroSecondsFrom(t1); 
 	diffTime = diffTime.Int64() / 1000;
 	t = (TInt)diffTime.Int64();
-	RDebug::Print(_L("'Prepare SQL statement' time: %d ms\r\n"), t);
+	TheTest.Printf(_L("'Prepare SQL statement' time: %d ms\r\n"), t);
 	
 	TInt idxPrm1 = sqlite3_bind_parameter_index(stmtHandle, ":Prm1");
 	TEST(idxPrm1 > 0);
 	TInt idxPrm2 = sqlite3_bind_parameter_index(stmtHandle, ":Prm2");
 	TEST(idxPrm2 > 0);
 	
-	RDebug::Print(_L("Do %d searches using the prepared SQL statement\r\n"), KNamesCnt);
+	TheTest.Printf(_L("Do %d searches using the prepared SQL statement\r\n"), KNamesCnt);
 	totalCmpFCnt = 0;
 	t1.UniversalTime();
 	for(TInt i=0;i<KNamesCnt;++i)
@@ -1214,8 +1215,8 @@ static void SearchDbTest8(const TDesC& aDbFilePath, const TDesC& aAddContactsFil
 	diffTime = t2.MicroSecondsFrom(t1); 
 	diffTime = diffTime.Int64() / 1000;
 	t = (TInt)diffTime.Int64();
-	RDebug::Print(_L("'Search' time: %d ms\r\n"), t);
-	RDebug::Print(_L("Total 'search' ('CompareF' used) operations=%d, average_per_iter=%d\r\n"), totalCmpFCnt, totalCmpFCnt/KNamesCnt);
+	TheTest.Printf(_L("'Search' time: %d ms\r\n"), t);
+	TheTest.Printf(_L("Total 'search' ('CompareF' used) operations=%d, average_per_iter=%d\r\n"), totalCmpFCnt, totalCmpFCnt/KNamesCnt);
 
 	sqlite3_finalize(stmtHandle);
 	stmtHandle = NULL;
@@ -1228,7 +1229,7 @@ static void SearchDbTest8(const TDesC& aDbFilePath, const TDesC& aAddContactsFil
 	diffTime = t2.MicroSecondsFrom(t1); 
 	diffTime = diffTime.Int64() / 1000;
 	t = (TInt)diffTime.Int64();
-	RDebug::Print(_L("'Finalize SQL statement' time: %d ms\r\n"), t);
+	TheTest.Printf(_L("'Finalize SQL statement' time: %d ms\r\n"), t);
 
    	sqlite3_close(dbHandle);
 	PrintFileSize(aDbFilePath);
@@ -1322,7 +1323,7 @@ static void TemdDbTest()
 		{
 		const void* errMsgZ = sqlite3_errmsg16(dbHandle);
 		TPtrC msg(reinterpret_cast <const TText16*> (errMsgZ), wcslen(reinterpret_cast <const wchar_t*> (errMsgZ)));
-		RDebug::Print(_L("'sqlite3_open()' failed, err %d, error msg: \"%S\"\r\n"), rc, &msg);
+		TheTest.Printf(_L("'sqlite3_open()' failed, err %d, error msg: \"%S\"\r\n"), rc, &msg);
 		TEST(0);
 		}
 	TEST(dbHandle != NULL);
@@ -1334,7 +1335,7 @@ static void TemdDbTest()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\n"), rc, &p);
     	sqlite3_free(zErrMsg);
     	TEST(0);
 		}
@@ -1344,7 +1345,7 @@ static void TemdDbTest()
 	if(rc != SQLITE_OK)
 		{
   		TPtrC p = ConvertToUtf16(zErrMsg);
-  		RDebug::Print(_L("SQL error %d, msg: %S\n"), rc, &p);
+  		TheTest.Printf(_L("SQL error %d, msg: %S\n"), rc, &p);
     	sqlite3_free(zErrMsg);
     	TEST(0);
 		}

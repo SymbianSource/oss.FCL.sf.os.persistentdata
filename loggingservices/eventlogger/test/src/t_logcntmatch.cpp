@@ -326,6 +326,7 @@ void doTestsL()
 
 void doTestsL()
 	{
+	TestUtils::Initialize(_L("t_logcntmatch"));
 	TheTest.Start(_L("This test can be run only when built with SYSLIBS_TEST macro defined!"));
 	}
 

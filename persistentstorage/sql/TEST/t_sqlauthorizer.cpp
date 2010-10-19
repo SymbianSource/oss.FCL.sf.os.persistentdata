@@ -184,7 +184,7 @@ void Check1(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Line %d\r\n"), aLine);
+		TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -193,7 +193,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+		TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -306,7 +306,10 @@ void PragmaTests(const TAccessType aAccessType, TDatabaseType aDbType, TBool aAt
 					
 			RSqlStatement stmt;
 			TInt err = stmt.Prepare(TheDb, TheSql);
-			RDebug::Printf("Testing the following pragma command - %s",TheSql.Ptr());
+			TBuf<100> sqlBuf;
+			sqlBuf.Copy(TheSql);
+			sqlBuf.SetLength(sqlBuf.Length() - 1);//remove the terminating zero.
+			TheTest.Printf(_L("Tested pragma command: %S\r\n"), &sqlBuf);
 			switch (KResultsTable[i][index])
 				{
 				case EOk:

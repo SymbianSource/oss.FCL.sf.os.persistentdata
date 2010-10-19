@@ -25,6 +25,7 @@
 RTest			TheTest(_L("t_sqlperformance4 test"));
 RSqlDatabase 	TheDbC;
 RFs				TheFs;
+RFile 			TheLogFile; 
 
 _LIT(KCDriveDatabase, "c:[a000017f]t_sqlperformance4.db");
 
@@ -129,6 +130,11 @@ _LIT(KCommitTransaction, "COMMIT TRANSACTION");
 
 void TestEnvDestroy()
 	{
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		(void)TheLogFile.Flush();
+		TheLogFile.Close();
+		}
 	TheDbC.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
 	TheFs.Close();
@@ -239,6 +245,12 @@ void TestEnvInit()
 	TRAP(err,CreateDatabaseL(TheDbFileName));
 	TEST2(err, KErrNone);
 	
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		err = TheLogFile.Replace(TheFs, TheCmdLineParams.iLogFileName, EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		LogConfig(TheLogFile, TheCmdLineParams);
+		}
 	}
 	
 		
@@ -364,9 +376,25 @@ void RunTest()
 	
 	TheDbC.Close();
 	
-	TheTest.Printf(_L("Total time to process Songs: %d us\n"), totalTime);
-	TheTest.Printf(_L("Transactions count: %d, \"INSERT\" count: %d, \"UPDATE\" count: %d, \"SELECT\" count: %d\n"), 
-			               trnCnt, insertCnt, updateCnt, selectCnt);
+	TheTest.Printf(_L("Total time to process Songs: %d us\r\n"), totalTime);
+	TheTest.Printf(_L("Transactions count: %d\r\n"), trnCnt);
+	TheTest.Printf(_L("\"INSERT\" count: %d\r\n"), insertCnt);
+	TheTest.Printf(_L("\"UPDATE\" count: %d\r\n"), updateCnt);
+	TheTest.Printf(_L("\"SELECT\" count: %d\r\n"), selectCnt);
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		TBuf8<200> buf;
+		buf.Format(_L8("Total time to process Songs¬%d¬us\r\n"), totalTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Transactions count¬%d\r\n"), trnCnt);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("\"INSERT\" count¬%d\r\n"), insertCnt);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("\"UPDATE\" count¬%d\r\n"), updateCnt);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("\"SELECT\" count¬%d\r\n"), selectCnt);
+		(void)TheLogFile.Write(buf);
+		}
 	TEST2(recordCount, KRecordCount);
 	}
 ///////////////////////////////////////////////////////////////////////////////////

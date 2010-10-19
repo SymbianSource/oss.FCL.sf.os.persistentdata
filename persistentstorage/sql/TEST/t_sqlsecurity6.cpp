@@ -37,7 +37,7 @@ void Check1(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Boolean expression evaluated to false. Line %d\r\n"), aLine);
+		TheTest.Printf(_L("*** Expression evaluated to false. Line %d\r\n"), aLine);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -46,7 +46,7 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
+		TheTest.Printf(_L("*** Line %d, Expected error: %d, got: %d\r\n"), aLine, aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}

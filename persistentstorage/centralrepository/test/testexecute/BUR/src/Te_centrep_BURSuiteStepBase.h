@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -30,10 +30,15 @@
 _LIT(KIniNumOfSettings, "NumSettings");
 _LIT(KIniExpectedGetResult, "ExpectedGetResult");
 _LIT(KIniExpectedGetValue, "ExpectedGetValue");
+_LIT(KIniPMAReposExist, "PMAReposExist");
+_LIT(KIniPMAExpectedGetResult, "PMAExpectedGetResult");
+_LIT(KIniPMAIsModified, "PMAIsModified");
 
 const TUid KUidBURTestRepository = {0xBACBACBA};
 const TUid KUidBURTestDefaultRepository = {0xBAC2BAC2};
 const TUid KUidBURDefTestRepository = {0xBAEBAEBA};
+
+const TUid KUidBURTestPMARepository = {0xF1000200};
 
 const TInt KNumBackupSettings = 18;
 const TInt KNumDefaultBackupSettings = 3;
@@ -51,7 +56,6 @@ const TInt KOrigZeroMetaIntValue = 2;
 // Original Key with metadata 0x01000000
 const TUint32 KOrigBackupMetaInt = 0x03;
 const TInt KOrigBackupMetaIntValue = 3;
-
 
 // Keys used to test behaviour of deleted settings
 
@@ -147,6 +151,51 @@ const TUint32 KNewString163 = 0x232;
 _LIT(KString16Value3, "GgGgGgG");
 const TUint32 KNewString164 = 0x233;
 _LIT(KString16Value4, "hhhhHHH");
+
+
+// PMA key with metadata 0x01000000, to be modified
+const TUint32 KPMAIntKey= 0x01;
+const TInt KPMAIntOrigValue = 10;
+const TInt KPMAIntModifiedValue = 15;
+
+const TUint32 KPMARealKey = 0x02;
+const TReal KPMARealOrigValue = 11.1;
+const TReal KPMARealModifiedValue = 12.8;
+
+const TUint32 KPMABinKey = 0x03;
+_LIT8(KPMABinOrigValue, "ABCD");
+_LIT8(KPMABinModifiedValue, "WXYZ");
+
+const TUint32 KPMAStrKey = 0x04;
+_LIT(KPMAStrOrigValue, "ABCDEFGHIJ");
+_LIT(KPMAStrModifiedValue, "QRSTUVWXYZ");
+
+//PMA setting to be deleted post-backup
+const TUint32 KPMADeleteIntKey = 0x05;
+const TInt KPMADeleteIntValue = 12;
+
+//PMA setting to be created post-backup
+const TUint32 KPMACreateIntKey = 0x06;
+const TInt KPMACreateIntValue = 18;
+
+//PMA setting to be created pre-backup
+const TUint32 KPMAInitIntKey= 0x07;
+const TInt KPMAInitIntOrigValue = 50;
+const TInt KPMAInitIntModifiedValue = 65;
+
+const TUint32 KPMAInitRealKey = 0x08;
+const TReal KPMAInitRealOrigValue = 44.4;
+const TReal KPMAInitRealModifiedValue = 66.6;
+
+const TUint32 KPMAInitBinKey = 0x09;
+_LIT8(KPMAInitBinOrigValue, "AbCdEf");
+_LIT8(KPMAInitBinModifiedValue, "gHiJkL");
+
+const TUint32 KPMAInitStrKey = 0x0A;
+_LIT(KPMAInitStrOrigValue, "klmNoPQr");
+_LIT(KPMAInitStrModifiedValue, "sTuvwXyZ");
+
+
 
 /////////////////////////////////////////
 

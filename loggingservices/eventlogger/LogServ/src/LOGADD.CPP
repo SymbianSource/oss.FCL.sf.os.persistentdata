@@ -38,6 +38,7 @@ const TInt KMinimumNumberOfDigitsToMatch = 3;
 #ifdef SYSLIBS_TEST
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 static void LogStore32IntL(RFs& aFs, const TDesC& aFilePath, TInt aVal)
 	{
@@ -75,6 +76,7 @@ static void LogStoreContactMatchCountAndNameFormatL(TInt aContactMatchCount, TLo
 	CleanupStack::PopAndDestroy(&fs);
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 #endif //SYSLIBS_TEST

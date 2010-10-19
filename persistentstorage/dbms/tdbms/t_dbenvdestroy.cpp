@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -40,7 +40,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -50,11 +50,11 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 
 static void DeleteTestDatabase(TUid aUid, const TDesC& aDbName)
 	{
-	RDebug::Print(_L("Deleting %X \"%S\" database.\n"), aUid, &aDbName);
+	TheTest.Printf(_L("Deleting %X \"%S\" database.\n"), aUid, &aDbName);
 	TInt err = TheDbs.DeleteDatabase(aDbName, aUid);
 	if(err != KErrNone && err != KErrNotFound)
 		{
-		RDebug::Print(_L("Error %d deleting \"%S\" database.\n"), err, &aDbName);
+		TheTest.Printf(_L("Error %d deleting \"%S\" database.\n"), err, &aDbName);
 		}
 	}
 

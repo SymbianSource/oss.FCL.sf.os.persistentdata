@@ -21,6 +21,8 @@
 
 RTest 			TheTest(_L("t_sqlperformance5 test"));
 RSqlDatabase 	TheDb;
+RFs				TheFs;
+RFile 			TheLogFile; 
 
 _LIT(KDbName, 	"c:\\test\\t_sqlperformance5.db");
 
@@ -60,6 +62,11 @@ TInt TheFlushTime = 0;
 
 void TestEnvDestroy()
 	{
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		(void)TheLogFile.Flush();
+		TheLogFile.Close();
+		}
 	TheDb.Close();
 	(void)RSqlDatabase::Delete(TheDbFileName);
 	ResetSoftHeapLimit();
@@ -99,12 +106,16 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 
 void TestEnvInit()
 	{
-	RFs fs;
-	TInt err = fs.Connect();
+	TInt err = TheFs.Connect();
 	TEST2(err, KErrNone);
-	err = fs.MkDirAll(TheDbFileName);
+	err = TheFs.MkDirAll(TheDbFileName);
 	TEST(err == KErrNone || err == KErrAlreadyExists);
-	fs.Close();
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		err = TheLogFile.Replace(TheFs, TheCmdLineParams.iLogFileName, EFileRead | EFileWrite);
+		TEST2(err, KErrNone);
+		LogConfig(TheLogFile, TheCmdLineParams);
+		}
 	}
 
 TInt TimeDiffUs(TUint32 aStartTicks, TUint32 aEndTicks)
@@ -364,13 +375,31 @@ void PopulateDb()
 	stmt1.Close();
 	TheDb.Close();
 
-	TheTest.Printf(_L("==Create database, time=%d microseconds\r\n"), TheCreateDbTime);
-	TheTest.Printf(_L("==Create tables, time=%d microseconds\r\n"), TheCreateTablesTime);
-	TheTest.Printf(_L("==Bind parameters time, time=%d microseconds\r\n"), TheBindParamsTime);
-	TheTest.Printf(_L("==Temp tables, statement exec, time=%d microseconds\r\n"), TheStmtExecTime);
-	TheTest.Printf(_L("==Temp tables, statement reset, time=%d microseconds\r\n"), TheStmtResetTime);
-	TheTest.Printf(_L("==Populate temp tables, time=%d microseconds\r\n"), ThePopulateTempTableTime);
-	TheTest.Printf(_L("==Copy temp tables to main tables, time=%d microseconds\r\n"), TheFlushTime);
+	TheTest.Printf(_L("==Create database: %d us\r\n"), TheCreateDbTime);
+	TheTest.Printf(_L("==Create tables: %d us\r\n"), TheCreateTablesTime);
+	TheTest.Printf(_L("==Bind parameters time: %d us\r\n"), TheBindParamsTime);
+	TheTest.Printf(_L("==Temp tables, statement exec: %d us\r\n"), TheStmtExecTime);
+	TheTest.Printf(_L("==Temp tables, statement reset: %d us\r\n"), TheStmtResetTime);
+	TheTest.Printf(_L("==Populate temp tables: %d us\r\n"), ThePopulateTempTableTime);
+	TheTest.Printf(_L("==Copy temp tables to main tables: %d us\r\n"), TheFlushTime);
+	if(TheCmdLineParams.iLogFileName.Length() > 0)
+		{
+		TBuf8<200> buf;
+		buf.Format(_L8("Create database¬%d¬us\r\n"), TheCreateDbTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Create tables¬%d¬us\r\n"), TheCreateTablesTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Bind parameters¬%d¬us\r\n"), TheBindParamsTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Temp tables,statement exec¬%d¬us\r\n"), TheStmtExecTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Temp tables,statement reset¬%d¬us\r\n"), TheStmtResetTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Populate temp tables¬%d¬us\r\n"), ThePopulateTempTableTime);
+		(void)TheLogFile.Write(buf);
+		buf.Format(_L8("Copy temp tables to main tables¬%d¬us\r\n"), TheFlushTime);
+		(void)TheLogFile.Write(buf);
+		}
 	}
 
 void DoTestsL()
@@ -399,11 +428,10 @@ TInt E32Main()
 
 	GetCmdLineParamsAndSqlConfigString(TheTest, _L("t_sqlperformance5"), TheCmdLineParams, TheSqlConfigString);
 	PrepareDbName(KDbName, TheCmdLineParams.iDriveName, TheDbFileName);
-	SetSoftHeapLimit(TheCmdLineParams.iSoftHeapLimitKb);
+	SetSoftHeapLimit(TheTest, TheCmdLineParams.iSoftHeapLimitKb);
 	
 	TheTest.Printf(_L("==Databases: %S\r\n"), &TheDbFileName); 
 	
-	TestEnvDestroy();
 	TestEnvInit();
 	TRAPD(err, DoTestsL());
 	TestEnvDestroy();

@@ -42,6 +42,7 @@ void Check(TInt64 aValue, TInt aLine)
 	if(!aValue)
 		{
 		DeleteTestFiles();
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -51,7 +52,7 @@ void Check(TInt64 aValue, TInt64 aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Expected error: %ld, got: %ld\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %ld, got: %ld\r\n"), aExpected, aValue);
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -120,7 +121,7 @@ void PrintEndOfOomTest(TOomTestType aOomTestType, TInt aFailingAllocationNo)
 	{
 	_LIT(KClientSide, "Client side");
 	_LIT(KServerSide, "Server side");
-	RDebug::Print(_L("=== %S OOM Test succeeded at heap failure rate of %d ===\r\n"),
+	TheTest.Printf(_L("=== %S OOM Test succeeded at heap failure rate of %d ===\r\n"),
 						aOomTestType == EClientSideTest ? &KClientSide() : &KServerSide(),
 						aFailingAllocationNo);
 	}

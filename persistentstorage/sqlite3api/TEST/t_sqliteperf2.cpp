@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -186,6 +186,7 @@ static void Check(TInt aValue, TInt aLine)
 		{
 		DeleteTestFiles();
 		PrintSqliteErrMsg();
+		Print("*** Expression evaluated to false\r\n");
 		TestTestLine(EFalse, aLine);
 		}
 	}
@@ -194,7 +195,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 	if(aValue != aExpected)
 		{
 		DeleteTestFiles();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		PrintIII("*** Expected error: %d, got: %d. Ignore: %d\r\n", aExpected, aValue, 0);
 		PrintSqliteErrMsg();
 		TestTestLine(EFalse, aLine);
 		}

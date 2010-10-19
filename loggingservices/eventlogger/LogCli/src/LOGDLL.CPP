@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -19,6 +19,7 @@
 
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 GLDEF_C void Panic(TLogCliPanic aPanic)
 	{
@@ -26,4 +27,5 @@ GLDEF_C void Panic(TLogCliPanic aPanic)
 	User::Panic(KLogPanicString, aPanic);
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on

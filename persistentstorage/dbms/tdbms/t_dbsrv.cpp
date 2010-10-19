@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -905,11 +905,11 @@ LOCAL_C void TestRDbUpdate()
 	RDbUpdate update;
 	err = update.Execute(TheDatabase, DMLinsert, EDbCompareNormal );
 	if(err != KErrNone)
-		RDebug::Printf("Error on Execute %d",err);
+		test.Printf(_L("Error on Execute %d\r\n"), err);
 	test2(err, KErrNone);	
 	
 	TInt rows = update.RowCount();
-	RDebug::Printf("Afected rows %d",rows);
+	test.Printf(_L("Afected rows %d\r\n") ,rows);
 	test2(rows, 1);	
 	update.Close();
 	
@@ -937,13 +937,13 @@ LOCAL_C void TestRDbRowL()
 
 	RDbRow row;
 	row.CreateL(KRowSize);
-	RDebug::Printf("Rows %d %d",row.Size(), row.MaxSize() );
+	test.Printf(_L("Rows %d %d\r\n"), row.Size(), row.MaxSize());
 	test2(row.MaxSize(), KRealRowSize);
 	TAny* rptr = row.First();
 	
 	RDbRow row2;
 	row2.Open(rptr, KRowSize, 2*KRowSize);
-	RDebug::Printf("Row2s %d %d", KRowSize, row2.MaxSize());
+	test.Printf(_L("Row2s %d %d\r\n"), KRowSize, row2.MaxSize());
 	test2(row2.Size(), KRowSize);
 	test2(row2.MaxSize(), 2*KRowSize);
 	
@@ -1051,7 +1051,7 @@ LOCAL_C void TestSPConvL()
 	ExecuteRemoteL(KCommand, commandParameter);
 	
 #else
-	RDebug::Print(_L("Testing SPConv - This test case cannot run on hardware"));
+	test.Printf(_L("Testing SPConv - This test case cannot run on hardware"));
 #endif	
 	
 	test.Next(_L("End"));
@@ -1277,7 +1277,7 @@ LOCAL_C void  KillDbmsServer()
                 {
                 // If the found name is other valid application name
                 // starting with aProcessName string.
-                //RDebug::Print(_L(":: Process name: \"%S\".\n"), &name);
+                //test.Printf(_L(":: Process name: \"%S\".\n"), &name);
                 continue;
                 }
             }
@@ -1285,7 +1285,7 @@ LOCAL_C void  KillDbmsServer()
         if (proc.Open(name) == KErrNone)
             {
             proc.Kill(0);
-            //RDebug::Print(_L("\"%S\" process killed.\n"), &name);
+            //test.Printf(_L("\"%S\" process killed.\n"), &name);
             }
         proc.Close();
         }

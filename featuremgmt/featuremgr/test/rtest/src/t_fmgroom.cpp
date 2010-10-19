@@ -21,6 +21,7 @@
 #include <featdiscovery.h>
 #include <featurenotifier.h>
 #include "../../../src/clientdll/featmgrresourcetester.h"
+#include "../src/inc/featmgrconfiguration.h"
 
 using namespace NFeature;
 
@@ -517,7 +518,29 @@ void NotifierNotifyRequestsOomTest(TFeatMgrOomTestMode aMode)
     TheTest.Printf(_L("\r\n===OOM test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
     }
 
-
+/**
+@SYMTestCaseID          PDS-EFM-CT-4112
+@SYMTestCaseDesc        FeatureManager::InitializeLibL() OOM test.
+@SYMTestPriority        High
+@SYMTestActions         
+@SYMTestExpectedResults Test must not fail
+*/
+void InitializeLibOomTest()
+	{
+    TInt err = KErrNoMemory;
+    TInt failingAllocationNo = 0;
+    TheTest.Printf(_L("Iteration:\r\n"));
+    while(err == KErrNoMemory)
+        {
+        TheTest.Printf(_L(" %d"), ++failingAllocationNo);
+        OomPreStep(failingAllocationNo, EFeatMgrOomClientTestMode);
+        TRAP(err, FeatureManager::InitializeLibL());
+        FeatureManager::UnInitializeLib();
+        OomPostStep(EFeatMgrOomClientTestMode);
+        }
+    TEST2(err, KErrNone);
+    TheTest.Printf(_L("\r\n===OOM test succeeded at heap failure rate of %d ===\r\n"), failingAllocationNo);
+	}
 
 void DoTestsL()
     {
@@ -585,6 +608,9 @@ void DoTestsL()
     NotifierNotifyRequestsOomTest(EFeatMgrOomClientTestMode);
     TheTest.Next(_L("@SYMTestCaseID:PDS-EFM-CT-4093 CFeatureNotifier::NotifyRequest(<array>), valid feature, server side OOM test"));
     NotifierNotifyRequestsOomTest(EFeatMgrOomServerTestMode);
+
+    TheTest.Next(_L("@SYMTestCaseID:PDS-EFM-CT-4112 FeatureManager::InitializeLibL(), OOM test"));
+    InitializeLibOomTest();
     }
 
 TInt E32Main()

@@ -18,17 +18,17 @@
  @SYMTestSuiteName SYSLIB-CENTRALREPOSITORY-TE_CENTREP_BURSUITE
  @SYMScriptTestEnvironment this script requires Techview ROM for BURTestserver dependency. BURTestserver must be built for this test to run.
 */
-#include "initailiseStep.h"
+#include "initialiseStep.h"
 #include "Te_centrep_BURSuiteDefs.h"
 
-CinitailiseStep::~CinitailiseStep()
+CinitialiseStep::~CinitialiseStep()
 /**
  * Destructor
  */
 	{
 	}
 
-CinitailiseStep::CinitailiseStep()
+CinitialiseStep::CinitialiseStep()
 /**
  * Constructor
  */
@@ -36,7 +36,7 @@ CinitailiseStep::CinitailiseStep()
 	// **MUST** call SetTestStepName in the constructor as the controlling
 	// framework uses the test step name immediately following construction to set
 	// up the step's unique logging ID.
-	SetTestStepName(KinitailiseStep);
+	SetTestStepName(KinitialiseStep);
 	}
 
 /*
@@ -97,7 +97,7 @@ the changes by the restoration and get the new values of changed keys successful
 @SYMDEF INC101923 cenrep notifier does not fire when restoring from backup
 */
 
-TVerdict CinitailiseStep::doTestStepL()
+TVerdict CinitialiseStep::doTestStepL()
 /**
  * @return - TVerdict code
  * Override of base class pure virtual

@@ -221,7 +221,20 @@ LOCAL_C void TestFilterL()
 
 	filter1->Copy(*filter2);
 	TEST(TestUtils::FiltersEqual(*filter1, *filter2));
+	
+	TTime time;
+	time.HomeTime();
+	filter1->SetStartTime(time);
+	TTime time2 = filter1->StartTime();
+	TEST(time == time2);
 
+	User::After(5000);
+	
+	time.HomeTime();
+	filter1->SetEndTime(time);
+	time2 = filter1->EndTime();
+	TEST(time == time2);
+	
 	CleanupStack::PopAndDestroy(2); // filter1, filter2;
 	}
 

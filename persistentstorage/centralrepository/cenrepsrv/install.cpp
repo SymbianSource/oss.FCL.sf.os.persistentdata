@@ -1,4 +1,4 @@
-// Copyright (c) 1997-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1997-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -485,7 +485,7 @@ void CCentRepSWIWatcher::GetInstallDirL()
 	installDirFilePath.Append(KInstallDirFile);
 	
 	TRAPD(err, ReadAndInternalizeInstallDirL(installDirFilePath)); // try to open installdir file and internalize its contents
-	if (err != KErrNone) 
+	if (err != KErrNone && err != KErrNotFound && err != KErrPathNotFound) 
 		{
 		TInt fileDeleteErr = TServerResources::iFs.Delete(installDirFilePath);
 		// If a debug build - record error

@@ -35,23 +35,23 @@ static void DeleteDataFile(const TDesC& aFullName)
 		TEntry entry;
 		if(fsSession.Entry(aFullName, entry) == KErrNone)
 			{
-			RDebug::Print(_L("Deleting \"%S\" file.\n"), &aFullName);
+			TheTest.Printf(_L("Deleting \"%S\" file.\n"), &aFullName);
 			err = fsSession.SetAtt(aFullName, 0, KEntryAttReadOnly);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
+				TheTest.Printf(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
 				}
 			err = fsSession.Delete(aFullName);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
+				TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
 				}
 			}
 		fsSession.Close();
 		}
 	else
 		{
-		RDebug::Print(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
+		TheTest.Printf(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
 		}
 	}
 
@@ -64,6 +64,7 @@ static void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		::DeleteDataFile(KSearchTestDbPath);
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -72,7 +73,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		::DeleteDataFile(KSearchTestDbPath);
 		TheTest(EFalse, aLine);
 		}
@@ -85,7 +86,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 
 static void LeaveL(TInt aLine, TInt aError)
 	{
-	RDebug::Print(_L("*** Leave. Error: %d, line: %d\r\n"), aError, aLine);
+	TheTest.Printf(_L("*** Leave. Error: %d, line: %d\r\n"), aError, aLine);
 	User::Leave(aError);
 	}
 static void LeaveIfErrorL(TInt aLine, TInt aError)

@@ -59,7 +59,7 @@ void Check(TInt aValue, TInt aLine)
     if(!aValue)
         {
         DeleteTestFiles();
-        RDebug::Print(_L("*** Line %d\r\n"), aLine);
+        TheTest.Printf(_L("*** Line %d. Expression evaluated to false\r\n"), aLine);
         TheTest(EFalse, aLine);
         }
     }
@@ -68,7 +68,7 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
     if(aValue != aExpected)
         {
         DeleteTestFiles();
-        RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+        TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
         TheTest(EFalse, aLine);
         }
     }
@@ -124,7 +124,6 @@ void CreateTestEnv()
 TInt KillProcess(const TDesC& aProcessName)
     {
     TFullName name;
-    //RDebug::Print(_L("Find and kill \"%S\" process.\n"), &aProcessName);
     TBuf<64> pattern(aProcessName);
     TInt length = pattern.Length();
     pattern += _L("*");
@@ -139,16 +138,13 @@ TInt KillProcess(const TDesC& aProcessName)
                 c == TChar('_') ||
                 c == TChar('-'))
                 {
-                //RDebug::Print(_L(":: Process name: \"%S\".\n"), &name);
                 continue;
                 }
             }
         RProcess proc;
         if (proc.Open(name) == KErrNone)
             {
-            RDebug::Print(_L("About to kill process \"%S\", This will force a reboot\n"), &name);
             proc.Kill(0);
-            
             }
         proc.Close();
         }

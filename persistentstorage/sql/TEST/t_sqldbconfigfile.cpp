@@ -104,7 +104,6 @@ void KillSqlServer()
 	{
 	_LIT(KSqlSrvName, "sqlsrv.exe");
 	TFullName name;
-	//RDebug::Print(_L("Find and kill \"%S\" process.\n"), &aProcessName);
 	TBuf<64> pattern(KSqlSrvName);
 	TInt length = pattern.Length();
 	pattern += _L("*");
@@ -121,7 +120,6 @@ void KillSqlServer()
 				{
 				// If the found name is other valid application name
 				// starting with aProcessName string.
-				//RDebug::Print(_L(":: Process name: \"%S\".\n"), &name);
 				continue;
 				}
 			}
@@ -129,7 +127,6 @@ void KillSqlServer()
 		if (proc.Open(name) == KErrNone)
 			{
 			proc.Kill(0);
-			//RDebug::Print(_L("\"%S\" process killed.\n"), &name);
 			}
 		proc.Close();
 		}

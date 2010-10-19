@@ -239,11 +239,25 @@ TInt CObservable::ReadIniFileL(CSharedRepository*& aRepository, TCentRepLocation
 	if(r==KErrNone)
 		{			
 		r=ReadSettingsL(inifile, aRepository);		
-		if(r==KErrCorrupt)
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+        // PMA repositories are not allowed to be installed/updated via SWI.
+        // Any repository marked as protected in the install directory will be
+        // deleted, when opened.
+        if ( aLocation == EInstall  && (aRepository->iSimRep->KeyspaceType() == EPMAKeyspace) )
+            {
+            r = KErrNotSupported;
+            }
+
+        if(r == KErrCorrupt || r == KErrNotSupported)
+#else
+        if(r == KErrCorrupt)
+#endif
 			{
 			// File is corrupt, if it's not the ROM file, delete it
 			if(fileName && aLocation != ERom)
+			    {
 				User::LeaveIfError(TServerResources::iFs.Delete(*fileName));
+			    }
 			// Delete any repository settings that may have been read in
 			aRepository->GetSettings().Reset();
 			}
@@ -570,9 +584,19 @@ void CObservable::MergeMultiRofsL(TBool aCoreInitialized,CSharedRepository* aCor
 					#endif								
 					}
 				}
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+			// Need to ensure both keyspaces are of the same type (either both protected or
+			//  both non-protected).
+            if ( aCoreRepository->iSimRep->KeyspaceType() != repos->KeyspaceType() )
+                {
+                User::Leave(KErrCorrupt);
+                }
+#endif
+			
 			//Now that the repository is initialized and at this stage the repository file has been
 			//checked whether they are corrupt	
 			repos->SettingsArray().SetIsDefault(ETrue);
+
 			MergeRepositoryL(aCoreRepository,repos);
 
 			CleanupStack::PopAndDestroy(repos);	//repos
@@ -589,10 +613,17 @@ TInt CObservable::CreateRepositoryL(CSharedRepository* aRepository, TCentRepLoca
 	err = aRepository->CreateRepositoryFromCreFileL(aLocation);
 	if(err==KErrNotFound)
 		{
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+		// Persists and Protected directories are internal and do not support .txt repository files.
+		if ( (aLocation!=EPersists) && (aLocation!=EPma) )
+#else
 		if (aLocation!=EPersists)
-			err = ReadIniFileL(aRepository,aLocation);
+#endif
+		    {
+		    err = ReadIniFileL(aRepository,aLocation);
+		    }
 		}
-	//for ROM might want to consider the possibility of multi rofs file
+	// For ROM need to consider the possibility of multi rofs file.
 #ifdef SYMBIAN_CENTREP_SUPPORT_MULTIROFS		
 	if (aLocation==ERom && iMultiRofsUidList.Count()!=0)
 		{
@@ -641,6 +672,17 @@ TInt CObservable::CreateRepositoryL(CSharedRepository*& aRepository, CIniFileIn:
 	    {
 	    case CIniFileIn::EAuto:
 	        {
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	        // If the repository is in the list of protected repositories, it must be in the protected directory.
+	        if ( TServerResources::iPMADriveRepositories.FindInOrder( aRepository->Uid(), TLinearOrder<TUid>(TServerResources::CompareUids) ) != KErrNotFound )
+                {
+	            // File must now exist on the protected drive.
+                err = CreateRepositoryL(aRepository, EPma);  
+                // We will either successfully load (err==None) the repository or there will be an
+                // error loading it, in which case we must return the error.
+                return err;
+                }
+#endif
 	        // Look in persists dir	 
 	        err=CreateRepositoryL(aRepository, EPersists);		
 	        				
@@ -813,16 +855,24 @@ CSharedRepository* CObservable::AccessL(TUid aUid, TBool aFailIfNotFound)
 		// We pop the rep here because if later call of TServerResources::AddOwnerIdLookupMapping fails of OOM
 		// the call of RemoveOpenRepository() will delete the repository before leave.
 		CleanupStack::Pop(rep);
-		
-		// Add owner mapping to list - Will fail if an entry already exists
-		// with this Repository UID but this doesn't matter
-		TUid owner = rep->Owner() ;
-		TInt err = TServerResources::AddOwnerIdLookupMapping(aUid.iUid, owner.iUid);	
-		if (err == KErrNoMemory)
-			{
-			RemoveOpenRepository(rep);
-			User::Leave(err);
-			}
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC		
+		// We don't want to add protected Keyspaces to iOwnerIdLookUpTable, as this is used for BUR and
+		//  protected keyspaces are excluded from BUR.
+		if (rep->iSimRep->KeyspaceType() != EPMAKeyspace)
+		    {
+#endif
+            // Add owner mapping to list - Will fail if an entry already exists
+            // with this Repository UID but this doesn't matter
+            TUid owner = rep->Owner() ;
+            TInt err = TServerResources::AddOwnerIdLookupMapping(aUid.iUid, owner.iUid);	
+            if (err == KErrNoMemory)
+                {
+                RemoveOpenRepository(rep);
+                User::Leave(err);
+                }
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+		    }
+#endif
 		
 		//Find the location of the current transaction for this repository
 		const TInt offset (FindRepositoryInfo(aUid));

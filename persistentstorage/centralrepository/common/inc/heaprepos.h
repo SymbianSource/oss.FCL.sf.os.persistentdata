@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -41,7 +41,9 @@ public:
 	inline void SetUid(TUid aUid){iUid=aUid;};
 	inline TUid Owner() {return iOwner ;} ;
 	inline void SetOwner(TUid aOwner){iOwner=aOwner;};
-	
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC  
+	inline TInt8 KeyspaceType() const {return iKeyspaceType;};
+#endif
 	inline RSettingsArray& SettingsArray();
 	inline RArray<TUint32>& DeletedSettingsArray();
 	inline RPointerArray<TSettingsAccessPolicy>& SinglePolicyArray();
@@ -119,7 +121,10 @@ private:
 	RSettingsArray iSettings;
 	TUid iUid;
 	TUid iOwner;
-		
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC	
+	TUint8 iKeyspaceType;  // Protected (PMA) repository or not. 1 = Protected. 0 = Non-protected.
+#endif
+
 	//security policy
 	TSettingsAccessPolicy iDefaultPolicy;	
 	RPointerArray<TSettingsAccessPolicy> iSinglePolicies;

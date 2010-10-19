@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -36,6 +36,7 @@ EXPORT_C CLogBase::~CLogBase()
 	}
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 /** Adds an event to the log database. This is an asynchronous request.
 	
@@ -121,6 +122,7 @@ void CLogBase::DoRunL()
 	__ASSERT_DEBUG(ETrue, Panic(ELogNotImplemented));
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 EXPORT_C void CLogBase::LoadResourcesL(RFs& aFs)
@@ -141,9 +143,11 @@ EXPORT_C void CLogBase::LoadResourcesL(RFs& aFs)
 	}
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 EXPORT_C void CLogBase::CLogBase_Reserved1()
 	{
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on

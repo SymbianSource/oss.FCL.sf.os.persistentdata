@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2002-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -296,6 +296,7 @@ EXPORT_C TSimId CLogEvent::SimId() const
 #else//SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 /**
 Not supported.
@@ -314,6 +315,7 @@ EXPORT_C TSimId CLogEvent::SimId() const
 	return 0;
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 #endif//SYMBIAN_ENABLE_EVENTLOGGER_DUALSIM

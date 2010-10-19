@@ -944,7 +944,7 @@ static void* ThreadFunc(void* pname)
 	
 	srand((unsigned)&ThreadFunc);
 	
-	PrintS("Thread \"%s\" - begin\r\n", (char*)pname);
+	ThreadPrintS("Thread \"%s\" - begin\r\n", (char*)pname);
 	err = sqlite3_open(TheTestDbName, &db);
 	TEST2(err, SQLITE_OK);
 	TEST(db != 0);
@@ -953,7 +953,7 @@ static void* ThreadFunc(void* pname)
 		{
         if((records % 10) == 0)
             {
-            PrintSI("Thread \"%s\", %d records.\r\n", (char*)pname, records);
+            ThreadPrintSI("Thread \"%s\", %d records.\r\n", (char*)pname, records);
             }
 		err = sqlite3_exec(db, "BEGIN", 0, 0, &errmsg);
 		if(err == SQLITE_OK)
@@ -984,7 +984,7 @@ static void* ThreadFunc(void* pname)
                 strcpy(fmt, "Thread \"");
                 strcat(fmt, (char*)pname);
                 strcat(fmt, "\". Err msg: %s. Err: %d.\r\n");
-				PrintSI(fmt, errmsg, err);
+				ThreadPrintSI(fmt, errmsg, err);
 				sqlite3_free(errmsg);
 				errmsg = 0;
 				}
@@ -995,7 +995,7 @@ static void* ThreadFunc(void* pname)
 	err = sqlite3_close(db);
 	TEST2(err, SQLITE_OK);
 	
-	PrintS("Thread \"%s\" - end\r\n", (char*)pname);
+	ThreadPrintS("Thread \"%s\" - end\r\n", (char*)pname);
 	return &TheInsertRecCnt[threadIdx];
 	}
 
@@ -1057,7 +1057,7 @@ static void* ThreadFunc1(void* parg)
 	sqlite3* db;
 
 	UNUSED_ARG(parg);
-	PrintS("Thread \"%s\" - begin\r\n", KThreadNames[0]);
+	ThreadPrintS("Thread \"%s\" - begin\r\n", KThreadNames[0]);
 	
 	err = sqlite3_open(TheTestDbName, &db);
 	TEST2(err, SQLITE_OK);
@@ -1082,7 +1082,7 @@ static void* ThreadFunc1(void* parg)
 	err = sqlite3_close(db);
 	TEST2(err, SQLITE_OK);
 	
-	PrintS("Thread \"%s\" - end\r\n", KThreadNames[0]);
+	ThreadPrintS("Thread \"%s\" - end\r\n", KThreadNames[0]);
 	return 0;
 	}
 
@@ -1092,7 +1092,7 @@ static void* ThreadFunc2(void* parg)
 	sqlite3* db;
 	
 	UNUSED_ARG(parg);
-	PrintS("Thread \"%s\" - begin\r\n", KThreadNames[1]);
+	ThreadPrintS("Thread \"%s\" - begin\r\n", KThreadNames[1]);
 	
 	err = sqlite3_open(TheTestDbName, &db);
 	TEST2(err, SQLITE_OK);
@@ -1112,7 +1112,7 @@ static void* ThreadFunc2(void* parg)
 	err = sqlite3_close(db);
 	TEST2(err, SQLITE_OK);
 	
-	PrintS("Thread \"%s\" - end\r\n", KThreadNames[1]);
+	ThreadPrintS("Thread \"%s\" - end\r\n", KThreadNames[1]);
 	return 0;
 	}
 

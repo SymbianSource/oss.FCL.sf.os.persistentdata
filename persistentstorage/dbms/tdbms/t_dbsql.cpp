@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -66,23 +66,23 @@ LOCAL_C void TestCleanup()
 		TEntry entry;
 		if(fsSession.Entry(KTestDatabase, entry) == KErrNone)
 			{
-			RDebug::Print(_L("Deleting \"%S\" file.\n"), &KTestDatabase);
+			TheTest.Printf(_L("Deleting \"%S\" file.\n"), &KTestDatabase);
 			err = fsSession.SetAtt(KTestDatabase, 0, KEntryAttReadOnly);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d changing \"%S\" file attributes.\n"), err, &KTestDatabase);
+				TheTest.Printf(_L("Error %d changing \"%S\" file attributes.\n"), err, &KTestDatabase);
 				}
 			err = fsSession.Delete(KTestDatabase);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err, &KTestDatabase);
+				TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &KTestDatabase);
 				}
 			}
 		fsSession.Close();
 		}
 	else
 		{
-		RDebug::Print(_L("Error %d connecting file session. File: %S.\n"), err, &KTestDatabase);
+		TheTest.Printf(_L("Error %d connecting file session. File: %S.\n"), err, &KTestDatabase);
 		}
 	}
 
@@ -105,7 +105,7 @@ static void Check(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
-        RDebug::Print(_L("*** Expression evaluated to false\r\n"));
+        TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		::TestCleanup();
 		TheTest(EFalse, aLine);
 		}
@@ -115,7 +115,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		::TestCleanup();
 		TheTest(EFalse, aLine);
 		}
@@ -183,40 +183,40 @@ void TestPredicateBase::Test(const TSelectTest* aTest,TInt aCount,TInt aRows, TB
 	{
     if(aLog)
         {
-        TheTest.Printf(_L("TestPredicateBase::Test\r\n"));
+    	TheTest.Printf(_L("TestPredicateBase::Test\r\n"));
         }
 	TheTable.Close();
 	TInt r=TheDatabase.Commit();
 	if(aLog)
         {
-        TheTest.Printf(_L("Commit %d\r\n"), r);
+		TheTest.Printf(_L("Commit %d\r\n"), r);
         }
 	TEST2(r, KErrNone);
 	TRAPD(errCode, TestViewL(aTest,aCount,aRows, aLog));
 	if(aLog)
         {
-        TheTest.Printf(_L("TestViewL %d"), errCode);
+		TheTest.Printf(_L("TestViewL %d"), errCode);
         }
 
 	TEST2(errCode, KErrNone);
 	r=TheDatabase.Execute(_L("CREATE INDEX Key ON Compare (Test)"));
    if(aLog)
         {
-        TheTest.Printf(_L("Execute %d"), r);
+	   TheTest.Printf(_L("Execute %d"), r);
         }
 
 	TEST2(r, KErrNone);
 	TRAP(errCode,TestViewL(aTest,aCount,aRows, aLog));
 	if(aLog)
         {
-        TheTest.Printf(_L("TestViewL %d"), errCode);
+		TheTest.Printf(_L("TestViewL %d"), errCode);
 	    }
 
 	TEST2(errCode, KErrNone);
 	r=TheDatabase.Execute(_L("DROP TABLE Compare"));
     if(aLog)
         {
-        TheTest.Printf(_L("Execute %d"), r);
+    	TheTest.Printf(_L("Execute %d"), r);
         }
 
 	TEST2(r, KErrNone);
@@ -232,7 +232,7 @@ void TestPredicateBase::TestViewL(const TSelectTest* aTest,TInt aCount,TInt aRow
 		TInt r=TheView.Prepare(TheDatabase,TheSql,TheView.EReadOnly);
 		if(r!=KErrNone)
 		    {
-            TheTest.Printf(_L("Prepare r= %d aCount= %d  statement %S\r\n"), r, aCount, &TheSql);
+			TheTest.Printf(_L("Prepare r= %d aCount= %d  statement %S\r\n"), r, aCount, &TheSql);
 		    }
 		TEST2(r, KErrNone);
 		TBool ignoreRow0=TheView.Unevaluated();
@@ -264,7 +264,7 @@ void WriteRowsL(const TAny* aValues,TInt aRows,TInt aSize,FSetColL aSetColL, TBo
 		{
         if(aLog)
             {
-            TheTest.Printf(_L("row = %d"), row);
+        	TheTest.Printf(_L("row = %d"), row);
             }
 		TheTable.InsertL();
 		TEST(TheTable.ColUint(1)==TUint(row));
@@ -788,7 +788,7 @@ _LIT(KTypeTextKTests47, "Z:\\test\\TypeTextKTests47.dat");
 
 static void ReadDesc(TDes& aDes, const TDesC& aFilename, RFs& aFs)
 	{
-    TheTest.Printf(_L("---ReadDesc(), aFilename=%S\r\n"), &aFilename);
+	TheTest.Printf(_L("---ReadDesc(), aFilename=%S\r\n"), &aFilename);
 	RFile file;
 	TInt err = file.Open(aFs, aFilename, EFileRead);
 	TheTest.Printf(_L("Open file aFilename=%S err = %d\r\n"), &aFilename, err);

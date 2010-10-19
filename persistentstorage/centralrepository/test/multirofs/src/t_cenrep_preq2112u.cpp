@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -27,6 +27,10 @@ using namespace NCentralRepositoryConstants;
 
 RTest TheTest(_L("Central Repository Defect Tests"));
 
+//Burst rate for __UHEAP_SETBURSTFAIL
+#ifdef _DEBUG
+const TInt KBurstRate = 20;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -270,14 +274,14 @@ LOCAL_C void DoOOML(const TDesC& aTestDesc, TBool aOOMMode)
 		RThread().HandleCount(startProcessHandleCount, startThreadHandleCount);
 
 		if (aOOMMode)
-			__UHEAP_SETFAIL(RHeap::EDeterministic, ++tryCount);
+			__UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, ++tryCount, KBurstRate);
 
 		TRAP(err, TServerResources::iObserver->ProcessMultiRofsListL(*fileList));
 		if (err!=KErrNoMemory)
 			TEST(err==KErrNone);
 
 		if (aOOMMode)
-			__UHEAP_SETFAIL(RHeap::ENone, 0);
+			__UHEAP_RESET;
 
 		// check that no handles have leaked
 		TInt endProcessHandleCount;

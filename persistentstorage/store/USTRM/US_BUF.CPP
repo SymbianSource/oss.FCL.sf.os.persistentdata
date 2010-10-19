@@ -227,6 +227,7 @@ EXPORT_C void MStreamBuf::DoSynchL()
 	}
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 //
 // Cannot read from this stream buffer.
@@ -255,6 +256,7 @@ EXPORT_C TStreamPos MStreamBuf::DoSeekL(TMark,TStreamLocation,TInt)
 	return streamPos;
 	}
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 /** Reads data from the stream buffer into the specified descriptor.

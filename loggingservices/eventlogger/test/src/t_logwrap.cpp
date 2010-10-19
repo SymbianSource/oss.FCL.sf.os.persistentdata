@@ -327,7 +327,7 @@ LOCAL_C void Test4INC047632L()
 		delete wrapper;
 		}
 #else
-	RDebug::Print(_L("Test4INC047632L() can be executed only in debug mode. In release mode the LogEng server cannot be stopped.\n"));
+	TheTest.Printf(_L("Test4INC047632L() can be executed only in debug mode. In release mode the LogEng server cannot be stopped.\n"));
 #endif//_DEBUG
 	}
 /**
@@ -368,7 +368,7 @@ LOCAL_C void Test5INC114909L()
 	error = theLogServ.Connect();
  	TEST(error == KErrNone);
 #else
-	RDebug::Print(_L("Test4INC047632L() can be executed only in debug mode. In release mode the LogEng server cannot be stopped.\n"));
+	TheTest.Printf(_L("Test4INC047632L() can be executed only in debug mode. In release mode the LogEng server cannot be stopped.\n"));
 #endif//_DEBUG
 	}
 

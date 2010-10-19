@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -127,7 +127,44 @@ TInt CSharedRepository::DoCommitTransactionSettings(CRepositoryTransactor& aTran
 		{
 		// changes have been made: fail all other sessions' transactions so we can commit
 		FailAllTransactions(/*aExcludeTransactor=*/&aTransactor);
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+		if (iSimRep->KeyspaceType() == EPMAKeyspace)
+		    {
+		    // We add the repository UID to the PMA array before the commit because
+		    //  if the commit then fails, we can simply remove the UID from the array,
+		    //  before returning the error code. If we perform the commit first,
+		    //  then update the array, in the event the commit succeeds but the
+		    //  array updated fails, then we are left in an inconsistent state.
+            TInt err = TServerResources::iPMADriveRepositories.InsertInOrder( iSimRep->Uid(), TLinearOrder<TUid>(TServerResources::CompareUids) );
+		    if (err != KErrNone && err != KErrAlreadyExists)
+                {
+		        return err;
+                }
+		    error = CommitChanges(EPma); // This already calls ResetContent() in case of failure.
+		    
+		    if (error != KErrNone && err != KErrAlreadyExists)
+		        {
+		        // We only want to remove the UID from the array, if the failed commit
+		        //  means there is no repository in the protected area (i.e. this 
+		        //  commit is creating the repository there). If this commit is just
+		        //  updating an existing repository in the protected area then we want 
+		        //  to leave the UID in the array, in order to keep the array and
+		        //  protected area consistent.
+                TInt result = TServerResources::iPMADriveRepositories.FindInOrder( iSimRep->Uid(), TLinearOrder<TUid>(TServerResources::CompareUids) );
+                if (result != KErrNotFound)
+                    {
+                    TServerResources::iPMADriveRepositories.Remove( result );
+                    }
+		        }
+		    }
+		else
+			{
+			error = CommitChanges(EPersists); // This already calls ResetContent() in case of failure.
+			}
+#else
 		error = CommitChanges(); // this already calls ResetContent() in case of failure
+#endif
+
 		}
 	if (error == KErrNone)
 		{
@@ -185,6 +222,9 @@ void CSharedRepository::CreateL(TServerSetting& aSetting, TSettingsAccessPolicy*
 // if changes are made, all sessions' transactions are failed
 TInt CSharedRepository::DeleteAndPersist(TUint32 aId)
 	{
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+    __ASSERT_DEBUG(iSimRep->KeyspaceType() != EPMAKeyspace, User::Invariant());
+#endif
 	TServerSetting* s = iSimRep->SettingsArray().Find(aId);
 	if(!s)
 		return KErrNotFound;
@@ -711,12 +751,37 @@ TInt CSharedRepository::CreateRepositoryFromCreFileL( TCentRepLocation aLocation
 	{
 	// Get file path name from location
     HBufC* filePath(NULL);
-    TServerResources::CreateRepositoryFileNameLC(filePath,iSimRep->Uid(), aLocation,ECre);
+    TUid uidToOpen = iSimRep->Uid();
+    TServerResources::CreateRepositoryFileNameLC(filePath, uidToOpen, aLocation,ECre);
     // Trap errors from repository creation so we can delete corrupt repositories
 	TRAPD(error, iSimRep->CreateRepositoryFromCreFileL(TServerResources::iFs,*filePath));
-	if(error!=KErrNone && error!=KErrNotFound && error!=KErrNoMemory)
-		{
-		error=KErrCorrupt;
+
+    if(error!=KErrNone && error!=KErrNotFound && error!=KErrNoMemory)
+        {
+        error = KErrCorrupt;
+
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+        }
+	// Need to verify that if the reposistory is in the:
+    // 1) protected directory, it MUST contain the 'protected' keyword.
+	// 2) persists directory, it MUST NOT contain the 'protected' keyword.
+    // 3) install directory, it MUST NOT contain the 'protected' keyword. 
+	// 
+	// If the check fails, it means the keyspace is corrupted.
+	if (error == KErrNone)
+	    {
+	    TInt8 reposType = iSimRep->KeyspaceType();
+        if (  (aLocation == EPma      && reposType != EPMAKeyspace)
+            ||(aLocation == EPersists && reposType == EPMAKeyspace)
+            ||(aLocation == EInstall  && reposType == EPMAKeyspace))
+            {
+            error = KErrNotSupported;
+            }
+	    }
+
+    if(error==KErrCorrupt || error==KErrNotSupported)
+        {
+#endif
 		// store wasn't quite what we were expecting - can't return an error, can't leave
 		// so all we can do is close the file, tidy up as best we can, and return corrupt 
 		if (aLocation != ERom)
@@ -729,7 +794,19 @@ TInt CSharedRepository::CreateRepositoryFromCreFileL( TCentRepLocation aLocation
 				RDebug::Print(_L("CSharedRepository::CreateRepositoryFromCreFileL - Failed to delete file. Error = %d"), fileDeleteErr);
 				#endif
 				}
-
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+			else // Protected repository file successfully deleted, so remove it from the PMA array.
+			    {
+			    if (aLocation == EPma)
+			        {
+			        TInt result = TServerResources::iPMADriveRepositories.FindInOrder( uidToOpen, TLinearOrder<TUid>(TServerResources::CompareUids) );
+			        if (result != KErrNotFound)
+			            {
+			            TServerResources::iPMADriveRepositories.Remove( result );
+			            }
+			        }
+			    }
+#endif
 			}
 		}
 	else if( error==KErrNoMemory)

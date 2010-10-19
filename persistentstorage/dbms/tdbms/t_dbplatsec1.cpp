@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -87,7 +87,7 @@ static void DbTestL()
 	for(TInt i=0;i<dbNames->Count();++i)
 		{
 		const TDesC& dbName = (*dbNames)[i];
-		RDebug::Print(_L("--Database: %S\n"), &dbName);
+		TheTest.Printf(_L("--Database: %S\n"), &dbName);
 		TBuf<128> dbName2;
 		dbName2.Append(TChar('A' + EDriveC));
 		dbName2.Append(TChar(':'));

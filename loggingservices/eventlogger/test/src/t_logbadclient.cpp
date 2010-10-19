@@ -1,4 +1,4 @@
-// Copyright (c) 2006-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2006-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -24,7 +24,11 @@
 
 RTest TheTest(_L("t_logbadclient test"));
 
+#if defined __WINS__ || defined __WINSCW__
 const TInt KTestIterCount = 5000;
+#else
+const TInt KTestIterCount = 2500;
+#endif
 const TInt KMaxDesArgLen = 1000;
 enum TArgType 
 	{
@@ -72,6 +76,10 @@ struct TThreadData
 
 _LIT(KPanicCategory, "SrvTerm");
 _LIT(KPanicCategory2, "InvArg");
+_LIT(KPanicCategory3, "SessConn");
+_LIT(KPanicCategory4, "TcNull");
+_LIT(KPanicCategory5, "ThrDNull");
+
 const TInt KPanicCode = 1111;
 const TInt KPanicCode2 = 2222;
 
@@ -82,8 +90,10 @@ static TPtrC8 TheLogIpcDataPtr((const TUint8*)&TheLogIpcData, sizeof(TheLogIpcDa
 
 void PrintIterationCount(TInt aIteration)
 	{
-	if((aIteration % 100) == 0)
+	static TInt lastIteration = 0;
+	if((aIteration - lastIteration) >= 100)
 		{
+		lastIteration = aIteration;
 		TTime time;
 		time.HomeTime();
 		TDateTime dt = time.DateTime();
@@ -107,15 +117,24 @@ TInt ThreadFunc1(void* aData)
 	__UHEAP_MARK;
 	
 	CTrapCleanup* tc = CTrapCleanup::New();
-	TTEST(tc != NULL);
+	if(!tc)
+		{
+		User::Panic(KPanicCategory4, KErrNoMemory);
+		}
 
 	TThreadData* p = static_cast <TThreadData*> (aData);
-	TTEST(p != NULL);
+	if(!p)
+		{
+		User::Panic(KPanicCategory5, KErrArgument);
+		}
 	TThreadData& data = *p;
 	
 	RLogSession sess;
 	TInt err = sess.Connect();
-	TTEST2(err, KErrNone);
+	if(err != KErrNone)
+		{
+		User::Panic(KPanicCategory3, err);
+		}
 
 	while(++data.iIteration <= KTestIterCount)
 		{
@@ -123,7 +142,6 @@ TInt ThreadFunc1(void* aData)
 		const TInt KFnCnt = sizeof(KLogIpcMsgCodes) / sizeof(KLogIpcMsgCodes[0]);
 		TInt fnIdx = Math::Rand(data.iSeed) % KFnCnt;
 		data.iFunction = KLogIpcMsgCodes[fnIdx];
-		PrintIterationCount(data.iIteration);
 		for(TInt argIdx=0;argIdx<KMaxMessageArguments;++argIdx)
 			{
 			//Initialize arguments

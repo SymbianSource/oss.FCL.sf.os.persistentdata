@@ -23,10 +23,13 @@
 
 #include "Te_centrep_BURSuiteServer.h"
 #include "compareStep.h"
-#include "initailiseStep.h"
+#include "initialiseStep.h"
 #include "modifyStep.h"
 #include "compareDefStep.h"
 #include "initialiseDefStep.h"
+#include "comparePMAStep.h"
+#include "initialisePMAStep.h"
+#include "modifyPMAStep.h"
 
 _LIT(KServerName,"Te_centrep_BURSuite");
 CTe_centrep_BURSuite* CTe_centrep_BURSuite::NewL()
@@ -111,16 +114,21 @@ CTestStep* CTe_centrep_BURSuite::CreateTestStep(const TDesC& aStepName)
 	CTestStep* testStep = NULL;
 	// They are created "just in time" when the worker thread is created
 	// More test steps can be added below 
-              if(aStepName == KcompareStep)
-                            testStep = new CcompareStep();
-              else if(aStepName == KinitailiseStep)
-                            testStep = new CinitailiseStep();
-              else if(aStepName == KmodifyStep)
-                            testStep = new CmodifyStep();
-              else if(aStepName == KinitialiseDefStep)
-                            testStep = new CinitialiseDefStep();
-              else if(aStepName == KcompareDefStep)
-                            testStep = new CcompareDefStep();
-
+    if(aStepName == KcompareStep)
+        testStep = new CcompareStep();
+    else if(aStepName == KinitialiseStep)
+        testStep = new CinitialiseStep();
+    else if(aStepName == KmodifyStep)
+        testStep = new CmodifyStep();
+    else if(aStepName == KinitialiseDefStep)
+        testStep = new CinitialiseDefStep();
+    else if(aStepName == KcompareDefStep)
+        testStep = new CcompareDefStep();
+    else if(aStepName == KcomparePMAStep)
+        testStep = new CcomparePMAStep();
+    else if(aStepName == KinitialisePMAStep)
+        testStep = new CinitialisePMAStep();
+    else if(aStepName == KmodifyPMAStep)
+        testStep = new CmodifyPMAStep();
 	return testStep;
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -75,6 +75,7 @@ LOCAL_C void Check(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		TestCleanup();
 		TheTest(EFalse, aLine);
 		}
@@ -87,7 +88,7 @@ LOCAL_C void Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		TestCleanup();
 		TheTest(EFalse, aLine);
 		}
@@ -448,7 +449,7 @@ LOCAL_C void LikePredicateDbColLongText16TestL()
 
 	for(TInt i =0;i<KNumQueries;++i)
 		{
-		RDebug::Print(_L("Executing statement: %s \n"),(KQuery[i].query));
+		TheTest.Printf(_L("Executing statement: %s \n"),(KQuery[i].query));
 		RDbView view;
 		view.Prepare(database, TDbQuery(TPtrC(KQuery[i].query), EDbCompareFolded), view.EReadOnly);
 		view.EvaluateAll();
@@ -464,7 +465,7 @@ LOCAL_C void LikePredicateDbColLongText16TestL()
 			TScriptLine text;
 			rd.ReadL(text,view.ColLength(1));
 			CleanupStack::PopAndDestroy();
-			RDebug::Print(_L("Expected result: %s Actual Result: %S\n"),(KQuery[i].result),&text);
+			TheTest.Printf(_L("Expected result: %s Actual Result: %S\n"),(KQuery[i].result),&text);
 			TInt err = text.Compare(TPtrC(KQuery[i].result));
 			TheTest(err ==0);
 			view.NextL();
@@ -479,7 +480,7 @@ LOCAL_C void LikePredicateDbColLongText16TestL()
 
 	for(TInt j =0;j<KNumBadQueries;++j)
 		{
-		RDebug::Print(_L("Executing illegal statement: %s \n"),(KBadQuery[j].query));
+		TheTest.Printf(_L("Executing illegal statement: %s \n"),(KBadQuery[j].query));
 		RDbView view;
 		TInt prepErr = view.Prepare(database, TDbQuery(TPtrC(KBadQuery[j].query), EDbCompareFolded), view.EReadOnly);
 		TheTest(prepErr==KErrArgument);
@@ -542,7 +543,7 @@ LOCAL_C void LikePredicateDbColLongText8TestL()
 
 	for(TInt i =0;i<KNumQueries;++i)
 		{
-		RDebug::Print(_L("Executing statement: %s \n"),(KQuery[i].query));
+		TheTest.Printf(_L("Executing statement: %s \n"),(KQuery[i].query));
 		RDbView view;
 		TInt prepErr = view.Prepare(database, TDbQuery(TPtrC(KQuery[i].query), EDbCompareFolded), view.EReadOnly);
 		TheTest(prepErr>=0);
@@ -560,7 +561,7 @@ LOCAL_C void LikePredicateDbColLongText8TestL()
 			rd.OpenLC(view,1);
 			rd.ReadL(colname,view.ColLength(1));
 			CleanupStack::PopAndDestroy();
-			RDebug::Print(_L("Expected result: %S Actual Result: %S\n"),&result,&colname);
+			TheTest.Printf(_L("Expected result: %S Actual Result: %S\n"),&result,&colname);
 			TInt err = colname.CompareF(result);
 			TheTest(err ==0);
 
@@ -577,7 +578,7 @@ LOCAL_C void LikePredicateDbColLongText8TestL()
 
 	for(TInt j =0;j<KNumBadQueries;++j)
 		{
-		RDebug::Print(_L("Executing illegal statement: %s \n"),(KBadQuery[j].query));
+		TheTest.Printf(_L("Executing illegal statement: %s \n"),(KBadQuery[j].query));
 		RDbView view;
 		TInt prepErr = view.Prepare(database, TDbQuery(TPtrC(KBadQuery[j].query), EDbCompareFolded), view.EReadOnly);
 		TheTest(prepErr==KErrArgument);
@@ -641,7 +642,7 @@ LOCAL_C void LikePredicateDbColTextTestL()
 
 	for(TInt i =0;i<KNumQueries;++i)
 		{
-		RDebug::Print(_L("Executing statement: %s \n"),(KQuery[i].query));
+		TheTest.Printf(_L("Executing statement: %s \n"),(KQuery[i].query));
 		RDbView view;
 		TInt prepErr = view.Prepare(database, TDbQuery(TPtrC(KQuery[i].query), EDbCompareFolded), view.EReadOnly);
 		if(TPtrC(KQuery[i].result).Length() == 0)
@@ -659,7 +660,7 @@ LOCAL_C void LikePredicateDbColTextTestL()
 			view.GetL();
 			colname = view.ColDes(1);
 			res= KQuery[i].result;
-			RDebug::Print(_L("Expected result: %s Actual Result: %S\n"),(KQuery[i].result),&colname);
+			TheTest.Printf(_L("Expected result: %s Actual Result: %S\n"),(KQuery[i].result),&colname);
 			TInt err =	colname.Compare(TPtrC(KQuery[i].result));
 			TheTest(err ==0);
 			view.NextL();
@@ -672,7 +673,7 @@ LOCAL_C void LikePredicateDbColTextTestL()
 
 	for(TInt j =0;j<KNumBadQueries;++j)
 		{
-		RDebug::Print(_L("Executing illegal statement: %s \n"),(KBadQuery[j].query));
+		TheTest.Printf(_L("Executing illegal statement: %s \n"),(KBadQuery[j].query));
 		RDbView view;
 		TInt prepErr = view.Prepare(database, TDbQuery(TPtrC(KBadQuery[j].query), EDbCompareFolded), view.EReadOnly);
 		TheTest(prepErr==KErrArgument);
@@ -1274,7 +1275,7 @@ void INC128224L()
 		view.GetL();
 		TPtrC t1 = view.ColDes(1);
 		TPtrC t2 = view.ColDes(2);
-		RDebug::Print(_L("T1=\"%S\", T2=\"%S\"\r\n"), &t1, &t2);
+		TheTest.Printf(_L("T1=\"%S\", T2=\"%S\"\r\n"), &t1, &t2);
 		++cnt;
 		}
 	view.Close();

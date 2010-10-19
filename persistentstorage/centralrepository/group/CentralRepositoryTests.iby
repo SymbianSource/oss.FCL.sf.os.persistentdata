@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -42,6 +42,19 @@ file=ABI_DIR\BUILD_DIR\t_cenrep_cache.exe				test\t_cenrep_cache.exe
 
 file=ABI_DIR\BUILD_DIR\t_cenrep_back_rest.exe			test\t_cenrep_back_rest.exe
 file=ABI_DIR\BUILD_DIR\t_cenrep_back_rest_delete.exe	test\t_cenrep_back_rest_delete.exe
+
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+file=ABI_DIR\BUILD_DIR\t_cenrep_pma_array.exe			test\t_cenrep_pma_array.exe
+file=ABI_DIR\BUILD_DIR\t_cenrep_pma_bur.exe             test\t_cenrep_pma_bur.exe
+file=ABI_DIR\BUILD_DIR\t_cenrep_pma_fota.exe			test\t_cenrep_pma_fota.exe
+file=ABI_DIR\BUILD_DIR\t_cenrep_pma_oom.exe 		    test\t_cenrep_pma_oom.exe
+file=ABI_DIR\BUILD_DIR\t_cenrep_pma_rfs.exe			    test\t_cenrep_pma_rfs.exe
+
+#ifdef SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+file=ABI_DIR\BUILD_DIR\t_cenrep_pma_multirofs.exe		test\t_cenrep_pma_multirofs.exe
+#endif // SYMBIAN_CENTREP_SUPPORT_MULTIROFS
+
+#endif //SYMBIAN_INCLUDE_APP_CENTRIC
 
 // centrep test data
 #include <centreptestdata.iby>

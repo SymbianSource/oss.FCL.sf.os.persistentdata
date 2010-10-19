@@ -83,23 +83,23 @@ static TInt DeleteDataFile(const TDesC& aFullName)
 		err = fsSession.Entry(aFullName, entry);
 		if(err == KErrNone)
 			{
-			RDebug::Print(_L("Deleting \"%S\" file.\n"), &aFullName);
+			TheTest.Printf(_L("Deleting \"%S\" file.\n"), &aFullName);
 			err = fsSession.SetAtt(aFullName, 0, KEntryAttReadOnly);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
+				TheTest.Printf(_L("Error %d changing \"%S\" file attributes.\n"), err, &aFullName);
 				}
 			err = fsSession.Delete(aFullName);
 			if(err != KErrNone)
 				{
-				RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
+				TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &aFullName);
 				}
 			}
 		fsSession.Close();
 		}
 	else
 		{
-		RDebug::Print(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
+		TheTest.Printf(_L("Error %d connecting file session. File: %S.\n"), err, &aFullName);
 		}
 	return err;
 	}
@@ -113,6 +113,7 @@ static void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		::DeleteDataFile(KTestDatabase);
+		TheTest.Printf(_L("*** Expression evaluated to false\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -121,7 +122,7 @@ static void Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
 		::DeleteDataFile(KTestDatabase);
 		TheTest(EFalse, aLine);
 		}
@@ -145,7 +146,7 @@ static void SetupTestDirectory()
 //Leaves with info message printed out
 static void LeaveL(TInt aError, TInt aLine)
 	{
-	RDebug::Print(_L("*** Leave. Error: %d, Line: %d\r\n"), aError, aLine);
+	TheTest.Printf(_L("*** Leave. Error: %d, Line: %d\r\n"), aError, aLine);
 	User::Leave(aError);
 	}
 
@@ -166,7 +167,7 @@ static void LeaveIfErrorL(TInt aError, TInt aLine)
 //Creates the test DBMS session
 static void CreateTestDbSession()
 	{
-	RDebug::Print(_L("Create DBMS session\n"));
+	TheTest.Printf(_L("Create DBMS session\n"));
 	TInt err = TheDbSession.Connect();
 	TEST2(err, KErrNone);
 	}
@@ -177,7 +178,7 @@ static void CreateTestDbSession()
 //TheFs.Connect() has to be called already.
 static void CreateTestDatabase(RDbs& aDbs, RDbNamedDatabase& aDb)
 	{
-	RDebug::Print(_L("Create test database\n"));
+	TheTest.Printf(_L("Create test database\n"));
 	TInt err = aDb.Replace(TheFs, KTestDatabase);
 	TEST2(err, KErrNone);
 	TheDb.Close();
@@ -202,7 +203,7 @@ static void DoCreateTestTableL(RDbNamedDatabase& aDb, const TDesC& aTblName, con
 //Creates test tables
 static void CreateTestTablesL(RDbNamedDatabase& aDb)
 	{
-	RDebug::Print(_L("Create test tables\n"));
+	TheTest.Printf(_L("Create test tables\n"));
 	::DoCreateTestTableL(aDb, KTestTableName1, KColDefs1);
 	::DoCreateTestTableL(aDb, KTestTableName2, KColDefs2);
 	}
@@ -226,7 +227,7 @@ void GetStrFieldValueL(RDbRowSet& aTbl, const TDesC& aTblName, TDes& aStrFldVal)
 //Prints all table records
 static TInt PrintRecordsL(RDbRowSet& aTbl, const TDesC& aTblName)
 	{
-	RDebug::Print(_L("Table: %S\n"), &aTblName);
+	TheTest.Printf(_L("Table: %S\n"), &aTblName);
     aTbl.FirstL();
 	TInt rec = 0;
     while(aTbl.AtRow())
@@ -235,7 +236,7 @@ static TInt PrintRecordsL(RDbRowSet& aTbl, const TDesC& aTblName)
 		TNameBuf strFldVal;
 		GetStrFieldValueL(aTbl, aTblName, strFldVal);
 		TUint32 v = aTbl.ColUint32(2);
-		RDebug::Print(_L("   Record %d, Str: %S, Val: %d\n"), ++rec, &strFldVal, v);
+		TheTest.Printf(_L("   Record %d, Str: %S, Val: %d\n"), ++rec, &strFldVal, v);
         aTbl.NextL();
         }
 	return rec;
@@ -280,7 +281,7 @@ static void AddTestDataL(RDbNamedDatabase& aDb, const TDesC& aTblName)
 //Adds the test data to test tables
 static void AddTestDataL(RDbNamedDatabase& aDb)
 	{
-	RDebug::Print(_L("Add data to test tables\n"));
+	TheTest.Printf(_L("Add data to test tables\n"));
 	::AddTestDataL(aDb, KTestTableName1);
 	::AddTestDataL(aDb, KTestTableName2);
 	}
@@ -312,7 +313,7 @@ static void FillStrArraySortedL(RArray<TNameBuf>& aTestStrArray)
 
 static void CreateIndexL(RDbNamedDatabase& aDb, const TDesC& aTblName, const TDesC& aColumnName)
 	{
-	RDebug::Print(_L("Create index. Table: %S, column: %S\n"), &aTblName, &aColumnName);
+	TheTest.Printf(_L("Create index. Table: %S, column: %S\n"), &aTblName, &aColumnName);
 	CDbKey* key = CDbKey::NewLC();
 	key->AddL(aColumnName);
 	key->MakeUnique();

@@ -1,4 +1,4 @@
-// Copyright (c) 1998-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 1998-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -41,7 +41,7 @@ static void Check(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
-		TheTest.Printf(_L("*** Boolean expression evaluated to false!\r\n"));
+		TheTest.Printf(_L("*** Expression evaluated to false!\r\n"));
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -280,7 +280,7 @@ LOCAL_D void CorruptFileToVariousSizesL()
 	TInt err = TheFs.Delete(KFileName);
 	if(err != KErrNone)
 		{
-		RDebug::Print(_L("Error %d deleting \"%S\" file.\n"), err, &KFileName);
+		TheTest.Printf(_L("Error %d deleting \"%S\" file.\n"), err, &KFileName);
 		}
 	}
 

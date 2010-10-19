@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -49,7 +49,7 @@ static void Panic(TInt aLine, TInt aPanicCode)
 	TBuf<64> buf;
 	_LIT(KFormat,"*** Panic %d, at line t_sqlitewsd2.cpp(%d)\r\n");
 	buf.Format(KFormat, aPanicCode, aLine);
-	RDebug::Print(buf);
+	TheTest.Printf(buf);
 	User::Panic(KPanicCategory, aPanicCode);
 	}
 
@@ -59,7 +59,7 @@ void Check(TInt aValue, TInt aLine)
 	if(!aValue)
 		{
 		DestroyTestEnv();
-		RDebug::Print(_L("*** Expression evaluates to false.\r\n"));
+		TheTest.Printf(_L("*** Expression evaluated to false.\r\n"));
 		Panic(aLine, KExprEvalFailed1);
 		}
 	}
@@ -68,13 +68,13 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d.\r\n"), aExpected, aValue);
+		TheTest.Printf(_L("*** Expected error: %d, got: %d.\r\n"), aExpected, aValue);
 		const char* errMsg = sqlite3_errmsg(TheDb);
 		if(errMsg)
 			{
 			TBuf<200> msgBuf;
 			msgBuf.Copy(TPtrC8((const TUint8*)errMsg));
-			RDebug::Print(_L("*** SQLITE error msg: \"%S\".\r\n"), &msgBuf);
+			TheTest.Printf(_L("*** SQLITE error msg: \"%S\".\r\n"), &msgBuf);
 			}
 		DestroyTestEnv();
 		Panic(aLine, KExprEvalFailed2);

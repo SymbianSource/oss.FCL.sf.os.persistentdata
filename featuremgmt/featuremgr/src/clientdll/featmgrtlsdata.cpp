@@ -302,6 +302,7 @@ TInt CFeatMgrTlsData::SWIEnd( ) const
 #ifdef EXTENDED_FEATURE_MANAGER_TEST
 
 #pragma BullseyeCoverage off
+#pragma CTC SKIP
 
 /** 
 */
@@ -348,6 +349,7 @@ TInt CFeatMgrTlsData::CountAllocCells( void ) const
     return iFeatMgrClient.CountAllocCells();
     }
 
+#pragma CTC ENDSKIP
 #pragma BullseyeCoverage on
 
 #endif

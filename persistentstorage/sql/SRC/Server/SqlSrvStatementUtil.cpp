@@ -113,9 +113,9 @@ static TInt DoSingleStmtExec16(sqlite3 *aDbHandle, const TDesC16& aSql)
     // - negative value - the sql statement (parameter #2) is zero-terminated;
 	TInt err = sqlite3_prepare16_v2(aDbHandle, aSql.Ptr(), aSql.Length() * sizeof(TUint16) - sizeof(TUint16), &stmtHandle, &stmtTail);
 	__ASSERT_DEBUG(err == SQLITE_OK ? !stmtTail || User::StringLength((const TUint16*)stmtTail) == 0 : !stmtHandle, __SQLPANIC2(ESqlPanicInternalError));
-	if(stmtHandle)	//stmtHandle can be NULL for statements like this: ";".
+	if(err == SQLITE_OK)
 		{
-		if(err == SQLITE_OK)
+		if(stmtHandle)	//stmtHandle can be NULL for statements like this: ";".
 			{
 			while((err = sqlite3_step(stmtHandle)) == SQLITE_ROW)
 				{
@@ -125,8 +125,8 @@ static TInt DoSingleStmtExec16(sqlite3 *aDbHandle, const TDesC16& aSql)
 				err = sqlite3_reset(stmtHandle);
 				__ASSERT_DEBUG(err != SQLITE_OK, __SQLPANIC2(ESqlPanicInternalError));
 				}
+			(void)sqlite3_finalize(stmtHandle);//sqlite3_finalize() fails only if an invalid statement handle is passed.
 			}
-		(void)sqlite3_finalize(stmtHandle);//sqlite3_finalize() fails only if an invalid statement handle is passed.
 		}
 	return err;
 	}

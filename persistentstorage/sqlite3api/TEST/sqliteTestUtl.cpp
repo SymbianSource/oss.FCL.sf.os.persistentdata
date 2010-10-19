@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -96,28 +96,28 @@ extern "C" void Print(const char* msg)
 	{
 	TPtrC8 p((const unsigned char*)msg);
 	TheBuf16.Copy(p);
-	RDebug::Print(TheBuf16);
+	TheTest->Printf(TheBuf16);
 	}
 
 extern "C" void PrintI(const char* fmt, int a1)
 	{
 	TPtrC8 p((const unsigned char*)fmt);
 	TheBuf16.Copy(p);
-	RDebug::Print(TheBuf16, a1);
+	TheTest->Printf(TheBuf16, a1);
 	}
 
 extern "C" void PrintIII(const char* fmt, int a1, int a2, int a3)
 	{
 	TPtrC8 p((const unsigned char*)fmt);
 	TheBuf16.Copy(p);
-	RDebug::Print(TheBuf16, a1, a2, a3);
+	TheTest->Printf(TheBuf16, a1, a2, a3);
 	}
 
 extern "C" void PrintII64I64(const char* fmt, int a1, __int64 a2, __int64 a3)
 	{
 	TPtrC8 p((const unsigned char*)fmt);
 	TheBuf16.Copy(p);
-	RDebug::Print(TheBuf16, a1, a2, a3);
+	TheTest->Printf(TheBuf16, a1, a2, a3);
 	}
 
 extern "C" void PrintSI(const char* fmt, const char* s, int a1)
@@ -125,10 +125,54 @@ extern "C" void PrintSI(const char* fmt, const char* s, int a1)
 	TPtrC8 p((const unsigned char*)fmt);
 	TheBuf8.Format(TPtrC8((const TUint8*)fmt), s, a1);
 	TheBuf16.Copy(TheBuf8);
-	RDebug::Print(TheBuf16);
+	TheTest->Printf(TheBuf16);
 	}
 
 extern "C" void PrintS(const char* fmt, const char* s)
+	{
+	TPtrC8 p((const unsigned char*)fmt);
+	TheBuf8.Format(TPtrC8((const TUint8*)fmt), s);
+	TheBuf16.Copy(TheBuf8);
+	TheTest->Printf(TheBuf16);
+	}
+
+extern "C" void ThreadPrint(const char* msg)
+	{
+	TPtrC8 p((const unsigned char*)msg);
+	TheBuf16.Copy(p);
+	RDebug::Print(TheBuf16);
+	}
+
+extern "C" void ThreadPrintI(const char* fmt, int a1)
+	{
+	TPtrC8 p((const unsigned char*)fmt);
+	TheBuf16.Copy(p);
+	RDebug::Print(TheBuf16, a1);
+	}
+
+extern "C" void ThreadPrintIII(const char* fmt, int a1, int a2, int a3)
+	{
+	TPtrC8 p((const unsigned char*)fmt);
+	TheBuf16.Copy(p);
+	RDebug::Print(TheBuf16, a1, a2, a3);
+	}
+
+extern "C" void ThreadPrintII64I64(const char* fmt, int a1, __int64 a2, __int64 a3)
+	{
+	TPtrC8 p((const unsigned char*)fmt);
+	TheBuf16.Copy(p);
+	RDebug::Print(TheBuf16, a1, a2, a3);
+	}
+
+extern "C" void ThreadPrintSI(const char* fmt, const char* s, int a1)
+	{
+	TPtrC8 p((const unsigned char*)fmt);
+	TheBuf8.Format(TPtrC8((const TUint8*)fmt), s, a1);
+	TheBuf16.Copy(TheBuf8);
+	RDebug::Print(TheBuf16);
+	}
+
+extern "C" void ThreadPrintS(const char* fmt, const char* s)
 	{
 	TPtrC8 p((const unsigned char*)fmt);
 	TheBuf8.Format(TPtrC8((const TUint8*)fmt), s);

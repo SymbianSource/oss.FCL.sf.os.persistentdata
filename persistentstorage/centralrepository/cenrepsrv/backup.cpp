@@ -1,4 +1,4 @@
-// Copyright (c) 2004-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2004-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -230,6 +230,9 @@ void CRepositoryBackupClient::TestBURstatusL(void)
 			    	{
 				    for(TInt i = 0; i < iRestoredRepositoriesArray.Count(); i++)
 				    	{
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+				        __ASSERT_DEBUG(TServerResources::iPMADriveRepositories.FindInOrder( iRestoredRepositoriesArray[i]->Uid(), TLinearOrder<TUid>(TServerResources::CompareUids) ) == KErrNotFound, User::Invariant());
+#endif
 						iRepository->OpenL(iRestoredRepositoriesArray[i]->Uid(), *iNotifier, EFalse);
 						iRepository->RestoreNotify(*iRestoredRepositoriesArray[i]);
 						iRepository->Close();
@@ -481,17 +484,33 @@ void CRepositoryBackupClient::RestoreCompleteL()
 		iRepository->OpenL(repositoryUid, *iNotifier, EFalse);
 		iRepository->FailAllTransactions();
 		TInt repIndex;
-		TRAPD(err, RestoreRepositoryAndListL(repositoryUid, store, settingsStreamId, deletedSettingsStreamId, repIndex));
-		iRepository->Close();
-	    User::LeaveIfError(err);
-		// If the backup contains an installed repository containing default values for the settings, read them in
-		if (installedSettingsStreamId != KNullStreamId)
-			{
-			// create an empty repository in install directory, and restore the data from backup file
-			iRepository->RestoreInstallRepositoryL(repositoryUid, *store, installedSettingsStreamId, *iRestoredRepositoriesArray[repIndex]);
-			// remove the .ini install file (if exists) because it will clash with the restored file
-			TServerResources::DeleteCentrepFileL(repositoryUid, EInstall, EIni);
-			}
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC		
+		// Under normal circumstances the repository should not be a 
+		//  protected keyspace, but we need to check that we are not trying
+		//  restore a protected keyspace, incase the backup file has been
+		//  tampered with.
+		if (iRepository->KeyspaceType() == ENonPMAKeyspace)
+		    {
+#endif
+            TRAPD(err, RestoreRepositoryAndListL(repositoryUid, store, settingsStreamId, deletedSettingsStreamId, repIndex));
+		    
+            iRepository->Close();
+            User::LeaveIfError(err);
+            // If the backup contains an installed repository containing default values for the settings, read them in
+            if (installedSettingsStreamId != KNullStreamId)
+                {
+                // create an empty repository in install directory, and restore the data from backup file
+                iRepository->RestoreInstallRepositoryL(repositoryUid, *store, installedSettingsStreamId, *iRestoredRepositoriesArray[repIndex]);
+                // remove the .ini install file (if exists) because it will clash with the restored file
+                TServerResources::DeleteCentrepFileL(repositoryUid, EInstall, EIni);
+                }
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+		    }
+		else // If it is a protected keyspace then we just want to move onto the next repository. 
+		    {
+		    iRepository->Close();
+		    }
+#endif
 		}
 
 	CleanupStack::PopAndDestroy(restoreStreamIndex) ;
@@ -653,12 +672,18 @@ void CRepositoryBackupClient::InitialiseGetProxyBackupDataL(TSecureId aSID, TDri
 			// Found one match, open the repository and externalise content.
 			TUid uid = TUid::Uid(lookupTableEntry.iRepUid);
 			TRAPD(err,iRepository->OpenL(uid, *iNotifier));
+
 			if (err == KErrNoMemory)
 				{
 				User::Leave(err) ;
 				}
 			else if (err == KErrNone)
 				{			
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+                // No protected keyspaces should be in iOwnerIdLookUpTable.
+                __ASSERT_DEBUG(iRepository->KeyspaceType() != EPMAKeyspace, User::Invariant());
+#endif
+
 				iRepository->FailAllTransactions();
 				// externalise repository contents
 				iRepository->StoreRepositoryContentsL(*store, settingStreamId, deletedSettingsStreamId);

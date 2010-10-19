@@ -196,7 +196,18 @@ LOCAL_C void TestEventViewL(CLogClient& aClient)
  */
 void doTestsL() 
 	{
+	//When SYSLIBS_TEST is defined, the test ECOM contact matching plug-in will be loaded, 
+//otherwise the real contact matching plug-in will be loaded.
+//Therefore, in armv5 urel build, no plug-in will be loaded.
+#ifdef __WINS__
+    TheMatchingIsEnabled = TestUtils::MatchingEnabledL();
+#else 
+    
+#ifdef SYSLIBS_TEST 
 	TheMatchingIsEnabled = TestUtils::MatchingEnabledL();
+#endif
+	
+#endif
 	
 	// test 0 adds an event
 	TestUtils::Initialize(_L("t_logservercrash"));

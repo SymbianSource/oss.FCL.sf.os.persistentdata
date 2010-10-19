@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2007-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -71,13 +71,11 @@ void Check(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		PrintIII("*** Expected error: %d, got: %d. Ignore: %d\r\n", aExpected, aValue, 0);
 		const char* errMsg = sqlite3_errmsg(TheDb);
 		if(errMsg)
 			{
-			TBuf<200> msgBuf;
-			msgBuf.Copy(TPtrC8((const TUint8*)errMsg));
-			RDebug::Print(_L("*** SQLITE error msg: \"%S\".\r\n"), &msgBuf);
+			PrintS("*** SQLITE error msg: \"%s\".\r\n", errMsg);
 			}
 		DestroyTestEnv();
 		TestTestLine(EFalse, aLine);

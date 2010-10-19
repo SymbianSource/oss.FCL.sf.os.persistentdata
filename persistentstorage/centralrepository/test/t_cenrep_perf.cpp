@@ -1,4 +1,4 @@
-// Copyright (c) 2008-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2008-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -18,11 +18,18 @@
 #include <f32file.h>
 #include <bautils.h>
 #include <hal.h>
+#include "t_cenrep_helper.h"
 
-RTest 				TheTest(_L("t_cenrep_perf test"));
+RTest 				TheTest(_L("t_cenrep_perf.exe"));
+
+_LIT( KCentralRepositoryServerName, "Centralrepositorysrv");
+
 CRepository*		TheRepository = NULL;
 const TUid 			KTestCenRepUid = {0xCCCCCC03};
-_LIT(KFileName, "c:\\private\\10202be9\\persists\\cccccc03.cre");
+
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+const TUid          KPMATestCenRepUid = {0xF1000301};
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -63,29 +70,14 @@ const TUint32 KFindPartialKey = 0x08440000ul;
 const TUint32 KFindMask = 0x0FFF0000ul;
 const TInt KFindKeyCount = 15;
 
-
 ///////////////////////////////////////////////////////////////////////////////////////
-
-TInt DeleteCreFile()
-	{
-	RFs fs;
-	fs.Connect();
-	TInt err = fs.Delete(KFileName);
-	fs.Close();
-
-	// it's fine if the file or path wasn't found as there's nothing to 
-	// delete so return KErrNone
-	return (err == KErrNotFound || err == KErrPathNotFound) ? KErrNone : err;
-	}
-
-///////////////////////////////////////////////////////////////////////////////////////
-
-void DestroyTestEnv()
+void DestroyTestEnvL()
 	{
 	delete TheRepository;
+	TheRepository = NULL;
 
 	// delete the CRE file to clear out any changes made during the test
-	DeleteCreFile(); 
+	CleanupCDriveL(); 
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +87,11 @@ void Check(TInt aValue, TInt aLine)
 	{
 	if(!aValue)
 		{
-		DestroyTestEnv();
+		TRAPD(err, DestroyTestEnvL());
+        if (err != KErrNone)
+            {
+            RDebug::Print( _L( "*** DestroyTestEnvL also failed with error %d expecting KErrNone\r\n"), err );
+            }
 		RDebug::Print(_L("*** Test failure. Boolean expression evaluates to false.\r\n"));
 		TheTest(EFalse, aLine);
 		}
@@ -104,8 +100,12 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 	{
 	if(aValue != aExpected)
 		{
-		DestroyTestEnv();
-		RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+	    RDebug::Print(_L("*** Expected error: %d, got: %d\r\n"), aExpected, aValue);
+		TRAPD(err, DestroyTestEnvL());
+        if (err != KErrNone)
+            {
+            RDebug::Print( _L( "*** DestroyTestEnvL also failed with error %d expecting KErrNone\r\n"), err );
+            }
 		TheTest(EFalse, aLine);
 		}
 	}
@@ -115,12 +115,28 @@ void Check2(TInt aValue, TInt aExpected, TInt aLine)
 ///////////////////////////////////////////////////////////////////////////////////////
 
 // leaves if it can't successfully delete the cre file if it exists
-void CreateTestEnvL()
+void CreateTestEnvL(const TUid& aRepUid)
 	{
 	// delete the CRE file to clear out any changes leftover from previous test runs
-	User::LeaveIfError(DeleteCreFile());
-	
-	TRAPD(err, TheRepository = CRepository::NewL(KTestCenRepUid));
+	CleanupCDriveL();
+
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)	
+	RFs fs;
+    User::LeaveIfError(fs.Connect());
+    CleanupClosePushL(fs);
+
+    CFileMan* fm = CFileMan::NewL(fs);
+    CleanupStack::PushL(fm);
+    
+    _LIT(KPMASourcePath, "z:\\private\\10202BE9\\f100031*.pma");
+    _LIT(KPMATargetPath, "c:\\private\\10202BE9\\persists\\protected\\f100031*.cre");
+    
+    //Copying test PMA files to PMA drive to simulate there is 16 PMA keyspaces to see if performance degrades 
+    CopyTestFilesL(*fm,KPMASourcePath, KPMATargetPath);
+    CleanupStack::PopAndDestroy(2); //fs and fm
+#endif	
+
+	TRAPD(err, TheRepository = CRepository::NewL(aRepUid));
 	TEST2(err, KErrNone);
 	}
 
@@ -442,13 +458,12 @@ void DoGetTest(TValType aValType, TBool aUseTransaction = EFalse)
 
 
 /**
- * Common code for performing the Set() and Reset() tests for all datatypes
+ * Common code for performing the Set() tests for all datatypes
  * 
  * @param aValType enum indicating which data type to test
  * 	(EIntVal, ERealVal, EBinaryVal or EStringVal -- any other value will fail with KErrArgument).
- * @param aTestType enum defining whether Set() or Reset() should be timed
  */
-void DoSetResetTest(TValType aValType, TTestType aTestType)
+void DoSetTest(TValType aValType)
 	{
 	TInt err(KErrNone);
 	TInt result(EFalse);
@@ -462,9 +477,9 @@ void DoSetResetTest(TValType aValType, TTestType aTestType)
 	TUint32 end(0);
 
 	// Set the new value
-	start = aTestType == ESetTest ? User::FastCounter() : start;
+	start = User::FastCounter();
 	err = SetNewVal(aValType);
-	end = aTestType == ESetTest ? User::FastCounter() : end;
+	end = User::FastCounter();
 	TEST2(err, KErrNone);
 
 	// Test we get the new value to check it's worked
@@ -472,20 +487,58 @@ void DoSetResetTest(TValType aValType, TTestType aTestType)
 	TEST2(err, KErrNone);
 	TEST(result);
 
-	// Restore the old value
-	start = aTestType == EResetTest ? User::FastCounter() : start;
-	err = ResetSetting(aValType);
-	end = aTestType == EResetTest ? User::FastCounter() : end;
-	TEST2(err, KErrNone);
-	
-	// Check reset's worked
-	err = GetOldVal(aValType, result);
-	TEST2(err, KErrNone);
-	TEST(result);
 	
 	PrintStats(start, end);
 	}
 
+/**
+ * Common code for performing the Reset() tests
+ * 
+ * @param aValType enum indicating which data type to test
+ * 	(EIntVal, ERealVal, EBinaryVal or EStringVal -- any other value will fail with KErrArgument).
+ * @param aExpectedResult indicating the expected return value of Reset
+ * 	(Any valid Symbian OS error codes) 
+ */
+void DoResetTest(TValType aValType, TInt aExpectedResult)
+    {
+    TInt err(KErrNone);
+    TInt result(EFalse);
+    TUint32 start(0);
+    TUint32 end(0);
+
+    // Set the new value
+    err = SetNewVal(aValType);
+    TEST2(err, KErrNone);
+
+    // Test we get the new value to check it's worked
+    err = GetNewVal(aValType, ESetTest, result);
+    TEST2(err, KErrNone);
+    TEST(result);
+
+    // Restore the old value
+    start = User::FastCounter();
+    err = ResetSetting(aValType);
+    end = User::FastCounter();
+    TEST2(err, aExpectedResult);
+    
+    // Check reset's worked
+    if (aExpectedResult == KErrNone)
+        {
+        err = GetOldVal(aValType, result);
+        TEST2(err, KErrNone);
+        TEST(result);
+        }
+    // If aExpectedResult is not KErrNone, Reset should have failed
+    //  The value should be still be the modified value (not reverted back to old value)
+    else 
+        {
+        err = GetNewVal(aValType, ESetTest, result);
+        TEST2(err, KErrNone);
+        TEST(result);
+        }
+    
+    PrintStats(start, end);
+    }
 
 /**
  * Common code for performing all the Create() tests
@@ -717,7 +770,7 @@ void GetMetaTest()
 */
 void SetIntTest()
 	{
-	DoSetResetTest(EIntVal, ESetTest);
+	DoSetTest(EIntVal);
 	}
 
 
@@ -733,7 +786,7 @@ void SetIntTest()
 */
 void SetRealTest()
 	{
-	DoSetResetTest(ERealVal, ESetTest);
+	DoSetTest(ERealVal);
 	}
 
 	
@@ -749,7 +802,7 @@ void SetRealTest()
 */
 void SetBinaryTest()
 	{
-	DoSetResetTest(EBinaryVal, ESetTest);
+	DoSetTest(EBinaryVal);
 	}
 
 
@@ -765,7 +818,7 @@ void SetBinaryTest()
 */
 void SetStringTest()
 	{
-	DoSetResetTest(EStringVal, ESetTest);
+	DoSetTest(EStringVal);
 	}
 
 
@@ -1160,7 +1213,7 @@ void DeleteRangeTestL()
 */
 void ResetTest()
 	{
-	DoSetResetTest(EIntVal, EResetTest);
+	DoResetTest(EIntVal, KErrNone);
 	}
 
 
@@ -1195,13 +1248,50 @@ void ResetAllTest()
 	PrintStats(start, end);
 	}
 
+
+/**
+@SYMTestCaseID          PDS-CENTRALREPOSITORY-CT-4129
+@SYMTestCaseDesc        CRepository::Reset(TUint32 aKey) - performance test
+                        The test measures the time needed for resetting a single PMA integer setting.
+@SYMTestPriority        High
+@SYMTestActions         CRepository::Reset(TUint32 aKey)
+@SYMTestExpectedResults Test must not fail
+@SYMPREQ                PREQ2505
+@SYMREQ                 REQ13142
+*/
+void PMAResetTest()
+    {
+    DoResetTest(EIntVal, KErrNotSupported);
+    }
+
+
+/**
+@SYMTestCaseID          PDS-CENTRALREPOSITORY-CT-4130
+@SYMTestCaseDesc        CRepository::Reset() - performance test
+                        The test measures the time needed for resetting the whole PMA keyspace.
+@SYMTestPriority        High
+@SYMTestActions         CRepository::Reset()
+@SYMTestExpectedResults Test must not fail
+@SYMPREQ                PREQ2505
+@SYMREQ                 REQ13142
+*/
+void PMAResetAllTest()
+    {
+    // Reset the whole keyspace
+    TInt start = User::FastCounter();
+    TInt err = TheRepository->Reset();
+    TInt end = User::FastCounter();
+    TEST2(err, KErrNotSupported);
+    PrintStats(start, end);
+    }
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 // MAIN
 
 void DoTestsL()
 	{
-	TheTest.Start(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-UT-4047 Get Int test"));
+	TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-UT-4047 Get Int test"));
 	GetIntTest();
 
 	TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4087 Get Real test"));
@@ -1281,38 +1371,70 @@ void DoTestsL()
 
 	TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4110 Delete test"));
 	DeleteRangeTestL();
-
-	TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4111 Reset Single test"));
-	ResetTest();
-
-	TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4112 Reset All test"));
-	ResetAllTest();
+	
 	}
+
+void DoResetTests()
+    {
+
+    TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4111 Reset Single test"));
+    ResetTest();
+
+    TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4112 Reset All test"));
+    ResetAllTest();
+    }
+
+void DoPMAResetTests()
+    {
+
+    TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4129 Reset Single test"));
+    PMAResetTest();
+
+    TheTest.Next(_L("@SYMTestCaseID:PDS-CENTRALREPOSITORY-CT-4130 Reset All test"));
+    PMAResetAllTest();
+    }
+
+LOCAL_C void MainL()
+    {
+    //Non-PMA test
+	CreateTestEnvL(KTestCenRepUid);
+
+	DoTestsL();
+	DoResetTests();
+	
+#if defined(SYMBIAN_INCLUDE_APP_CENTRIC)
+    DestroyTestEnvL();
+	CreateTestEnvL(KPMATestCenRepUid);
+    DoTestsL();
+    DoPMAResetTests();
+#endif
+    DestroyTestEnvL();
+    }
 
 
 TInt E32Main()
 	{
-	TheTest.Title();
-	
-	CTrapCleanup* tc = CTrapCleanup::New();
-	TheTest(tc != NULL);
-	
-	__UHEAP_MARK;
-	
-	TRAPD(err, CreateTestEnvL());
-	TEST2(err, KErrNone);
-
-	TRAP(err, DoTestsL());
-	DestroyTestEnv();
-	TEST2(err, KErrNone);
-	
-	__UHEAP_MARKEND;
-	
-	TheTest.End();
-	TheTest.Close();
-	
-	delete tc;
-	
-	User::Heap().Check();
-	return KErrNone;
+    TheTest.Title ();
+    TheTest.Start(_L("Centrep Performance Test"));
+    
+    CTrapCleanup* cleanup = CTrapCleanup::New();
+    TheTest(cleanup != NULL);
+    
+    __UHEAP_MARK;
+    
+    KillProcess(KCentralRepositoryServerName);
+    TRAPD(err, MainL());
+    KillProcess(KCentralRepositoryServerName);
+    TEST2(err, KErrNone);
+    
+    
+    __UHEAP_MARKEND;
+    
+    TheTest.End ();
+    TheTest.Close ();
+    
+    delete cleanup;
+        
+    User::Heap().Check();
+    return KErrNone;
 	}

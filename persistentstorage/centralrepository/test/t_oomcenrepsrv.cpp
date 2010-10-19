@@ -1,4 +1,4 @@
-// Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies).
+// Copyright (c) 2005-2010 Nokia Corporation and/or its subsidiary(-ies).
 // All rights reserved.
 // This component and the accompanying materials are made available
 // under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,6 @@
 // Contributors:
 //
 // Description:
-// t_oomcenrep.cpp
 // 
 //
 
@@ -29,7 +28,7 @@
 #include <bautils.h>
 
 LOCAL_D RFs					TheFs;
-LOCAL_D RTest				TheTest (_L ("t_oomcenrep.exe"));
+LOCAL_D RTest				TheTest (_L ("t_oomcenrepsrv.exe"));
 
 #ifdef __SECURE_DATA__
 _LIT(KInstallDirFile,			"c:\\private\\10202BE9\\persists\\installdir.bin");
@@ -42,6 +41,10 @@ _LIT(KPersistsFileUpgraded,		"c:\\private\\10202BE9\\bur\\11111111.cru");
 _LIT(KRomUpgradeRev1File,		"z:\\private\\10202BE9\\11111111.txu");
 _LIT(KRomUpgradeRev2File,		"z:\\private\\10202BE9\\11111112.txu");
 _LIT(KUpgradeFile,				"c:\\private\\10202BE9\\11111111.txt");
+
+_LIT(KRomUpgradeFile2,          "z:\\private\\10202BE9\\11111113.txi");
+_LIT(KUpgradeFile2,             "c:\\private\\10202BE9\\11111113.txt");
+_LIT(KPersistedUpgradeFile2,    "c:\\private\\10202BE9\\persists\\11111113.cre");
 
 _LIT(KInstallOnlyFile,			"z:\\private\\10202BE9\\11111110.cri");
 _LIT(KInstallOnlyUpgradeFile,	"z:\\private\\10202BE9\\11111110.cru");
@@ -57,6 +60,11 @@ const TUid KTestRepositoryUid={0x11111111};
 const TUid KCorruptRepositoryUid={0xBADBADBB};
 
 static TUid KCurrentTestUid;
+
+//Burst rate for __UHEAP_SETBURSTFAIL
+#ifdef _DEBUG
+const TInt KBurstRate = 20;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //Test macroses and functions
@@ -872,7 +880,7 @@ void CenrepSwiOOMTest::UninstallL(TBool aIsSetup)
 
 LOCAL_C void StartupUpgradeL(TBool aIsSetup)
 {
-	if(aIsSetup)
+    if(aIsSetup)
 		{
 		// Set up files for test
 		RFs fs;
@@ -886,17 +894,16 @@ LOCAL_C void StartupUpgradeL(TBool aIsSetup)
 		if((err!=KErrNone)&&(err!=KErrNotFound))
 			User::Leave(err);
 
-		// Cause directory listing with no files to be written
-		CCentRepSWIWatcher*	swiWatcher = CCentRepSWIWatcher::NewL(TServerResources::iFs);
-		delete swiWatcher;
-
 		User::LeaveIfError(fm->Copy(KPersistsFileNoUpgrade, KPersistsFile));
 		User::LeaveIfError(fm->Attribs(KPersistsFile,0,KEntryAttReadOnly,TTime(0)));
 
 		User::LeaveIfError(fm->Copy(KRomUpgradeRev1File, KUpgradeFile));
 		User::LeaveIfError(fm->Attribs(KUpgradeFile,0,KEntryAttReadOnly,TTime(0)));
+		
+		User::LeaveIfError(fm->Copy(KRomUpgradeFile2, KUpgradeFile2));
+		User::LeaveIfError(fm->Attribs(KUpgradeFile2,0,KEntryAttReadOnly,TTime(0)));
 
-		CleanupStack::PopAndDestroy(2); // fs and fm
+		CleanupStack::PopAndDestroy(2, &fs); //fm and fs
 		}
 	else
 		{
@@ -995,14 +1002,14 @@ LOCAL_C void DoOOMNoServReposL( FuncPtrL atestFuncL, const TDesC& aTestDesc, TBo
 		(*atestFuncL)(ETrue);
 
 		if (aOOMMode)
-			__UHEAP_SETFAIL(RHeap::EDeterministic, ++tryCount);
+		    __UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, ++tryCount, KBurstRate);
 
 		TRAP(err, (*atestFuncL)(EFalse));
 		if (err!=KErrNoMemory)
 			TESTKErrNoneL(err);
 
 		if (aOOMMode)
-			__UHEAP_SETFAIL(RHeap::ENone, 0);
+		    __UHEAP_RESET;
 
 		// check that no handles have leaked
 		TInt endProcessHandleCount;
@@ -1055,12 +1062,12 @@ LOCAL_C void DoOOMTestL(ClassFuncPtrL testFuncL, const TDesC& aTestDesc,TBool aO
 		RThread().HandleCount(startProcessHandleCount, startThreadHandleCount);
 
 		if (aOOMMode)
-			__UHEAP_SETFAIL(RHeap::EDeterministic, ++tryCount);
+		    __UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, ++tryCount, KBurstRate);
 
 		TRAP(err, (theTest->*testFuncL)());
 
 		if (aOOMMode)
-			__UHEAP_SETFAIL(RHeap::ENone, 0);
+		    __UHEAP_RESET;
 
 		if (err!=KErrNoMemory)
 			TESTKErrNoneL(err);
@@ -1120,12 +1127,12 @@ LOCAL_C void DoOOMSwiTestL(ClassSwiFuncPtrL aTestFuncL, const TDesC& aTestDesc,T
 		(theTest->*aTestFuncL)(ETrue);
 
 		if (aOOMMode)
-			__UHEAP_SETFAIL(RHeap::EDeterministic, ++tryCount);
+		    __UHEAP_SETBURSTFAIL(RAllocator::EBurstFailNext, ++tryCount, KBurstRate);
 
 		TRAP(err, (theTest->*aTestFuncL)(EFalse));
 
 		if (aOOMMode)
-			__UHEAP_SETFAIL(RHeap::ENone, 0);
+		    __UHEAP_RESET;
 
 		if (err!=KErrNoMemory)
 			TESTKErrNoneL(err);
@@ -1275,8 +1282,11 @@ LOCAL_C void DoPersistedVersionCheckingL()
 	CleanupStack::PushL(heap);
 	TUint8 creVersion;
 	heap->CreateRepositoryFromCreFileL(TServerResources::iFs,_L("c:\\private\\10202be9\\persists\\88880000.cre"),creVersion);
+#ifdef SYMBIAN_INCLUDE_APP_CENTRIC
+	TESTL(creVersion==KPersistFormatSupportsPma);
+#else	
 	TESTL(creVersion==KPersistFormatSupportsIndMetaIndicator);
-
+#endif
 	CleanupStack::PopAndDestroy(2,test);
 	TServerResources::Close();
 	}
@@ -1321,6 +1331,8 @@ LOCAL_C void DoOOMTestsL()
 	{
 	TheTest.Next (_L (" @SYMTestCaseID:SYSLIB-CENTRALREPOSITORY-LEGACY-T_OOMCENREP-0001 Starting CENREPSRV OOM Test "));
 	RFs fs;
+	TEntry entry;
+	TInt err;
 	User::LeaveIfError(fs.Connect());
 	CleanupClosePushL(fs);
 	CFileMan* fm = CFileMan::NewL(fs);
@@ -1360,7 +1372,10 @@ LOCAL_C void DoOOMTestsL()
 
 	// Simulate SWI events before server startup
 	DoOOMNoServReposL(&StartupUpgradeL, _L("Startup Upgrade Basic Test"), EFalse);
-	DoOOMNoServReposL(&StartupDowngradeL, _L("Startup Downgrade Basic Test"), EFalse);
+    err = fs.Entry(KPersistedUpgradeFile2, entry);
+    TEST2L(err, KErrNone); // the installed keyspace (11111113.txt) should be persisted on start up.
+	
+    DoOOMNoServReposL(&StartupDowngradeL, _L("Startup Downgrade Basic Test"), EFalse);
 	DoOOMNoServReposL(&StartupUninstallL,_L("Startup Uninstall Basic Test"), EFalse);
 
 	//OOM Test aOOMMode=ETrue
@@ -1397,7 +1412,7 @@ LOCAL_C void DoOOMTestsL()
 
 	// Delete files from bur dir
 	User::LeaveIfError(fm->Attribs(KPersistsFileNoUpgrade,0,KEntryAttReadOnly,TTime(0)));
-	TInt err=fs.Delete(KPersistsFileNoUpgrade);
+	err=fs.Delete(KPersistsFileNoUpgrade);
 	if((err!=KErrNone)&&(err!=KErrNotFound))
 		User::Leave(err);
 
