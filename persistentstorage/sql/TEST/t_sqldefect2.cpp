@@ -416,6 +416,67 @@ void DeleteTempFolder()
     TEST2(err, KErrAlreadyExists);
     }
 
+/**
+@SYMTestCaseID          PDS-SQL-CT-4241
+@SYMTestCaseDesc        Test for ou1cimx1#623806: SQL, Thumbnail server, GROUP BY, corrupted results. 
+@SYMTestPriority        High
+@SYMTestActions			The test executes the following set of SQL statements:
+						  CREATE TABLE t1(a COLLATE nocase PRIMARY KEY);
+						  INSERT INTO t1 VALUES('abc');
+						  INSERT INTO t1 VALUES('ABx');
+						then prepares the following SELECT statement:
+						  SELECT DISTINCT a FROM t1;
+						and checks that the retrieved column values for the "a" column are:
+						"abc", "ABx".
+@SYMTestExpectedResults Test must not fail
+@SYMDEF ou1cimx1#623806
+*/
+void SelectDistinctTest()
+	{
+    (void)RSqlDatabase::Delete(KTestDatabase1);
+    TInt err = TheDb1.Create(KTestDatabase1);
+    TEST2(err, KErrNone);
+
+    err = TheDb1.Exec(_L("CREATE TABLE t1(a COLLATE nocase PRIMARY KEY)"));
+    TEST(err >= 0);
+
+    err = TheDb1.Exec(_L("INSERT INTO t1 VALUES('abc')"));
+    TEST2(err, 1);
+    
+    err = TheDb1.Exec(_L("INSERT INTO t1 VALUES('ABx')"));
+    TEST2(err, 1);
+
+    RSqlStatement stmt;
+    err = stmt.Prepare(TheDb1, _L("SELECT DISTINCT a FROM t1"));
+    TEST2(err, KErrNone);
+    
+    err = stmt.Next();
+    TEST2(err, KSqlAtRow);
+    TPtrC val;
+    err = stmt.ColumnText(0, val);
+    TEST2(err, KErrNone);
+    _LIT(KText1, "abc");
+    TBool rc = val == KText1;
+    TEST(rc);
+
+    err = stmt.Next();
+    TEST2(err, KSqlAtRow);
+    err = stmt.ColumnText(0, val);
+    TEST2(err, KErrNone);
+    _LIT(KText2, "ABx");
+    rc = val == KText2;
+    TEST(rc);
+
+    err = stmt.Next();
+    TEST2(err, KSqlAtEnd);
+    
+    stmt.Close();
+    
+    TheDb1.Close();
+    err = RSqlDatabase::Delete(KTestDatabase1);
+    TEST2(err, KErrNone);
+	}
+
 void DoTestsL()
 	{
 	TheTest.Start(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4154 DEF143062: SQL, \"CREATE INDEX\" sql crashes SQL server"));
@@ -435,6 +496,9 @@ void DoTestsL()
     
     TheTest.Next(_L(" @SYMTestCaseID:SYSLIB-SQL-CT-4214 After *#7370# Java apps are not preinstalled again"));
     DeleteTempFolder();
+
+	TheTest.Next(_L(" @SYMTestCaseID:PDS-SQL-CT-4241 ou1cimx1#623806: SQL, Thumbnail server, GROUP BY, corrupted results"));
+	SelectDistinctTest();
 	}
 
 TInt E32Main()

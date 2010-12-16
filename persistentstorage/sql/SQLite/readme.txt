@@ -114,3 +114,5 @@
 - SQLITE 3.6.1	24,February,2010
 	DEF144603: SQL, SQLite attempts to dereference a NULL pointer during OOM test.
 
+- SQLITE 3.6.1 18.Oct.2010    
+        ou1cimx1#620086 SQL, Thumbnail server, GROUP BY, corrupted results
